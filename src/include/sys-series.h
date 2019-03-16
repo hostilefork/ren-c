@@ -596,9 +596,15 @@ inline static bool Did_Series_Data_Alloc(REBSER *s, REBCNT length) {
     REBYTE wide = SER_WIDE(s);
     assert(wide != 0);
 
+    // In order for rebSteal() to work (at least sometimes), always give
+    // dynamic series a chance at having a bias each time it gets allocated
+    // or reallocated.
+    //
+    REBCNT bias = wide == 1 ? sizeof(REBSER*) : 0;
+
     REBCNT size; // size of allocation (possibly bigger than we need)
 
-    REBCNT pool_num = FIND_POOL(length * wide);
+    REBCNT pool_num = FIND_POOL(length * wide + bias);
     if (pool_num < SYSTEM_POOL) {
         // ...there is a pool designated for allocations of this size range
         s->content.dynamic.data = cast(char*, Make_Node(pool_num));
@@ -645,7 +651,7 @@ inline static bool Did_Series_Data_Alloc(REBSER *s, REBCNT length) {
     // SER_SET_BIAS() uses bit masking on an existing value, we are sure
     // here to clear out the whole value for starters.
     //
-    s->content.dynamic.bias = 0;
+    s->content.dynamic.bias = bias;
 
     // The allocation may have returned more than we requested, so we note
     // that in 'rest' so that the series can expand in and use the space.

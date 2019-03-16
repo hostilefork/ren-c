@@ -204,10 +204,14 @@ void *RL_rebRealloc(void *ptr, size_t new_size)
     if (not ptr) // C realloc() accepts null
         return rebMalloc(new_size);
 
-    REBSER **ps = cast(REBSER**, ptr) - 1;
+    // rebMalloc() returns aligned memory, but rebSteal() doesn't.  Use
+    // memcpy() to extract the pointer as it may not be aligned.
+    //
+    char *ps = cast(char*, ptr) - sizeof(REBSER*);
     UNPOISON_MEMORY(ps, sizeof(REBSER*)); // need to underrun to fetch `s`
 
-    REBSER *s = *ps;
+    REBSER *s;
+    memcpy(&s, ps, sizeof(REBSER*)); // may not be pointer-aligned!
 
     REBCNT old_size = BIN_LEN(s) - ALIGN_SIZE;
 
@@ -233,10 +237,11 @@ void RL_rebFree(void *ptr)
     if (not ptr)
         return;
 
-    REBSER **ps = cast(REBSER**, ptr) - 1;
+    char *ps = cast(char*, ptr) - sizeof(REBSER*);
     UNPOISON_MEMORY(ps, sizeof(REBSER*)); // need to underrun to fetch `s`
 
-    REBSER *s = *ps;
+    REBSER *s;
+    memcpy(&s, ps, sizeof(REBSER*)); // may not be pointer aligned!
     if (s->header.bits & NODE_FLAG_CELL) {
         rebJumps(
             "PANIC [",
@@ -1338,6 +1343,102 @@ unsigned char *RL_rebBytes(
 ){
     return rebBytes_internal(FEED_MASK_DEFAULT, size_out, p, vaptr);
 }
+
+
+//
+//  rebSteal: RL_API
+//
+// The difference between rebSteal and rebBytes is that it will actually
+// give the memory used by the Rebol series to the user.  This will be done
+// in such a way that it can also be rebRepossessed *back* into a BINARY!
+// later.  To accomplish this, all dynamic binary series are nominally
+// allocated with enough SER_BIAS at their head in order to hold a platform
+// pointer, and each reallocation will try to maintain that again.
+//
+// !!! There is no guarantee about the alignment of the data returned, it
+// is an arbitrary byte string.
+//
+// Sample usage:
+//
+//     size_t size;
+//     REBYTE *bytes;
+//
+//     bytes = rebSteal(&size, "use [x] [take/part x: make binary! 100 50 x]", rebEND);
+//     printf("%s", bytes);
+//     fflush(stdout);
+//     rebFree(bytes);
+//
+unsigned char *RL_rebSteal(
+    size_t *size_out, // !!! Enforce non-null, to ensure type safety?
+    const void *p, va_list *vaptr
+){
+    Enter_Api();
+
+    DECLARE_LOCAL (series);
+    if (Do_Va_Throws(series, p, vaptr)) // calls va_end()
+        fail (Error_No_Catch_For_Throw(series));
+
+    if (IS_NULLED(series)) {
+        *size_out = 0;
+        return nullptr; // NULL is passed through, for opting out
+    }
+
+    if (ANY_WORD(series) or ANY_STRING(series))
+        fail ("rebSteal() support may be added for ANY-STRING!/ANY_WORD!");
+
+    if (IS_BINARY(series)) {
+        REBYTE *result;
+
+        REBSER *bin = VAL_SERIES(series);
+        if (not IS_SER_DYNAMIC(bin) or SER_BIAS(bin) < sizeof(REBSER*)) {
+            //
+            // Small series don't bother keeping a platform-pointer's worth
+            // of content at their head, and if there isn't enough space
+            // there's nothing that can be done.
+            //
+            *size_out = rebBytesInto(nullptr, 0, series);
+            result = rebAllocN(REBYTE, (*size_out + 1));
+            rebBytesInto(result, *size_out, series);
+
+            Decay_Series(bin);
+        }
+        else {
+            //
+            // There are enough bytes to poke a series pointer in there, so
+            // go ahead and put the pointer in...
+            //
+            REBSER *thief = Make_Series_Core(
+                0, // length 0
+                1, // byte-sized
+                SERIES_FLAG_FIXED_SIZE
+                    | SERIES_FLAG_DONT_RELOCATE
+                    // using Make_Series() b/c want it in the manuals list
+            );
+            assert(not IS_SER_DYNAMIC(thief)); // going to overwrite
+
+            *size_out = BIN_LEN(bin);
+            result = SER_DATA_RAW(bin); // pointer before subtracting bias
+
+            SER_SUB_BIAS(bin, sizeof(REBSER*));
+            memcpy( // use memcpy as it may not be on pointer aligned boundary
+                SER_DATA_RAW(bin), // adjusted head (moved back by bias)
+                &thief, // address of the series stealing the data
+                sizeof(REBSER*)
+            );
+            POISON_MEMORY(SER_DATA_RAW(bin), sizeof(REBSER*)); // see rebFree()
+
+            thief->content = bin->content;
+
+            LEN_BYTE_OR_255(bin) = 0; // non-dynamic, 0 size (unnecessary?)
+            SET_SER_INFO(bin, SERIES_INFO_INACCESSIBLE);
+        }
+
+        return result;
+    }
+
+    fail ("rebSteal() only works with BINARY! (at the moment)");
+}
+
 
 //
 //  rebBytesQ: RL_API
