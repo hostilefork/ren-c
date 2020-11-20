@@ -240,3 +240,41 @@ REBNATIVE(step)
     UNUSED(ARG(amount));
     fail ("STEP's methodology was deprecated, it is being re-implemented");
 }
+
+
+int run_ws_server(void);
+int run_ws_client(void);
+
+
+//
+//  export run-ws-server: native [
+//
+//  {Test to run a WebSocket ECHO server, hopefully to grow into more}
+//
+//  ]
+//
+REBNATIVE(run_ws_server)
+{
+    DEBUGGER_INCLUDE_PARAMS_OF_RUN_WS_SERVER;
+
+    run_ws_server();
+
+    return Init_Void(D_OUT, SYM_VOID);
+}
+
+
+//
+//  export run-ws-client: native [
+//
+//  {Test to run a WebSocket write incrementing, hopefully to grow into more}
+//
+//  ]
+//
+REBNATIVE(run_ws_client)
+{
+    DEBUGGER_INCLUDE_PARAMS_OF_RUN_WS_CLIENT;
+
+    run_ws_client();
+
+    return Init_Void(D_OUT, SYM_VOID);
+}
