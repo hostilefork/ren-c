@@ -63,17 +63,46 @@
 //          [<opt> any-value!]
 //      condition [<opt> any-value!]
 //      :branch "If arity-1 ACTION!, receives the evaluated condition"
-//          [any-branch!]
+//          [word! any-branch!]
 //  ]
 //
 REBNATIVE(if)
 {
     INCLUDE_PARAMS_OF_IF;
 
-    if (IS_CONDITIONAL_FALSE(ARG(condition)))
+    REBVAL *condition = ARG(condition);
+    REBVAL *branch = ARG(branch);
+
+    // If BRANCH is a WORD!, then we create an inert frame for that branch.
+    // This means we have to effectively "run it in neutral".
+    //
+    if (IS_WORD(branch)) {
+        bool error_if_deferred = false;
+        if (Make_Frame_From_Feed_Throws(
+            D_SPARE,
+            branch,
+            frame_->feed,
+            error_if_deferred
+        )){
+            fail ("!!! Should not be able to throw");
+        }
+    }
+
+    if (IS_CONDITIONAL_FALSE(condition))
         return nullptr;  // ^-- truth test fails on voids, literal blocks
 
-    if (Do_Branch_With_Throws(D_OUT, ARG(branch), ARG(condition)))
+
+    if (IS_WORD(branch)) {
+        if (Do_Frame_Ctx_Throws(
+            D_OUT,
+            VAL_CONTEXT(D_SPARE),
+            VAL_FRAME_BINDING(D_SPARE),
+            VAL_FRAME_LABEL(D_SPARE)
+        )){
+            return R_THROWN;
+        }
+    }
+    else if (Do_Branch_With_Throws(D_OUT, branch, condition))
         return R_THROWN;  // ^-- condition is passed to branch if function
 
     return D_OUT;  // most branch executions convert NULL to a ~null~ isotope
@@ -118,12 +147,29 @@ REBNATIVE(either)
 //          [<opt> any-value!]
 //      ^optional "<deferred argument> Run branch if this is null"
 //          [<opt> any-value!]
-//      :branch [any-branch!]
+//      :branch [word! any-branch!]
 //  ]
 //
 REBNATIVE(else)  // see `tweak :else #defer on` in %base-defs.r
 {
     INCLUDE_PARAMS_OF_ELSE;
+
+    REBVAL *branch = ARG(branch);
+
+    // If BRANCH is a WORD!, then we create an inert frame for that branch.
+    // This means we have to effectively "run it in neutral".
+    //
+    if (IS_WORD(branch)) {
+        bool error_on_deferred = false;
+        if (Make_Frame_From_Feed_Throws(
+            D_SPARE,
+            branch,
+            frame_->feed,
+            error_on_deferred
+        )){
+            fail ("!!! Should not be able to throw");
+        }
+    }
 
     if (not IS_NULLED(ARG(optional))) {
         //
@@ -135,7 +181,17 @@ REBNATIVE(else)  // see `tweak :else #defer on` in %base-defs.r
         RETURN (Meta_Unquotify(ARG(optional)));
     }
 
-    if (Do_Branch_With_Throws(D_OUT, ARG(branch), Lib(NULL)))
+    if (IS_WORD(branch)) {
+        if (Do_Frame_Ctx_Throws(
+            D_OUT,
+            VAL_CONTEXT(D_SPARE),
+            VAL_FRAME_BINDING(D_SPARE),
+            VAL_FRAME_LABEL(D_SPARE)
+        )){
+            return R_THROWN;
+        }
+    }
+    else if (Do_Branch_With_Throws(D_OUT, branch, Lib(NULL)))
         return R_THROWN;
 
     return D_OUT;  // most branch executions convert NULL to a ~null~ isotope
