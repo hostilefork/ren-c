@@ -524,7 +524,7 @@ void Needful_Panic_Abruptly(const char* error) {
 
 #define needful_known_any(TLIST,expr)  (expr)  /* doesn't change type */
 
-#define needful_ensure_lvalue(variable)  (*&variable)
+#define needful_known_lvalue(variable)  (*&variable)
 
 
 /****[[ ENABLEABLE: Argument Type Subsetting ]]*******************************
@@ -945,7 +945,8 @@ void Needful_Panic_Abruptly(const char* error) {
 **
 ** `unnecessary()` and `dont()` aren't boolean-constrained, and help document
 ** lines of code that are not needed (or would actively break things), while
-** ensuring the expressions are up-to-date as valid for the compiler.
+** ensuring the expressions are up-to-date and valid.  `cant()` is for things
+** you might like to do, but some current limitation prevents it.
 **
 ** `heeded()` marks things that look stray or like they have no effect, but
 ** their side-effect is intentional (perhaps only in debug builds, that check

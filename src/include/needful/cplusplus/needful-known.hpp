@@ -1,6 +1,6 @@
 //
-//  file: %needful-ensure.hpp
-//  summary: "Type ensuring helpers that use C++ type_traits"
+//  file: %needful-known.hpp
+//  summary: "Compile-time only type assurance helpers using C++ type_traits"
 //  homepage: <needful homepage TBD>
 //
 //=/////////////////////////////////////////////////////////////////////////=//
