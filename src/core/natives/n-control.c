@@ -1177,6 +1177,8 @@ DECLARE_NATIVE(DEFAULT)
         )
     );}
 
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+
     require (
         Get_Var_In_Scratch_To_Out(level_, steps)
     );

@@ -321,6 +321,8 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     Level* level_,  // OUT may be ERROR! antiform, see [A]
     bool groups_ok
 ){
+    assert(OUT != SCRATCH and OUT != SPARE);
+
     Stable* out = Known_Stable(OUT);
 
     assert(LEVEL == TOP_LEVEL);
@@ -348,8 +350,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
   #if RUNTIME_CHECKS
     Protect_Cell(scratch_var);  // (common exit path undoes this protect)
-    if (not Is_Dual_Nulled_Pick_Signal(out))
-        Protect_Cell(OUT);
+    Protect_Cell(OUT);
   #endif
 
   dispatch_based_on_scratch_var_type: {
@@ -576,6 +577,10 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
                 stackindex == limit - 1
                 and not Is_Metaform(Data_Stack_At(Element, stackindex))
             ){
+              #if RUNTIME_CHECKS
+                Unprotect_Cell(OUT);
+              #endif
+
                 Init_Warning(OUT, unwrap e);
                 Failify(OUT);  // signal bad pick distinct from panics
 
@@ -620,6 +625,9 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
     if (Is_Dual_Nulled_Pick_Signal(out)) {
         assert(Is_Nulled(TOP));
+      #if RUNTIME_CHECKS
+        Unprotect_Cell(OUT);
+      #endif
         Copy_Cell(OUT, spare_location_dual);
         goto return_success;
     }
