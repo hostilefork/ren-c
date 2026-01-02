@@ -44,9 +44,16 @@
     LEVEL_FLAG_25
 
 
-//=//// EVAL_EXECUTOR_FLAG_26 /////////////////////////////////////////////=//
+//=//// EVAL_EXECUTOR_FLAG_FORCE_HEAVY ////////////////////////////////////=//
 //
-#define EVAL_EXECUTOR_FLAG_26 \
+// If something is a branch and it is evaluating, then it cannot result in
+// either a pure null or void result.  So they have to be put in a PACK!.
+//
+// This is done as a general service of the eval executor...because if it did
+// not, this would require a separate continuation callback to do it.  So
+// routines like IF would not be able to just delegate to another level.
+//
+#define EVAL_EXECUTOR_FLAG_FORCE_HEAVY \
     LEVEL_FLAG_26
 
 

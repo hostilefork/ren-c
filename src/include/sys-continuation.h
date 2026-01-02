@@ -52,7 +52,7 @@
 
 #define CONTINUE_BRANCH(out,...) \
     CONTINUE_CORE((out), \
-        LEVEL_FLAG_FORCE_HEAVY_NULLS | LEVEL_FLAG_AFRAID_OF_GHOSTS, \
+        EVAL_EXECUTOR_FLAG_FORCE_HEAVY | LEVEL_FLAG_AFRAID_OF_GHOSTS, \
         SPECIFIED, __VA_ARGS__)
 
 INLINE void Continue_Sublevel_Helper(Level* L, Level* sub) {
@@ -100,7 +100,7 @@ INLINE void Continue_Sublevel_Helper(Level* L, Level* sub) {
 
 #define DELEGATE_BRANCH(out,...) \
     DELEGATE_CORE((out), \
-        LEVEL_FLAG_FORCE_HEAVY_NULLS, \
+        EVAL_EXECUTOR_FLAG_FORCE_HEAVY, \
         SPECIFIED, __VA_ARGS__)
 
 #define DELEGATE_SUBLEVEL(sub) \

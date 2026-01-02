@@ -118,7 +118,7 @@ Bounce Group_Branch_Executor(Level* const L)
 
   // 1. The Trampoline has some sanity checking asserts that try to stop you
   //    from making mistakes.  Because this does something weird to use the
-  //    OUT cell as `with` the LEVEL_FLAG_FORCE_HEAVY_NULLS was taken off at
+  //    OUT cell as `with` the EVAL_EXECUTOR_FLAG_FORCE_HEAVY was taken off at
   //    the callsite.
   //
   // 2. For as long as the evaluator is running, its out cell is GC-safe.
@@ -130,7 +130,7 @@ Bounce Group_Branch_Executor(Level* const L)
       Level* sub = Make_Level(
         &Evaluator_Executor,
         LEVEL->feed,
-        (not LEVEL_FLAG_FORCE_HEAVY_NULLS)
+        (not EVAL_EXECUTOR_FLAG_FORCE_HEAVY)
             | (not LEVEL_FLAG_AFRAID_OF_GHOSTS)  // all voids act same here
     ));
     Init_Ghost(Evaluator_Primed_Cell(sub));
@@ -569,7 +569,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
         return NULLED;  // non-vanishing expressions, but none of them passed
 
       case NATIVE_IS_ALL:
-        return BRANCHED(OUT);  // successful ALL returns the last value
+        return OUT_BRANCHED;  // successful ALL returns the last value
 
       case NATIVE_IS_NONE_OF:
         return OKAY;  // successful NONE-OF has no value to return, use OKAY
@@ -582,7 +582,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
     Drop_Level(SUBLEVEL);
     Move_Value(OUT, SPARE);
-    return BRANCHED(OUT);
+    return OUT_BRANCHED;
 
 } return_null: { /////////////////////////////////////////////////////////////
 
@@ -787,7 +787,7 @@ DECLARE_NATIVE(CASE)
 
     if (not ARG(ALL)) {
         Drop_Level(SUBLEVEL);
-        return BRANCHED(OUT);
+        return OUT_BRANCHED;
     }
 
     goto handle_next_clause;
@@ -820,13 +820,13 @@ DECLARE_NATIVE(CASE)
 
     if (Not_Cell_Erased(SPARE)) {  // prioritize fallout result [1]
         Move_Value(OUT, SPARE);
-        return BRANCHED(OUT);
+        return OUT_BRANCHED;
     }
 
     if (Is_Cell_Erased(OUT))  // none of the clauses of an :ALL ran a branch
         return Init_Nulled(OUT);
 
-    return BRANCHED(OUT);
+    return OUT_BRANCHED;
 }}
 
 
@@ -872,7 +872,7 @@ DECLARE_NATIVE(SWITCH)
       case ST_SWITCH_RUNNING_BRANCH:
         if (not ARG(ALL)) {
             Drop_Level(SUBLEVEL);
-            return BRANCHED(OUT);
+            return OUT_BRANCHED;
         }
         goto next_switch_step;
 
@@ -1044,13 +1044,13 @@ DECLARE_NATIVE(SWITCH)
     if (Not_Cell_Erased(SPARE)) {  // something counts as fallout [1]
         possibly(Not_Cell_Stable(SPARE));
         Move_Value(OUT, SPARE);
-        return BRANCHED(OUT);
+        return OUT_BRANCHED;
     }
 
     if (Is_Cell_Erased(OUT))  // no fallout, and no branches ran
         return Init_Nulled(OUT);
 
-    return BRANCHED(OUT);
+    return OUT_BRANCHED;
 }}
 
 
@@ -1209,9 +1209,9 @@ DECLARE_NATIVE(MAYBE)
 //
 //  catch*: native [
 //
-//  "Catches a throw from a block and returns its value"
+//  "Catches a throw from a block and returns its value, GHOST! if no throw"
 //
-//      return: [any-value?]
+//      return: [any-value? ghost!]
 //      name "Name of the THROW construct to define in the block of code"
 //          [word!]
 //      block "Block to evaluate"
@@ -1257,7 +1257,7 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
 
     STATE = ST_CATCH_RUNNING_CODE;
     Enable_Dispatcher_Catching_Of_Throws(LEVEL);  // not caught by default
-    return CONTINUE_BRANCH(OUT, block);
+    return CONTINUE(OUT, block);
 
 } code_result_in_out: {  //////////////////////////////////////////////////////
 
@@ -1265,7 +1265,7 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
         require (
           Elide_Unless_Error_Including_In_Packs(OUT)
         );
-        return NULLED;  // no throw means just return null (pure, for ELSE)
+        return GHOST;  // no throw means just return ghost (pure, for ELSE)
     }
 
     const Stable* label = VAL_THROWN_LABEL(LEVEL);
@@ -1277,7 +1277,8 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
         return THROWN;  // context throw, but not to this CATCH*, keep going
 
     CATCH_THROWN(OUT, level_); // thrown value
-    return BRANCHED(OUT);  // a caught NULL triggers THEN, not ELSE
+    dont(Force_Cell_Heavy(OUT));  // we don't tamper with thrown value
+    return OUT;
 }}
 
 
