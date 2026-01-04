@@ -67,37 +67,37 @@
 //
 //=//// NOTES /////////////////////////////////////////////////////////////=//
 //
-// * Reduced cases such as "2-element path" `/` and the "2-element tuple" `.`
-//   are instead chosen as WORD!.  This was considered non-negotiable, that
-//   `/` be allowed to mean divide.  Making it a PATH! that divided turned
-//   out to be much more convoluted than having special word flags.  (See
-//   SYMBOL_FLAG_ILLEGAL_IN_ANY_SEQUENCE etc. for how these are handled,
-//   where `.` can be put in paths but `/` can't appear in any path or tuple.)
+// A. Reduced cases such as "2-element path" `/` and the "2-element tuple" `.`
+//    are instead chosen as WORD!.  This was considered non-negotiable, that
+//    `/` be allowed to mean divide.  Making it a PATH! that divided turned
+//    out to be much more convoluted than having special word flags.  (See
+//    SYMBOL_FLAG_ILLEGAL_IN_ANY_SEQUENCE etc. for how these are handled,
+//    where `.` can be put in paths but `/` can't appear in any path or tuple.)
 //
-// * The immutability of sequences allows important optimizations in the
-//   implementation that minimize allocations.  For instance, the 2-element
-//   PATH! of `/foo` can be specially encoded to use no more space
-//   than a plain WORD!.  And a 2-element TUPLE! like `a.b` bypasses the need
-//   to create an Array tracking entity by pointing directly at a managed
-//   "pairing" of 2 cells--the same code that is used to compress two INTEGER!
-//   into a PAIR!.
+// B. The immutability of sequences allows important optimizations in the
+//    implementation that minimize allocations.  For instance, the 2-element
+//    PATH! of `/foo` can be specially encoded to use no more space
+//    than a plain WORD!.  And a 2-element TUPLE! like `a.b` bypasses the need
+//    to create an Array tracking entity by pointing directly at a managed
+//    "pairing" of 2 cells--the same code used to compress two INTEGER! into
+//    a PAIR!.
 //
-//   (There are also optimizations for encoding short numeric sequences like IP
-//   addresses or colors into single cells...which aren't as important but
-//   carried over to preserve history of the feature.)
+//    (There are also optimizations for encoding short numeric sequences like
+//    IP addresses or colors into single cells...which aren't as important but
+//    carried over to preserve history of the feature.)
 //
-// * Compressed forms detect their compression as follows:
+// C. Compressed forms detect their compression as follows:
 //
-//   - Byte compressed forms have CELL_FLAG_DONT_MARK_PAYLOAD_1, which you can
-//     test for more clearly with (not Sequence_Has_Pointer(cell))
+//    - Byte compressed forms have CELL_FLAG_DONT_MARK_PAYLOAD_1, which you
+//      can test for more clearly with (not Sequence_Has_Pointer(cell))
 //
-//   - Pair compression has CELL_PAYLOAD_1() with BASE_FLAG_CELL
+//    - Pair compression has CELL_PAYLOAD_1() with BASE_FLAG_CELL
 //
-//   - Single WORD! forms have CELL_PAYLOAD_1() as FLAVOR_SYMBOL
+//    - Single WORD! forms have CELL_PAYLOAD_1() as FLAVOR_SYMBOL
 //        If CELL_FLAG_LEADING_SPACE it is either a `/foo` or `.foo` case
 //        Without the flag, it is either a `foo/` or `foo.` case
 //
-//   - Uncompressed forms have CELL_PAYLOAD_1() as FLAVOR_SOURCE
+//    - Uncompressed forms have CELL_PAYLOAD_1() as FLAVOR_SOURCE
 //
 
 
@@ -202,7 +202,7 @@ INLINE Result(None) Check_Sequence_Element(
 //    reserves the right to make a decision at a later time.
 //
 INLINE Result(Element*) Blank_Head_Or_Tail_Sequencify(
-    Element* e,
+    Element* v,
     Heart heart,
     Flags flag
 ){
@@ -212,31 +212,34 @@ INLINE Result(Element*) Blank_Head_Or_Tail_Sequencify(
     trap (
       Check_Sequence_Element(
         heart,
-        e,
+        v,
         flag == CELL_MASK_ERASED_0  // 0 means no leading space, item is "head"
     ));
 
-    if (Is_Word(e)) {  // see notes at top of file on `/a` cell optimization
-        e->header.bits &= (~ CELL_FLAG_LEADING_SPACE);
-        e->header.bits |= flag;
-        KIND_BYTE(e) = heart;  // e.g. TYPE_WORD => TYPE_PATH
-        return e;
+    if (LIFT_BYTE(v) != NOQUOTE_2)
+        goto cant_optimize_in_situ;  // quote bits mean on sequence itself
+
+    if (Is_Word(v)) {  // in-situ optimization, see [B]
+        v->header.bits &= (~ CELL_FLAG_LEADING_SPACE);
+        v->header.bits |= flag;
+        KIND_BYTE(v) = heart;
+        return v;
     }
 
-    if (Any_List(e)) {  // try mirror optimization
-        assert(Is_Group(e) or Is_Block(e) or Is_Fence(e));  // only valid kinds
-        const Source* a = Cell_Array(e);
+    if (Any_List(v)) {  // try mirror optimization
+        assert(Is_Group(v) or Is_Block(v) or Is_Fence(v));  // only valid kinds
+        const Source* a = Cell_Array(v);
         Option(Heart) mirror = Mirror_Of(a);
-        Option(Heart) h = Heart_Of(e);
+        Option(Heart) h = Heart_Of(v);
         if (not mirror or (unwrap mirror == unwrap h)) {
-            MIRROR_BYTE(a) = unwrap Heart_Of(e);  // remember what kind it is
-            KIND_BYTE(e) = heart;  // e.g. TYPE_BLOCK => TYPE_PATH
-            e->header.bits |= flag;
-            return e;
+            MIRROR_BYTE(a) = unwrap Heart_Of(v);  // remember what kind it is
+            KIND_BYTE(v) = heart;  // e.g. TYPE_BLOCK => TYPE_PATH
+            v->header.bits |= flag;
+            return v;
         }
     }
 
-    if (Is_Integer(e)) {
+    if (Is_Integer(v)) {
         if (heart == TYPE_TUPLE) {
             return fail (  // reserve notation for future use [1]
                 "5. and .5 currently reserved, please use 5.0 and 0.5"
@@ -245,28 +248,39 @@ INLINE Result(Element*) Blank_Head_Or_Tail_Sequencify(
         // fallthrough (should be able to single cell optimize any INTEGER!)
     }
 
+  cant_optimize_in_situ: {
+
+  // There simply aren't enough bits in the 32-bit version of a Cell to be
+  // able to store both the type of a sequence and the type of the element
+  // in the optimized sequence representation for arbitrary types.  The 64-bit
+  // builds *could* use the extra header bits to optimize any single Cell
+  // as a sequence...but would it want to use the bits for that?
+  //
+  // Given that we don't have space for every combination we make a Stub
+  // (pairing node) for the unoptimized cases.
+
     Pairing* p = Alloc_Pairing(BASE_FLAG_MANAGED);
     if (flag == CELL_FLAG_LEADING_SPACE) {
         Init_Space(Pairing_First(p));
-        Copy_Cell(Pairing_Second(p), e);
+        Copy_Cell(Pairing_Second(p), v);
     }
     else {
-        Copy_Cell(Pairing_First(p), e);
+        Copy_Cell(Pairing_First(p), v);
         Init_Space(Pairing_Second(p));
     }
 
     Reset_Cell_Header_Noquote(
-        e,
+        v,
         FLAG_HEART(heart)
             | (not CELL_FLAG_DONT_MARK_PAYLOAD_1)  // mark the pairing
             | CELL_FLAG_DONT_MARK_PAYLOAD_2  // payload second not used
     );
-    Tweak_Cell_Binding(e, UNBOUND);  // "arraylike", needs binding
-    SERIESLIKE_PAYLOAD_1_BASE(e) = p;
-    Corrupt_Unused_Field(e->payload.split.two.corrupt);
+    Tweak_Cell_Binding(v, UNBOUND);  // "arraylike", needs binding
+    SERIESLIKE_PAYLOAD_1_BASE(v) = p;
+    Corrupt_Unused_Field(v->payload.split.two.corrupt);
 
-    return e;
-}
+    return v;
+}}
 
 #define Setify(elem) \
     Blank_Head_Or_Tail_Sequencify((elem), TYPE_CHAIN, CELL_MASK_ERASED_0)
@@ -638,10 +652,10 @@ INLINE Length Sequence_Len(const Cell* c) {
 //    Stub has a place where size is written for non-array types when using
 //    the small series optimization.
 //
-INLINE Element* Copy_Sequence_At(
+INLINE Element* Copy_Sequence_At_Untracked(
     Sink(Element) out,
     const Cell* sequence,
-    REBLEN n
+    Index n
 ){
     assert(out != sequence);
     assert(Any_Sequence_Type(Unchecked_Heart_Of(sequence)));
@@ -654,10 +668,13 @@ INLINE Element* Copy_Sequence_At(
     const Base* payload1 = CELL_PAYLOAD_1(sequence);
     if (Is_Base_A_Cell(payload1)) {  // test if it's a pairing
         const Pairing* p = cast(Pairing*, payload1);  // compressed pair
-        if (n == 0)
-            return Copy_Cell(out, Pairing_First(p));
+        if (n == 0) {
+            Copy_Cell_Untracked(out, Pairing_First(p), CELL_MASK_COPY);
+            return out;
+        }
         assert(n == 1);
-        return Copy_Cell(out, Pairing_Second(p));
+        Copy_Cell_Untracked(out, Pairing_Second(p), CELL_MASK_COPY);
+        return out;
     }
 
     switch (Stub_Flavor(u_cast(Flex*, payload1))) {
@@ -666,7 +683,7 @@ INLINE Element* Copy_Sequence_At(
         if (Get_Cell_Flag(sequence, LEADING_SPACE) ? n == 0 : n != 0)
             return Init_Space(out);
 
-        Copy_Cell_Core(out, sequence, CELL_MASK_COPY);  // [2]
+        Copy_Cell_Untracked(out, sequence, CELL_MASK_COPY);  // [2]
         KIND_BYTE(out) = TYPE_WORD;
         LIFT_BYTE(out) = NOQUOTE_2;  // [3]
         return out; }
@@ -678,7 +695,7 @@ INLINE Element* Copy_Sequence_At(
             if (Get_Cell_Flag(sequence, LEADING_SPACE) ? n == 0 : n != 0)
                 return Init_Space(out);
 
-            Copy_Cell_Core(out, sequence, CELL_MASK_COPY);
+            Copy_Cell_Untracked(out, sequence, CELL_MASK_COPY);
             KIND_BYTE(out) = MIRROR_BYTE(a);
             LIFT_BYTE(out) = NOQUOTE_2;  // [3]
             return out;
@@ -693,10 +710,13 @@ INLINE Element* Copy_Sequence_At(
     }
 }
 
-INLINE Element* Copy_Sequence_At_May_Bind(
+#define Copy_Sequence_At(out,sequence,n) \
+    TRACK(Copy_Sequence_At_Untracked((out), (sequence), (n)))
+
+INLINE Element* Copy_Sequence_At_May_Bind_Untracked(
     Init(Element) out,
     const Element* sequence,
-    REBLEN n,
+    Index n,
     Context* context
 ){
     Copy_Sequence_At(out, sequence, n);
@@ -704,6 +724,10 @@ INLINE Element* Copy_Sequence_At_May_Bind(
         Bind_Cell_If_Unbound(out, context);
     return out;
 }
+
+#define Copy_Sequence_At_May_Bind(out,sequence,n,context) \
+    TRACK(Copy_Sequence_At_May_Bind_Untracked( \
+        (out), (sequence), (n), (context)))
 
 INLINE Byte Sequence_Byte_At(const Cell* sequence, REBLEN n) {
     DECLARE_ELEMENT (at);
