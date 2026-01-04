@@ -1425,6 +1425,9 @@ Bounce Stepper_Executor(Level* L)
     heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
+    possibly(TOP_INDEX != STACK_BASE);  // make map!, reduce [], etc.
+    StackIndex base = TOP_INDEX;
+
     Get_Path_Push_Refinements(LEVEL) except (Error* e) {
         possibly(slash_at_tail);  // ...or, exception for arity-0? [2]
         panic (e);  // don't FAIL, PANIC [1]
@@ -1434,9 +1437,9 @@ Bounce Stepper_Executor(Level* L)
     assert(Is_Action(out));
 
     if (slash_at_tail) {  // do not run action, just return it [3]
-        if (STACK_BASE != TOP_INDEX) {
+        if (TOP_INDEX != base) {
             if (Specialize_Action_Throws(
-                SPARE, out, nullptr, STACK_BASE
+                SPARE, out, nullptr, base
             )){
                 goto return_thrown;
             }
