@@ -414,8 +414,8 @@ iterate-skip: redescribe [
 ](
     specialize enclose for-skip/ func [f {word}] [
         if space? f.word [return null]
-        assert [match [@word!] f.word]
-        f.series: get word: unpin f.word
+        assert [match ['word! $word!] f.word]
+        f.series: get word: noquote untie f.word
 
         ; !!! https://github.com/rebol/rebol-issues/issues/2331
         comment [

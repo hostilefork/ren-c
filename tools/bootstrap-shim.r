@@ -318,10 +318,10 @@ load: ~#[Use LOAD3 in Bootstrap (:HEADER returns BLOCK! with OBJECT!)]#~
 ; In the case of the iteration functions, they take RUNE! (a WORD! type in
 ; the bootstrap executable) to mean that the variable has a binding already
 ; to use vs. create a new one.  It's essential to use with ITERATE in modern
-; Ren-C, but we can't say `iterate @block [...]` in bootstrap (no @).  Hence
-; instead, PIN (which adds @ in new executables) is defined to add a #"."
+; Ren-C, but we can't say `iterate $block [...]` in bootstrap (no $).  Hence
+; instead, TIE (which adds $ in new executables) is defined to add a #"."
 
-pin: lambda3 [word [word!]] [to rune! word]
+tie: lambda3 [word [word!]] [to rune! word]
 
 quasiform!: word!  ; conflated, but can work in a very limited sense
 quasi?: func3 [v <local> spelling] [

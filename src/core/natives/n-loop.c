@@ -667,7 +667,8 @@ DECLARE_NATIVE(CFOR)
 //          <null>          "if BREAK encountered"
 //          ~(<null>)~      "if body result was NULL"
 //      ]
-//      word [word! @word! _]
+//      @(word) "Word to set each time, no new var if $word"
+//          [_ word! ^word! $word! 'word! '^word! '$word!]
 //      series [<opt> none? any-series?]
 //      skip [<opt-out> integer!]
 //      body [<opt-out> <unrun> <const> block! frame!]  ; [A]

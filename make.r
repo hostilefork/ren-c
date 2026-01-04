@@ -1158,7 +1158,7 @@ help: proc [
 ; process help: {-h | -help | --help} [TOPIC]
 
 if commands [
-    iterate (pin $commands) [
+    iterate (tie $commands) [
         if find ["-h" "-help" "--help"] commands.1 [
             if try second commands [  ; bootstrap commands.2 errors if null
                 help:topic second commands
