@@ -148,3 +148,10 @@
     (_ = to rune! '$)
     ('$ = to tied! _)
 ]
+
+[
+    (any-sigiled? '@foo)
+    (not any-sigiled? 'bar)
+    (any-sigiled?:type pinned!)
+    (not any-sigiled?:type block!)
+]
