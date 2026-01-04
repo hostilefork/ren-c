@@ -758,7 +758,7 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
 //
 
 INLINE Option(Type) Underlying_Type_Of_Unchecked(  // inlined in Type_Of() [1]
-    const Value* v
+    const Stable* v
 ){
     assert(LIFT_BYTE_RAW(v) != DUAL_0);
 
@@ -802,14 +802,20 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
 #if NO_RUNTIME_CHECKS
     #define Underlying_Type_Of  Underlying_Type_Of_Unchecked
     #define Type_Of  Type_Of_Unchecked
+    #define Type_Of_Maybe_Unstable  Type_Of_Unchecked
 #else
     #define Underlying_Type_Of(v) \
-        Underlying_Type_Of_Unchecked(Ensure_Readable(v))
+        Underlying_Type_Of_Unchecked(Ensure_Readable(known(Stable*, (v))))
 
     #define Type_Of(v) \
+        Type_Of_Unchecked(Ensure_Readable(known(Stable*, (v))))
+
+    #define Type_Of_Maybe_Unstable(v) \
         Type_Of_Unchecked(Ensure_Readable(v))
 #endif
 
+#define Datatype_Of(v) \
+    Datatype_Of_Maybe_Unstable(known(Stable*, (v)))
 
 INLINE Option(Type) Type_Of_When_Unquoted(const Element* elem) {
     if (LIFT_BYTE(elem) == QUASIFORM_3)

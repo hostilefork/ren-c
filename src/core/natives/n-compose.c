@@ -759,9 +759,9 @@ DECLARE_NATIVE(COMPOSE2)
             const Element* pattern_at = List_Item_At(TOP_ELEMENT);
             Copy_Cell(PUSH(), pattern_at);  // step into pattern
 
-            if (not Any_List(TOP))
+            if (not Any_List(TOP_ELEMENT))
                 panic ("COMPOSE2 pattern must be composed of lists");
-            if (Series_Len_At(TOP) > 1)
+            if (Series_Len_At(TOP_ELEMENT) > 1)
                 panic ("COMPOSE2 pattern layers must be length 1 or 0");
 
             begin_delimiter = Begin_Delimit_For_List(

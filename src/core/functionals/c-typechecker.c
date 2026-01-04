@@ -375,7 +375,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
         TypesetByte typeset_byte = VAL_UINT8(
             Details_At(details, IDX_TYPECHECKER_TYPESET_BYTE)
         );
-        Option(Type) type = Type_Of(SPARE);  // ELEMENT? tests ExtraHeart types
+        Option(Type) type = Type_Of_Maybe_Unstable(SPARE);
         if (Builtin_Typeset_Check(typeset_byte, unwrap type))
             goto test_succeeded;
         goto test_failed;
@@ -770,7 +770,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
         goto test_failed;
 
       case TYPE_DATATYPE: {
-        Option(Type) t = Type_Of(SPARE);
+        Option(Type) t = Type_Of_Maybe_Unstable(SPARE);
         if (t) {  // builtin type
             if (Datatype_Type(test) == t)
                 goto test_succeeded;
@@ -920,7 +920,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
     const TypesetByte* optimized_tail
         = optimized + sizeof(spec->misc.at_least_4);
 
-    Option(Type) type = Type_Of(v);  // Option/extension can be ANY-ELEMENT?
+    Option(Type) type = Type_Of_Maybe_Unstable(v);
     for (; optimized != optimized_tail; ++optimized) {
         if (*optimized == 0)
             break;  // premature end of list
@@ -945,7 +945,9 @@ bool Typecheck_Uses_Spare_And_Scratch(
 
     switch (opt Type_Of(tests)) {
       case TYPE_DATATYPE:
-        return Is_Cell_Stable(v) and (Type_Of(v) == Datatype_Type(tests));
+        if (not Is_Cell_Stable(v))
+            return false;
+        return Type_Of(Known_Stable(v)) == Datatype_Type(tests);
 
       case TYPE_BLOCK:
         at = List_At(&tail, tests);

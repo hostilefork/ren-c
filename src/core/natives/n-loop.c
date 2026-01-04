@@ -1925,7 +1925,7 @@ DECLARE_NATIVE(REMOVE_EACH)
     if (breaking)
         return BREAKING_NULL;
 
-    assert(Type_Of(OUT) == Type_Of(data));
+    assert(Type_Of(Known_Stable(OUT)) == Type_Of(data));
 
 }} return_pack: { //////////////////////////////////////////////////////////=//
 

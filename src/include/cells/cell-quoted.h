@@ -329,7 +329,7 @@ INLINE Element* Unquasify(Element* elem) {
 }
 
 INLINE Element* Quasify_Isotopic_Fundamental(Element* elem) {
-    assert(Any_Isotopic(elem));
+    assert(Any_Isotopic_Type(Heart_Of(elem)));
     assert(LIFT_BYTE(elem) == NOQUOTE_2);
     LIFT_BYTE_RAW(elem) = QUASIFORM_3;
     return elem;
@@ -357,7 +357,7 @@ INLINE Element* Reify(Value* v) {
 
 INLINE Stable* Stably_Antiformize_Unbound_Fundamental(Exact(Stable*) v) {
     assert(Heart_Of(v) != TYPE_WORD);  // no KEYWORD_IS_NULL handling
-    assert(Any_Isotopic(v));
+    assert(Any_Isotopic_Type(Heart_Of(v)));
     assert(LIFT_BYTE(v) == NOQUOTE_2);
     assert(Is_Stable_Antiform_Kind_Byte(KIND_BYTE(v)));
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))
@@ -368,7 +368,7 @@ INLINE Stable* Stably_Antiformize_Unbound_Fundamental(Exact(Stable*) v) {
 
 INLINE Value* Unstably_Antiformize_Unbound_Fundamental(Exact(Value*) v) {
     assert(Heart_Of(v) != TYPE_WORD);  // no KEYWORD_IS_NULL handling
-    assert(Any_Isotopic(v));
+    assert(Any_Isotopic_Type(Heart_Of(v)));
     assert(LIFT_BYTE(v) == NOQUOTE_2);
     assert(not Is_Stable_Antiform_Kind_Byte(KIND_BYTE(v)));
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))

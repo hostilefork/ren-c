@@ -220,13 +220,13 @@ const Stable* Datatype_From_Type(Type type)
 // Returns the datatype value for the given value.
 // The datatypes are all at the head of the context.
 //
-const Stable* Datatype_Of(const Value* value)
+const Stable* Datatype_Of_Maybe_Unstable(const Value* v)
 {
-    Option(Type) type = Type_Of(value);
+    Option(Type) type = Type_Of_Maybe_Unstable(v);
     if (type)
         return Datatype_From_Type(unwrap type);
 
-    const ExtraHeart* ext_heart = Cell_Extra_Heart(value);
+    const ExtraHeart* ext_heart = Cell_Extra_Heart(v);
     assert(Is_Stub_Patch(ext_heart));
 
     const Stable* datatype = cast(Stable*, Stub_Cell(ext_heart));

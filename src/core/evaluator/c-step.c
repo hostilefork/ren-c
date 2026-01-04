@@ -1528,17 +1528,21 @@ Bounce Stepper_Executor(Level* L)
         goto handle_generic_set;
     }
 
-    switch (opt Type_Of(SPARE)) {
+    require (
+      Stable* spare = Decay_If_Unstable(SPARE)
+    );
+
+    switch (opt Type_Of(spare)) {
       case TYPE_BLOCK:
-        Copy_Cell(CURRENT, cast(Element*, SPARE));
+        Copy_Cell(CURRENT, Known_Element(spare));
         goto handle_set_block;
 
       case TYPE_WORD:
-        Copy_Cell(CURRENT, cast(Element*, SPARE));
+        Copy_Cell(CURRENT, Known_Element(spare));
         goto handle_generic_set;
 
       case TYPE_TUPLE:
-        Copy_Cell(CURRENT, cast(Element*, SPARE));
+        Copy_Cell(CURRENT, Known_Element(spare));
         goto handle_generic_set;
 
       default:

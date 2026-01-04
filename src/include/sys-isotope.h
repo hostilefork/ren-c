@@ -6,7 +6,7 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Copyright 2024 Ren-C Open Source Contributors
+// Copyright 2025 Ren-C Open Source Contributors
 // REBOL is a trademark of REBOL Technologies
 //
 // See README.md and CREDITS.md for more information.
@@ -45,7 +45,11 @@
 // 4. While all WORD!s are allowed to have quasiforms, only special ones are
 //    allowed to be antiform "keywords".  Other words are reserved for future
 //    usage, though dialects can use quasi words however they want.
-//
+
+
+#undef Any_Isotopic  // use Any_Isotopic_Type(Heart_Of(v))
+
+
 // 1. The convention here is that you have to pass an Value in, because at
 //    the end of the operation you'll have either a Stable* or an Value*.
 //    If you were allowed to pass in an Element*, then you'd have an invalid
