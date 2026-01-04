@@ -200,6 +200,8 @@ export emit-include-params-macro: func [
     replace spec "^^" caret-surrogate  ; ^WORD! would just be invalid [1]
     replace spec "~[" ""  ; stop ~[on off]~ from becoming "~on off~"
     replace spec "]~" ""
+    replace spec "~(" ""  ; stop ~(type2! type2!)~ from becoming "~type1 type2~"
+    replace spec ")~" ""
     replace spec "(" ""  ; make escapable @(foo) just be @foo [1]
     replace spec ")" ""
     replace spec "{" ""  ; load {local1 local2} as local1 local2 [1]
