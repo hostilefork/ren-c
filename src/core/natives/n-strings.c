@@ -617,7 +617,7 @@ DECLARE_NATIVE(JOIN)
 
     if (heart == TYPE_WORD) {
         require (
-          const Symbol* s = Intern_Utf8_Managed(utf8, size)
+          const Symbol* s = Intern_Symbol(utf8, size)
         );
         Init_Word(OUT, s);
     }

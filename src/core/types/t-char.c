@@ -677,7 +677,7 @@ IMPLEMENT_GENERIC(TO, Any_Utf8)
         Size size;  // TO conversion of mutable data, can't reuse stub
         Utf8(const*) at = Cell_Utf8_Size_At(&size, v);
         require (
-          const Symbol* sym = Intern_Utf8_Managed(at, size)
+          const Symbol* sym = Intern_Symbol(at, size)
         );
         return Init_Word(OUT, sym);
     }
@@ -832,7 +832,7 @@ Result(Element*) Alias_Any_Utf8_As(
         Size size;
         Utf8(const*) at = Cell_Utf8_Size_At(&size, v);
         trap (
-          const Symbol* sym = Intern_Utf8_Managed(at, size)
+          const Symbol* sym = Intern_Symbol(at, size)
         );
         return Init_Word(out, sym);
     }

@@ -2572,7 +2572,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
     assert(len != 0);
     trap (
-      const Symbol* symbol = Intern_Utf8_Managed(S->begin, len)
+      const Symbol* symbol = Intern_Symbol(S->begin, len)
     );
     Init_Word(PUSH(), symbol);
     goto lookahead;

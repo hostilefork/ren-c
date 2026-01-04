@@ -1054,7 +1054,7 @@ const RebolBaseInternal* API_rebArgR(
     if (Detect_Rebol_Pointer(p2) != DETECTED_AS_END)
         panic ("rebArg() isn't actually variadic, it's arity-1");
 
-    const Symbol* symbol = Intern_Utf8_Managed(
+    const Symbol* symbol = Intern_Symbol(
         b_cast(name), strsize(name)
     ) except (Error* e) {
         panic (e);

@@ -698,7 +698,7 @@ void Startup_Core(void)
     );
 
     assume (  // !!! can't put dots in Symbol*, should be using Strand here
-        const Symbol* tmp_boot = Intern_Unsized_Managed("tmp-boot-r")
+        const Symbol* tmp_boot = Intern_Unsized_Symbol("tmp-boot-r")
     );
     Push_Lifeguard(tmp_boot);  // recycle torture frees on scanner first push!
     Array* boot_array = Scan_UTF8_Managed(

@@ -152,10 +152,10 @@ INLINE bool Any_Word(const Stable* v)
 
 
 // Helper calls strsize() so you can more easily use literals at callsite.
-// (Better to call Intern_Utf8_Managed() with the size if you know it.)
+// (Better to call Intern_Symbol() with the size if you know it.)
 //
-INLINE Result(const Symbol*) Intern_Unsized_Managed(const char *utf8)
-  { return Intern_Utf8_Managed(b_cast(utf8), strsize(utf8)); }
+INLINE Result(Managed(const Symbol*)) Intern_Unsized_Symbol(const char *bp)
+  { return Intern_Symbol(b_cast(bp), strsize(bp)); }
 
 
 // It's fundamental to PARSE to recognize `|` and skip ahead to it to the end.

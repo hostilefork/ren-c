@@ -101,7 +101,7 @@ INLINE RebolValue* Register_Datatype(const char* name)  // return "holder" [1]
 {
     Size size = strsize(name);
     assume (
-        const Symbol* symbol = Intern_Utf8_Managed(b_cast(name), size)
+        const Symbol* symbol = Intern_Symbol(b_cast(name), size)
     );
 
     Api(Value*) result = Alloc_Value();

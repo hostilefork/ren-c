@@ -355,7 +355,7 @@ DECLARE_NATIVE(OF)
     buffer[size] = 'f';
     ++size;
     assume (
-      sym_of = Intern_Utf8_Managed(buffer, size)
+      sym_of = Intern_Symbol(buffer, size)
     );
 
 } have_sym_of: { /////////////////////////////////////////////////////////////
@@ -1133,7 +1133,7 @@ DECLARE_NATIVE(SCAN_NET_HEADER)
         Sink(Element) val = nullptr;  // suppress maybe uninitialized warning
 
         require (
-          const Symbol* name = Intern_Utf8_Managed(start, cp - start)
+          const Symbol* name = Intern_Symbol(start, cp - start)
         );
 
         cp++;

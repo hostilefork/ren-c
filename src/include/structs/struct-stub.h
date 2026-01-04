@@ -453,6 +453,9 @@ typedef union {
 };
 
 
+#define Managed(T)  T  // currently just documentation of managed returns
+
+
 //=//// DON'T PUT ANY CODE (OR MACROS THAT MAY NEED CODE) IN THIS FILE! ///=//
 //
 // The %tmp-internals.h file has not been included, and hence none of the

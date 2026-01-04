@@ -197,7 +197,7 @@ static void Expand_Word_Table(void)
 
 
 //
-//  Intern_Utf8_Managed_Core: C
+//  Intern_Symbol_Core: C
 //
 // Makes only one copy of each distinct character string.
 //
@@ -222,7 +222,7 @@ static void Expand_Word_Table(void)
 //    actually kept larger than that, but to be on the right side of theory,
 //    the table is always checked for expansion needs *before* the search.)
 //
-Result(const Symbol*) Intern_Utf8_Managed_Core(  // implicitly managed [1]
+Result(Managed(const Symbol*)) Intern_Symbol_Core(  // implicitly managed [1]
     Option(void*) preallocated,  // most calls don't know if allocation needed
     const Byte* bp,  // case-sensitive [2]
     Size size
@@ -466,10 +466,11 @@ void GC_Kill_Interning(const Symbol* symbol)
 //
 //  Startup_Interning: C
 //
-// Get the engine ready to do Intern_Utf8_Managed().  We start the hash table
-// out at a fixed size.  When collisions occur, it causes a skipping pattern
-// that continues until it finds the desired slot.  The method is known as
-// linear probing:
+// Get the engine ready to do Intern_Symbol().
+//
+// We start the hash table out at a fixed size.  When collisions occur, it
+// causes a skipping pattern that continues until it finds the desired slot.
+// The method is known as linear probing:
 //
 //   https://en.wikipedia.org/wiki/Linear_probing
 //
@@ -548,7 +549,7 @@ void Startup_Builtin_Symbols(
 
         Symbol* canon = &g_symbols.builtin_canons[id];  // not a Symbol*...yet
         require (
-          Intern_Utf8_Managed_Core(canon, at, size)  // now it is!
+          Intern_Symbol_Core(canon, at, size)  // now it is!
         );
 
         at += size;
@@ -596,7 +597,7 @@ RebolValue* Register_Symbol(const char* utf8, SymId16 id16)
 {
     assert(id16 > MAX_SYM_BUILTIN);
 
-    const Symbol* symbol = Intern_Utf8_Managed(
+    const Symbol* symbol = Intern_Symbol(
         b_cast(utf8), strlen(utf8)
     ) except (Error* e) {
         panic (e);
