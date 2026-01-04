@@ -1939,7 +1939,9 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
                     return TOKEN_URL;
                 }
 
-                Byte want = unwrap First_Byte_Of_Rune_If_Single_Char(TOP_STABLE);
+                Byte want = unwrap First_Byte_Of_Rune_If_Single_Codepoint(
+                    TOP_STABLE
+                );
                 if (*cp != want) {
                     Drop_Data_Stack_To(base);
                     return fail (Error_Mismatch(want, *cp));
@@ -1958,7 +1960,9 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
         }
 
         if (base != TOP_INDEX) {
-            Byte want = unwrap First_Byte_Of_Rune_If_Single_Char(TOP_STABLE);
+            Byte want = unwrap First_Byte_Of_Rune_If_Single_Codepoint(
+                TOP_STABLE
+            );
             Drop_Data_Stack_To(base);
             return fail (Error_Mismatch(want, *cp));
         }

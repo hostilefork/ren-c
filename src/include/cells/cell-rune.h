@@ -66,34 +66,16 @@
 // could still store the codepoint and get the size and length information
 // other ways.  Review if getting the codepoint without decoding is worth it.
 //
-#define CELL_FLAG_RUNE_ONE_CODEPOINT  CELL_FLAG_TYPE_SPECIFIC_A
+#define CELL_FLAG_RUNE_SINGLE_CODEPOINT  CELL_FLAG_TYPE_SPECIFIC_A
 
 
 //=//// CELL_FLAG_RUNE_IS_SPACE ////////////////////////////////////////////=//
 //
 // The space variations of [_ ~ @ $ ^] are common, as is the antiform of
 // TRIPWIRE.  Being able to test for these just by looking at the header has
-// advantages, similar to the CELL_FLAG_RUNE_ONE_CODEPOINT.
+// advantages, similar to the CELL_FLAG_RUNE_SINGLE_CODEPOINT.
 //
 #define CELL_FLAG_RUNE_IS_SPACE  CELL_FLAG_TYPE_SPECIFIC_B
-
-
-INLINE bool Rune_Is_Single_Codepoint(const Cell* cell) {
-    assert(Unchecked_Heart_Of(cell) == TYPE_RUNE);
-    return Get_Cell_Flag(cell, RUNE_ONE_CODEPOINT);
-}
-
-INLINE bool Is_Rune_And_Is_Char(const Stable* v) {
-    return (
-        (Ensure_Readable(v)->header.bits & (
-            CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_RUNE_ONE_CODEPOINT
-        )) == (
-            FLAG_HEART(TYPE_RUNE)
-                | FLAG_LIFT_BYTE(NOQUOTE_2)
-                | CELL_FLAG_RUNE_ONE_CODEPOINT
-        )
-    );
-}
 
 INLINE Codepoint Rune_Known_Single_Codepoint(const Cell* cell) {
     assert(
@@ -107,7 +89,32 @@ INLINE Codepoint Rune_Known_Single_Codepoint(const Cell* cell) {
     return c;
 }
 
-INLINE Option(Byte) First_Byte_Of_Rune_If_Single_Char(const Cell* cell) {
+INLINE bool Rune_Is_Single_Codepoint(const Cell* cell) {
+    assert(
+        Unchecked_Heart_Of(cell) == TYPE_RUNE
+    );
+    if (Get_Cell_Flag(cell, RUNE_SINGLE_CODEPOINT)) {
+        assert(cell->extra.at_least_4[IDX_EXTRA_LEN] == 1);
+        return true;
+    }
+    assert(cell->extra.at_least_4[IDX_EXTRA_LEN] > 1);
+    return false;
+}
+
+INLINE bool Is_Rune_And_Is_Char(const Stable* v) {
+    return (
+        (Ensure_Readable(v)->header.bits & (
+            CELL_MASK_HEART_AND_SIGIL_AND_LIFT
+                | CELL_FLAG_RUNE_SINGLE_CODEPOINT
+        )) == (
+            FLAG_HEART(TYPE_RUNE)
+                | FLAG_LIFT_BYTE(NOQUOTE_2)
+                | CELL_FLAG_RUNE_SINGLE_CODEPOINT
+        )
+    );
+}
+
+INLINE Option(Byte) First_Byte_Of_Rune_If_Single_Codepoint(const Cell* cell) {
     if (not Rune_Is_Single_Codepoint(cell))
         return '\0';
 
@@ -154,7 +161,7 @@ INLINE bool Try_Init_Small_Utf8_Untracked(
     Reset_Cell_Header_Noquote(  // include fast flags for space/char checks
         out,
         FLAG_HEART(heart) | CELL_MASK_NO_MARKING
-            | ((len == 1) ? CELL_FLAG_RUNE_ONE_CODEPOINT : 0)
+            | ((len == 1) ? CELL_FLAG_RUNE_SINGLE_CODEPOINT : 0)
             | ((size == 1) and (bp[0] == ' ') ? CELL_FLAG_RUNE_IS_SPACE : 0)
     );
 
@@ -226,7 +233,7 @@ INLINE Element* Init_Char_Unchecked_Untracked(Init(Element) out, Codepoint c) {
     Reset_Cell_Header_Noquote(
         out,
         FLAG_HEART(TYPE_RUNE) | CELL_MASK_NO_MARKING
-            | CELL_FLAG_RUNE_ONE_CODEPOINT
+            | CELL_FLAG_RUNE_SINGLE_CODEPOINT
             | ((c == ' ') ? CELL_FLAG_RUNE_IS_SPACE : 0)
     );
 
@@ -312,16 +319,24 @@ INLINE bool Is_Space_With_Lift_Sigil(
     Option(Sigil) sigil,
     const Stable* v
 ){
-    return (
-        (Ensure_Readable(v)->header.bits & (
-            CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_RUNE_IS_SPACE
-        )) == (
-            FLAG_HEART(TYPE_RUNE)
-                | FLAG_LIFT_BYTE(lift)
-                | FLAG_SIGIL(sigil)
-                | CELL_FLAG_RUNE_IS_SPACE
-        )
+    bool is_space = (Ensure_Readable(v)->header.bits & (
+        CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_RUNE_IS_SPACE
+    )) == (
+        FLAG_HEART(TYPE_RUNE)
+            | FLAG_LIFT_BYTE(lift)
+            | FLAG_SIGIL(sigil)
+            | CELL_FLAG_RUNE_IS_SPACE
     );
+
+  #if RUNTIME_CHECKS
+    if (Is_Rune(v))
+        assert(
+            Get_Cell_Flag(v, RUNE_IS_SPACE)
+            == (' ' == opt Codepoint_Of_Rune_If_Single_Char(v))
+        );
+  #endif
+
+    return is_space;
 }
 
 #define Is_Space(v) \
