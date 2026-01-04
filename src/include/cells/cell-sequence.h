@@ -142,20 +142,13 @@ INLINE Result(None) Check_Sequence_Element(
     }
 
     if (h == TYPE_RUNE) {
-        if (Is_Quasar(e))  // Legal, e.g. `~/home/Projects/ren-c/README.md`
-            return none;
-
-        if (Any_Sigiled_Space(e))
-            return none;  // single-char forms legal for now
-
         if (Is_Space(e)) {
             assert(not is_head);  // callers check spaces at head or tail
             return fail (
                 Error_Bad_Sequence_Space_Raw()  // space only legal at head
             );
         }
-
-        goto bad_sequence_item;
+        return none;  // all other runes legal
     }
 
     if (not Any_Sequencable_Type(h))
