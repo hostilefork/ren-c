@@ -325,8 +325,8 @@ DECLARE_NATIVE(TO)
     if (not to)
         panic ("TO doesn't work with extension types");
 
-    if (unwrap to > MAX_TYPE_FUNDAMENTAL)  // !!! is quoted applicable, or dumb?
-        panic ("TO can't produce antiforms or quoteds");
+    if (u_cast(Byte, unwrap to) > MAX_TYPEBYTE_FUNDAMENTAL)
+        panic ("TO can't produce antiforms or quoteds");  // !!! handle quoted?
 
   handle_sigil_cases: {
 
@@ -422,7 +422,7 @@ DECLARE_NATIVE(AS)
     Option(Type) as = Datatype_Type(ARG(TYPE));
     if (not as)
         panic ("TO doesn't work with extension types");
-    if ((unwrap as) > MAX_HEART)
+    if (u_cast(TypeByte, (unwrap as)) > MAX_HEARTBYTE)
         panic ("AS can't alias to quoted/quasiform/antiform");
 
   #if NO_RUNTIME_CHECKS

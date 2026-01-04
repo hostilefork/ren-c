@@ -1769,7 +1769,7 @@ void Assert_Array_Core(const Array* a)
         }
 
         Assert_Cell_Readable(item);
-        if (cast(Byte, Heart_Of(item)) > cast(Byte, MAX_HEART)) {
+        if (cast(Byte, Heart_Of(item)) > MAX_HEARTBYTE) {
             printf("Invalid Heart_Of() at index %d\n", cast(int, n));
             crash (a);
         }

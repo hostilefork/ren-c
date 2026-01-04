@@ -54,10 +54,10 @@ void Startup_Datatypes(void)
         SymId id = cast(SymId, id16);
         Type type = Type_From_Symbol_Id(id);
 
-        if (type > MAX_TYPE_ELEMENT) {  // antiform
+        if (u_cast(TypeByte, type) > MAX_TYPEBYTE_ELEMENT) {  // antiform
             Heart heart = u_cast(
                 Heart,
-                u_cast(Byte, type) - u_cast(Byte, MAX_TYPE_ELEMENT)
+                u_cast(TypeByte, type) - MAX_TYPEBYTE_ELEMENT
             );
             if (not Any_Isotopic_Type(heart))
                 continue;  // don't define the dummy antiform for this [2]

@@ -158,17 +158,17 @@ typedef enum {
     ST_STEPPER_INITIAL_ENTRY = STATE_0,
 
 
-  //=//// STEPPER STATES BELOW MAX_TYPE RESERVED FOR DATATYPE //////////////=//
+  //=//// STEPPER STATES BELOW MAX_TYPEBYTE RESERVED FOR DATATYPE /////////=//
 
     // The stepper uses TYPE_XXX types of the current cell being processed
     // for the STATE byte in those cases.  This is helpful for knowing what
     // the mode of an evaluator level is, and makes the value on hand for
     // easy use in the "hot" level header location.
     //
-    // Since we can only evaluate Element, we start the stepper custom states
-    // after MAX_TYPE_ELEMENT (inclusive, e.g. TYPE_QUOTED = MAX_TYPE_ELEMENT)
+    // Since we only evaluate Element, start the stepper custom states *after*
+    // MAX_TYPEBYTE_ELEMENT (inclusive, TYPE_QUOTED = MAX_TYPEBYTE_ELEMENT)
 
-    ST_STEPPER_MAX_TYPE = MAX_TYPE_BYTE_ELEMENT,
+    ST_STEPPER_MAX_TYPE = MAX_TYPEBYTE_ELEMENT,
 
 
   //=//// STEPPER STATES ABOVE MAX_TYPE ////////////////////////////////////=//

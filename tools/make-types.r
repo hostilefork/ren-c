@@ -239,7 +239,7 @@ e-types: make-emitter "Datatype Definitions" (
 e-types/emit [--[
     /* Tables generated from %types.r for builtin typesets */
     extern TypesetFlags const g_typesets[];  // up to 255 allowed
-    extern uint_fast32_t const g_sparse_memberships[MAX_TYPE_BYTE_ELEMENT + 1];
+    extern uint_fast32_t const g_sparse_memberships[MAX_TYPEBYTE_ELEMENT + 1];
 ]--]
 
 e-types/emit [--[
@@ -645,7 +645,7 @@ for-each [ts-name types] sparse-typesets [  ; sparse, typeset is a single flag
 
     append typeset-flags cscape [tr --[
         /* $<index> - any-plain */
-        TYPESET_FLAG_0_RANGE | FLAG_THIRD_BYTE(0) | FLAG_FOURTH_BYTE(cast(Byte, MAX_HEART))
+        TYPESET_FLAG_0_RANGE | FLAG_THIRD_BYTE(0) | FLAG_FOURTH_BYTE(MAX_HEARTBYTE)
     ]--]
     index: index + 1
 )
@@ -660,7 +660,7 @@ for-each [ts-name types] sparse-typesets [  ; sparse, typeset is a single flag
 
     append typeset-flags cscape [tr --[
         /* $<index> - any-fundamental */
-        TYPESET_FLAG_0_RANGE | FLAG_THIRD_BYTE(0) | FLAG_FOURTH_BYTE(cast(Byte, MAX_TYPE_FUNDAMENTAL))
+        TYPESET_FLAG_0_RANGE | FLAG_THIRD_BYTE(0) | FLAG_FOURTH_BYTE(MAX_TYPEBYTE_FUNDAMENTAL)
     ]--]
     index: index + 1
 )
@@ -675,7 +675,7 @@ for-each [ts-name types] sparse-typesets [  ; sparse, typeset is a single flag
 
     append typeset-flags cscape [tr --[
         /* $<index> - any-element */
-        TYPESET_FLAG_0_RANGE | FLAG_THIRD_BYTE(0) | FLAG_FOURTH_BYTE(MAX_TYPE_ELEMENT)
+        TYPESET_FLAG_0_RANGE | FLAG_THIRD_BYTE(0) | FLAG_FOURTH_BYTE(MAX_TYPEBYTE_ELEMENT)
     ]--]
     index: index + 1
 )
@@ -701,7 +701,7 @@ e-typesets/emit [--[
      * to 31 of those TYPESET_FLAG_XXX flags in this model (avoids dependency
      * on 64-bit integers, which we are attempting to excise from the system).
      */
-    uint_fast32_t const g_sparse_memberships[MAX_TYPE_BYTE_ELEMENT + 1] = {
+    uint_fast32_t const g_sparse_memberships[MAX_TYPEBYTE_ELEMENT + 1] = {
         /* 0 - <ExtraHeart> */  0,
         $(Memberships),
     };
@@ -792,22 +792,20 @@ e-hearts/emit [rebs --[
         $[Typedefines]
     #endif
 
-    #define MAX_HEART  $<MAX-HEART>
-    STATIC_ASSERT(cast(Byte, MAX_HEART) < 64);
+    #define MAX_HEARTBYTE  u_cast(Byte, $<MAX-HEART>)
+    STATIC_ASSERT(cast(Byte, MAX_HEARTBYTE) < 64);
 
-    STATIC_ASSERT(cast(int, TYPE_METAFORM) == cast(int, MAX_HEART) + 1);
-    STATIC_ASSERT(cast(int, TYPE_TIED) == cast(int, MAX_HEART) + 2);
-    STATIC_ASSERT(cast(int, TYPE_PINNED) == cast(int, MAX_HEART) + 3);
-    STATIC_ASSERT(cast(int, TYPE_QUASIFORM) == cast(int, MAX_HEART) + 4);
-    STATIC_ASSERT(cast(int, TYPE_QUOTED) == cast(int, MAX_HEART) + 5);
+    STATIC_ASSERT(cast(Byte, TYPE_METAFORM) == MAX_HEARTBYTE + 1);
+    STATIC_ASSERT(cast(Byte, TYPE_TIED) == MAX_HEARTBYTE + 2);
+    STATIC_ASSERT(cast(Byte, TYPE_PINNED) == MAX_HEARTBYTE + 3);
+    STATIC_ASSERT(cast(Byte, TYPE_QUASIFORM) == MAX_HEARTBYTE + 4);
+    STATIC_ASSERT(cast(Byte, TYPE_QUOTED) == MAX_HEARTBYTE + 5);
 
-    #define MAX_TYPE_FUNDAMENTAL  TYPE_PINNED
+    #define MAX_TYPEBYTE_FUNDAMENTAL  cast(Byte, TYPE_PINNED)
 
-    #define MAX_TYPE_ELEMENT  TYPE_QUOTED
-    #define MAX_TYPE_BYTE_ELEMENT  cast(Byte, TYPE_QUOTED)
+    #define MAX_TYPEBYTE_ELEMENT  cast(Byte, TYPE_QUOTED)
 
-    #define MAX_TYPE  $<MAX-TYPE>
-    #define MAX_TYPE_BYTE  cast(Byte, $<MAX-TYPE>)
+    #define MAX_TYPEBYTE  cast(Byte, $<MAX-TYPE>)
 
     STATIC_ASSERT(cast(int, $<MAX-TYPE>) <= 256);  /* Stored in bytes */
 

@@ -716,7 +716,7 @@ void Startup_Core(void)
     );
 
     Source* typespecs = Cell_Array_Known_Mutable(&boot->typespecs);
-    assert(Array_Len(typespecs) == MAX_TYPE_BYTE);  // exclude TYPE_0 (custom)
+    assert(Array_Len(typespecs) == MAX_TYPEBYTE);  // exclude TYPE_0 (custom)
     UNUSED(typespecs);  // not used at this time
 
     // Symbol_Id(), Word_Id() and CANON(XXX) now available

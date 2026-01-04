@@ -43,7 +43,7 @@
 //   things as datatypes.  That was removed in favor of antiform datatypes,
 //   which is a more motivated design.  This dropped the number of Sigils
 //   to just 3, which could be encoded along with the no-Sigil state in just
-//   2 bits.  While it would not be a good iea for the implementation tail to
+//   2 bits.  While it would not be a good idea for the implementation tail to
 //   wag the design dog and say this is *why* there are only 3 Sigils, that's
 //   not why: the design had already converged on 3.
 //

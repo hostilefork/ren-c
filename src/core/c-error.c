@@ -1057,7 +1057,7 @@ Error* Error_Cannot_Use(const Symbol* verb, const Stable* first_arg)
 //
 Error* Error_Unexpected_Type(Type expected, const Stable* actual)
 {
-    assert(expected <= MAX_TYPE);
+    assert(u_cast(Byte, expected) <= MAX_TYPEBYTE);
     assert(Is_Datatype(actual));
 
     return Error_Expect_Val_Raw(Datatype_From_Type(expected), actual);

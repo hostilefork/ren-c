@@ -206,7 +206,7 @@ REBI64 Int64s(const Stable* val, REBINT sign)
 //
 const Stable* Datatype_From_Type(Type type)
 {
-    assert(type <= MAX_TYPE);
+    assert(u_cast(Byte, type) <= MAX_TYPEBYTE);
     Patch* patch = &g_datatype_patches[cast(Byte, type)];
     const Stable* datatype = cast(Stable*, Stub_Cell(patch));
     assert(Is_Datatype(datatype));

@@ -739,7 +739,7 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* atom) {
     switch (LIFT_BYTE(atom)) {
       case 1:  // ANTIFORM_1 (not constant in some debug builds)
         return cast(TypeEnum,
-            (KIND_BYTE(atom) % MOD_HEART_64) + MAX_TYPE_BYTE_ELEMENT
+            (KIND_BYTE(atom) % MOD_HEART_64) + MAX_TYPEBYTE_ELEMENT
         );
 
       case NOQUOTE_2:  // heart might be TYPE_0 to be extension type

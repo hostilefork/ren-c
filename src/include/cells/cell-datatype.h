@@ -185,7 +185,7 @@ INLINE Option(Type) Datatype_Type(const Stable* v) {
 
 INLINE Option(Heart) Datatype_Heart(const Stable* v) {
     Byte type_byte_or_0 = u_cast(Byte, Datatype_Type(v));
-    assert(type_byte_or_0 <= cast(Byte, MAX_HEART));  // no QUOTE/QUASI/ANTI
+    assert(type_byte_or_0 <= MAX_HEARTBYTE);  // no QUOTE/QUASI/ANTI
     return u_cast(Option(Heart), type_byte_or_0);
 }
 
@@ -193,7 +193,7 @@ INLINE Heart Datatype_Builtin_Heart(const Stable* v) {
     Option(Type) type = Datatype_Type(v);
     assert(type);
     Byte type_byte = u_cast(Byte, type);
-    assert(type_byte <= u_cast(Byte, MAX_HEART));  // not QUOTED/QUASI/ANTI
+    assert(type_byte <= MAX_HEARTBYTE);  // not QUOTED/QUASI/ANTI
     return u_cast(HeartEnum, type_byte);
 }
 
@@ -246,7 +246,7 @@ INLINE bool Builtin_Typeset_Check(
         return start <= u_cast(Byte, type) and u_cast(Byte, type) <= end;
     }
 
-    if (u_cast(Byte, type) > MAX_TYPE_BYTE_ELEMENT)
+    if (u_cast(Byte, type) > MAX_TYPEBYTE_ELEMENT)
         return false;  // antiform, no sparse_memberships (only ranged)
 
     return did (g_sparse_memberships[u_cast(Byte, type)] & typeset);

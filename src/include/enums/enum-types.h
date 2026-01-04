@@ -102,6 +102,9 @@
 
 #include "tmp-hearts.h"  // HeartEnum and TypeEnum (TYPE_BLOCK, TYPE_TEXT...)
 
+typedef Byte HeartByte;  // Byte whose value is <= MAX_HEARTBYTE
+typedef Byte TypeByte;  // Byte whose value is <= MAX_TYPEBYTE
+
 #if (! DEBUG_EXTRA_HEART_CHECKS)
     typedef TypeEnum HeartEnum;
 
@@ -113,9 +116,9 @@
 
         Heart () = default;
         Heart (HeartEnum heart) : h (heart) {}
-        explicit Heart (Byte byte) : h (cast(HeartEnum, byte)) {}
+        explicit Heart (HeartByte byte) : h (cast(HeartEnum, byte)) {}
         explicit Heart (SymId id) {
-            assert(id <= cast(Byte, MAX_HEART));
+            assert(id <= MAX_HEARTBYTE);
             h = cast(HeartEnum, id);
         }
 
@@ -124,10 +127,10 @@
           {}
 
         explicit operator bool() const  // for Option(Heart) in if() statements
-          { return cast(Byte, h) != 0; }
+          { return cast(HeartByte, h) != 0; }
 
-        explicit operator Byte() const
-          { return cast(Byte, h); }
+        explicit operator HeartByte() const
+          { return cast(HeartByte, h); }
 
         explicit operator SymId() const
           { return cast(SymId, h); }
@@ -146,9 +149,9 @@
         Type (HeartEnum heart) : t (cast(TypeEnum, heart)) {}
         Type (const Heart& heart) : t (cast(TypeEnum, heart.h)) {}
         Type (TypeEnum type) : t (type) {}
-        explicit Type (Byte byte) : t (cast(TypeEnum, byte)) {}
+        explicit Type (TypeByte byte) : t (cast(TypeEnum, byte)) {}
         explicit Type (SymId id) {
-            assert(id <= MAX_TYPE_BYTE);
+            assert(id <= MAX_TYPEBYTE);
             t = cast(TypeEnum, id);
         }
 
@@ -157,10 +160,10 @@
         {}
 
         explicit operator bool() const  // for Option(Type) in if() statements
-          { return cast(Byte, t) != 0; }
+          { return cast(TypeByte, t) != 0; }
 
-        explicit operator Byte() const
-          { return cast(Byte, t); }
+        explicit operator TypeByte() const
+          { return cast(TypeByte, t); }
 
         explicit operator SymId() const
           { return cast(SymId, t); }
@@ -391,7 +394,7 @@ INLINE Heart Heart_Of_Singleheart(SingleHeart single) {
 // !!! Would this be faster as a flag in g_sparse_memberships[]?  Test that.
 //
 INLINE bool Is_Stable_Antiform_Kind_Byte(KindByte kind_byte) {
-    assert((kind_byte / MOD_HEART_64) == 0);  // antiforms don't have sigils
+    assert((kind_byte >> KIND_SIGIL_SHIFT) == 0);  // no antiform sigils
     return (
         kind_byte != cast(KindByte, TYPE_GROUP)  // Is_Pack()
         and kind_byte != cast(KindByte, TYPE_WARNING)  // Is_Error()
