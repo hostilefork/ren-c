@@ -375,7 +375,7 @@ DECLARE_NATIVE(TO)
           default:
             panic ("Only [INTEGER! WORD! space-RUNE!] convert TO Sigil ATM");
         }
-        Add_Cell_Sigil(value, Sigil_For_Type(unwrap to));
+        Add_Cell_Sigil(value, Sigil_For_Sigiled_Type(unwrap to));
         return COPY(value);
     }
 

@@ -297,7 +297,7 @@ static Result(None) Push_Keys_And_Params_Core(
             quoted = true;
         }
 
-        Option(Type) type = Type_Of_Unquoted(item);
+        Option(Type) type = Type_Of_When_Unquoted(item);
         if (not type)
             return fail (
                 "Extension types not supported in function spec"

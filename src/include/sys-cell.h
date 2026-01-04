@@ -640,7 +640,8 @@ INLINE void Set_Cell_Crumb(Cell* c, Crumb crumb) {
 #endif
 
 #define Unchecked_Heart_Of(c) \
-    u_cast(Option(Heart), u_cast(HeartEnum, KIND_BYTE_RAW(c) % MOD_HEART_64))
+    u_cast(Option(Heart), \
+        u_cast(HeartEnum, KIND_BYTE_RAW(c) & KIND_BYTEMASK_HEART_0x3F))
 
 #define Heart_Of(c) \
     Unchecked_Heart_Of(Ensure_Readable(c))
@@ -727,39 +728,71 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
 #endif
 
 
-//=//// VALUE TYPE (always TYPE_XXX <= MAX_TYPE) ////////////////////////////=//
+//=//// VALUE TYPE (always TYPE_XXX <= MAX_TYPEBYTE) //////////////////////=//
 //
 // When asking about a value's "type", you want to see something like a
 // double-quoted WORD! as a QUOTED! value...though it's a WORD! underneath.
 //
 // (Instead of Type_Of(), use Heart_Of() if you wish to know that the cell
 // pointer you pass in is carrying a word payload.  It disregards the quotes.)
+//
+// Note that these functions return Option(Type) because TYPE_0 is how
+// "extension types" are reported (things not in the 63 builtin-heart range).
+//
+// 1. Type_Of() is called *a lot*, so it's worth it to manually inline the
+//    logic for Underlying_Type_Of() inside of Type_Of(), because C/C++
+//    compilers do not honor `inline` in debug builds.
+//
+// 2. KIND_BYTE() and LIFT_BYTE() in certain checked builds have overhead
+//    (creating actual wrapper objects to monitor reads/writes of the byte
+//    to check invariants).  We don't want to pay that overhead on every
+//    Type_Of() call.
+//
+//    (However, if one were trying to catch certain bugs, it might be worth
+//    it to change these to non-raw calls temporarily.)
+//
+// 3. Only some types can have antiforms and quasiforms.  To stop casual
+//    assignments to the LIFT_BYTE() of ANTIFORM_1 and QUASIFORM_3 they are
+//    ornery object wrappers in certain checked builds, only allowing usage
+//    in narrow contexts.  We use the numeric constants here in the switch().
+//
 
-INLINE Option(Type) Type_Of_Unchecked(const Value* atom) {
-    switch (LIFT_BYTE(atom)) {
-      case 1:  // ANTIFORM_1 (not constant in some debug builds)
-        return cast(TypeEnum,
-            (KIND_BYTE(atom) % MOD_HEART_64) + MAX_TYPEBYTE_ELEMENT
-        );
+INLINE Option(Type) Underlying_Type_Of_Unchecked(  // inlined in Type_Of() [1]
+    const Value* v
+){
+    assert(LIFT_BYTE_RAW(v) != DUAL_0);
 
-      case NOQUOTE_2:  // heart might be TYPE_0 to be extension type
-        switch (cast(Sigil, KIND_BYTE(atom) >> KIND_SIGIL_SHIFT)) {
-          case SIGIL_0:
-            return cast(HeartEnum, (KIND_BYTE(atom) % MOD_HEART_64));
+    if (KIND_BYTE_RAW(v) <= MAX_HEARTBYTE)  // raw [2]
+        return cast(HeartEnum, KIND_BYTE_RAW(v));
 
-          case SIGIL_META:
-            return TYPE_METAFORM;
+    return Type_Enum_For_Sigil_Unchecked(
+        u_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
+    );
+}
 
-          case SIGIL_PIN:
-            return TYPE_PINNED;
+INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
+    switch (  // branches are in order of commonality (nonquoted first)
+        LIFT_BYTE_RAW(v)  // raw [2]
+    ){
+      case NOQUOTE_2: {  // inlining of Underlying_Type_Of_Unchecked() [2]
+        if (KIND_BYTE_RAW(v) <= MAX_HEARTBYTE)  // raw [2]
+            return cast(HeartEnum, KIND_BYTE_RAW(v));
 
-          case SIGIL_TIE:
-            break;  // compiler warns of fallthrough
-        }
-        return TYPE_TIED;  // workaround "not all control paths return a value"
+        return Type_Enum_For_Sigil_Unchecked(
+            u_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
+        ); }
 
-      case 3:  // QUASIFORM_3 (not constant in some debug builds)
+      case 1:  // ANTIFORM_1 [3]
+        assert(KIND_BYTE_RAW(v) <= MAX_HEARTBYTE);  // raw [2]
+        return cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
+
+      case 3:  // QUASIFORM_3 [3]
         return TYPE_QUASIFORM;
+
+    #if RUNTIME_CHECKS
+      case 0:
+        crash ("Unexpected lift byte value 0 for Value* (non-dual)");
+    #endif
 
       default:
         return TYPE_QUOTED;
@@ -767,33 +800,23 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* atom) {
 }
 
 #if NO_RUNTIME_CHECKS
+    #define Underlying_Type_Of  Underlying_Type_Of_Unchecked
     #define Type_Of  Type_Of_Unchecked
 #else
-    #define Type_Of(atom) \
-        Type_Of_Unchecked(Ensure_Readable(atom))
+    #define Underlying_Type_Of(v) \
+        Underlying_Type_Of_Unchecked(Ensure_Readable(v))
+
+    #define Type_Of(v) \
+        Type_Of_Unchecked(Ensure_Readable(v))
 #endif
 
 
-INLINE Option(Type) Type_Of_Unquoted(const Element* elem) {
+INLINE Option(Type) Type_Of_When_Unquoted(const Element* elem) {
     if (LIFT_BYTE(elem) == QUASIFORM_3)
         return TYPE_QUASIFORM;
 
     assert(LIFT_BYTE(elem) != ANTIFORM_1);
-
-    switch (u_cast(Sigil, KIND_BYTE(elem) >> KIND_SIGIL_SHIFT)) {
-      case SIGIL_0:
-        return u_cast(HeartEnum, (KIND_BYTE(elem) % MOD_HEART_64));
-
-      case SIGIL_META:
-        return TYPE_METAFORM;
-
-      case SIGIL_PIN:
-        return TYPE_PINNED;
-
-      default:
-        break;
-    }
-    return TYPE_TIED;  // work around "not all control paths return a value"
+    return Underlying_Type_Of(elem);
 }
 
 

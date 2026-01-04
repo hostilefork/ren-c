@@ -498,8 +498,8 @@ for-each-datatype 't [  ; plains
 
 for-each [pseudo spec] [
     metaform "marker to read unlifted and write lifted representations"
-    tied "mark to bind in the evaluator in current context, and drop mark"
     pinned "mark to bind in the evaluator in current context, and keep mark"
+    tied "mark to bind in the evaluator in current context, and drop mark"
 
     ; ^-- "fundamentals" (though not "plain") should be first
 
@@ -792,22 +792,22 @@ e-hearts/emit [rebs --[
         $[Typedefines]
     #endif
 
+    STATIC_ASSERT(cast(int, $<MAX-TYPE>) <= 256);  /* Stored in bytes */
+
     #define MAX_HEARTBYTE  u_cast(Byte, $<MAX-HEART>)
     STATIC_ASSERT(cast(Byte, MAX_HEARTBYTE) < 64);
 
     STATIC_ASSERT(cast(Byte, TYPE_METAFORM) == MAX_HEARTBYTE + 1);
-    STATIC_ASSERT(cast(Byte, TYPE_TIED) == MAX_HEARTBYTE + 2);
-    STATIC_ASSERT(cast(Byte, TYPE_PINNED) == MAX_HEARTBYTE + 3);
+    STATIC_ASSERT(cast(Byte, TYPE_PINNED) == MAX_HEARTBYTE + 2);
+    STATIC_ASSERT(cast(Byte, TYPE_TIED) == MAX_HEARTBYTE + 3);
     STATIC_ASSERT(cast(Byte, TYPE_QUASIFORM) == MAX_HEARTBYTE + 4);
     STATIC_ASSERT(cast(Byte, TYPE_QUOTED) == MAX_HEARTBYTE + 5);
 
-    #define MAX_TYPEBYTE_FUNDAMENTAL  cast(Byte, TYPE_PINNED)
+    #define MAX_TYPEBYTE_FUNDAMENTAL  cast(TypeByte, TYPE_TIED)
 
-    #define MAX_TYPEBYTE_ELEMENT  cast(Byte, TYPE_QUOTED)
+    #define MAX_TYPEBYTE_ELEMENT  cast(TypeByte, TYPE_QUOTED)
 
-    #define MAX_TYPEBYTE  cast(Byte, $<MAX-TYPE>)
-
-    STATIC_ASSERT(cast(int, $<MAX-TYPE>) <= 256);  /* Stored in bytes */
+    #define MAX_TYPEBYTE  cast(TypeByte, $<MAX-TYPE>)
 
     /*
      * SINGLEHEART OPTIMIZED SEQUENCE DETECTION

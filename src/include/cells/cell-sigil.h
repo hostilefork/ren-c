@@ -180,7 +180,7 @@ INLINE Option(char) Char_For_Sigil(Option(Sigil) sigil) {
     }
 }
 
-INLINE Sigil Sigil_For_Type(Type type) {
+INLINE Sigil Sigil_For_Sigiled_Type(Type type) {
     switch (type) {
       case TYPE_METAFORM:  return SIGIL_META;
       case TYPE_PINNED:    return SIGIL_PIN;

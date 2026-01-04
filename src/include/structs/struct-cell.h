@@ -186,8 +186,8 @@ typedef Byte KindByte;  // help document when Byte is Heart + Sigil [1]
 #define FLAG_HEART(heart) \
     FLAG_KIND_BYTE(u_cast(KindByte, known(HeartEnum, (heart))))
 
-#define MOD_HEART_64  64  /* 64 fundamental types, 2 bit crumb for Sigil */
-#define CELL_MASK_HEART_NO_SIGIL  FLAG_SECOND_BYTE(MOD_HEART_64 - 1)
+#define KIND_BYTEMASK_HEART_0x3F  0x3F  /* 64 hearts, 2 bit crumb for Sigil */
+#define CELL_MASK_HEART_NO_SIGIL  FLAG_SECOND_BYTE(KIND_BYTEMASK_HEART_0x3F)
 
 #define CELL_MASK_HEART_AND_SIGIL  FLAG_KIND_BYTE(255)
 
@@ -198,6 +198,12 @@ typedef Byte KindByte;  // help document when Byte is Heart + Sigil [1]
 //
 // The KIND_BYTE() is structured so that the top two bits of the byte are
 // used for the "Sigil".  This can be [$ @ ^] or nothing.
+//
+// 1. We *could* make it so that the HeartByte values of 1, 2, 3 were reserved
+//    for the TYPE_META, TYPE_PINNED, and TYPE_TIED pseudotypes.  But this is
+//    likely not worth it, as it would put pseudotypes in the same range as
+//    fundamental types (complicates checking).  It would also take away 3
+//    values from HeartByte space.  Better to pay for an addition!
 //
 
 typedef enum {
@@ -215,6 +221,9 @@ typedef enum {
     FLAG_SIGIL_CRUMB(u_cast(Byte, known(Option(Sigil), (sigil))))
 
 #define CELL_MASK_SIGIL  FLAG_SIGIL_CRUMB(3)  // 0b11 << KIND_SIGIL_SHIFT
+
+#define Type_Enum_For_Sigil_Unchecked(sigil) /* SIGIL_XXX != TYPE_XXX [1] */ \
+    u_cast(TypeEnum, u_cast(Byte, known(Sigil, (sigil)) + MAX_HEARTBYTE))
 
 
 //=//// BITS 16-23: QUOTED/QUASIFORM/ANTIFORM BYTE ("LIFT") ///////////////=//
