@@ -1,12 +1,16 @@
 ;
-; Check structure of loaded tuples and paths by analogy.
+; %sequence.scan.test.r
+;
+; Check structure of loaded sequences by analogy.
 ;
 ;   * BLOCK! represents PATH!
+;   * FENCE! represents CHAIN!
 ;   * GROUP! represents TUPLE!
 ;
-; Since you can also put BLOCK! and GROUP! in paths:
+; Since you can also put BLOCK! and GROUP! in sequences:
 ;
 ;   * ^BLOCK! represents BLOCK!
+;   * ^FENCE! represents FENCE!
 ;   * ^GROUP! represents GROUP!
 ;
 ; Each test starts with a string to transcode, then `->`, and then the one or
@@ -39,8 +43,8 @@
         "/a/"  ->  [_ a _]
         "//a//"  !!  ~bad-sequence-space~
 
-        "(a b)/c"  ->  [^(a b) c]
-        "(a b) /c"  ->  ^(a b)  [_ c]
+        "(a b)/c"  ->  [:(a b): c]
+        "(a b) /c"  ->  :(a b):  [_ c]
 
         "a.b/c.d"  ->  [(a b) (c d)]
         "a/b.c/d"  ->  [a (b c) d]
@@ -51,15 +55,15 @@
         "./a"  ->  [. a]
         "/.a"  ->  [_ (_ a)]
 
-        "[a].(b)"  ->  (^[a] ^(b))
+        "[a].(b)"  ->  (:[a]: :(b):)
 
         "a.. b"  !!  ~bad-sequence-item~
         "a.. /b"  !!  ~bad-sequence-item~
         "a../b"  !!  ~bad-sequence-item~
 
-        "/./(a b)/./"  ->  [_ . ^(a b) . _]
+        "/./(a b)/./"  ->  [_ . :(a b): . _]
 
-        "a.1.(x)/[a b c]/<d>.2"  ->  [(a 1 ^(x)) ^[a b c] (<d> 2)]
+        "a.1.(x)/[a b c]/<d>.2"  ->  [(a 1 :(x):) :[a b c]: (<d> 2)]
 
         "~/projects/"  ->  [~ projects _]
         "~a~.~b~/~c~"  ->  [(~a~ ~b~) ~c~]
@@ -70,12 +74,12 @@
         ; sigil application.
 
         "a/$"  ->  [a $]
-        "a/$ b/$"  ->  [a $]  [b $]
+        "a/$ $/b"  ->  [a $]  $[_ b]
 
         "a/$b"  ->  [a $b]
-        "a/$b/"  ->  [a $b _]
+        "$a/$b/"  ->  $[a $b _]
 
-        "a/b.$c"  ->  [a (b $c)]
+        "$a/b.$c"  ->  $[a (b $c)]
 
         === INTERNAL QUOTE TESTS ===
 
@@ -139,32 +143,34 @@
     ]
 
 
-    transform: func [
+    transform: lambda [
         "Turn sequences into lists for validation testing"
 
-        value [element?]
-        {mtype}
-    ](
-    bind construct [
-        mapping: reduce [
-            path! block!
-            tuple! group!
-            chain! fence!
-            block! meta-block!
-            group! meta-group!
-            fence! meta-fence!
-        ]
+        value [any-element?]
     ][
-        mtype: select:skip:case mapping (type of get meta $value) 2
-        if mtype [
-            value: to mtype collect [
-                count-up 'index (length of value) [
-                    keep (transform pick value index)
-                ]
+        let mapping: static [
+            make map! [
+                path! block!
+                chain! fence!
+                tuple! group!
             ]
         ]
-        return get meta $value
-    ])
+
+        case [
+            any-sigiled? value [
+                decorate (sigil of value) transform plain value
+            ]
+            any-list? value [
+                join chain! [_ value _]   ; so like :[block]:
+            ]
+            any-sequence? value [
+                as mapping.(type of value) map-each 'item value [
+                    transform item
+                ]
+            ]
+            <else> [value]
+        ]
+    ]
 
 
     iter: tests
@@ -179,16 +185,15 @@
         let text: ensure text! iter.1
         iter: my next
 
-        let items
-        rescue [
-            items: transcode text
-        ] then (error -> [
+        let items: transcode text except (error -> [
             if iter.1 <> '!! [
-                panic ["Unexpected failure on" @text "->" @error.id]
+                panic ["Unexpected failure on" @text "->" @(error.id)]
             ]
             iter: my next
             if iter.1 <> quasi error.id [
-                panic ["Error mismatch" @text "->" @error.id "and not" @iter.1]
+                panic [
+                    "Error mismatch" @text "->" @error.id "and not" @(iter.1)
+                ]
             ]
             iter: my next
             any [
@@ -199,8 +204,8 @@
             ]
             if error.arg1 <> iter.1 [
                 panic [
-                    "Error argument mismatch on" @text "->" @error.arg1
-                        "and not" @iter.1
+                    "Error argument mismatch on" @text "->" @(error.arg1)
+                        "and not" @(iter.1)
                     ]
             ]
             iter: my next

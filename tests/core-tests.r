@@ -324,7 +324,7 @@
 %reflectors/body-of.test.r
 
 %scanner/load.test.r
-%scanner/path-tuple.test.r
+%scanner/sequence.scan.test.r
 %scanner/source-comment.test.r
 
 %secure/const.test.r
