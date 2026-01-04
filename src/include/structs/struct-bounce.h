@@ -90,7 +90,7 @@ typedef Byte WildTwo[2];
           UNUSED(z);
         }
 
-        Bounce(const char* utf8) : b {utf8} {}
+        Bounce(const char* cstr) : b {cstr} {}  // not-yet-validated UTF-8
 
         operator const void*() const
           { return b; }

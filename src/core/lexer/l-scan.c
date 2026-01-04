@@ -3238,13 +3238,13 @@ Bounce Scanner_Executor(Level* level_)
 //
 Source* Scan_UTF8_Managed(
     Option(const Strand*) file,
-    const Byte* utf8,
+    const Byte* bp,
     Size size
 ){
-    assert(utf8[size] == '\0');
+    assert(bp[size] == '\0');
     UNUSED(size);  // scanner stops at `\0` (no size limit functionality)
 
-    const void* packed[2] = {utf8, rebEND};  // BEWARE: Stack, can't trampoline!
+    const void* packed[2] = {bp, rebEND};  // BEWARE: Stack, can't trampoline!
     require (
       Feed* feed = Make_Variadic_Feed(  // scanner requires variadic [1]
         packed, nullptr,  // va_list* as nullptr means `p` is packed [2]

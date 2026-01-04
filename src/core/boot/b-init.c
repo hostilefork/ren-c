@@ -689,7 +689,7 @@ void Startup_Core(void)
 
     Size utf8_size;
     const int max = -1;  // trust size in gzip data
-    Byte* utf8 = Decompress_Alloc_Core(
+    Utf8Byte* utf8 = Decompress_Alloc_Core(  // *known* utf8 (can that help?)
         &utf8_size,
         g_boot_block_compressed,  // from %tmp-boot-block.c [1]
         g_boot_block_compressed_size,

@@ -1479,16 +1479,16 @@ DECLARE_NATIVE(INVALID_UTF8_Q)
     Stable* arg = ARG(DATA);
 
     Size size;
-    const Byte* utf8 = Blob_Size_At(&size, arg);
+    const Byte* bp = Blob_Size_At(&size, arg);
 
-    const Byte* end = utf8 + size;
+    const Byte* end = bp + size;
 
     REBLEN trail;
-    for (; utf8 != end; utf8 += trail) {
-        trail = g_trailing_bytes_for_utf8[*utf8] + 1;
-        if (utf8 + trail > end or not Is_Legal_UTF8(utf8, trail)) {
+    for (; bp != end; bp += trail) {
+        trail = g_trailing_bytes_for_utf8[*bp] + 1;
+        if (bp + trail > end or not Is_Legal_UTF8(bp, trail)) {
             Copy_Cell(OUT, arg);
-            SERIES_INDEX_UNBOUNDED(OUT) = utf8 - Binary_Head(Cell_Binary(arg));
+            SERIES_INDEX_UNBOUNDED(OUT) = bp - Binary_Head(Cell_Binary(arg));
             return OUT;
         }
     }

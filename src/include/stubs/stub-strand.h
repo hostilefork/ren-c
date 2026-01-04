@@ -196,8 +196,8 @@ INLINE bool Is_Strand_All_Ascii(const Strand* str) {
 }
 
 #define Strand_Utf8(s)      Flex_Head(char, known(Strand*, s))
-#define Strand_Head(s)      cast(Utf8(*), Flex_Head(Byte, s))
-#define Strand_Tail(s)      cast(Utf8(*), Flex_Tail(Byte, s))
+#define Strand_Head(s)      cast(Utf8(*), Flex_Head(Utf8Byte, s))
+#define Strand_Tail(s)      cast(Utf8(*), Flex_Tail(Utf8Byte, s))
 
 MUTABLE_IF_C(Utf8(*), INLINE) Strand_At(CONST_IF_C(Strand*) s_, REBLEN at)
 {

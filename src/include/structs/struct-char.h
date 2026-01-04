@@ -71,7 +71,7 @@
 
     template<typename T> struct ValidatedUtf8;
     #define Utf8(star_or_const_star) \
-        ValidatedUtf8<Byte star_or_const_star>
+        ValidatedUtf8<Utf8Byte star_or_const_star>
 
   // 0. The underlying pointer for a const* ValidatedUtf8 may be mutable if
   //    it was constructed mutable.
@@ -103,19 +103,19 @@
 
     template<>
     struct ValidatedUtf8<const Byte*> {
-        NEEDFUL_DECLARE_WRAPPED_FIELD (const Byte*, p);  // maybe mutable [0]
+        NEEDFUL_DECLARE_WRAPPED_FIELD (const Utf8Byte*, p);  // mutable? [0]
 
         ValidatedUtf8 () = default;
         ValidatedUtf8 (std::nullptr_t) : p (nullptr) {}
 
-        explicit ValidatedUtf8 (const Byte* p)  // [1]
+        explicit ValidatedUtf8 (const Utf8Byte* p)  // [1]
             : p (p) {}
         explicit ValidatedUtf8 (const char *cstr)  // [1]
-            : p (u_cast(Byte*, cstr)) {}
+            : p (u_cast(Utf8Byte*, cstr)) {}
 
         operator const void*() const = delete;  // don't add, GCC ambiguity [2]
 
-        constexpr operator const Byte*() const { return p; }  // [3]
+        constexpr operator const Utf8Byte*() const { return p; }  // [3]
 
         /*constexpr [4]*/ operator const char*() const  // [3]
           { return u_cast(char*, p); }
@@ -155,29 +155,29 @@
     };
 
     template<>
-    struct ValidatedUtf8<Byte*> : public ValidatedUtf8<const Byte*> {
-        NEEDFUL_OVERRIDE_WRAPPED_FIELD_TYPE (Byte*);
+    struct ValidatedUtf8<Utf8Byte*> : public ValidatedUtf8<const Utf8Byte*> {
+        NEEDFUL_OVERRIDE_WRAPPED_FIELD_TYPE (Utf8Byte*);
 
         ValidatedUtf8 () = default;
         ValidatedUtf8 (std::nullptr_t)
-            : ValidatedUtf8<const Byte*>(nullptr) {}
+            : ValidatedUtf8<const Utf8Byte*>(nullptr) {}
 
-        explicit ValidatedUtf8 (Byte* bp)  // [1]
-            : ValidatedUtf8<const Byte*> (bp) {}
+        explicit ValidatedUtf8 (Utf8Byte* bp)  // [1]
+            : ValidatedUtf8<const Utf8Byte*> (bp) {}
         explicit ValidatedUtf8 (char *cstr)  // [1]
-            : ValidatedUtf8<const Byte*> (cast(Byte*, cstr)) {}
+            : ValidatedUtf8<const Utf8Byte*> (cast(Utf8Byte*, cstr)) {}
 
         operator const void*() const = delete;  // don't add, GCC ambiguity [2]
 
-        explicit constexpr operator const Byte*() const  // [3]
-          { return const_cast<Byte*>(p); }
-        constexpr operator Byte*() const  // [3]
-          { return const_cast<Byte*>(p); }
+        explicit constexpr operator const Utf8Byte*() const  // [3]
+          { return const_cast<Utf8Byte*>(p); }
+        constexpr operator Utf8Byte*() const  // [3]
+          { return const_cast<Utf8Byte*>(p); }
 
         explicit /*constexpr [4]*/ operator const char*() const  // [3]
           { return u_cast(char*, p); }
         /*constexpr [4]*/ operator char*() const  // [3]
-          { return u_cast(char*, const_cast<Byte*>(p)); }
+          { return u_cast(char*, const_cast<Utf8Byte*>(p)); }
     };
 
 #endif

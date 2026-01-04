@@ -114,7 +114,9 @@ INLINE bool Is_Rune_And_Is_Char(const Stable* v) {
     );
 }
 
-INLINE Option(Byte) First_Byte_Of_Rune_If_Single_Codepoint(const Cell* cell) {
+INLINE Option(Utf8Byte) First_Byte_Of_Rune_If_Single_Codepoint(
+    const Cell* cell
+){
     if (not Rune_Is_Single_Codepoint(cell))
         return '\0';
 

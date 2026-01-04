@@ -243,7 +243,12 @@ typedef uint64_t Tick;  // evaluator cycles; unsigned overflow is well defined
 // negative one.  It may be worth it to switch to signed values, but people
 // definitely do use unsigned ones most of the time.
 //
+// 1. A Utf8Byte is a single byte that is part of a UTF-8 encoded sequence.
+//    It pinky-promises not to be any invalid UTF-8 byte.  (For more rigor,
+//    see the Utf8(*) type wrapper.)
+//
 typedef uint_fast32_t Codepoint;
+typedef Byte Utf8Byte;  // [1]
 
 
 //=//// BINDING ///////////////////////////////////////////////////////////=//

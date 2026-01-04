@@ -1404,7 +1404,7 @@ DECLARE_NATIVE(BLANK_Q)
     if (not Is_Rune(v))
         return LOGIC(false);
 
-    const Byte* utf8 = Cell_Utf8_At(v);
+    const Utf8Byte* utf8 = Cell_Utf8_At(v);
     if (*utf8 == '\0')
         return LOGIC(false);
 

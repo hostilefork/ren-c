@@ -264,9 +264,9 @@ INLINE bool Is_Legal_UTF8(const Byte* source, int length) {
 // strategy that splits ASCII codes to basic incrementation...otherwise it
 // would try to read continuation bytes past a `\0` string terminator.  :-/
 //
-INLINE const Byte* Back_Scan_Utf8_Char_Unchecked(
+INLINE const Utf8Byte* Back_Scan_Utf8_Char_Unchecked(
     Init(Codepoint) out,
-    const Byte* bp
+    const Utf8Byte* bp
 ){
     *out = *bp;  // wait to increment...
     uint_fast8_t trail = 0;  // count as we go

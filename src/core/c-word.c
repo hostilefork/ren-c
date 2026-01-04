@@ -224,8 +224,8 @@ static void Expand_Word_Table(void)
 //
 Result(const Symbol*) Intern_Utf8_Managed_Core(  // implicitly managed [1]
     Option(void*) preallocated,  // most calls don't know if allocation needed
-    const Byte* utf8,  // case-sensitive [2]
-    Size utf8_size
+    const Byte* bp,  // case-sensitive [2]
+    Size size
 ){
     Length num_slots = Flex_Used(g_symbols.by_hash);
     if (g_symbols.num_slots_in_use > num_slots / 2) {
@@ -236,8 +236,10 @@ Result(const Symbol*) Intern_Utf8_Managed_Core(  // implicitly managed [1]
     Symbol** symbols_by_hash = Flex_Head(Symbol*, g_symbols.by_hash);
 
     trap (
-      uint32_t hash = Hash_Scan_UTF8_Caseless(utf8, utf8_size)
+      uint32_t hash = Hash_Scan_UTF8_Caseless(bp, size)
     );
+    const Utf8Byte* utf8 = bp;  // was validated during hashing
+    Size utf8_size = size;
 
     Length skip;  // how many slots to skip when occupied candidates found
     Offset slot = First_Hash_Candidate_Slot(&skip, hash, num_slots);

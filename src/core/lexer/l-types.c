@@ -320,9 +320,9 @@ DECLARE_NATIVE(OF)
 
     SymId id = unwrap opt_id;
 
-    const Byte* utf8 = Strand_Head(Canon_Symbol(id));
+    const Utf8Byte* utf8 = Strand_Head(Canon_Symbol(id));
     SymId next_id = cast(SymId, cast(int, id) + 1);
-    const Byte* maybe_utf8_of = Strand_Head(Canon_Symbol(next_id));
+    const Utf8Byte* maybe_utf8_of = Strand_Head(Canon_Symbol(next_id));
     while (true) {
         if (*maybe_utf8_of == '\0')  // hit end of what would be "longer"
             goto no_optimization;

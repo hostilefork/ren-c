@@ -1282,7 +1282,7 @@ IMPLEMENT_GENERIC(SORT, Any_String)
 
     Length len;
     Size size;
-    const Byte* utf8 = Cell_Utf8_Len_Size_At_Limit(&len, &size, v, &limit);
+    const Utf8Byte* utf8 = Cell_Utf8_Len_Size_At_Limit(&len, &size, v, &limit);
 
     // Test for if the range is all ASCII can just be if (len == size)...
     // that means every codepoint is one byte.
