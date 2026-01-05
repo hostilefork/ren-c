@@ -386,7 +386,7 @@ Bounce Stepper_Executor(Level* L)
 
         heeded (Copy_Cell(CURRENT, L_next));  // v-- L_binding bad here [2]
         Bind_Cell_If_Unbound(CURRENT, Feed_Binding(L->feed));
-        Metafy_Cell(Known_Element(CURRENT));  // need for unstable lookup
+        Metafy_Cell(CURRENT);  // need for unstable lookup
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         StateByte saved_state = STATE;
@@ -1686,7 +1686,7 @@ Bounce Stepper_Executor(Level* L)
 
         heeded (Copy_Cell(CURRENT, L_next));  // v-- L_binding bad here [2]
         Bind_Cell_If_Unbound(CURRENT, Feed_Binding(L->feed));
-        Metafy_Cell(Known_Element(CURRENT));  // need for unstable lookup
+        Metafy_Cell(CURRENT);  // need for unstable lookup
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         StateByte saved_state = STATE;

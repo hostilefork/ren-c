@@ -64,13 +64,16 @@ INLINE Value* Init_Pack_Untracked(Init(Value) out, const Source* a) {
 #define Init_Heavy_Void(out) \
     TRACK(Init_Heavy_Void_Untracked(out))
 
-INLINE bool Is_Heavy_Void(Exact(const Value*) v) {
+INLINE bool Is_Heavy_Void_Core(const Value* v) {
     if (not Is_Pack(v))
         return false;
     const Element* tail;
     const Element* at = List_At(&tail, v);
     return tail == at;
 }
+
+#define Is_Heavy_Void(v) \
+    Is_Heavy_Void_Core(known_not(Stable*, (v)))
 
 INLINE Element* Init_Lifted_Heavy_Void_Untracked(Sink(Element) out) {
     Init_Any_List_At_Core_Untracked(
@@ -91,9 +94,12 @@ INLINE bool Is_Lifted_Heavy_Void(const Stable* v) {
     return tail == at;
 }
 
-INLINE bool Any_Void(Exact(const Value*) v) {
+INLINE bool Any_Void_Core(const Value* v) {
     return Is_Ghost(v) or Is_Heavy_Void(v);
 }
+
+#define Any_Void(v) \
+    Any_Void_Core(known_not(Stable*, (v)))
 
 INLINE bool Is_Any_Lifted_Void(const Stable* v) {
     return Is_Lifted_Ghost(v) or Is_Lifted_Heavy_Void(v);

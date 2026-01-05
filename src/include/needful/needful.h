@@ -542,6 +542,12 @@ void Needful_Panic_Abruptly(const char* error) {
 #define needful_lenient_known(T,expr) /* const passthru const [1] */ \
     needful_xtreme_cast(T,expr)
 
+#define needful_rigid_known_not(T,expr) \
+    needful_xtreme_cast(T,expr)
+
+#define needful_lenient_known_not(T,expr) /* const passthru const [1] */ \
+    needful_xtreme_cast(T,expr)
+
 #define needful_known_any(TLIST,expr)  (expr)  /* doesn't change type */
 
 #define needful_known_lvalue(variable)  (*&variable)
@@ -1093,8 +1099,11 @@ void Needful_Panic_Abruptly(const char* error) {
 #if !defined(NEEDFUL_DONT_DEFINE_KNOWN_SHORTHANDS)
     #define rigid_known /* (T,expr) */           needful_rigid_known
     #define lenient_known /* (T,expr) */         needful_lenient_known
+    #define rigid_known_not /* (T,expr) */       needful_rigid_known_not
+    #define lenient_known_not /* (T,expr) */     needful_lenient_known_not
 
     #define known /* (T,expr) */ /* [2] */       needful_lenient_known
+    #define known_not /* (T,expr) */ /* [2] */   needful_lenient_known_not
     #define known_any /* ((T1,T2,...),expr) */   needful_known_any
 
     #define known_lvalue /* (var) */             needful_known_lvalue

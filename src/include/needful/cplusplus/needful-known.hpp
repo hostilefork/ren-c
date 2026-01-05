@@ -106,6 +106,14 @@ struct IsConvertibleAsserter {
     );
 };
 
+template<typename From, typename First, typename... Rest>
+struct NotConvertibleAsserter {
+    static_assert(
+        not needful::IsConvertibleAny<From, First, Rest...>::value,
+        "known_not() failed"
+    );
+};
+
 #undef needful_rigid_known
 #define needful_rigid_known(T,expr) \
     (NEEDFUL_DUMMY_INSTANCE(needful::IsConvertibleAsserter< \
@@ -121,6 +129,22 @@ struct IsConvertibleAsserter {
         needful_constify_t(T) /* loosen to matching constified T too */ \
     >), \
     needful_xtreme_cast(needful_merge_const_t(decltype(expr), T), (expr)))
+
+#undef needful_rigid_known_not
+#define needful_rigid_known_not(T,expr) \
+    (NEEDFUL_DUMMY_INSTANCE(needful::NotConvertibleAsserter< \
+        needful::remove_reference_t<decltype(expr)>, \
+        T \
+    >), \
+    (expr))
+
+#undef needful_lenient_known_not
+#define needful_lenient_known_not(T,expr) \
+    (NEEDFUL_DUMMY_INSTANCE(needful::NotConvertibleAsserter< \
+        needful::remove_reference_t<decltype(expr)>, \
+        needful_constify_t(T) /* loosen to matching constified T too */ \
+    >), \
+    (expr))
 
 
 #undef needful_known_any

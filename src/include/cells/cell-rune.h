@@ -390,8 +390,11 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
 //  * Quick way to unset variables, simply `(var: ~)`
 //
 
-INLINE bool Is_Tripwire(Exact(const Stable*) v)  // don't allow Element*
+INLINE bool Is_Tripwire_Core(const Stable* v)
  { return Is_Space_With_Lift_Sigil(STABLE_ANTIFORM_2, SIGIL_0, v); }
+
+#define Is_Tripwire(v) \
+    Is_Tripwire_Core(known_not(Element*, (v)))
 
 INLINE Stable* Init_Tripwire_Untracked(Init(Stable) out) {
     Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base

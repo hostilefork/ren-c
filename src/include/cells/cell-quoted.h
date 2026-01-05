@@ -213,7 +213,7 @@ INLINE Count Noquotify(Element* elem) {
 
     #define Is_Antiform_Stable  Is_Cell_Stable  // equivalent [2]
 #else
-    INLINE bool Is_Cell_Stable(Exact(const Value*) v) {  // careful checks...
+    INLINE bool Is_Cell_Stable_Core(const Value* v) {  // careful checks...
         possibly(not Is_Antiform(v));  // general check for any Value
 
         Assert_Cell_Readable(v);
@@ -237,12 +237,18 @@ INLINE Count Noquotify(Element* elem) {
         return stable;
     }
 
-    INLINE bool Is_Antiform_Stable(const Value* a) {  // narrow the check [2]
+    #define Is_Cell_Stable(v) \
+        Is_Cell_Stable_Core(known_not(Stable*, (v)))  // not *known* Stable...
+
+    INLINE bool Is_Antiform_Stable_Core(const Value* a) {  // narrow check [2]
         unnecessary(Ensure_Readable(a));  // Is_Antiform() checked readable
         assert(LIFT_BYTE(a) <= STABLE_ANTIFORM_2);
         impossible(0 != (a->header.bits & CELL_MASK_SIGIL));
         return Is_Cell_Stable(a);
     }
+
+    #define Is_Antiform_Stable(v) \
+        Is_Antiform_Stable_Core(known_not(Stable*, (v)))
 #endif
 
 #define Not_Cell_Stable(v)  (not Is_Cell_Stable(v))
@@ -261,7 +267,8 @@ INLINE bool Is_Lifted_Unstable_Antiform(const Value* v) {  // costs more [3]
     );
 }
 
-#define Known_Stable(v)  cast(Stable*, (v))
+#define Known_Stable(v) /* cast-checked builds will still double-check! */ \
+    cast(Stable*, known_not(Stable*, (v)))
 
 #if NO_RUNTIME_CHECKS
     #define Assert_Cell_Stable(v)  NOOP
@@ -292,8 +299,8 @@ MUTABLE_IF_C(Option(Element*), INLINE) As_Element(CONST_IF_C(Stable*) v_) {
     return u_cast(Element*, v);
 }
 
-#define Known_Element(cell) \
-    cast(Element*, (cell))  // cast-checked builds will still double-check!
+#define Known_Element(v) /* cast-checked builds will still double-check! */ \
+    cast(Element*, known_not(Element*, (v)))
 
 MUTABLE_IF_C(Element*, INLINE) Ensure_Element(CONST_IF_C(Value*) cell) {
     CONSTABLE(Value*) v = m_cast(Value*, cell);
@@ -354,7 +361,7 @@ INLINE Element* Reify(Value* v) {
 // are doing.
 //
 
-INLINE Stable* Stably_Antiformize_Unbound_Fundamental(Exact(Stable*) v) {
+INLINE Stable* Stably_Antiformize_Unbound_Fundamental_Core(Stable* v) {
     assert(Heart_Of(v) != TYPE_WORD);  // no KEYWORD_IS_NULL handling
     assert(Any_Isotopic_Type(Heart_Of(v)));
     assert(LIFT_BYTE(v) == NOQUOTE_3);
@@ -365,16 +372,22 @@ INLINE Stable* Stably_Antiformize_Unbound_Fundamental(Exact(Stable*) v) {
     return v;
 }
 
-INLINE Value* Unstably_Antiformize_Unbound_Fundamental(Exact(Value*) v) {
+INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
     assert(Heart_Of(v) != TYPE_WORD);  // no KEYWORD_IS_NULL handling
     assert(Any_Isotopic_Type(Heart_Of(v)));
-    assert(LIFT_BYTE(v) == NOQUOTE_3);
+    assert(LIFT_BYTE_RAW(v) == NOQUOTE_3);
     assert(not Is_Stable_Antiform_Kind_Byte(KIND_BYTE(v)));
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))
         assert(not Cell_Binding(v));
     LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;
     return v;
 }
+
+#define Stably_Antiformize_Unbound_Fundamental(v) \
+    Stably_Antiformize_Unbound_Fundamental_Core(known_not(Element*, (v)))
+
+#define Unstably_Antiformize_Unbound_Fundamental(v) \
+    Unstably_Antiformize_Unbound_Fundamental_Core(known_not(Stable*, (v)))
 
 
 //=//// LIFTING ///////////////////////////////////////////////////////////=//
@@ -406,7 +419,7 @@ INLINE Element* Lift_Cell(Value* v) {
     return Known_Element(v);
 }
 
-INLINE Result(Value*) Unlift_Cell_No_Decay(Exact(Value*) v) {
+INLINE Result(Value*) Unlift_Cell_No_Decay_Core(Value* v) {
     if (LIFT_BYTE_RAW(v) == QUASIFORM_4) {
         trap (
           Coerce_To_Antiform(v)
@@ -417,10 +430,16 @@ INLINE Result(Value*) Unlift_Cell_No_Decay(Exact(Value*) v) {
     return Unquote_Cell(Known_Element(v));  // asserts that it's quoted
 }
 
-INLINE Stable* Known_Stable_Unlift_Cell(Exact(Stable*) val) {
+#define Unlift_Cell_No_Decay(v) \
+    Unlift_Cell_No_Decay_Core(known_not(Stable*, (v)))
+
+INLINE Stable* Known_Stable_Unlift_Cell_Core(Stable* v) {
     assume (
-      Unlift_Cell_No_Decay(cast(Value*, val))
+      Unlift_Cell_No_Decay(u_cast(Value*, v))
     );
-    Assert_Cell_Stable(val);
-    return val;
+    Assert_Cell_Stable(v);
+    return v;
 }
+
+#define Known_Stable_Unlift_Cell(v) \
+    Known_Stable_Unlift_Cell_Core(known_not(Element*, (v)))

@@ -183,12 +183,15 @@ INLINE bool Is_Bar_Bar(const Value* v) {
     );
 }
 
-INLINE bool Is_Anti_Word_With_Id(const Stable* v, SymId id) {
+INLINE bool Is_Anti_Word_With_Id_Core(const Stable* v, SymId id) {
     assert(id != SYM_0_constexpr);
     if (not Is_Keyword(v))
         return false;
     return id == Word_Id(v);
 }
+
+#define Is_Anti_Word_With_Id(v,id) \
+    Is_Anti_Word_With_Id_Core(known_not(Element*, (v)), (id))
 
 INLINE bool Is_Quasi_Word_With_Id(const Stable* v, SymId id) {
     assert(id != SYM_0_constexpr);
