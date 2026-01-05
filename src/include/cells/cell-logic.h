@@ -70,7 +70,7 @@
 
 INLINE bool Is_Logic(Exact(const Stable*) v) {
     Assert_Cell_Readable(v);
-    if (LIFT_BYTE(v) != ANTIFORM_2 or Heart_Of(v) != TYPE_WORD)
+    if (LIFT_BYTE(v) != STABLE_ANTIFORM_2 or Heart_Of(v) != TYPE_WORD)
         return false;
     Option(SymId) id = Word_Id(v);
     return id == SYM_NULL or id == SYM_OKAY;
@@ -88,13 +88,14 @@ INLINE bool Is_Possibly_Unstable_Value_Okay(const Value* v) {
 #define Init_Okay(out) \
     TRACK(Init_Word_Untracked( \
         (out), \
-        FLAG_LIFT_BYTE(ANTIFORM_2), \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2), \
         CANON(OKAY)))  // okay is valid KEYWORD! symbol
 
 INLINE Stable* Init_Logic_Untracked(Init(Stable) out, bool logic) {
     return Init_Word_Untracked(
         out,
-        FLAG_LIFT_BYTE(ANTIFORM_2) | (logic ? 0 : CELL_FLAG_KEYWORD_IS_NULL),
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2)
+            | (logic ? 0 : CELL_FLAG_KEYWORD_IS_NULL),
         logic ? CANON(OKAY) : CANON(NULL)
     );
 }
@@ -266,7 +267,7 @@ INLINE Result(bool) Test_Conditional(
 ){
     Assert_Cell_Readable(v);
 
-    if (LIFT_BYTE(v) != ANTIFORM_2)
+    if (LIFT_BYTE(v) != STABLE_ANTIFORM_2)
         return true;  // all non-antiforms (including quasi/quoted) are truthy
 
     if (KIND_BYTE(v) == TYPE_WORD) { // conditional test of ~null~/~okay~

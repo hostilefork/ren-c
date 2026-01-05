@@ -752,7 +752,7 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
 //    it to change these to non-raw calls temporarily.)
 //
 // 3. Only some types can have antiforms and quasiforms.  To stop casual
-//    assignments to the LIFT_BYTE() of ANTIFORM_2 and QUASIFORM_4 they are
+//    assignments to the LIFT_BYTE() of antiforms or quasiforms they are
 //    ornery object wrappers in certain checked builds, only allowing usage
 //    in narrow contexts.  We use the numeric constants here in the switch().
 //
@@ -782,7 +782,7 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
             u_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
         ); }
 
-      case 2:  // ANTIFORM_2 [3]
+      case 2:  // STABLE_ANTIFORM_2 [3]
         assert(KIND_BYTE_RAW(v) <= MAX_HEARTBYTE);  // raw [2]
         return cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
 
@@ -821,7 +821,7 @@ INLINE Option(Type) Type_Of_When_Unquoted(const Element* elem) {
     if (LIFT_BYTE(elem) == QUASIFORM_4)
         return TYPE_QUASIFORM;
 
-    assert(LIFT_BYTE(elem) != ANTIFORM_2);
+    assert(LIFT_BYTE(elem) != STABLE_ANTIFORM_2);
     return Underlying_Type_Of(elem);
 }
 

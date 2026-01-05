@@ -524,7 +524,7 @@ Bounce Stepper_Executor(Level* L)
     if (LIFT_BYTE(CURRENT) == QUASIFORM_4)
         goto handle_quasiform;
 
-    assert(LIFT_BYTE(CURRENT) != ANTIFORM_2);
+    assert(LIFT_BYTE(CURRENT) != STABLE_ANTIFORM_2);
     goto handle_quoted;
 
 

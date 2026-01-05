@@ -19,112 +19,143 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// There are several rules that have to be followed with antiforms.  Having
-// the logic for enforcing those rules centralized is important.
-//
-// 1. Unstable antiforms are not legal in API handles.  They are analogous
-//    to variables, and if you need to deal in the currency of unstable
-//    antiforms--and ^META conventions aren't enough--see rebDelegate() and
-//    rebContinuation() for how to work around it.
-//
-// 2. Antiforms are not allowed to carry bindings.  Though something like a
-//    slice or a pack can have bindings on the elements, the container itself
-//    is not allowed to be bound.
-//
-//    (If antiforms did have meaningful bindings, that would imply binding
-//    functions would need to accept them as parameters.  That would lead to a
-//    mess--trying to handle unstable pack antiforms via meta-parameters.)
-//
-// 3. The API uses nullptr as currency with C or other languages to represent
-//    the nulled state.  This allows it to be "falsey" in those languages, as
-//    well as to not require cleanup by releasing a handle for it.  So you
-//    should never be initializing an API value with the cell pattern used
-//    internally to represent ~null~ antiforms.  Centrally enforcing that
-//    here helps avoiding needing to check it everywhere else.
-//
-// 4. While all WORD!s are allowed to have quasiforms, only special ones are
-//    allowed to be antiform "keywords".  Other words are reserved for future
-//    usage, though dialects can use quasi words however they want.
 
 
 #undef Any_Isotopic  // use Any_Isotopic_Type(Heart_Of(v))
 
 
+// There are several rules that have to be followed with antiforms.  Having
+// the logic for enforcing those rules centralized is important.
+//
 // 1. The convention here is that you have to pass an Value in, because at
 //    the end of the operation you'll have either a Stable* or an Value*.
 //    If you were allowed to pass in an Element*, then you'd have an invalid
 //    Element at the callsite when the operation completed.
 //
-INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v) {
-    Element* elem = Known_Element(v);  // guaranteed element on input (?)
+//    Note: When building with ExactWrapper, Exact(T) isn't free... costs code
+//    in dereferencing.  So it's useful to extract it into an Element* first.
+//
+// 2. The API uses nullptr as currency with C or other languages to represent
+//    the nulled state.  This allows it to be "falsey" in those languages, as
+//    well as to not require cleanup by releasing a handle for it.  So you
+//    should never be initializing an API value with the cell pattern used
+//    internally to represent ~null~ antiforms.
+//
+//    To avoid risks of this being something that *could* happen, we disallow
+//    coercion of API values to antiforms--as a general rule.
+//
+INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
+    Element* elem = Known_Element(v);  // efficient unwrapped extraction [1]
 
-    if (Cell_Underlying_Sigil(elem))
+    assert(not Is_Api_Value(elem));  // API uses nullptr, not nulled cells [2]
+
+  ensure_elem_is_quasiform_with_no_sigil: {
+
+  // Quasiforms are allowed to have Sigils, e.g. ~@~ is legal.  But for the
+  // moment, there are no antiforms defined for Sigilized types.  This isn't
+  // a technical limitation, it's just that the set of antiforms is limited
+  // on purpose--to reserve the meanings for future use.
+
+    if (
+        (elem->header.bits & (FLAG_LIFT_BYTE(255) | CELL_MASK_SIGIL))
+            != FLAG_LIFT_BYTE(QUASIFORM_4)
+    ){
+        if (LIFT_BYTE(elem) != QUASIFORM_4)
+            return fail (
+                Error_User("Can only coerce quasiforms to antiforms")
+            );
         return fail (Error_User("Cells with sigils cannot become antiforms"));
+    }
+
+} coerce_to_antiform: {
+
+  // 1. This is one of the rare functions allowed to use LIFT_BYTE_RAW(), and
+  //    you can see why the LIFT_BYTE() safety is important to most code!
+  //
+  // 2. Antiforms can't be bound.  Though SPLICE! or PACK! can have bindings
+  //    on the *elements*, the containing list is not allowed to be bound.
+  //
+  //    (If antiforms did have meaningful bindings, that would imply binding
+  //    functions would need to accept them as parameters.  That leads to a
+  //    mess--trying to handle unstable pack antiforms via meta-parameters.)
+  //
+  // 3. All WORD!s are allowed to have quasiforms, but only special ones are
+  //    allowed to be antiform "keywords".  Others are reserved for future
+  //    usage, though dialects can use quasi words however they want.
 
     Option(Heart) heart = Heart_Of(elem);
 
-    if (not Is_Stable_Antiform_Kind_Byte(u_cast(KindByte, heart)))
-        assert(not Is_Api_Value(elem));  // no unstable antiforms in API [1]
+    switch (opt heart) {
+      case TYPE_FRAME: {  // ACTION! (coerced most frequently?)
+        if (Frame_Lens(elem))
+            Tweak_Frame_Lens_Or_Label(elem, ANONYMOUS);  // show only inputs
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // [1]
+        break; }
 
-    if (not Any_Isotopic_Type(heart)) {
-        LIFT_BYTE(elem) = NOQUOTE_3;
+      case TYPE_BLOCK: {  // SPLICE! (second most frequent?)
+        Tweak_Cell_Binding(elem, UNBOUND);  // [2]
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // [1]
+        break; }
+
+      case TYPE_GROUP: {  // PACK! (should packs validate their elements?)
+        Tweak_Cell_Binding(elem, UNBOUND);  // [2]
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // [1]
+        break; }
+
+      case TYPE_FENCE: {  // DATATYPE! (canonize binding)
+        Option(Patch*) patch;
+        if (
+            Series_Len_At(elem) != 1
+            or not Is_Word(List_Item_At(elem))
+            or not (patch = Sea_Patch(
+                g_datatypes_context,
+                Word_Symbol(List_Item_At(elem)),
+                true
+            ))
+        ){
+            return fail (elem);
+        }
+        v->payload = Stub_Cell(unwrap patch)->payload;
+        v->extra = Stub_Cell(unwrap patch)->extra;
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // [1]
+        break; }
+
+      case TYPE_WORD: {  // KEYWORD!
+        elem->header.bits &= ~(
+            CELL_FLAG_TYPE_SPECIFIC_A | CELL_FLAG_TYPE_SPECIFIC_B
+        );
+        switch (opt Word_Id(elem)) {
+          case SYM_NULL:
+            Set_Cell_Flag(elem, KEYWORD_IS_NULL);
+            break;
+
+          case SYM_OKAY:
+          case SYM_NAN:
+            break;
+
+          default:
+            return fail (Error_Illegal_Keyword_Raw(elem));  // limited [3]
+        }
+        Unbind_Any_Word(elem);  // antiforms can't be bound [2]
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]
+        break; }
+
+      case TYPE_RUNE:  // TRASH!
+      case TYPE_WARNING:  // ERROR! (any special work here?)
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]
+        break;
+
+      case TYPE_COMMA:  // GHOST!
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]
+        break;
+
+      default:
         return fail (Error_Non_Isotopic_Type_Raw(elem));
     }
 
-    if (Is_Bindable_Heart(heart)) {  // strip off any binding [2]
-        if (heart == TYPE_WORD) {
-            elem->header.bits &= ~(
-                CELL_FLAG_TYPE_SPECIFIC_A | CELL_FLAG_TYPE_SPECIFIC_B
-            );
-
-            switch (opt Word_Id(elem)) {
-              case SYM_NULL:
-                assert(not Is_Api_Value(elem));  // API uses nullptr [3]
-                Set_Cell_Flag(elem, KEYWORD_IS_NULL);
-                break;
-
-              case SYM_OKAY:
-              case SYM_NAN:
-                break;
-
-              default: {
-                LIFT_BYTE(elem) = NOQUOTE_3;
-                return fail (Error_Illegal_Keyword_Raw(elem));  // limited [4]
-              }
-            }
-
-            Unbind_Any_Word(elem);
-        }
-        else if (heart == TYPE_FENCE) {  // canonize datatypes
-            Option(Patch*) patch;
-            if (
-                Series_Len_At(elem) != 1
-                or not Is_Word(List_Item_At(elem))
-                or not (patch = Sea_Patch(
-                    g_datatypes_context,
-                    Word_Symbol(List_Item_At(elem)),
-                    true
-                ))
-            ){
-                return fail (elem);
-            }
-            // !!! don't mess with flags (e.g. SLOT_WEIRD_MARKED_DUAL)
-            v->payload = Stub_Cell(unwrap patch)->payload;
-            v->extra = Stub_Cell(unwrap patch)->extra;
-        }
-        else {
-            assert(Any_List_Type(heart) or heart == TYPE_COMMA);
-            Tweak_Cell_Binding(elem, UNBOUND);
-        }
-    }
-    else if (heart == TYPE_FRAME) {
-        if (Frame_Lens(elem))  // no lens on antiforms...show only inputs
-            Tweak_Frame_Lens_Or_Label(elem, ANONYMOUS);
-    }
-
-    LIFT_BYTE_RAW(v) = ANTIFORM_2;  // few places should use LIFT_BYTE_RAW!
     return v;
-}
+}}
+
 
 // 1. There's an exception in the case of KEYWORD! which is the antiform of
 //    WORD!.  Only a limited set of them are allowed to exist.  But all

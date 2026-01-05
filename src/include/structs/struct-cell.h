@@ -247,7 +247,7 @@ typedef enum {
 //
 // 2. Not all datatypes have quasiforms/antiforms (e.g. ~/foo/~ is a PATH!
 //    with a Quasi-Space in the first and last slots, not a quasiform).  To
-//    help avoid casual assignments to LIFT_BYTE() of the 1 and 3 values
+//    help avoid casual assignments to LIFT_BYTE() of the 2 and 4 values
 //    we prohibit them in certain builds, requiring LIFT_BYTE_RAW() to be
 //    used if you are truly sure it's safe.
 //
@@ -259,21 +259,21 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 
 #define DUAL_0  0
 
-#if DEBUG_HOOK_LIFT_BYTE  // Stop `LIFT_BYTE(cell) = ANTIFORM_2` [2]
+#if DEBUG_HOOK_LIFT_BYTE  // e.g. stop `LIFT_BYTE(cell) = QUASIFORM_4` [2]
     struct Antiform_2_Struct { operator LiftByte() const { return 2; } };
     struct Quasiform_4_Struct { operator LiftByte() const { return 4; } };
 
     constexpr Antiform_2_Struct antiform_2;
     constexpr Quasiform_4_Struct quasiform_4;
 
-    #define ANTIFORM_2      antiform_2
-    #define QUASIFORM_4     quasiform_4
+    #define STABLE_ANTIFORM_2  antiform_2
+    #define QUASIFORM_4        quasiform_4
 #else
-    #define ANTIFORM_2      2  // also "QUASI" (NONQUASI_BIT is clear)
-    #define QUASIFORM_4     4
+    #define STABLE_ANTIFORM_2  2  // also "QUASI" (NONQUASI_BIT is clear)
+    #define QUASIFORM_4        4
 #endif
 
-// see above for ANTIFORM_2
+// see above for STABLE_ANTIFORM_2
 #define NOQUOTE_3               3
 #define NONQUASI_BIT            1
 // see above for QUASIFORM_4
@@ -282,7 +282,7 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 #define MAX_QUOTE_DEPTH     126         // highest legal quoting level
 #define Quote_Shift(n)      ((n) << 1)  // help find manipulation sites
 
-#define FLAG_LIFT_BYTE(byte)         FLAG_THIRD_BYTE(byte)
+#define FLAG_LIFT_BYTE(byte)  FLAG_THIRD_BYTE(byte)
 
 #define CELL_MASK_LIFT  FLAG_LIFT_BYTE(255)
 

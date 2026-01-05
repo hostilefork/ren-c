@@ -1346,7 +1346,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
     if (  // !!! BUGGY, new system needed
         KIND_BYTE(OUT) == TYPE_FRAME
-        and LIFT_BYTE_RAW(OUT) == ANTIFORM_2
+        and LIFT_BYTE_RAW(OUT) == STABLE_ANTIFORM_2
         and Frame_Coupling(u_cast(Stable*, OUT)) == UNCOUPLED
         and Stub_Flavor(c) == FLAVOR_VARLIST
     ){

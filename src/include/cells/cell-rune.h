@@ -391,7 +391,7 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
 //
 
 INLINE bool Is_Tripwire(Exact(const Stable*) v)  // don't allow Element*
- { return Is_Space_With_Lift_Sigil(ANTIFORM_2, SIGIL_0, v); }
+ { return Is_Space_With_Lift_Sigil(STABLE_ANTIFORM_2, SIGIL_0, v); }
 
 INLINE Stable* Init_Tripwire_Untracked(Init(Stable) out) {
     Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base

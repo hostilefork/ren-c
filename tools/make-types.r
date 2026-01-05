@@ -365,7 +365,7 @@ for-each-datatype 't [
     ;
     e-types/emit [t proper-name --[
         #define Is_$<Proper-Name>(cell) \
-            Cell_Has_Lift_Heart_No_Sigil(ANTIFORM_2, TYPE_$<T.NAME>, \
+            Cell_Has_Lift_Heart_No_Sigil(STABLE_ANTIFORM_2, TYPE_$<T.NAME>, \
                 known($<Need>*, (cell)))
 
 
@@ -389,7 +389,7 @@ for-each-datatype 't [
     ;
     e-types/emit [t proper-name --[
         #define Is_Possibly_Unstable_Value_$<Proper-Name>(atom) \
-            Cell_Has_Lift_Heart_No_Sigil(ANTIFORM_2, TYPE_$<T.NAME>, \
+            Cell_Has_Lift_Heart_No_Sigil(STABLE_ANTIFORM_2, TYPE_$<T.NAME>, \
                 known(Value*, (atom)))
     ]--]
 ]

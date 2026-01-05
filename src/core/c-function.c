@@ -819,7 +819,7 @@ Details* Make_Dispatch_Details(
     assert(Heart_Of(exemplar) == TYPE_FRAME);
     assert(
         LIFT_BYTE(exemplar) == NOQUOTE_3
-        or LIFT_BYTE(exemplar) == ANTIFORM_2  // allow action antiform
+        or LIFT_BYTE(exemplar) == STABLE_ANTIFORM_2  // allow action antiform
     );
 
     assert(0 == (flags & (~ (  // make sure no stray flags passed in

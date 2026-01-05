@@ -85,7 +85,7 @@ INLINE Option(Sigil) Sigil_Of(const Element* e) {
 }
 
 INLINE Option(Sigil) Cell_Underlying_Sigil(const Cell* c) {
-    possibly(LIFT_BYTE(c) == ANTIFORM_2);  // sigil will be none if antiform
+    possibly(LIFT_BYTE(c) == STABLE_ANTIFORM_2);  // SIGIL_0 if antiform
     return u_cast(Sigil, KIND_BYTE_RAW(c) >> KIND_SIGIL_SHIFT);
 }
 
