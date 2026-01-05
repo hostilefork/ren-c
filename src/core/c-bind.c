@@ -1439,7 +1439,7 @@ Result(None) Read_Slot_Meta(Sink(Value) out, const Slot* slot)
     assert(not Is_Blackhole_Slot(slot));
 
     DECLARE_ELEMENT (temp);  // don't have to guard--slot guards
-    Copy_Cell(temp, cast(Element*, slot));
+    Copy_Cell_Core(temp, slot, CELL_MASK_COPY);
   #if RUNTIME_CHECKS
     LIFT_BYTE(temp) = NOQUOTE_3;
     assert(Is_Tied_Form_Of(WORD, temp));  // alias
