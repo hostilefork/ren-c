@@ -1072,7 +1072,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     if (Is_Ghost(v))
         goto return_false;  // comma antiforms
 
-    if (not Is_Antiform(v) or not Is_Antiform_Unstable(v))
+    if (Is_Cell_Stable(v))
         goto return_false;
 
     trap (

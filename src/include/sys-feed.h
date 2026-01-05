@@ -826,12 +826,31 @@ INLINE Value* Undecayed_Antiformize_Unbound_Quasiform(Exact(Value*) v) {
     assert(LIFT_BYTE(v) == QUASIFORM_4);
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))
         assert(not Cell_Binding(v));
-    LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;
-    if (Heart_Of(v) == TYPE_WORD) {
+
+    switch (unwrap Heart_Of(v)) {
+      case TYPE_WORD:
         if (Word_Id(v) == SYM_NULL)
             Set_Cell_Flag(v, KEYWORD_IS_NULL);  // see cell-nulled.h
         else
             assert(Not_Cell_Flag(v, KEYWORD_IS_NULL));
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;
+        break;
+
+      case TYPE_BLOCK:
+      case TYPE_FRAME:
+      case TYPE_FENCE:
+      case TYPE_RUNE:
+        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;
+        break;
+
+      case TYPE_GROUP:
+      case TYPE_COMMA:
+      case TYPE_WARNING:
+        LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;
+        break;
+
+      default:
+        assert(false);
     }
     return v;
 }

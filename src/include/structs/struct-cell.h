@@ -226,7 +226,7 @@ typedef enum {
     u_cast(TypeEnum, u_cast(Byte, known(Sigil, (sigil)) + MAX_HEARTBYTE))
 
 
-//=//// BITS 16-23: QUOTED/QUASIFORM/ANTIFORM BYTE ("LIFT") ///////////////=//
+//=//// BITS 16-23: QUOTE/QUASI/ANTI/DUAL BYTE ("LIFT") ///////////////////=//
 //
 // Cells can be quote-escaped up to 126 levels.  Because the low bit of the
 // lifting byte is reserved for whether the contained value is a quasiform,
@@ -260,17 +260,21 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 #define DUAL_0  0
 
 #if DEBUG_HOOK_LIFT_BYTE  // e.g. stop `LIFT_BYTE(cell) = QUASIFORM_4` [2]
-    struct Antiform_2_Struct { operator LiftByte() const { return 2; } };
-    struct Quasiform_4_Struct { operator LiftByte() const { return 4; } };
+    struct Lift_1_Struct { operator LiftByte() const { return 1; } };
+    struct Lift_2_Struct { operator LiftByte() const { return 2; } };
+    struct Lift_4_Struct { operator LiftByte() const { return 4; } };
 
-    constexpr Antiform_2_Struct antiform_2;
-    constexpr Quasiform_4_Struct quasiform_4;
+    constexpr Lift_1_Struct unstable_antiform_1;
+    constexpr Lift_2_Struct stable_antiform_2;
+    constexpr Lift_4_Struct quasiform_4;
 
-    #define STABLE_ANTIFORM_2  antiform_2
-    #define QUASIFORM_4        quasiform_4
+    #define UNSTABLE_ANTIFORM_1  unstable_antiform_1
+    #define STABLE_ANTIFORM_2    stable_antiform_2
+    #define QUASIFORM_4          quasiform_4
 #else
-    #define STABLE_ANTIFORM_2  2  // also "QUASI" (NONQUASI_BIT is clear)
-    #define QUASIFORM_4        4
+    #define UNSTABLE_ANTIFORM_1  1
+    #define STABLE_ANTIFORM_2    2  // also "QUASI" (NONQUASI_BIT is clear)
+    #define QUASIFORM_4          4
 #endif
 
 // see above for STABLE_ANTIFORM_2

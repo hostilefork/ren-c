@@ -710,8 +710,9 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
             LIFT_BYTE_RAW(cell) = right;
         }
 
-        void operator=(const Antiform_2_Struct& right) = delete;
-        void operator=(const Quasiform_4_Struct& right) = delete;
+        void operator=(const Lift_1_Struct& right) = delete;
+        void operator=(const Lift_2_Struct& right) = delete;
+        void operator=(const Lift_4_Struct& right) = delete;
 
         void operator=(const LiftHolder& right)  // must write explicitly
           { *this = u_cast(LiftByte, right); }
@@ -789,6 +790,10 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
       case 4:  // QUASIFORM_4 [3]
         return TYPE_QUASIFORM;
 
+      case 1:  // UNSTABLE_ANTIFORM_1 [3]
+        assert(KIND_BYTE_RAW(v) <= MAX_HEARTBYTE);  // raw [2]
+        return cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
+
     #if RUNTIME_CHECKS
       case 0:
         crash ("Unexpected lift byte value 0 for Value* (non-dual)");
@@ -821,7 +826,7 @@ INLINE Option(Type) Type_Of_When_Unquoted(const Element* elem) {
     if (LIFT_BYTE(elem) == QUASIFORM_4)
         return TYPE_QUASIFORM;
 
-    assert(LIFT_BYTE(elem) != STABLE_ANTIFORM_2);
+    assert(LIFT_BYTE(elem) > STABLE_ANTIFORM_2);
     return Underlying_Type_Of(elem);
 }
 

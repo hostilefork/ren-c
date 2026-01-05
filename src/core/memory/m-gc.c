@@ -453,11 +453,11 @@ static void Propagate_All_GC_Marks(void)
             Flavor flavor = Stub_Flavor(a);
             assert(flavor <= MAX_FLAVOR_HOLDS_CELLS);
 
-            if (LIFT_BYTE(v) == STABLE_ANTIFORM_2) {
+            if (LIFT_BYTE(v) <= STABLE_ANTIFORM_2) {
                 if (flavor < MIN_FLAVOR_ANTIFORMS_OK)
                     crash (v);  // antiforms not legal in many array types
 
-                dont(assert(not Is_Antiform_Unstable(cast(Value*, v))));
+                dont(assert(Is_Antiform_Stable(cast(Value*, v))));
             }
           #endif
 

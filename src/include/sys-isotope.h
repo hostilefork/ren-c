@@ -99,7 +99,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
 
       case TYPE_GROUP: {  // PACK! (should packs validate their elements?)
         Tweak_Cell_Binding(elem, UNBOUND);  // [2]
-        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // [1]
+        LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // [1]
         break; }
 
       case TYPE_FENCE: {  // DATATYPE! (canonize binding)
@@ -141,12 +141,12 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
         break; }
 
       case TYPE_RUNE:  // TRASH!
-      case TYPE_WARNING:  // ERROR! (any special work here?)
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]
         break;
 
       case TYPE_COMMA:  // GHOST!
-        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]
+      case TYPE_WARNING:  // ERROR! (any special work here?)
+        LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
 
       default:
@@ -217,7 +217,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
     Exact(Value*) v,
     bool want_value  // ELIDE is more permissive, doesn't want the value
 ){
-    if (Not_Antiform(v))
+    if (Is_Cell_Stable(v))
         goto finished;
 
     if (not Is_Pack(v)) {
