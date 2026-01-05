@@ -1183,11 +1183,11 @@ Result(None) Push_Action(
     L->varlist = u_cast(ParamList*, s);
     L->rootvar = Flex_Head_Dynamic(Element, s);
 
-    possibly(LIFT_BYTE(frame) != NOQUOTE_2);  // can be ACTION!, quasi, etc.
+    possibly(LIFT_BYTE(frame) != NOQUOTE_3);  // can be ACTION!, quasi, etc.
 
     TRACK(L->rootvar)->header.bits
         = (frame->header.bits & (~ CELL_MASK_LIFT))
-            | FLAG_LIFT_BYTE(NOQUOTE_2)  // canonize as FRAME!
+            | FLAG_LIFT_BYTE(NOQUOTE_3)  // canonize as FRAME!
             | CELL_FLAG_PROTECTED;  // rootvars protected from modification
     L->rootvar->extra = frame->extra;
     L->rootvar->payload = frame->payload;

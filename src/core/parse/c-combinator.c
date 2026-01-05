@@ -235,7 +235,7 @@ DECLARE_NATIVE(COMBINATOR)
         return bounce;
 
     assert(Is_Possibly_Unstable_Value_Action(OUT));
-    LIFT_BYTE(OUT) = NOQUOTE_2;  // now it's known to not be antiform
+    LIFT_BYTE(OUT) = NOQUOTE_3;  // now it's known to not be antiform
 
     return OUT;
 }}

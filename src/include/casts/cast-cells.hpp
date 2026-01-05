@@ -71,7 +71,7 @@ struct CastHook<const F*, const Value*> {  // both must be const [B]
 
     const Cell* c = u_cast(const Cell*, p);
     Assert_Cell_Readable(c);
-    unnecessary(assert(LIFT_BYTE_RAW(c) >= ANTIFORM_1));  // always true
+    unnecessary(assert(LIFT_BYTE_RAW(c) >= ANTIFORM_2));  // always true
   }
 };
 
@@ -88,7 +88,7 @@ struct CastHook<const F*, const Stable*> {  // both must be const [B]
 
     const Cell* c = u_cast(const Cell*, p);
     Assert_Cell_Readable(c);
-    if (LIFT_BYTE_RAW(c) == ANTIFORM_1)
+    if (LIFT_BYTE_RAW(c) == ANTIFORM_2)
         assert(Is_Stable_Antiform_Kind_Byte(KIND_BYTE_RAW(c)));
   }
 };
@@ -106,6 +106,6 @@ struct CastHook<const F*, const Element*> {  // both must be const [B]
 
         const Cell* c = u_cast(const Cell*, p);
         Assert_Cell_Readable(c);
-        assert(LIFT_BYTE_RAW(c) != ANTIFORM_1);
+        assert(LIFT_BYTE_RAW(c) != ANTIFORM_2);
     }
 };

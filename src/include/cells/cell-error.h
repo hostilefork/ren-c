@@ -95,7 +95,7 @@ INLINE void Force_Location_Of_Error(Error* error, Level* L) {
     Init_Context_Cell((v), TYPE_WARNING, (c))
 
 INLINE Value* Failify(Exact(Value*) v) {  // WARNING! => ERROR!
-    assert(Heart_Of(v) == TYPE_WARNING and LIFT_BYTE(v) == NOQUOTE_2);
+    assert(Heart_Of(v) == TYPE_WARNING and LIFT_BYTE(v) == NOQUOTE_3);
     Force_Location_Of_Error(Cell_Error(v), TOP_LEVEL);  // ideally a noop
     Unstably_Antiformize_Unbound_Fundamental(v);
     assert(Is_Error(v));

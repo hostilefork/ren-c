@@ -208,7 +208,7 @@ INLINE Element* Init_Relative_Block_At(
 //
 
 INLINE Stable* Splicify(Exact(Stable*) v) {
-    assert(Any_List(v) and LIFT_BYTE(v) == NOQUOTE_2);
+    assert(Any_List(v) and LIFT_BYTE(v) == NOQUOTE_3);
     KIND_BYTE(v) = TYPE_BLOCK;  // splice drops knowledge of list type
     Tweak_Cell_Binding(u_cast(Element*, v), UNBOUND);
     Stably_Antiformize_Unbound_Fundamental(v);

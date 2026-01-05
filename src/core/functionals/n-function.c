@@ -665,8 +665,8 @@ Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
     assert(  // for specialized slot, RETURN can't be a plain PARAMETER!
         Heart_Of(param) == TYPE_PARAMETER
         and (
-            LIFT_BYTE(param) == NOQUOTE_2
-            or LIFT_BYTE(param) == ONEQUOTE_NONQUASI_4
+            LIFT_BYTE(param) == NOQUOTE_3
+            or LIFT_BYTE(param) == ONEQUOTE_NONQUASI_5
         )
     );
 

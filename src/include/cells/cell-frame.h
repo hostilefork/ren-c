@@ -250,7 +250,7 @@ INLINE Element* Init_Frame_Untracked(
 //
 
 INLINE Stable* Actionify(Exact(Stable*) val) {
-    assert(Is_Frame(val) and LIFT_BYTE(val) == NOQUOTE_2);
+    assert(Is_Frame(val) and LIFT_BYTE(val) == NOQUOTE_3);
     Stably_Antiformize_Unbound_Fundamental(val);
     assert(Is_Action(val));
     return val;
@@ -273,7 +273,7 @@ INLINE Stable* Init_Action_By_Phase(
 
 INLINE Stable* Deactivate_If_Action(Exact(Stable*) v) {
     if (Is_Action(v))
-        LIFT_BYTE(v) = NOQUOTE_2;
+        LIFT_BYTE(v) = NOQUOTE_3;
     return v;
 }
 

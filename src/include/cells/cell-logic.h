@@ -70,7 +70,7 @@
 
 INLINE bool Is_Logic(Exact(const Stable*) v) {
     Assert_Cell_Readable(v);
-    if (LIFT_BYTE(v) != ANTIFORM_1 or Heart_Of(v) != TYPE_WORD)
+    if (LIFT_BYTE(v) != ANTIFORM_2 or Heart_Of(v) != TYPE_WORD)
         return false;
     Option(SymId) id = Word_Id(v);
     return id == SYM_NULL or id == SYM_OKAY;
@@ -88,13 +88,13 @@ INLINE bool Is_Possibly_Unstable_Value_Okay(const Value* v) {
 #define Init_Okay(out) \
     TRACK(Init_Word_Untracked( \
         (out), \
-        FLAG_LIFT_BYTE(ANTIFORM_1), \
+        FLAG_LIFT_BYTE(ANTIFORM_2), \
         CANON(OKAY)))  // okay is valid KEYWORD! symbol
 
 INLINE Stable* Init_Logic_Untracked(Init(Stable) out, bool logic) {
     return Init_Word_Untracked(
         out,
-        FLAG_LIFT_BYTE(ANTIFORM_1) | (logic ? 0 : CELL_FLAG_KEYWORD_IS_NULL),
+        FLAG_LIFT_BYTE(ANTIFORM_2) | (logic ? 0 : CELL_FLAG_KEYWORD_IS_NULL),
         logic ? CANON(OKAY) : CANON(NULL)
     );
 }
@@ -167,7 +167,7 @@ INLINE bool Cell_Logic(Exact(const Stable*) v) {
 INLINE bool Is_Boolean(const Stable* v) {
     Assert_Cell_Readable(v);
 
-    if (LIFT_BYTE(v) != NOQUOTE_2 or Heart_Of(v) != TYPE_WORD)
+    if (LIFT_BYTE(v) != NOQUOTE_3 or Heart_Of(v) != TYPE_WORD)
         return false;
 
     Option(SymId) id = Word_Id(v);
@@ -194,7 +194,7 @@ INLINE bool Cell_True(Exact(const Stable*) v) {  // corresponds to TRUE?
 
 INLINE bool Is_OnOff(const Stable* v) {
     Assert_Cell_Readable(v);
-    if (LIFT_BYTE(v) != NOQUOTE_2 or Heart_Of(v) != TYPE_WORD)
+    if (LIFT_BYTE(v) != NOQUOTE_3 or Heart_Of(v) != TYPE_WORD)
         return false;
     Option(SymId) id = Word_Id(v);
     return id == SYM_ON or id == SYM_OFF;
@@ -220,7 +220,7 @@ INLINE bool Cell_On(const Stable* v) {  // corresponds to ON?
 
 INLINE bool Is_YesNo(const Stable* v) {
     Assert_Cell_Readable(v);
-    if (LIFT_BYTE(v) != NOQUOTE_2 or Heart_Of(v) != TYPE_WORD)
+    if (LIFT_BYTE(v) != NOQUOTE_3 or Heart_Of(v) != TYPE_WORD)
         return false;
     Option(SymId) id = Word_Id(v);
     return id == SYM_YES or id == SYM_NO;
@@ -266,7 +266,7 @@ INLINE Result(bool) Test_Conditional(
 ){
     Assert_Cell_Readable(v);
 
-    if (LIFT_BYTE(v) != ANTIFORM_1)
+    if (LIFT_BYTE(v) != ANTIFORM_2)
         return true;  // all non-antiforms (including quasi/quoted) are truthy
 
     if (KIND_BYTE(v) == TYPE_WORD) { // conditional test of ~null~/~okay~

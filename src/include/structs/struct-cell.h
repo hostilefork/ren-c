@@ -259,25 +259,25 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 
 #define DUAL_0  0
 
-#if DEBUG_HOOK_LIFT_BYTE  // Stop `LIFT_BYTE(cell) = ANTIFORM_1` [2]
-    struct Antiform_1_Struct { operator LiftByte() const { return 1; } };
-    struct Quasiform_3_Struct { operator LiftByte() const { return 3; } };
+#if DEBUG_HOOK_LIFT_BYTE  // Stop `LIFT_BYTE(cell) = ANTIFORM_2` [2]
+    struct Antiform_2_Struct { operator LiftByte() const { return 2; } };
+    struct Quasiform_4_Struct { operator LiftByte() const { return 4; } };
 
-    constexpr Antiform_1_Struct antiform_1;
-    constexpr Quasiform_3_Struct quasiform_3;
+    constexpr Antiform_2_Struct antiform_2;
+    constexpr Quasiform_4_Struct quasiform_4;
 
-    #define ANTIFORM_1      antiform_1
-    #define QUASIFORM_3     quasiform_3
+    #define ANTIFORM_2      antiform_2
+    #define QUASIFORM_4     quasiform_4
 #else
-    #define ANTIFORM_1      1  // also "QUASI" (QUASI_BIT is set)
-    #define QUASIFORM_3     3
+    #define ANTIFORM_2      2  // also "QUASI" (NONQUASI_BIT is clear)
+    #define QUASIFORM_4     4
 #endif
 
-// see above for ANTIFORM_1
-#define NOQUOTE_2               2
-#define QUASI_BIT               1
-// see above for QUASIFORM_3
-#define ONEQUOTE_NONQUASI_4     4  // non-quasiquoted state of 1 quote
+// see above for ANTIFORM_2
+#define NOQUOTE_3               3
+#define NONQUASI_BIT            1
+// see above for QUASIFORM_4
+#define ONEQUOTE_NONQUASI_5     5  // non-quasiquoted state of 1 quote
 
 #define MAX_QUOTE_DEPTH     126         // highest legal quoting level
 #define Quote_Shift(n)      ((n) << 1)  // help find manipulation sites

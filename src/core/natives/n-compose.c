@@ -104,7 +104,7 @@ bool Try_Match_For_Compose(
         break;
     }
 
-    LIFT_BYTE(match) = NOQUOTE_2;  // want to get rid of quasi, too
+    LIFT_BYTE(match) = NOQUOTE_3;  // want to get rid of quasi, too
     KIND_BYTE(match) = TYPE_BLOCK;
     Tweak_Cell_Binding(match, binding);  // override? combine?
     return true;
@@ -144,7 +144,7 @@ static void Push_Composer_Level(
 
         DECLARE_ELEMENT (fundamental);
         Copy_Cell(fundamental, list_or_seq);
-        LIFT_BYTE(fundamental) = NOQUOTE_2;
+        LIFT_BYTE(fundamental) = NOQUOTE_3;
 
         assume (  // all sequences alias as block
             Alias_Any_Sequence_As(adjusted, list_or_seq, TYPE_BLOCK)
@@ -225,7 +225,7 @@ static Result(Stable*) Finalize_Composer_Level(
             return fail (Error_Conflated_Sequence_Raw(Datatype_Of(out), out));
         }
 
-        assert(not(LIFT_BYTE(composee) & QUASI_BIT));  // no anti/quasi forms
+        assert(LIFT_BYTE(composee) & NONQUASI_BIT);  // no anti/quasi forms
         Count num_quotes = Quotes_Of(composee);
 
         if (not Is_Nulled(out))  // don't add quoting levels (?)
@@ -370,7 +370,7 @@ Bounce Composer_Executor(Level* const L)
     Option(Sigil) sigil = Cell_Underlying_Sigil(At_Level(L));
 
     if (Any_Void(OUT)) {
-        if (not sigil and list_lift_byte == NOQUOTE_2) {
+        if (not sigil and list_lift_byte == NOQUOTE_3) {
             L->u.compose.changed = true;
             goto handle_next_item;  // compose [(void)] => []
         }
@@ -399,9 +399,9 @@ Bounce Composer_Executor(Level* const L)
         if (sigil)
             panic ("Cannot apply sigils to antiforms in COMPOSE'd slots");
 
-        if (list_lift_byte != NOQUOTE_2) {
-            if (list_lift_byte & QUASI_BIT)
-                panic ("Can't COMPOSE antiforms into ~[...]~ slots");
+        if (list_lift_byte != NOQUOTE_3) {
+            if (not (list_lift_byte & NONQUASI_BIT))
+                panic ("Can't COMPOSE antiforms into ~(...)~ slots");
 
             Copy_Lifted_Cell(PUSH(), OUT);
             LIFT_BYTE(TOP) = list_lift_byte;
@@ -440,18 +440,18 @@ Bounce Composer_Executor(Level* const L)
         Add_Cell_Sigil(TOP_ELEMENT, unwrap sigil);  // ^ or @ or $
     }
 
-    if (list_lift_byte & QUASI_BIT) {
-        if (LIFT_BYTE(TOP) != NOQUOTE_2)
+    if (list_lift_byte & NONQUASI_BIT) {
+        Quotify_Depth(
+            TOP_ELEMENT,
+            Quotes_From_Lift_Byte(list_lift_byte)  // adds to existing
+        );
+    } else {
+        if (LIFT_BYTE(TOP) != NOQUOTE_3)
             panic (
                 "COMPOSE cannot quasify items not at quote level 0"
             );
         LIFT_BYTE(TOP) = list_lift_byte;
     }
-    else
-        Quotify_Depth(
-            TOP_ELEMENT,
-            Quotes_From_Lift_Byte(list_lift_byte)  // adds to existing
-        );
 
     if (Get_Cell_Flag(At_Level(L), NEWLINE_BEFORE))  // newline from group [1]
         Set_Cell_Flag(TOP, NEWLINE_BEFORE);
@@ -496,7 +496,7 @@ Bounce Composer_Executor(Level* const L)
   //           ]
 
     assert(Is_Splice(out));
-    assert(list_lift_byte == NOQUOTE_2);  // quotes make quasiforms above [1]
+    assert(list_lift_byte == NOQUOTE_3);  // quotes make quasiforms above [1]
     assert(not sigil);  // should've errored on any non-VOID antiform
 
     const Element* push_tail;
@@ -1007,8 +1007,8 @@ DECLARE_NATIVE(COMPOSE2)
         if (Is_None(eval))  // VOID translated to empty splice for data stack
             continue;
 
-        if (LIFT_BYTE(eval) != NOQUOTE_2)
-            panic ("For the moment, COMPOSE string only does NOQUOTE_2");
+        if (LIFT_BYTE(eval) != NOQUOTE_3)
+            panic ("For the moment, COMPOSE string only does NOQUOTE_3");
 
         if (Is_File(eval) and Is_File(input)) {  // "File calculus" [1]
             const Byte* at = cast(Byte*, head) + at_offset;

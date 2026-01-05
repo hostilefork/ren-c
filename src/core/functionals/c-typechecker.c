@@ -668,12 +668,12 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
     Copy_Cell(SPARE, v);
     Element* scratch = Copy_Cell(SCRATCH, at);
 
-    if (LIFT_BYTE(scratch) != NOQUOTE_2) {
+    if (LIFT_BYTE(scratch) != NOQUOTE_3) {
         if (LIFT_BYTE(scratch) != LIFT_BYTE(SPARE))
             goto test_failed;  // should be willing to accept subset quotes
 
-        LIFT_BYTE(scratch) = NOQUOTE_2;
-        LIFT_BYTE(SPARE) = NOQUOTE_2;
+        LIFT_BYTE(scratch) = NOQUOTE_3;
+        LIFT_BYTE(SPARE) = NOQUOTE_3;
     }
 
     Option(Sigil) scratch_sigil = Cell_Underlying_Sigil(scratch);
@@ -695,7 +695,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
         goto handle_after_any_quoting_adjustments;
     }
 
-    if (LIFT_BYTE(SPARE) != NOQUOTE_2 or v_sigil)
+    if (LIFT_BYTE(SPARE) != NOQUOTE_3 or v_sigil)
         goto test_failed;  // 'foo: or @foo: won't match word!:
 
   check_destructured_sequence: {
@@ -1060,7 +1060,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
         Is_Possibly_Unstable_Value_Action(v)
         and Get_Parameter_Flag(param, UNRUN)
     ){
-        LIFT_BYTE(v) = NOQUOTE_2;
+        LIFT_BYTE(v) = NOQUOTE_3;
         possibly(coerced);  // this may be a coercion after decay...
         coerced = true;
         goto call_typecheck;
@@ -1085,7 +1085,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
         Is_Possibly_Unstable_Value_Action(v)
         and Get_Parameter_Flag(param, UNRUN)
     ){
-        LIFT_BYTE(v) = NOQUOTE_2;
+        LIFT_BYTE(v) = NOQUOTE_3;
     }
 
     goto call_typecheck;

@@ -396,7 +396,7 @@ DECLARE_NATIVE(UNANTI)
     INCLUDE_PARAMS_OF_UNANTI;
 
     Value* v = Intrinsic_ARG(LEVEL);
-    LIFT_BYTE(v) = NOQUOTE_2;  // turn to plain form
+    LIFT_BYTE(v) = NOQUOTE_3;  // turn to plain form
 
     return COPY(Known_Element(v));
 }
@@ -600,7 +600,7 @@ DECLARE_NATIVE(UNRUN)
     INCLUDE_PARAMS_OF_UNRUN;
 
     Stable* action = ARG(ACTION);  // may or may not be antiform
-    LIFT_BYTE(action) = NOQUOTE_2;  // now it's known to not be antiform
+    LIFT_BYTE(action) = NOQUOTE_3;  // now it's known to not be antiform
     return COPY(action);
 }
 
@@ -620,7 +620,7 @@ DECLARE_NATIVE(DISARM)
 
     Value* error = ARG(ERROR);
     Copy_Cell(OUT, error);
-    LIFT_BYTE(OUT) = NOQUOTE_2;
+    LIFT_BYTE(OUT) = NOQUOTE_3;
     return OUT;
 }
 
@@ -639,7 +639,7 @@ DECLARE_NATIVE(UNSPLICE)
     INCLUDE_PARAMS_OF_UNSPLICE;
 
     Stable* splice = ARG(SPLICE);
-    LIFT_BYTE(splice) = NOQUOTE_2;
+    LIFT_BYTE(splice) = NOQUOTE_3;
     KIND_BYTE(splice) = TYPE_BLOCK;
     return COPY(splice);
 }
@@ -768,6 +768,6 @@ DECLARE_NATIVE(NOQUOTE)
         return NULLED;
 
     Copy_Cell(OUT, v);
-    LIFT_BYTE(OUT) = NOQUOTE_2;
+    LIFT_BYTE(OUT) = NOQUOTE_3;
     return OUT;
 }

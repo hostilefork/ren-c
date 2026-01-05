@@ -3009,6 +3009,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
   #if RUNTIME_CHECKS
     Count quotes_before;
+    bool nonquasi_before;
   #endif
 
   extract_sigil_and_quotes_of_head: {
@@ -3025,15 +3026,16 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
   #if RUNTIME_CHECKS
     quotes_before = Quotes_Of(head);
+    nonquasi_before = did (LIFT_BYTE(head) & NONQUASI_BIT);
   #endif
 
-    sigil_and_lift_mask = head->header.bits &  // don't include quasi bit
-        (CELL_MASK_SIGIL | FLAG_LIFT_BYTE(255 - QUASI_BIT));
+    sigil_and_lift_mask = head->header.bits &
+        (CELL_MASK_SIGIL | FLAG_LIFT_BYTE(255));  // NONQUASI_BIT included
 
-    if (LIFT_BYTE_RAW(head) & QUASI_BIT)
-        LIFT_BYTE_RAW(head) = QUASIFORM_3;
+    if (LIFT_BYTE_RAW(head) & NONQUASI_BIT)
+        LIFT_BYTE_RAW(head) = NOQUOTE_3;
     else
-        LIFT_BYTE_RAW(head) = NOQUOTE_2;
+        LIFT_BYTE_RAW(head) = QUASIFORM_4;
 
     head->header.bits &= (~ CELL_MASK_SIGIL);
 
@@ -3076,7 +3078,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
   #if RUNTIME_CHECKS
     Count quotes_check = Quotes_Of(TOP_ELEMENT);
     assert(quotes_check == quotes_before);
-    assert(not (LIFT_BYTE(TOP_ELEMENT) & QUASI_BIT));
+    assert(nonquasi_before == did (LIFT_BYTE(TOP_ELEMENT) & NONQUASI_BIT));
   #endif
 
     goto sequence_or_conflation_was_pushed;

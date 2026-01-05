@@ -1498,10 +1498,10 @@ RebolValue* API_rebEnrescue(
     Lift_Cell(v);
     assert(not Is_Light_Null(v));  // lift operations cannot produce NULL
 
-    if (Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_3, TYPE_WARNING, v))  // lifted
-        LIFT_BYTE(v) = NOQUOTE_2;  // plain error
+    if (Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_4, TYPE_WARNING, v))  // lifted
+        LIFT_BYTE(v) = NOQUOTE_3;  // plain error
     else
-        assert(LIFT_BYTE(v) > NOQUOTE_2);
+        assert(LIFT_BYTE(v) > NOQUOTE_3);
 
     Set_Base_Root_Bit(v);
     return v;  // caller must rebRelease()
@@ -1533,8 +1533,8 @@ RebolValue* API_rebRescue2(
 
     Lift_Cell(v);
 
-    if (Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_3, TYPE_WARNING, v)) { // lifted
-        LIFT_BYTE(v) = NOQUOTE_2;  // plain error
+    if (Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_4, TYPE_WARNING, v)) { // lifted
+        LIFT_BYTE(v) = NOQUOTE_3;  // plain error
         return v;  // caller must rebRelease();
     }
 
@@ -2848,7 +2848,7 @@ RebolBaseInternal* API_rebRUN(const void* p)
     );
 
     if (Is_Action(stable))
-        LIFT_BYTE(stable) = NOQUOTE_2;
+        LIFT_BYTE(stable) = NOQUOTE_3;
     else if (not Is_Frame(stable))
         panic ("rebRUN() requires FRAME! or actions (aka FRAME! antiforms)");
 

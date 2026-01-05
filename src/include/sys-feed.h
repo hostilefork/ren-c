@@ -823,10 +823,10 @@ INLINE Result(Feed*) Prep_At_Feed(
 //
 INLINE Value* Undecayed_Antiformize_Unbound_Quasiform(Exact(Value*) v) {
     assert(Any_Isotopic_Type(Heart_Of(v)));
-    assert(LIFT_BYTE(v) == QUASIFORM_3);
+    assert(LIFT_BYTE(v) == QUASIFORM_4);
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))
         assert(not Cell_Binding(v));
-    LIFT_BYTE_RAW(v) = ANTIFORM_1;
+    LIFT_BYTE_RAW(v) = ANTIFORM_2;
     if (Heart_Of(v) == TYPE_WORD) {
         if (Word_Id(v) == SYM_NULL)
             Set_Cell_Flag(v, KEYWORD_IS_NULL);  // see cell-nulled.h

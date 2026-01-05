@@ -408,12 +408,12 @@ INLINE void Deep_Freeze_Context(VarList* c) {
 
 INLINE void Quotify_Parameter_Local(Element* param) {
     assert(Is_Parameter(param));
-    LIFT_BYTE(param) = ONEQUOTE_NONQUASI_4;
+    LIFT_BYTE(param) = ONEQUOTE_NONQUASI_5;
 }
 
 INLINE void Assert_Quotified_Parameter(const Value* param) {
     assert(
-        LIFT_BYTE(param) == ONEQUOTE_NONQUASI_4
+        LIFT_BYTE(param) == ONEQUOTE_NONQUASI_5
         and Heart_Of(param) == TYPE_PARAMETER
     );
     UNUSED(param);
@@ -421,7 +421,7 @@ INLINE void Assert_Quotified_Parameter(const Value* param) {
 
 INLINE void Unquotify_Parameter_Local(Element* param) {
     Assert_Quotified_Parameter(param);
-    LIFT_BYTE(param) = NOQUOTE_2;
+    LIFT_BYTE(param) = NOQUOTE_3;
 }
 
 INLINE const Element* Quoted_Returner_Of_Paramlist(

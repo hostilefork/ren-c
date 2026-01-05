@@ -255,11 +255,11 @@ e-types/emit [--[
      * LIFT_BYTE(), and those would be filtered out and not match.
      *
      * This was changed to instead mask out the heart byte and lift byte
-     * from the header, and compare to the precise mask of NOQUOTE_2 with
+     * from the header, and compare to the precise mask of NOQUOTE_3 with
      * the specific heart byte:
      *
      *     #define Is_Text(cell) \
-     *         Cell_Has_Lift_Heart_No_Sigil(NOQUOTE_2, TYPE_TEXT, (cell))
+     *         Cell_Has_Lift_Heart_No_Sigil(NOQUOTE_3, TYPE_TEXT, (cell))
      *
      * This avoids the branching in Type_Of(), so it's a slight bit faster.
      */
@@ -275,7 +275,7 @@ for-each-datatype 't [
 
     e-types/emit [propercase-of t --[
         #define Is_${propercase-of T.name}(value) \
-            Cell_Has_Lift_Heart_No_Sigil(NOQUOTE_2, TYPE_$<T.NAME>, \
+            Cell_Has_Lift_Heart_No_Sigil(NOQUOTE_3, TYPE_$<T.NAME>, \
                 known(Stable*, (value)))
     ]--]
 ]
@@ -365,12 +365,12 @@ for-each-datatype 't [
     ;
     e-types/emit [t proper-name --[
         #define Is_$<Proper-Name>(cell) \
-            Cell_Has_Lift_Heart_No_Sigil(ANTIFORM_1, TYPE_$<T.NAME>, \
+            Cell_Has_Lift_Heart_No_Sigil(ANTIFORM_2, TYPE_$<T.NAME>, \
                 known($<Need>*, (cell)))
 
 
         #define Is_Lifted_$<Proper-Name>(cell) \
-            Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_3, TYPE_$<T.NAME>, \
+            Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_4, TYPE_$<T.NAME>, \
                 known(Stable*, (cell)))
 
         #define Is_Quasi_$<Propercase-Of T.Name>(cell) \
@@ -389,7 +389,7 @@ for-each-datatype 't [
     ;
     e-types/emit [t proper-name --[
         #define Is_Possibly_Unstable_Value_$<Proper-Name>(atom) \
-            Cell_Has_Lift_Heart_No_Sigil(ANTIFORM_1, TYPE_$<T.NAME>, \
+            Cell_Has_Lift_Heart_No_Sigil(ANTIFORM_2, TYPE_$<T.NAME>, \
                 known(Value*, (atom)))
     ]--]
 ]

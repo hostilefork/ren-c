@@ -1260,8 +1260,8 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
             continue;
 
         if (
-            LIFT_BYTE(check) == NOQUOTE_2
-            or LIFT_BYTE(check) == ONEQUOTE_NONQUASI_4
+            LIFT_BYTE(check) == NOQUOTE_3
+            or LIFT_BYTE(check) == ONEQUOTE_NONQUASI_5
         ){
             KindByte kind = KIND_BYTE(check);
             if (
@@ -1359,10 +1359,10 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
                 assert(kind == Kind_From_Sigil_And_Heart(SIGIL_0, TYPE_WORD));
         }
 
-        if (LIFT_BYTE(item) == ONEQUOTE_NONQUASI_4)
+        if (LIFT_BYTE(item) == ONEQUOTE_NONQUASI_5)
             Set_Cell_Flag(slot, LOOP_SLOT_NOTE_UNBIND);
         else
-            assert(LIFT_BYTE(item) == NOQUOTE_2);
+            assert(LIFT_BYTE(item) == NOQUOTE_3);
     }
 
     // As currently written, the loop constructs which use these contexts
@@ -1437,11 +1437,11 @@ Result(None) Read_Slot_Meta(Sink(Value) out, const Slot* slot)
     DECLARE_ELEMENT (temp);  // don't have to guard--slot guards
     Copy_Cell(temp, cast(Element*, slot));
   #if RUNTIME_CHECKS
-    LIFT_BYTE(temp) = NOQUOTE_2;
+    LIFT_BYTE(temp) = NOQUOTE_3;
     assert(Is_Tied_Form_Of(WORD, temp));  // alias
   #endif
     KIND_BYTE(temp) = TYPE_WORD;
-    LIFT_BYTE(temp) = ONEQUOTE_NONQUASI_4;
+    LIFT_BYTE(temp) = ONEQUOTE_NONQUASI_5;
     unnecessary(Push_Lifeguard(temp));  // slot protects it.
 
     if (rebRunThrows(out, CANON(GET), temp))
@@ -1523,11 +1523,11 @@ Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(
     DECLARE_ELEMENT (temp);
     Copy_Cell(temp, u_cast(Element*, slot));
   #if RUNTIME_CHECKS
-    LIFT_BYTE(temp) = NOQUOTE_2;
+    LIFT_BYTE(temp) = NOQUOTE_3;
     assert(Is_Tied_Form_Of(WORD, temp));
   #endif
     KIND_BYTE(temp) = TYPE_WORD;
-    LIFT_BYTE(temp) = ONEQUOTE_NONQUASI_4;
+    LIFT_BYTE(temp) = ONEQUOTE_NONQUASI_5;
     unnecessary(Push_Lifeguard(temp));  // slot protects it.
 
     rebElide(CANON(SET), temp, rebQ(u_cast(Stable*, write)));

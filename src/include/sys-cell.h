@@ -647,7 +647,7 @@ INLINE void Set_Cell_Crumb(Cell* c, Crumb crumb) {
     Unchecked_Heart_Of(Ensure_Readable(c))
 
 INLINE Option(Heart) Heart_Of_Fundamental(const Cell* c) {
-    assert(LIFT_BYTE_RAW(c) == NOQUOTE_2);
+    assert(LIFT_BYTE_RAW(c) == NOQUOTE_3);
     return Heart_Of(c);
 }
 
@@ -658,7 +658,7 @@ INLINE Heart Heart_Of_Builtin(const Cell* c) {
 }
 
 INLINE Heart Heart_Of_Builtin_Fundamental(const Element* c) {
-    assert(LIFT_BYTE_RAW(c) == NOQUOTE_2);
+    assert(LIFT_BYTE_RAW(c) == NOQUOTE_3);
     Option(Heart) heart = Heart_Of(c);
     assert(heart != TYPE_0);
     return opt heart;  // faster than unwrap, we already checked for 0
@@ -668,7 +668,7 @@ INLINE Heart Heart_Of_Builtin_Fundamental(const Element* c) {
     (TYPE_0 == opt Heart_Of(cell))
 
 INLINE bool Type_Of_Is_0(const Cell* cell) {
-    return Heart_Of_Is_0(cell) and LIFT_BYTE_RAW(cell) == NOQUOTE_2;
+    return Heart_Of_Is_0(cell) and LIFT_BYTE_RAW(cell) == NOQUOTE_3;
 }
 
 
@@ -704,14 +704,14 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
             assert(right >= 0 and right <= 255);
 
             Option(Heart) heart = Unchecked_Heart_Of(cell);
-            if (right & QUASI_BIT)
+            if (right != DUAL_0 and not (right & NONQUASI_BIT))
                 assert(Any_Isotopic_Type(heart));  // has quasiforms/antiforms
 
             LIFT_BYTE_RAW(cell) = right;
         }
 
-        void operator=(const Antiform_1_Struct& right) = delete;
-        void operator=(const Quasiform_3_Struct& right) = delete;
+        void operator=(const Antiform_2_Struct& right) = delete;
+        void operator=(const Quasiform_4_Struct& right) = delete;
 
         void operator=(const LiftHolder& right)  // must write explicitly
           { *this = u_cast(LiftByte, right); }
@@ -752,7 +752,7 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
 //    it to change these to non-raw calls temporarily.)
 //
 // 3. Only some types can have antiforms and quasiforms.  To stop casual
-//    assignments to the LIFT_BYTE() of ANTIFORM_1 and QUASIFORM_3 they are
+//    assignments to the LIFT_BYTE() of ANTIFORM_2 and QUASIFORM_4 they are
 //    ornery object wrappers in certain checked builds, only allowing usage
 //    in narrow contexts.  We use the numeric constants here in the switch().
 //
@@ -774,7 +774,7 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
     switch (  // branches are in order of commonality (nonquoted first)
         LIFT_BYTE_RAW(v)  // raw [2]
     ){
-      case NOQUOTE_2: {  // inlining of Underlying_Type_Of_Unchecked() [2]
+      case NOQUOTE_3: {  // inlining of Underlying_Type_Of_Unchecked() [2]
         if (KIND_BYTE_RAW(v) <= MAX_HEARTBYTE)  // raw [2]
             return cast(HeartEnum, KIND_BYTE_RAW(v));
 
@@ -782,11 +782,11 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
             u_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
         ); }
 
-      case 1:  // ANTIFORM_1 [3]
+      case 2:  // ANTIFORM_2 [3]
         assert(KIND_BYTE_RAW(v) <= MAX_HEARTBYTE);  // raw [2]
         return cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
 
-      case 3:  // QUASIFORM_3 [3]
+      case 4:  // QUASIFORM_4 [3]
         return TYPE_QUASIFORM;
 
     #if RUNTIME_CHECKS
@@ -818,10 +818,10 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
     Datatype_Of_Maybe_Unstable(known(Stable*, (v)))
 
 INLINE Option(Type) Type_Of_When_Unquoted(const Element* elem) {
-    if (LIFT_BYTE(elem) == QUASIFORM_3)
+    if (LIFT_BYTE(elem) == QUASIFORM_4)
         return TYPE_QUASIFORM;
 
-    assert(LIFT_BYTE(elem) != ANTIFORM_1);
+    assert(LIFT_BYTE(elem) != ANTIFORM_2);
     return Underlying_Type_Of(elem);
 }
 
@@ -836,7 +836,7 @@ INLINE void Reset_Cell_Header_Noquote(Cell* c, uintptr_t flags)
     assert((flags & CELL_MASK_LIFT) == FLAG_LIFT_BYTE(DUAL_0));
     Freshen_Cell_Header(c);  // if CELL_MASK_ERASED_0, node+cell flags not set
     c->header.bits |= (  // need to ensure node+cell flag get set
-        BASE_FLAG_BASE | BASE_FLAG_CELL | flags | FLAG_LIFT_BYTE(NOQUOTE_2)
+        BASE_FLAG_BASE | BASE_FLAG_CELL | flags | FLAG_LIFT_BYTE(NOQUOTE_3)
     );
 }
 
@@ -857,7 +857,7 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
 
     Freshen_Cell_Header(c);  // if CELL_MASK_ERASED_0, node+cell flags not set
     c->header.bits |= (  // need to ensure node+cell flag get set
-        BASE_FLAG_BASE | BASE_FLAG_CELL | flags | FLAG_LIFT_BYTE(NOQUOTE_2)
+        BASE_FLAG_BASE | BASE_FLAG_CELL | flags | FLAG_LIFT_BYTE(NOQUOTE_3)
     );
     c->extra.base = m_cast(ExtraHeart*, extra_heart);
 }
@@ -1132,7 +1132,7 @@ INLINE Cell* Copy_Cell_Untracked(
 
 INLINE Element* Copy_Plain_Cell(Init(Element) out, const Value* v) {
     Copy_Cell(u_cast(Value*, (out)), v);
-    LIFT_BYTE(out) = NOQUOTE_2;
+    LIFT_BYTE(out) = NOQUOTE_3;
     return out;
 }
 

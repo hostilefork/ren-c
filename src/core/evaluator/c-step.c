@@ -371,13 +371,13 @@ Bounce Stepper_Executor(Level* L)
 
     assert(not L_next_gotten);  // Fetch_Next_In_Feed() cleared it
 
-    if (LIFT_BYTE(L_next) != NOQUOTE_2)  // quoted right can't look back
+    if (LIFT_BYTE(L_next) != NOQUOTE_3)  // quoted right can't look back
         goto give_up_backward_quote_priority;
 
     Option(InfixMode) infix_mode;
     Phase* infixed;
 
-    if (LIFT_BYTE(L_next) != NOQUOTE_2)
+    if (LIFT_BYTE(L_next) != NOQUOTE_3)
        goto give_up_backward_quote_priority;
 
     switch (KIND_BYTE_RAW(L_next)) {  // ignore Sigil
@@ -504,7 +504,7 @@ Bounce Stepper_Executor(Level* L)
 
     assert(Is_Cell_Erased(OUT));
 
-    if (LIFT_BYTE(CURRENT) == NOQUOTE_2) {
+    if (LIFT_BYTE(CURRENT) == NOQUOTE_3) {
         Option(Sigil) sigil = Sigil_Of(CURRENT);
         switch (opt sigil) {
           case SIGIL_0:
@@ -521,10 +521,10 @@ Bounce Stepper_Executor(Level* L)
         }
     }
 
-    if (LIFT_BYTE(CURRENT) == QUASIFORM_3)
+    if (LIFT_BYTE(CURRENT) == QUASIFORM_4)
         goto handle_quasiform;
 
-    assert(LIFT_BYTE(CURRENT) != ANTIFORM_1);
+    assert(LIFT_BYTE(CURRENT) != ANTIFORM_2);
     goto handle_quoted;
 
 

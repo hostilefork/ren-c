@@ -108,7 +108,7 @@ INLINE bool Is_Rune_And_Is_Char(const Stable* v) {
                 | CELL_FLAG_RUNE_SINGLE_CODEPOINT
         )) == (
             FLAG_HEART(TYPE_RUNE)
-                | FLAG_LIFT_BYTE(NOQUOTE_2)
+                | FLAG_LIFT_BYTE(NOQUOTE_3)
                 | CELL_FLAG_RUNE_SINGLE_CODEPOINT
         )
     );
@@ -311,7 +311,7 @@ INLINE Result(Element*) Init_Single_Codepoint_Rune_Untracked(
     )
 
 INLINE bool Any_Sigiled_Space(const Element* e) {
-    if (LIFT_BYTE(e) != NOQUOTE_2 or not Sigil_Of(e))
+    if (LIFT_BYTE(e) != NOQUOTE_3 or not Sigil_Of(e))
         return false;
     return Is_Space_Underlying(e);
 }
@@ -342,16 +342,16 @@ INLINE bool Is_Space_With_Lift_Sigil(
 }
 
 #define Is_Space(v) \
-    Is_Space_With_Lift_Sigil(NOQUOTE_2, SIGIL_0, (v))  // renders as `_` [1]
+    Is_Space_With_Lift_Sigil(NOQUOTE_3, SIGIL_0, (v))  // renders as `_` [1]
 
 #define Is_Pinned_Space(v) \
-    Is_Space_With_Lift_Sigil(NOQUOTE_2, SIGIL_PIN, (v))  // renders as `@` [1]
+    Is_Space_With_Lift_Sigil(NOQUOTE_3, SIGIL_PIN, (v))  // renders as `@` [1]
 
 #define Is_Metaform_Space(v) \
-    Is_Space_With_Lift_Sigil(NOQUOTE_2, SIGIL_META, (v))  // renders as `^` [1]
+    Is_Space_With_Lift_Sigil(NOQUOTE_3, SIGIL_META, (v))  // renders as `^` [1]
 
 #define Is_Tied_Space(v) \
-    Is_Space_With_Lift_Sigil(NOQUOTE_2, SIGIL_TIE, (v))  // renders as `$` [1]
+    Is_Space_With_Lift_Sigil(NOQUOTE_3, SIGIL_TIE, (v))  // renders as `$` [1]
 
 
 //=//// '~' QUASIFORM (a.k.a. QUASAR) /////////////////////////////////////=//
@@ -368,7 +368,7 @@ INLINE bool Is_Space_With_Lift_Sigil(
 //
 
 #define Is_Quasar(v) \
-    Is_Space_With_Lift_Sigil(QUASIFORM_3, SIGIL_0, (v))
+    Is_Space_With_Lift_Sigil(QUASIFORM_4, SIGIL_0, (v))
 
 INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
     Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base
@@ -391,7 +391,7 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
 //
 
 INLINE bool Is_Tripwire(Exact(const Stable*) v)  // don't allow Element*
- { return Is_Space_With_Lift_Sigil(ANTIFORM_1, SIGIL_0, v); }
+ { return Is_Space_With_Lift_Sigil(ANTIFORM_2, SIGIL_0, v); }
 
 INLINE Stable* Init_Tripwire_Untracked(Init(Stable) out) {
     Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base

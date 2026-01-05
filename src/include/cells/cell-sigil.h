@@ -51,7 +51,7 @@
 
 #define Unchecked_Unlifted_Cell_Has_Sigil(sigil,cell) \
     (((cell)->header.bits & (CELL_MASK_LIFT | CELL_MASK_SIGIL)) == \
-        (FLAG_LIFT_BYTE(NOQUOTE_2) | FLAG_SIGIL(sigil)))
+        (FLAG_LIFT_BYTE(NOQUOTE_3) | FLAG_SIGIL(sigil)))
 
 #define Unlifted_Cell_Has_Sigil(sigil,cell) \
     Unchecked_Unlifted_Cell_Has_Sigil((sigil), Ensure_Readable(cell))
@@ -70,22 +70,22 @@
 
 
 #define Is_Pinned_Form_Of(heartname, v) \
-    Cell_Has_Lift_Sigil_Heart(NOQUOTE_2, SIGIL_PIN, TYPE_##heartname, (v))
+    Cell_Has_Lift_Sigil_Heart(NOQUOTE_3, SIGIL_PIN, TYPE_##heartname, (v))
 
 #define Is_Meta_Form_Of(heartname, v) \
-    Cell_Has_Lift_Sigil_Heart(NOQUOTE_2, SIGIL_META, TYPE_##heartname, (v))
+    Cell_Has_Lift_Sigil_Heart(NOQUOTE_3, SIGIL_META, TYPE_##heartname, (v))
 
 #define Is_Tied_Form_Of(heartname, v) \
-    Cell_Has_Lift_Sigil_Heart(NOQUOTE_2, SIGIL_TIE, TYPE_##heartname, (v))
+    Cell_Has_Lift_Sigil_Heart(NOQUOTE_3, SIGIL_TIE, TYPE_##heartname, (v))
 
 
 INLINE Option(Sigil) Sigil_Of(const Element* e) {
-    assert(LIFT_BYTE(e) == NOQUOTE_2);
+    assert(LIFT_BYTE(e) == NOQUOTE_3);
     return u_cast(Sigil, KIND_BYTE_RAW(e) >> KIND_SIGIL_SHIFT);
 }
 
 INLINE Option(Sigil) Cell_Underlying_Sigil(const Cell* c) {
-    possibly(LIFT_BYTE(c) == ANTIFORM_1);  // sigil will be none if antiform
+    possibly(LIFT_BYTE(c) == ANTIFORM_2);  // sigil will be none if antiform
     return u_cast(Sigil, KIND_BYTE_RAW(c) >> KIND_SIGIL_SHIFT);
 }
 
@@ -142,7 +142,7 @@ INLINE Element* Add_Cell_Sigil(Element* elem, Sigil sigil) {
 }
 
 INLINE Element* Clear_Cell_Sigil(Element* elem) {
-    assert(LIFT_BYTE(elem) == NOQUOTE_2);  // no quotes/quasiforms
+    assert(LIFT_BYTE(elem) == NOQUOTE_3);  // no quotes/quasiforms
 
   #if RUNTIME_CHECKS
     bool had_sigil = did (elem->header.bits & CELL_MASK_SIGIL);

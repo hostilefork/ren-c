@@ -102,7 +102,7 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
 
 #define CELL_MASK_SCARY_GHOST \
     (FLAG_KIND_BYTE(TYPE_COMMA) \
-        | FLAG_LIFT_BYTE(ANTIFORM_1) \
+        | FLAG_LIFT_BYTE(ANTIFORM_2) \
         | CELL_FLAG_OUT_NOTE_SCARY_GHOST)
 
 #define Is_Scary_Ghost(out) /* check header with single mask operation */ \

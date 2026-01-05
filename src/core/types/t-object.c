@@ -1334,7 +1334,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     Copy_Cell(OUT, u_cast(Value*, slot));
 
     if (LIFT_BYTE(OUT) == DUAL_0) {  // return as nonquoted/nonquasi thing
-        LIFT_BYTE(OUT) = NOQUOTE_2;
+        LIFT_BYTE(OUT) = NOQUOTE_3;
         assert(
             Is_Frame(Known_Stable(OUT))
             or Is_Dual_Meta_Alias_Signal(Known_Stable(OUT))
@@ -1346,7 +1346,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
     if (  // !!! BUGGY, new system needed
         KIND_BYTE(OUT) == TYPE_FRAME
-        and LIFT_BYTE_RAW(OUT) == ANTIFORM_1
+        and LIFT_BYTE_RAW(OUT) == ANTIFORM_2
         and Frame_Coupling(u_cast(Stable*, OUT)) == UNCOUPLED
         and Stub_Flavor(c) == FLAVOR_VARLIST
     ){
@@ -1370,7 +1370,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
     if (Is_Dual_Slot_Alias_Signal(slot) and Any_Lifted(dual)) {
         Copy_Cell(SCRATCH, u_cast(Value*, slot));
-        LIFT_BYTE(SCRATCH) = NOQUOTE_2;
+        LIFT_BYTE(SCRATCH) = NOQUOTE_3;
         Corrupt_Cell_If_Needful(SPARE);
         Copy_Cell(OUT, dual);
         require (
@@ -1916,7 +1916,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Frame)
     Element* v = Element_ARG(VALUE);
     Molder* mo = Cell_Handle_Pointer(Molder, ARG(MOLDER));
 
-    if (LIFT_BYTE(v) != QUASIFORM_3) {
+    if (LIFT_BYTE(v) != QUASIFORM_4) {
         return GENERIC_CFUNC(MOLDIFY, Any_Context)(LEVEL);  // heeds ARG(FORM)
     }
 

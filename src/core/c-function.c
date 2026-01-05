@@ -818,8 +818,8 @@ Details* Make_Dispatch_Details(
 ){
     assert(Heart_Of(exemplar) == TYPE_FRAME);
     assert(
-        LIFT_BYTE(exemplar) == NOQUOTE_2
-        or LIFT_BYTE(exemplar) == ANTIFORM_1  // allow action antiform
+        LIFT_BYTE(exemplar) == NOQUOTE_3
+        or LIFT_BYTE(exemplar) == ANTIFORM_2  // allow action antiform
     );
 
     assert(0 == (flags & (~ (  // make sure no stray flags passed in
@@ -845,7 +845,7 @@ Details* Make_Dispatch_Details(
 
     Cell* rootvar = Array_Head(a);
     Copy_Cell(rootvar, exemplar);
-    LIFT_BYTE(rootvar) = NOQUOTE_2;  // canonize action antiforms to FRAME!
+    LIFT_BYTE(rootvar) = NOQUOTE_3;  // canonize action antiforms to FRAME!
     Protect_Rootvar_If_Debug(rootvar);
 
     // Leave rest of the cells in the capacity uninitialized (caller fills in)

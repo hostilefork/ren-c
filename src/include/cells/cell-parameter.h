@@ -479,7 +479,7 @@ INLINE Cell* Blit_Param_Keep_Mark_Untracked(Cell* out, const Param* p) {
 #define Blit_Null_Typechecked(out) \
     TRACK(Blit_Word_Untracked( \
         (out), \
-        FLAG_LIFT_BYTE(ANTIFORM_1) \
+        FLAG_LIFT_BYTE(ANTIFORM_2) \
             | CELL_FLAG_KEYWORD_IS_NULL | CELL_FLAG_PARAM_NOTE_TYPECHECKED, \
         CANON(NULL) \
     ))
@@ -487,7 +487,7 @@ INLINE Cell* Blit_Param_Keep_Mark_Untracked(Cell* out, const Param* p) {
 #define Blit_Okay_Typechecked(out) \
     TRACK(Blit_Word_Untracked( \
         (out), \
-        FLAG_LIFT_BYTE(ANTIFORM_1) | CELL_FLAG_PARAM_NOTE_TYPECHECKED, \
+        FLAG_LIFT_BYTE(ANTIFORM_2) | CELL_FLAG_PARAM_NOTE_TYPECHECKED, \
         CANON(OKAY) \
     ))
 

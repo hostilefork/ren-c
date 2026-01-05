@@ -105,7 +105,7 @@ DECLARE_NATIVE(ENRECOVER)
 
     if (not THROWING) {  // successful result
         if (Is_Error(OUT)) {
-            LIFT_BYTE(OUT) = NOQUOTE_2;  // turn it into normal error
+            LIFT_BYTE(OUT) = NOQUOTE_3;  // turn it into normal error
             return OUT;
         }
         return Lift_Cell(OUT);
@@ -205,7 +205,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
     if (Is_Error(SPARE)) {
         Drop_Level(SUBLEVEL);
         Move_Value(OUT, SPARE);
-        LIFT_BYTE(OUT) = NOQUOTE_2;  // change antiform error to plain
+        LIFT_BYTE(OUT) = NOQUOTE_3;  // change antiform error to plain
         return OUT_BRANCHED;
     }
 
@@ -260,7 +260,7 @@ DECLARE_NATIVE(EXCEPT)
     if (not Is_Error(left))
         return COPY(left);  // pass thru any non-errors
 
-    LIFT_BYTE(left) = NOQUOTE_2;  // turn antiform error into plain warning
+    LIFT_BYTE(left) = NOQUOTE_3;  // turn antiform error into plain warning
     Element* warning = Known_Element(left);
 
     return DELEGATE_BRANCH(OUT, branch, warning);  // !!! pass antiform? [1]

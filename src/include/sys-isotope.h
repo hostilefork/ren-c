@@ -67,7 +67,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v) {
         assert(not Is_Api_Value(elem));  // no unstable antiforms in API [1]
 
     if (not Any_Isotopic_Type(heart)) {
-        LIFT_BYTE(elem) = NOQUOTE_2;
+        LIFT_BYTE(elem) = NOQUOTE_3;
         return fail (Error_Non_Isotopic_Type_Raw(elem));
     }
 
@@ -88,7 +88,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v) {
                 break;
 
               default: {
-                LIFT_BYTE(elem) = NOQUOTE_2;
+                LIFT_BYTE(elem) = NOQUOTE_3;
                 return fail (Error_Illegal_Keyword_Raw(elem));  // limited [4]
               }
             }
@@ -122,7 +122,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v) {
             Tweak_Frame_Lens_Or_Label(elem, ANONYMOUS);
     }
 
-    LIFT_BYTE_RAW(v) = ANTIFORM_1;  // few places should use LIFT_BYTE_RAW!
+    LIFT_BYTE_RAW(v) = ANTIFORM_2;  // few places should use LIFT_BYTE_RAW!
     return v;
 }
 
@@ -134,11 +134,11 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
     Option(Heart) heart = Heart_Of(v);
 
     if (not Any_Isotopic_Type(heart)) {  // Note: all words have quasiforms [1]
-        LIFT_BYTE(v) = NOQUOTE_2;
+        LIFT_BYTE(v) = NOQUOTE_3;
         return fail (Error_Non_Isotopic_Type_Raw(v));
     }
 
-    LIFT_BYTE_RAW(v) = QUASIFORM_3;  // few places should use LIFT_BYTE_RAW!
+    LIFT_BYTE_RAW(v) = QUASIFORM_4;  // few places should use LIFT_BYTE_RAW!
     return v;
 }
 

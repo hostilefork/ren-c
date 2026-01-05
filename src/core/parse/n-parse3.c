@@ -426,7 +426,7 @@ static Result(Option(SymId)) Get_Parse_Value(
             );
             assert(Heart_Of(checker) == TYPE_FRAME);
             Copy_Cell(out_value, checker);
-            LIFT_BYTE(out_value) = NOQUOTE_2;
+            LIFT_BYTE(out_value) = NOQUOTE_3;
             Restore_Level_Scratch_Spare(TOP_LEVEL, saved_state);
         }
         else {
@@ -1835,7 +1835,7 @@ DECLARE_NATIVE(SUBPARSE)
             Restore_Level_Scratch_Spare(TOP_LEVEL, saved_state);
 
             Copy_Cell(SPARE, lookup);
-            LIFT_BYTE(SPARE) = NOQUOTE_2;
+            LIFT_BYTE(SPARE) = NOQUOTE_3;
             rule = Known_Element(SPARE);
             assert(Is_Frame(rule));
 
@@ -1853,7 +1853,7 @@ DECLARE_NATIVE(SUBPARSE)
         if (not Is_Action(spare))
             panic ("PATH! in PARSE3 must be an ACTION!");
 
-        LIFT_BYTE(spare) = NOQUOTE_2;
+        LIFT_BYTE(spare) = NOQUOTE_3;
         rule = Copy_Cell(P_SAVE, Known_Element(spare));
     }
     else if (Is_Set_Tuple(rule)) {

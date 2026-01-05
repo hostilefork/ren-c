@@ -737,7 +737,7 @@ DECLARE_NATIVE(LIT_WORD_Q)
         return NULLED;
 
     return LOGIC(
-        LIFT_BYTE(v) == ONEQUOTE_NONQUASI_4 and Heart_Of(v) == TYPE_WORD
+        LIFT_BYTE(v) == ONEQUOTE_NONQUASI_5 and Heart_Of(v) == TYPE_WORD
     );
 }
 
@@ -1585,8 +1585,8 @@ DECLARE_NATIVE(NOQUASI)
         return NULLED;
 
     Copy_Cell(OUT, v);
-    if (LIFT_BYTE(OUT) == QUASIFORM_3)
-        LIFT_BYTE(OUT) = NOQUOTE_2;
+    if (LIFT_BYTE(OUT) == QUASIFORM_4)
+        LIFT_BYTE(OUT) = NOQUOTE_3;
     return OUT;
 }
 
@@ -1633,6 +1633,6 @@ DECLARE_NATIVE(NOANTIFORM)
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
     if (Is_Antiform(v))
-        LIFT_BYTE(v) = NOQUOTE_2;
+        LIFT_BYTE(v) = NOQUOTE_3;
     return COPY(v);
 }

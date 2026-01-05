@@ -39,7 +39,7 @@ static Option(Error*) Trap_Adjust_Lifted_Antiform_For_Tweak(Value* spare)
 {
     assert(Is_Lifted_Antiform(spare));
     if (Heart_Of(spare) == TYPE_FRAME) {  // e.g. (append.series)
-        LIFT_BYTE_RAW(spare) = ONEQUOTE_NONQUASI_4;
+        LIFT_BYTE_RAW(spare) = ONEQUOTE_NONQUASI_5;
         return SUCCESS;
     }
 

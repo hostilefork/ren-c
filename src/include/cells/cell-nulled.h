@@ -91,25 +91,25 @@
     ((Ensure_Readable(known(const Value*, (v)))->header.bits & ( \
         CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_KEYWORD_IS_NULL \
     )) == ( \
-        FLAG_LIFT_BYTE(ANTIFORM_1) | FLAG_HEART(TYPE_WORD) \
+        FLAG_LIFT_BYTE(ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
             | CELL_FLAG_KEYWORD_IS_NULL))
 
 #define Is_Nulled(v) /* test for stable values, name avoids confusion [2] */ \
     ((Ensure_Readable(known(Exact(const Stable*), (v)))->header.bits & ( \
         CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_KEYWORD_IS_NULL \
     )) == ( \
-        FLAG_LIFT_BYTE(ANTIFORM_1) | FLAG_HEART(TYPE_WORD) \
+        FLAG_LIFT_BYTE(ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
             | CELL_FLAG_KEYWORD_IS_NULL))
 
 #define Init_Nulled(out) /* name helps avoid confusion [B] */ \
     TRACK(Init_Word_Untracked( \
         (out), \
-        FLAG_LIFT_BYTE(ANTIFORM_1) | CELL_FLAG_KEYWORD_IS_NULL,  \
+        FLAG_LIFT_BYTE(ANTIFORM_2) | CELL_FLAG_KEYWORD_IS_NULL,  \
         CANON(NULL)))
 
 
 INLINE bool Is_Lifted_Null(const Value* v) {
-    if (LIFT_BYTE(v) != QUASIFORM_3)
+    if (LIFT_BYTE(v) != QUASIFORM_4)
         return false;
     if (Heart_Of(v) != TYPE_WORD)
         return false;
