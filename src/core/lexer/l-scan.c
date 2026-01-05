@@ -3005,12 +3005,8 @@ static Bounce Scanner_Executor_Core(Level* const L) {
   // from the stack items...transferring the quotes and sigils from the head
   // item onto the overall popped sequence (or subsequence).
 
-    Flags sigil_and_lift_mask;
-
-  #if RUNTIME_CHECKS
     Count quotes_before;
-    bool nonquasi_before;
-  #endif
+    Option(Sigil) sigil_before;
 
   extract_sigil_and_quotes_of_head: {
 
@@ -3024,13 +3020,8 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
     OnStack(Element) head = Data_Stack_At(Element, stackindex_path_head);
 
-  #if RUNTIME_CHECKS
     quotes_before = Quotes_Of(head);
-    nonquasi_before = did (LIFT_BYTE(head) & NONQUASI_BIT);
-  #endif
-
-    sigil_and_lift_mask = head->header.bits &
-        (CELL_MASK_SIGIL | FLAG_LIFT_BYTE(255));  // NONQUASI_BIT included
+    sigil_before = Cell_Underlying_Sigil(head);
 
     if (LIFT_BYTE_RAW(head) & NONQUASI_BIT)
         LIFT_BYTE_RAW(head) = NOQUOTE_3;
@@ -3072,14 +3063,8 @@ static Bounce Scanner_Executor_Core(Level* const L) {
     possibly(Is_Quasiform(TOP_ELEMENT));  // e.g. ~/~ so can't ask Sigil_Of()
     assert(Cell_Underlying_Sigil(TOP_ELEMENT) == 0);
 
-    LIFT_BYTE(TOP_ELEMENT) = DUAL_0;  // clear out so masking in works
-    TOP_ELEMENT->header.bits |= sigil_and_lift_mask;
-
-  #if RUNTIME_CHECKS
-    Count quotes_check = Quotes_Of(TOP_ELEMENT);
-    assert(quotes_check == quotes_before);
-    assert(nonquasi_before == did (LIFT_BYTE(TOP_ELEMENT) & NONQUASI_BIT));
-  #endif
+    LIFT_BYTE(TOP_ELEMENT) = NOQUOTE_3 + Quote_Shift(quotes_before);
+    TOP_ELEMENT->header.bits |= FLAG_SIGIL(sigil_before);
 
     goto sequence_or_conflation_was_pushed;
 

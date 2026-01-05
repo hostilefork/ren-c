@@ -31,19 +31,25 @@
 //     >> noquote first ['''''a]
 //     == a
 //
-// But the LIFT_BYTE() is used to encode other states as well: all datatypes
+// But the LIFT_BYTE() is used to encode other states as well: some datatypes
 // (besides QUOTED! itself) have an "antiform" form as well as a "quasi" form.
-// The quasi form will evaluate to the antiform form, and the antiform form is
-// expressly prohibited from being put in arrays:
+// The quasi form will evaluate to the antiform, and the antiform is expressly
+// prohibited from being put in lists.
 //
-//     >> nice: first [~foo~]
-//     == ~foo~
+//     >> quasiform: first [~null~]
+//     == ~null~
 //
-//     >> nice
-//     == ~foo~
+//     >> quasiform
+//     == ~null~
 //
-//     >> mean: ~foo~
-//     == ~foo~  ; anti
+//     >> append [a b c] quasiform
+//     == [a b c ~null~]
+//
+//     >> antiform: ~null~  ; quasiforms evaluates to their antiforms
+//     == \~null~\  ; antiform (keyword!)
+//
+//     >> append [a b c] antiform
+//     ** PANIC: ...
 //
 // Antiforms are new in Ren-C, and central to how the design solves historical
 // problems in Rebol languages.
