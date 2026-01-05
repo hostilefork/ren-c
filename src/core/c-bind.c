@@ -921,10 +921,14 @@ DECLARE_NATIVE(ADD_LET_BINDING)
     }
     else {
         assert(Is_Word(word));
-        require (
-          Stable* stable = Decay_If_Unstable(v)
-        );
-        Copy_Cell(Stub_Cell(let), stable);
+        if (Any_Void(v))
+            Init_Ghost(Stub_Cell(let));
+        else {
+            require (  // !!! Review: action-PACK! rules?
+                Stable* stable = Decay_If_Unstable(v)
+            );
+            Copy_Cell(Stub_Cell(let), stable);
+        }
     }
 
     if (Is_Frame(env)) {
@@ -1477,45 +1481,24 @@ Result(None) Read_Slot(Sink(Stable) out, const Slot* slot) {
 // looking at the decorations on them each time they are written to, but this
 // approach seems more efficient.)
 //
-Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(
-    Slot* slot,
-    Value* write,
-    const Stable* container
-){
+Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(Slot* slot, Value* v)
+{
     if (Not_Cell_Flag(slot, LOOP_SLOT_ROOT_META)) {
         require (
-            Decay_If_Unstable(write)
+            Decay_If_Unstable(v)
         );
     }
 
     if (Is_Blackhole_Slot(slot))  // e.g. `for-each _ [1 2 3] [...]`
         return none;  // toss it (we decayed first, in case it is undecayable)
 
-    if (Get_Cell_Flag(slot, LOOP_SLOT_NOTE_UNBIND)) {
-        if (Is_Antiform(write)) {
-            assert(Cell_Binding(write) == UNBOUND);
-        }
-        else if (Is_Bindable_Heart(Heart_Of(write))) {
-            /* CELL_WORD_INDEX_I32(v) = 0; */  // necessary if word?
-            Set_Cell_Flag(write, DONT_MARK_PAYLOAD_2);
-            Tweak_Cell_Binding(Known_Element(write), UNBOUND);
-        }
-    }
-    else if (
-        Any_List(container)
-        and not Is_Antiform(write)
-        and Is_Bindable_Heart(Heart_Of(write))
-    ){
-        Bind_Cell_If_Unbound(
-            Known_Element(write),
-            List_Binding(Known_Element(container))
-        );
-    }
+    if (Get_Cell_Flag(slot, LOOP_SLOT_NOTE_UNBIND))
+        Unbind_Cell_If_Bindable_Core(v);
 
     Flags persist = (slot->header.bits & CELL_MASK_PERSIST_SLOT);
 
     if (LIFT_BYTE(slot) != DUAL_0) {  // ordinary write
-        Copy_Cell(u_cast(Value*, slot), write);
+        Copy_Cell(u_cast(Value*, slot), v);
         slot->header.bits |= persist;  // preserve persist bits
         return none;
     }
@@ -1530,7 +1513,7 @@ Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(
     LIFT_BYTE(temp) = ONEQUOTE_NONQUASI_5;
     unnecessary(Push_Lifeguard(temp));  // slot protects it.
 
-    rebElide(CANON(SET), temp, rebQ(u_cast(Stable*, write)));
+    rebElide(CANON(SET), temp, rebQ(v));  // may be writing alias, etc.
 
     unnecessary(slot->header.bits |= persist);  // didn't write actual slot
     return none;

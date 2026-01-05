@@ -785,23 +785,27 @@ DECLARE_NATIVE(ANY_INERT_Q)
 
 
 //
-//  unbind: native [
+//  unbind: native:intrinsic [
 //
-//  "Unbinds words from context"
+//  "If a value is bindable, unbind it at the 'tip' (if it's bound)"
 //
-//      return: [block! any-word? set-word?]
-//      word [block! any-word? set-word?]
-//          "A word or block (modified) (returned)"
-//      :deep
-//          "Process nested blocks"
+//      return: [any-stable?]
+//      value [any-stable?]
 //  ]
 //
 DECLARE_NATIVE(UNBIND)
+//
+// !!! Binding needs more complicated versions, that may make copies or do
+// deep unbinding.  This is just a simple "unbind the tip" operation for now.
+// It is permissive to be easy to use.
 {
     INCLUDE_PARAMS_OF_UNBIND;
 
-    Element* word = Element_ARG(WORD);
+    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
+    Unbind_Cell_If_Bindable_Core(v);
+
+    /*  // the old code (with :DEEP option)
     if (Any_Word(word) or Is_Set_Word(word))
         Unbind_Any_Word(word);
     else {
@@ -812,8 +816,9 @@ DECLARE_NATIVE(UNBIND)
         Option(VarList*) context = nullptr;
         Unbind_Values_Core(at, tail, context, did ARG(DEEP));
     }
+    */
 
-    return COPY(word);
+    return COPY(v);
 }
 
 

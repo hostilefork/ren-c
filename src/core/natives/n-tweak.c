@@ -31,6 +31,18 @@
 #include "sys-core.h"
 
 
+// Although TUPLE! uses quotes to indicate a desire to unbind the target, the
+// STEPS pushed to stack uses quotes and quasiforms to be literal lifted
+// states.  So once a step is produced, the unbind instruction has to be
+// encoded another way.
+//
+// That encoding hasn't been worked out yet to persist, so it's not persistent
+// at the moment--it's just a cell flag that is processed for one TWEAK but
+// isn't popped into the steps.  Review.
+//
+#define CELL_FLAG_STEP_NOTE_WANTS_UNBIND  CELL_FLAG_NOTE
+
+
 // We want to allow (append.series) to give you back a PARAMETER!, this may
 // be applicable to other antiforms also (SPLICE!, maybe?)  But probably too
 // risky to let you do it with ERROR!, and misleading to do it with PACK!.
@@ -146,6 +158,12 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
 
     assert(sub == TOP_LEVEL);
     unnecessary(Drop_Action(sub));  // !! action is dropped, should it be?
+
+    if (Get_Cell_Flag(
+        Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
+    )){
+        Unbind_Cell_If_Bindable_Core(SPARE);  // unbind after reading
+    }
 
     return SUCCESS;
 }}
@@ -302,6 +320,12 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 } call_updater: {
 
     bool threw = Trampoline_With_Top_As_Root_Throws();
+
+    if (Get_Cell_Flag(
+        Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
+    )){
+        Unbind_Cell_If_Bindable_Core(SPARE);  // unbind before writing
+    }
 
     if (threw)  // don't want to return casual error you can TRY from
         return Error_No_Catch_For_Throw(TOP_LEVEL);
@@ -478,30 +502,51 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     }
 
     for (at = head; at != tail; ++at) {
-        if (not Is_Group(at)) {  // must keep WORD!s at head as-is for writeback
-            possibly(Is_Quoted(at));  // will be interpreted "literally"
+        bool unbind;
+        switch (LIFT_BYTE(at)) {
+            case NOQUOTE_3:
+              unbind = false;
+              break;
+
+            case ONEQUOTE_NONQUASI_5:
+              unbind = true;
+              break;
+
+            default:
+              panic ("TUPLE! dialect allows single quote 'unbind on items");
+        }
+
+        if (Heart_Of(at) == TYPE_GROUP) {
+            if (not groups_ok) {
+                e = Error_Bad_Get_Group_Raw(scratch_var);
+                goto return_error;
+            }
+
+            if (Eval_Any_List_At_Throws(SPARE, at, at_binding)) {
+                Drop_Data_Stack_To(base);
+                e = Error_No_Catch_For_Throw(TOP_LEVEL);
+                goto return_error;
+            }
+
+            Stable* spare_picker = Decay_If_Unstable(SPARE) except (e) {
+                goto return_error;
+            }
+
+            possibly(Is_Antiform(spare_picker));  // e.g. PICK MAP DATATYPE!
+            Copy_Lifted_Cell(PUSH(), spare_picker);  // lift is literal pick
+        }
+        else {
             Copy_Cell_May_Bind(PUSH(), at, at_binding);
-            continue;
+            if (unbind)
+                LIFT_BYTE(TOP) = NOQUOTE_3;
         }
 
-        if (not groups_ok) {
-            e = Error_Bad_Get_Group_Raw(scratch_var);
-            goto return_error;
-        }
+        // !!! Here we could validate or rule out items in the TUPLE! dialect,
+        // however the work would be repeated in the steps pushing; it is
+        // likely better to just let the step processing do it.
 
-        if (Eval_Any_List_At_Throws(SPARE, at, at_binding)) {
-            Drop_Data_Stack_To(base);
-            e = Error_No_Catch_For_Throw(TOP_LEVEL);
-            goto return_error;
-        }
-
-        Stable* spare_picker = Decay_If_Unstable(SPARE) except (e) {
-            goto return_error;
-        }
-
-        possibly(Is_Antiform(spare_picker));  // e.g. PICK DATATYPE! from MAP!
-        Lift_Cell(spare_picker);  // signal literal pick
-        Move_Cell(PUSH(), spare_picker);
+        if (unbind)
+            Set_Cell_Flag(TOP, STEP_NOTE_WANTS_UNBIND);
     }
 
     goto set_from_steps_on_stack;

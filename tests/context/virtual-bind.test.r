@@ -153,3 +153,17 @@
         ]
     ]
 )
+
+[
+    (
+        x: 1020
+        code: [x]
+        ok
+    )
+
+    (1020 = get code.1)
+    ~not-bound~ !! (get code.'1)
+
+    (1020 = get code.(304 - 303))
+    ~not-bound~ !! (get code.'(304 - 303))
+]

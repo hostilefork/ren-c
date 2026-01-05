@@ -160,7 +160,7 @@ bind construct [
         state [frame!]
 
         (
-            input-name: spec.1
+            input-name: unbind spec.1  ; should pick up binding of instance
             assert [word? input-name]  ; can call it almost anything you want
             let [description types]: if block? spec.2 [  ; no description
                 pack [none spec.2]

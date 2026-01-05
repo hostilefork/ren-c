@@ -129,9 +129,6 @@ module: func [
     ]
 
     if block? opt spec [  ; turn spec into an object if it was a block
-        comment [
-            unbind:deep spec  ; !!! preserve binding?
-        ]
         spec: construct:with (pin spec) system.standard.header  ; see def.
     ]
 

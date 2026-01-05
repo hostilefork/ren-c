@@ -331,7 +331,7 @@ DECLARE_NATIVE(REDUCE_EACH)
         executor = &Stepper_Executor;
     }
 
-    require (
+    trap (
       Level* sub = Make_Level_At(executor, block, flags)
     );
     Push_Level_Erase_Out_If_State_0(SPARE, sub);
@@ -357,8 +357,8 @@ DECLARE_NATIVE(REDUCE_EACH)
     if (Is_Ghost(SPARE) and Not_Cell_Flag(slot, LOOP_SLOT_ROOT_META))
         goto reduce_next;  // skip void unless meta?
 
-    require (
-      Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE, block)
+    trap (
+      Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
     );
 
 } invoke_loop_body: {

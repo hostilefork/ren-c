@@ -711,7 +711,7 @@ DECLARE_NATIVE(FOR_SKIP)
 
     while (true) {
         REBINT len = Series_Len_Head(spare);  // always >= 0
-        REBINT index = SERIES_INDEX_UNBOUNDED(spare);  // may have been set to < 0 below
+        REBINT index = SERIES_INDEX_UNBOUNDED(spare);  // maybe set < 0 below
 
         if (index < 0)
             break;
@@ -724,8 +724,8 @@ DECLARE_NATIVE(FOR_SKIP)
             SERIES_INDEX_UNBOUNDED(spare) = index;
         }
 
-        require (
-          Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare, body)
+        trap (
+          Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare)
         );
 
         Option(LoopInterrupt) interrupt = none;
@@ -1084,7 +1084,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
         if (not les->more_data) {  // Y is ghost in `for-each [x y] [1] ...`
             Init_Void_For_Unset(SPARE);
             trap (
-              Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE, les->data)
+              Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
             );
             goto maybe_lift_and_continue;
         }
@@ -1101,11 +1101,9 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                 Is_Error(SPARE)
                 and Is_Error_Done_Signal(Cell_Error(SPARE))
             )) {
-                Write_Loop_Slot_May_Unbind_Or_Decay(
-                    slot, SPARE, les->data
-                ) except (Error* e) {
-                    return fail (e);
-                }
+                trap (
+                  Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
+                );
             }
             else {
                 les->more_data = false;  // any remaining vars must be unset
@@ -1118,9 +1116,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                 }
                 Init_Void_For_Unset(SPARE);
                 trap (
-                  Write_Loop_Slot_May_Unbind_Or_Decay(
-                    slot, SPARE, les->data
-                  )
+                  Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
                 );
             }
 
@@ -1132,12 +1128,13 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
         Heart heart = Heart_Of_Builtin_Fundamental(Known_Element(les->data));
 
         if (Any_List_Type(heart)) {
-            Element* spare_element = Copy_Cell(
+            Element* spare_element = Copy_Cell_May_Bind(
                 SPARE,
-                Array_At(cast(Array*, les->flex), les->u.eser.index)
+                Array_At(cast(Array*, les->flex), les->u.eser.index),
+                List_Binding(Known_Element(les->data))
             );
             trap (
-              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_element, les->data)
+              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_element)
             );
             if (++les->u.eser.index == les->u.eser.len)
                 les->more_data = false;
@@ -1159,7 +1156,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                 Tweak_Word_Index(spare_key, les->u.evars.n);
             }
             trap (
-              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_key, les->data)
+              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_key)
             );
 
             if (Varlist_Len(vars_ctx) == 1) {
@@ -1175,7 +1172,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                     Read_Slot_Meta(SPARE, les->u.evars.slot)
                 );
                 trap (  // heeds LOOP_SLOT_ROOT_META, errors if unstable w/o
-                    Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE, les->data)
+                    Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
                 );
             }
             else
@@ -1210,7 +1207,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
 
             Stable* spare_key = Copy_Cell(SPARE, key);
             trap (
-              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_key, les->data)
+              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_key)
             );
 
             if (Varlist_Len(vars_ctx) == 1) {
@@ -1224,7 +1221,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                 ++slot;
                 Stable* spare_val = Copy_Cell(SPARE, val);
                 trap (
-                  Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_val, les->data)
+                  Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_val)
                 );
             }
             else
@@ -1240,7 +1237,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
             );
 
             trap (
-              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_rune, les->data)
+              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_rune)
             );
 
             if (++les->u.eser.index == les->u.eser.len)
@@ -1256,7 +1253,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                 SPARE, Binary_Head(b)[les->u.eser.index]
             );
             trap (
-              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_integer, les->data)
+              Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_integer)
             );
 
             if (++les->u.eser.index == les->u.eser.len)
@@ -2341,7 +2338,7 @@ DECLARE_NATIVE(FOR)
 
     Add_Definitional_Break_Again_Continue(body, level_);
 
-    require (
+    trap (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, vars)
     );
     assert(Varlist_Len(varlist) == 1);
@@ -2350,8 +2347,8 @@ DECLARE_NATIVE(FOR)
     Stable* spare_one = Init_Integer(SPARE, 1);
 
     Fixed(Slot*) slot = Varlist_Fixed_Slot(varlist, 1);
-    require (
-      Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_one, body)
+    trap (
+      Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_one)
     );
 
     STATE = ST_FOR_RUNNING_BODY;
@@ -2380,7 +2377,7 @@ DECLARE_NATIVE(FOR)
     Fixed(Slot*) slot = Varlist_Fixed_Slot(Cell_Varlist(vars), 1);
 
     Sink(Stable) spare = SPARE;
-    require (
+    trap (
       Read_Slot(spare, slot)
     );
 
@@ -2393,8 +2390,8 @@ DECLARE_NATIVE(FOR)
     if (Add_I64_Overflows(&mutable_VAL_INT64(spare), VAL_INT64(spare), 1))
         panic (Error_Overflow_Raw());
 
-    require (
-      Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare, body)
+    trap (
+      Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare)
     );
 
 } invoke_loop_body: { ////////////////////////////////////////////////////////

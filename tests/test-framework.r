@@ -163,7 +163,7 @@ run-test-cluster: proc [
         ]
         let group: (~)
         [
-            group: group!
+            group: /unbind group!  ; !!! rethink binding given FENCE! existing
             | (panic "GROUP! expected in tests")
         ]
         (

@@ -1012,7 +1012,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
     if (Any_List(series)) {
         const Element* at = Array_At(Cell_Array(series), n);
 
-        Copy_Cell(OUT, at);
+        Copy_Cell_May_Bind(OUT, at, List_Binding(series));
         return DUAL_LIFTED(Inherit_Const(OUT, series));
     }
 

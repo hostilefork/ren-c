@@ -76,15 +76,34 @@ INLINE Element* Copy_Cell_May_Bind_Untracked(
     Copy_Cell_May_Bind_Untracked(TRACK(dest), (v), (context))
 
 
-INLINE Element* Bind_Cell_If_Unbound(Element* elem, Context* context) {
-    assert(Is_Cell_Bindable(elem));
+INLINE Element* Bind_Cell_If_Unbound(Element* v, Context* context) {
+    assert(Is_Cell_Bindable(v));
     possibly(context == nullptr);  // SPECIFIED
 
-    if (not elem->extra.base)
-        elem->extra.base = context;
+    if (not v->extra.base)
+        v->extra.base = context;
 
-    return elem;
+    return v;
 }
+
+
+// Note that antiforms can't have bindings, but checking bindability is very
+// fast so just null out the already nulled field.
+//
+INLINE void Unbind_Cell_If_Bindable_Core(Value* v) {
+    if (not Is_Bindable_Heart(Heart_Of(v)))
+        return;
+
+    assert(not Is_Antiform(v) or Cell_Binding(v) == UNBOUND);
+    v->extra.base = UNBOUND;  // Tweak_Cell_Binding() only works on Element*
+    Set_Cell_Flag(v, DONT_MARK_PAYLOAD_2);
+
+    /* CELL_WORD_INDEX_I32(v) = 0; */  // necessary if word?
+}
+
+#define Unbind_Cell_If_Bindable(v) \
+    Unbind_Cell_If_Bindable_Core(known(Element*, (v)))
+
 
 // The concept behind `Cell` usage is that it represents a view of a cell
 // where the quoting doesn't matter.  This view is taken by things like the
