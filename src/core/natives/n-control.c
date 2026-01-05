@@ -445,7 +445,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
     Element* block = Element_ARG(BLOCK);
     Option(Stable*) predicate = ARG(PREDICATE);
 
-    Stable* condition;  // will be found in OUT or SCRATCH
+    Value* condition;  // SPARE, or SCRATCH (if testing predicate result)
 
     enum {
         ST_ANY_ALL_NONE_INITIAL_ENTRY = STATE_0,
@@ -462,6 +462,16 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
   initial_entry: { ///////////////////////////////////////////////////////////
 
+  // 1. If you write (^x: all [<expr> ^value]) and ^value is a GHOST!, you
+  //    want the safety of the eval step to turn that ghost into a heavy
+  //    void which will cause the ANY to panic.  Only vanishable functions
+  //    like ELIDE should disappear by default.
+  //
+  // 2. If ANY/ALL succeed, they can't return GHOST! or light null because
+  //    that wouldn't be usable with ELSE/THEN.  But it wants to see GHOST!,
+  //    so it has to take responsibility for its own heavy results vs.
+  //    relying on LEVEL_FLAG_FORCE_HEAVY_BRANCH.
+
     assert(Not_Level_Flag(LEVEL, SAW_NON_VOID));
 
     Executor* executor;
@@ -474,7 +484,8 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
     Flags flags = (
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
-            | LEVEL_FLAG_AFRAID_OF_GHOSTS
+            | LEVEL_FLAG_AFRAID_OF_GHOSTS  // safety regarding last step [1]
+            | (not LEVEL_FLAG_FORCE_HEAVY_BRANCH)  // must see ghosts [2]
     );
 
     require (
@@ -491,55 +502,53 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 } eval_step_result_in_spare: {  //////////////////////////////////////////////
 
     if (Is_Ghost(SPARE))  // no vote...ignore and continue
-        goto next_eval_step;
-
-    Set_Level_Flag(LEVEL, SAW_NON_VOID);
-
-    require (
-      Stable* spare = Decay_If_Unstable(SPARE)
-    );
+        goto next_eval_step;  // skipping means we skip COMMA!, review this
 
     if (predicate)
         goto run_predicate_on_eval_product;  // NONEs passed to predicate
 
-    condition = spare;  // w/o predicate, `condition` is eval result
+    condition = SPARE;
     goto process_condition;
 
 } run_predicate_on_eval_product: {  //////////////////////////////////////////
 
-    // 1. The predicate-running is pushed over the "keepalive" stepper, but we
-    //    don't want the stepper to take a step before coming back to us.
-    //    Temporarily patch out the Stepper_Executor() so we get control
-    //    back without that intermediate step.
+  // 1. The predicate-running is pushed over the "keepalive" stepper, but we
+  //    don't want the stepper to take a step before coming back to us.
+  //    Temporarily patch out the Stepper_Executor() so we get control back
+  //    without that intermediate step.
+  //
+  // 2. The predicate allows you to return GHOST! and opt out of voting one
+  //    way or another.  Heavy voids will error on the Test_Conditional()
 
     SUBLEVEL->executor = &Just_Use_Out_Executor;  // tunnel thru [1]
 
     STATE = ST_ANY_ALL_NONE_PREDICATE;
-    return CONTINUE(SCRATCH, unwrap predicate, SPARE);
+    return CONTINUE(SCRATCH, unwrap predicate, SPARE);  // not branch [2]
 
 } predicate_result_in_scratch: {  ////////////////////////////////////////////
 
-    // 1. The only way a falsey evaluation should make it to the end is if a
-    //    predicate let it pass.  Don't want that to trip up `if all` so make
-    //    it heavy...but this way `(all:predicate [null] not?/) then [<runs>]`
+  // 1. The only way a falsey evaluation should make it to the end is if a
+  //    predicate let it pass.  Don't want that to trip up `if all` so make
+  //    it heavy...but this way `(all:predicate [null] not?/) then [<runs>]`
 
-    if (Any_Void(SCRATCH))  // !!! should void predicate results opt-out?
-        panic (Error_Bad_Void());
-
-    if (Is_Light_Null(SCRATCH))  // predicates can approve null [1]
-        Init_Heavy_Null(SCRATCH);
+    if (Is_Ghost(SCRATCH))  // allow ghost predicates to be ignored
+        goto next_eval_step;  // (heavy voids will cause an error)
 
     SUBLEVEL->executor = &Stepper_Executor;  // done tunneling [2]
     STATE = ST_ANY_ALL_NONE_EVAL_STEP;
+    condition = SCRATCH;
+    goto process_condition;
+
+} process_condition: { ///////////////////////////////////////////////////////
 
     require (
-      condition = Decay_If_Unstable(SCRATCH)
+      Stable* stable_condition = Decay_If_Unstable(condition)
     );
 
-} process_condition: {
+    Set_Level_Flag(LEVEL, SAW_NON_VOID);
 
     require (
-      bool cond = Test_Conditional(condition)
+      bool cond = Test_Conditional(stable_condition)
     );
 
     switch (which) {
@@ -574,27 +583,31 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
 } reached_end: {  ////////////////////////////////////////////////////////////
 
-    // 1. Historically there has been controversy over what should be done
-    //    about (all []) and (any []).  Languages with variadic short-circuit
-    //    AND + OR operations typically say empty AND-ing is truthy, while
-    //    empty OR-ing is falsey.
-    //
-    //    There are reasonable intuitive arguments for that--*if* those are
-    //    your only two choices.  Because Ren-C has the option of VOID, it's
-    //    better to signal to the caller that nothing happened.  Other choices
-    //    can be forced with e.g. (all [... null]) or (any [... okay])
+  // 1. Historically there has been controversy over what should be done
+  //    about (all []) and (any []).  Languages with variadic short-circuit
+  //    AND + OR operations typically say empty AND-ing is truthy, while
+  //    empty OR-ing is falsey.
+  //
+  //    There are reasonable intuitive arguments for that--*if* those are
+  //    your only two choices.  Because Ren-C has the option of VOID, it's
+  //    better to signal to the caller that nothing happened.  Other choices
+  //    can be forced with e.g. (all [... null]) or (any [... okay])
+  //
+  //    !!! It's clearly the right answer for (all []) to return GHOST!, but
+  //    while more flexibility is provided by (any []) returning it there may
+  //    be good reasons to return NULLED.  This is still under review.
 
     Drop_Level(SUBLEVEL);
 
     if (Not_Level_Flag(LEVEL, SAW_NON_VOID))
-        return GHOST;  // return void if all evaluations vaporized [1]
+        return GHOST;  // light void if all evaluations vaporized [1]
 
     switch (which) {
       case NATIVE_IS_ANY:
         return NULLED;  // non-vanishing expressions, but none of them passed
 
-      case NATIVE_IS_ALL:
-        return OUT_BRANCHED;  // successful ALL returns the last value
+      case NATIVE_IS_ALL:  // successful ALL returns the last value
+        return Force_Cell_Heavy(OUT);  // didn't CONTINUE_BRANCH(), saw ghosts
 
       case NATIVE_IS_NONE_OF:
         return OKAY;  // successful NONE-OF has no value to return, use OKAY
@@ -607,7 +620,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
     Drop_Level(SUBLEVEL);
     Move_Value(OUT, SPARE);
-    return OUT_BRANCHED;
+    return Force_Cell_Heavy(OUT);  // see LEVEL_FLAG_FORCE_HEAVY_BRANCH notes
 
 } return_null: { /////////////////////////////////////////////////////////////
 
