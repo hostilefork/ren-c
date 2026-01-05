@@ -144,6 +144,9 @@ static Result(None) Push_Keys_And_Params_Core(
     bool seen_returner = false;
     StackIndex returner_index;
 
+    Value* eval = Level_Lifetime_Value(L);
+    Push_Level_Erase_Out_If_State_0(eval, L);
+
   push_returner_if_not_augmenting: {
 
   // Not all functions have a RETURN or YIELD parameter slot.  But we always
@@ -176,281 +179,311 @@ static Result(None) Push_Keys_And_Params_Core(
         returner_index = TOP_INDEX;
     }
 
-} do_more_stuff: {
+} loop: {
 
-    Value* eval = Level_Lifetime_Value(L);
-    Push_Level_Erase_Out_If_State_0(eval, L);
+    if (Is_Level_At_End(L))
+       goto finished;
 
-    for (
-        ;
-        Not_Level_At_End(L);
-        Fetch_Next_In_Feed(L->feed), augment_initial_entry = false
-    ){
-        const Element* item = At_Level(L);
+    const Element* v = At_Level(L);
 
-  //=//// TOP-LEVEL SPEC TAGS (only <.> at the moment) ////////////////////=//
+    if (Is_Text(v))
+        goto handle_description_or_parameter_note;
 
-        bool strict = false;
-        if (Is_Tag(item)) {
-            if (augment_initial_entry) {
-                return fail (
-                    "Augmentation cannot add methodization via <.>"
-                );
-            }
+    if (Is_Block(v))
+        goto handle_block_of_types_for_typeset;
 
-            if (0 == CT_Utf8(item, g_tag_dot_1, strict)) {
-                if (not Is_Quasar(methodization))
-                    return fail ("Duplicate <.> in spec");
+    if (Is_Fence(v))
+        goto handle_locals_in_fence;
 
-                Init_Unconstrained_Parameter(
-                    methodization,
-                    FLAG_PARAMCLASS_BYTE(PARAMCLASS_NORMAL)
-                );
-                continue;
-            }
-            else
-                return fail (item);
-        }
+    if (Is_Tag(v))
+        goto handle_top_level_spec_tag;
 
-  //=//// TEXT! FOR FUNCTION DESCRIPTION OR PARAMETER NOTE ////////////////=//
+    if (Is_Quasar(v))
+        goto handle_quasar_for_auto_named_trash_return;
 
-        if (Is_Text(item)) {
-            if (augment_initial_entry) {
-                return fail (
-                    "Function description not allowed in AUGMENT spec"
-                );
-            }
+    goto handle_any_word_parameters_themselves;
 
-            if (not Is_Parameter(TOP_ELEMENT))
-                return fail (
-                    "Text strings must describe parameters, not locals"
-                );
+  handle_description_or_parameter_note: { ////////////////////////////////////
 
-            require (
-                Strand* strand = Copy_String_At(item)
-            );
-            Manage_Stub(strand);
-            Freeze_Flex(strand);
-            Set_Parameter_Strand(TOP_ELEMENT, strand);
-            continue;
-        }
+    if (augment_initial_entry) {
+        return fail (
+            "Function description not allowed in AUGMENT spec"
+        );
+    }
 
-  //=//// QUASAR (~) TO SAY YOU WANT AUTO-NAMED TRASH! ////////////////////=//
+    if (not Is_Parameter(TOP_ELEMENT))
+        return fail (
+            "Text strings must describe parameters, not locals"
+        );
 
-        if (Is_Quasar(item)) {
-            if (augment_initial_entry)
-                return fail (
-                    "Function return indicator not allowed in AUGMENT spec"
-                );
+    require (
+        Strand* strand = Copy_String_At(v)
+    );
+    Manage_Stub(strand);
+    Freeze_Flex(strand);
+    Set_Parameter_Strand(TOP_ELEMENT, strand);
+    goto next_spec_item;
 
-            if (TOP_INDEX != returner_index)
-                return fail (
-                    "Quasar (~) must be used to indicate function return spec"
-                );
+} handle_block_of_types_for_typeset: { ///////////////////////////////////////
 
-            if (Parameter_Spec(TOP_ELEMENT))  // `func [return: [integer!] ~]`
-                return fail (Error_Bad_Func_Def_Raw(item));
+  // Includes parameter tags, like <opt>
 
-            const Strand* notes = opt Parameter_Strand(TOP_ELEMENT);
-            Copy_Cell(TOP_ELEMENT, g_auto_trash_param);
-            Set_Parameter_Strand(TOP_ELEMENT, notes);
+    if (augment_initial_entry) {
+        return fail (
+            "Function return spec block not allowed in AUGMENT spec"
+        );
+    }
 
-            continue;
-        }
+    if (Parameter_Spec(TOP_ELEMENT))  // `func [x [word!] [word!]]`
+        return fail (Error_Bad_Func_Def_Raw(v));  // too many blocks
 
-  //=//// BLOCK! OF TYPES TO MAKE TYPESET FROM (PLUS PARAMETER TAGS) //////=//
+    Context* derived = Derive_Binding(Level_Binding(L), v);
+    trap (
+        Set_Spec_Of_Parameter_In_Top(L, v, derived)
+    );
 
-        if (Is_Block(item)) {
-            if (augment_initial_entry) {
-                return fail (
-                    "Function return spec block not allowed in AUGMENT spec"
-                );
-            }
+    goto next_spec_item;
 
-            if (Parameter_Spec(TOP_ELEMENT))  // `func [x [word!] [word!]]`
-                return fail (Error_Bad_Func_Def_Raw(item));  // too many blocks
+} handle_locals_in_fence: { //////////////////////////////////////////////////
 
-            Context* derived = Derive_Binding(Level_Binding(L), item);
-            trap (
-                Set_Spec_Of_Parameter_In_Top(L, item, derived)
-            );
+  // The {...} syntax is used to create local variables.  The same syntax is
+  // used that is used with CONSTRUCT (object creation dialect).
+  //
+  // !!! Since {...} in the evaluator does not run CONSTRUCT, the wisdom of
+  // having this be dialected is questionable.  It may be that it should act
+  // as a plain FENCE!, unless you use {{...}} or some other syntax.  Or,
+  // maybe the divergence is okay in the wacky world of dialecting.
 
-            continue;
-        }
+    Element* spare = Copy_Cell_May_Bind(SPARE, v, Level_Binding(L));
+    trap (
+        Push_Keys_And_Params_For_Fence(L, spare)
+    );
+    goto next_spec_item;
 
-  //=//// LOCALS IN FENCE! (OBJECT CREATION DIALECT) //////////////////////=//
+} handle_top_level_spec_tag: { /////////////////////////////////////////////
 
-        if (Is_Fence(item)) {
-            Element* spare = Copy_Cell_May_Bind(SPARE, item, Level_Binding(L));
-            trap (
-              Push_Keys_And_Params_For_Fence(L, spare)
-            );
-            continue;
-        }
+  // Currently the only top-level spec tag that is handled is <.> for saying
+  // a function is "methodized".
 
-  //=//// ANY-WORD? PARAMETERS THEMSELVES /////////////////////////////////=//
+    bool strict = false;
 
-        bool quoted = false;  // single quoting level used as signal in spec
-        if (Quotes_Of(item) > 0) {
-            if (Quotes_Of(item) > 1)
-                return fail (Error_Bad_Func_Def_Raw(item));
-            quoted = true;
-        }
+    if (augment_initial_entry) {
+        return fail (
+            "Augmentation cannot add methodization via <.>"
+        );
+    }
 
-        Option(Type) type = Type_Of_When_Unquoted(item);
-        if (not type)
-            return fail (
-                "Extension types not supported in function spec"
-            );
+    if (0 == CT_Utf8(v, g_tag_dot_1, strict)) {
+        if (not Is_Quasar(methodization))
+            return fail ("Duplicate <.> in spec");
 
-        const Symbol* symbol = nullptr;  // avoids compiler warning
-        ParamClass pclass = PARAMCLASS_0;  // error if not changed
+        Init_Unconstrained_Parameter(
+            methodization,
+            FLAG_PARAMCLASS_BYTE(PARAMCLASS_NORMAL)
+        );
+        goto next_spec_item;
+    }
 
-        bool refinement = false;  // paths with blanks at head are refinements
-        bool is_returner = false;
-        if (type == TYPE_CHAIN) {
-            switch (opt Try_Get_Sequence_Singleheart(item)) {
-              case LEADING_SPACE_AND(WORD): {
-                refinement = true;
-                symbol = Cell_Refinement_Symbol(item);
-                if ((type == TYPE_METAFORM) and Heart_Of(item) == TYPE_WORD) {
-                    if (not quoted)
-                        pclass = PARAMCLASS_META;
-                }
-                else {
-                    if (quoted)
-                        pclass = PARAMCLASS_JUST;
-                    else
-                        pclass = PARAMCLASS_NORMAL;
-                }
-                break; }
+    return fail (v);
 
-              case TRAILING_SPACE_AND(BLOCK): {
-                Element* spare = Copy_Cell(SPARE, item);
-                trap (
-                  Unsingleheart_Sequence(spare)
-                );
-                if (
-                    returner_id != SYM_DUMMY1  // used by LAMBDA (hack)
-                    or Series_Len_At(spare) != 0
-                ){
-                    return fail (
-                        "SET-BLOCK! result spec only allowed as []: in LAMBDA"
-                    );
-                }
-                symbol = CANON(DUMMY1);
-                pclass = PARAMCLASS_META;
-                is_returner = true;
-                break; }
+} handle_quasar_for_auto_named_trash_return: { ///////////////////////////////
 
-              case TRAILING_SPACE_AND(WORD):
-                if (
-                    quoted
-                    or not returner_id
-                    or Word_Id(item) != unwrap returner_id
-                ){
-                    return fail (
-                        "SET-WORD in spec must match RETURN:/YIELD: name"
-                    );
-                }
-                symbol = Word_Symbol(item);
-                pclass = PARAMCLASS_META;
-                is_returner = true;
-                break;
+  // [return: ~] means the function returns TRASH!, but also that the name of
+  // the trash will be automatically generated from the WORD! the function
+  // was dispatched from (if it was dispatched from a word...)
 
-              default:
-                break;
-            }
-        }
-        else if (Is_Pinned_Form_Of(GROUP, item)) {  // @(...) PARAMCLASS_SOFT
-            if (Series_Len_At(item) == 1) {
-                const Element* word = List_Item_At(item);
-                if (Is_Word(word)) {
-                    pclass = PARAMCLASS_SOFT;
-                    symbol = Word_Symbol(word);
-                }
-            }
-        }
-        else if (Heart_Of(item) == TYPE_WORD) {
-            symbol = Word_Symbol(item);
+    if (augment_initial_entry)
+        return fail (
+            "Function return indicator not allowed in AUGMENT spec"
+        );
 
-            if (Is_Pinned_Form_Of(WORD, item)) {  // output
-                if (quoted)
-                    return fail ("Can't quote @WORD! parameters");
-                pclass = PARAMCLASS_THE;
-            }
-            else if (Is_Meta_Form_Of(WORD, item)) {
+    if (TOP_INDEX != returner_index)
+        return fail (
+            "Quasar (~) must be used to indicate function return spec"
+        );
+
+    if (Parameter_Spec(TOP_ELEMENT))  // `func [return: [integer!] ~]`
+        return fail (Error_Bad_Func_Def_Raw(v));
+
+    const Strand* notes = opt Parameter_Strand(TOP_ELEMENT);
+    Copy_Cell(TOP_ELEMENT, g_auto_trash_param);
+    Set_Parameter_Strand(TOP_ELEMENT, notes);
+
+    goto next_spec_item;
+
+} handle_any_word_parameters_themselves: { ///////////////////////////////////
+
+    bool quoted = false;  // single quote is "unbind" signal in spec
+    if (Quotes_Of(v) > 0) {
+        if (Quotes_Of(v) > 1)
+            return fail (Error_Bad_Func_Def_Raw(v));
+        quoted = true;
+    }
+
+    Option(Type) type = Type_Of_When_Unquoted(v);
+    if (not type)
+        return fail (
+            "Extension types not supported in function spec"
+        );
+
+    const Symbol* symbol = nullptr;  // avoids compiler warning
+    ParamClass pclass = PARAMCLASS_0;  // error if not changed
+
+    bool refinement = false;  // paths with blanks at head are refinements
+    bool is_returner = false;
+    if (type == TYPE_CHAIN) {
+        switch (opt Try_Get_Sequence_Singleheart(v)) {
+          case LEADING_SPACE_AND(WORD): {
+            refinement = true;
+            symbol = Cell_Refinement_Symbol(v);
+            if ((type == TYPE_METAFORM) and Heart_Of(v) == TYPE_WORD) {
                 if (not quoted)
                     pclass = PARAMCLASS_META;
             }
-            else if (type == TYPE_WORD) {
+            else {
                 if (quoted)
                     pclass = PARAMCLASS_JUST;
                 else
                     pclass = PARAMCLASS_NORMAL;
             }
-        }
-        else
-            return fail (Error_Bad_Func_Def_Raw(item));
+            break; }
 
-        if (pclass == PARAMCLASS_0)  // didn't match
-            return fail (Error_Bad_Func_Def_Raw(item));
-
-        if (
-            returner_id
-            and Symbol_Id(symbol) == unwrap returner_id
-            and not is_returner
-        ){
-            if (SYM_DUMMY1 == unwrap returner_id)
-                return fail (
-                    "DUMMY1 is a reserved arg name in LAMBDA due to a hack :-("
-                );
-            if (SYM_RETURN == unwrap returner_id)
-                return fail (
-                    "Generator provides RETURN:, use LAMBDA if not desired"
-                );
-            assert(SYM_YIELD == unwrap returner_id);
-            return fail (
-                "Generator provides YIELD:, can't have YIELD parameter"
+          case TRAILING_SPACE_AND(BLOCK): {
+            Element* spare = Copy_Cell(SPARE, v);
+            trap (
+                Unsingleheart_Sequence(spare)
             );
-        }
-
-        if (
-            returner_id
-            and Symbol_Id(symbol) == unwrap returner_id
-        ){
-            if (seen_returner) {
-                if (SYM_DUMMY1 == unwrap returner_id)
-                    return fail ("Duplicate []: in lambda spec");
-                if (SYM_RETURN == unwrap returner_id)
-                    return fail ("Duplicate RETURN: in function spec");
-                assert(SYM_YIELD == unwrap returner_id);
-                return fail ("Duplicate YIELD: in yielder spec");
+            if (
+                returner_id != SYM_DUMMY1  // used by LAMBDA (hack)
+                or Series_Len_At(spare) != 0
+            ){
+                return fail (
+                    "SET-BLOCK! result spec only allowed as []: in LAMBDA"
+                );
             }
-            continue;
+            symbol = CANON(DUMMY1);
+            pclass = PARAMCLASS_META;
+            is_returner = true;
+            break; }
+
+          case TRAILING_SPACE_AND(WORD):
+            if (
+                quoted
+                or not returner_id
+                or Word_Id(v) != unwrap returner_id
+            ){
+                return fail (
+                    "SET-WORD in spec must match RETURN:/YIELD: name"
+                );
+            }
+            symbol = Word_Symbol(v);
+            pclass = PARAMCLASS_META;
+            is_returner = true;
+            break;
+
+          default:
+            break;
         }
-
-        // Pushing description values for a new named element...
-
-        Init_Word(PUSH(), symbol);  // duplicates caught when popping
-
-        if (refinement) {
-            Init_Unconstrained_Parameter(
-                PUSH(),
-                FLAG_PARAMCLASS_BYTE(pclass)
-                    | PARAMETER_FLAG_REFINEMENT  // must preserve if type block
-                    | PARAMETER_FLAG_NULL_DEFINITELY_OK  // need if refinement
-            );
-        }
-        else {
-            Init_Unconstrained_Parameter(
-                PUSH(),
-                FLAG_PARAMCLASS_BYTE(pclass)
-            );
-        }
-
-        // Non-annotated arguments allow all parameter types.
     }
+    else if (Is_Pinned_Form_Of(GROUP, v)) {  // @(...) PARAMCLASS_SOFT
+        if (Series_Len_At(v) == 1) {
+            const Element* word = List_Item_At(v);
+            if (Is_Word(word)) {
+                pclass = PARAMCLASS_SOFT;
+                symbol = Word_Symbol(word);
+            }
+        }
+    }
+    else if (Heart_Of(v) == TYPE_WORD) {
+        symbol = Word_Symbol(v);
+
+        if (Is_Pinned_Form_Of(WORD, v)) {  // output
+            if (quoted)
+                return fail ("Can't quote @WORD! parameters");
+            pclass = PARAMCLASS_THE;
+        }
+        else if (Is_Meta_Form_Of(WORD, v)) {
+            if (not quoted)
+                pclass = PARAMCLASS_META;
+        }
+        else if (type == TYPE_WORD) {
+            if (quoted)
+                pclass = PARAMCLASS_JUST;
+            else
+                pclass = PARAMCLASS_NORMAL;
+        }
+    }
+    else
+        return fail (Error_Bad_Func_Def_Raw(v));
+
+    if (pclass == PARAMCLASS_0)  // didn't match
+        return fail (Error_Bad_Func_Def_Raw(v));
+
+    if (
+        returner_id
+        and Symbol_Id(symbol) == unwrap returner_id
+        and not is_returner
+    ){
+        if (SYM_DUMMY1 == unwrap returner_id)
+            return fail (
+                "DUMMY1 is a reserved arg name in LAMBDA due to a hack :-("
+            );
+        if (SYM_RETURN == unwrap returner_id)
+            return fail (
+                "Generator provides RETURN:, use LAMBDA if not desired"
+            );
+        assert(SYM_YIELD == unwrap returner_id);
+        return fail (
+            "Generator provides YIELD:, can't have YIELD parameter"
+        );
+    }
+
+    if (
+        returner_id
+        and Symbol_Id(symbol) == unwrap returner_id
+    ){
+        if (seen_returner) {
+            if (SYM_DUMMY1 == unwrap returner_id)
+                return fail ("Duplicate []: in lambda spec");
+            if (SYM_RETURN == unwrap returner_id)
+                return fail ("Duplicate RETURN: in function spec");
+            assert(SYM_YIELD == unwrap returner_id);
+            return fail ("Duplicate YIELD: in yielder spec");
+        }
+        goto next_spec_item;
+    }
+
+    // Pushing description values for a new named element...
+
+    Init_Word(PUSH(), symbol);  // duplicates caught when popping
+
+    if (refinement) {
+        Init_Unconstrained_Parameter(
+            PUSH(),
+            FLAG_PARAMCLASS_BYTE(pclass)
+                | PARAMETER_FLAG_REFINEMENT  // must preserve if type block
+                | PARAMETER_FLAG_NULL_DEFINITELY_OK  // need if refinement
+        );
+    }
+    else {
+        Init_Unconstrained_Parameter(
+            PUSH(),
+            FLAG_PARAMCLASS_BYTE(pclass)
+        );
+    }
+
+    // Non-annotated arguments allow all parameter types.
+
+    goto next_spec_item;
+
+} next_spec_item: {
+
+    Fetch_Next_In_Feed(L->feed);
+    augment_initial_entry = false;
+
+    goto loop;
+
+}} finished: {
 
     if (returner_index)  // plain param would gather arg, trick is to quote it
         Quotify_Parameter_Local(Data_Stack_At(Element, returner_index));
