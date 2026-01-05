@@ -223,7 +223,7 @@ bind construct [
                         f2
                         {^result remainder subpending}
                     ][
-                        [^result remainder subpending]: trap eval-free f2
+                        [^result remainder subpending]: trap eval f2
 
                         glom $pending subpending
                         return pack [^result remainder subpending]

@@ -594,8 +594,7 @@ DECLARE_NATIVE(EVAL_FREE)
 
 } result_in_out: { ///////////////////////////////////////////////////////////
 
-    /*Diminish_Stub(Frame_Phase(frame));  // the "FREE" of EVAL-FREE*/
-    // fix
+    Diminish_Stub(Frame_Phase(frame));  // the "FREE" of EVAL-FREE
 
     return OUT;
 }}
