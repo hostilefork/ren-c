@@ -373,6 +373,19 @@ Special internal defines used by RT, not Host-Kit developers:
 #endif
 
 
+//=//// STANDARDIZE __SANITIZE_ADDRESS__ FLAG /////////////////////////////=//
+//
+// Clang uses __has_feature(address_sanitizer).  Standardize with gcc's flag.
+
+#if defined(__has_feature)
+  #if __has_feature(address_sanitizer)
+    #ifndef __SANITIZE_ADDRESS__
+      #define __SANITIZE_ADDRESS__  1
+    #endif
+  #endif
+#endif
+
+
 //=//// DEBUG_STATIC_ANALYZING (BUILDING BLOCKS FOR MORE CHECKS) //////////=//
 //
 // Static analysis via tools such as Clang Static Analyzer aren't just useful
