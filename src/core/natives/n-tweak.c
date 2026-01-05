@@ -704,8 +704,9 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     assert(e);
   #if RUNTIME_CHECKS
     Unprotect_Cell(OUT);
+    if (Is_Dual_Nulled_Pick_Signal(OUT))
+        Corrupt_Cell_If_Needful(OUT);  // so you don't think it picked null
   #endif
-    Corrupt_Cell_If_Needful(OUT);
 
     Drop_Data_Stack_To(base);
     goto finalize_and_return;
