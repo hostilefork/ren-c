@@ -160,7 +160,7 @@ bind construct [
         state [frame!]
 
         (
-            input-name: unbind spec.1  ; should pick up binding of instance
+            input-name: spec.'1  ; should pick up binding of instance
             assert [word? input-name]  ; can call it almost anything you want
             let [description types]: if block? spec.2 [  ; no description
                 pack [none spec.2]
@@ -1463,28 +1463,6 @@ default-combinators: make map! [
         ]
     ]
 
-    === LET COMBINATOR ===
-
-    ; We want to be able to declare variables mid-parse.  The parsing state
-    ; keeps track of a binding environment that can be added to by combinators
-    ; as they go.  The combinatorization process uses this environment with
-    ; INSIDE on unbound material.
-
-    'let combinator [
-        "Create new binding, return result of the LET if assignment"
-        return: [any-stable?]
-        input [any-series?]
-        'vars [set-word?]
-        parser [action!]
-        {^result}
-    ][
-        [^result input]: trap parser input
-
-        state.env: add-let-binding state.env (unchain vars) ^result
-
-        return ^result
-    ]
-
     === IN COMBINATOR ===
 
     ; Propagates the binding from <input> onto a value.  This idea is being
@@ -2429,15 +2407,11 @@ default-combinators: make map! [
         :limit "Limit of how far to consider (used by ... recursion)"
             [block!]
         :thru "Keep trying rule until end of block"
-        {rules pos old-env ^result f r sublimit subpending subresult can-vanish}
+        {rules pos ^result f r sublimit subpending subresult can-vanish}
     ][
         rules: value  ; alias for clarity
         limit: default [tail of rules]
         pos: input
-
-        old-env: state.env
-        return: adapt return/ [state.env: old-env]
-        state.env: rules  ; currently using blocks as surrogate for environment
 
         until [same? rules limit] [
             if comma? rules.1 [  ; COMMA! is only legal between steps
@@ -2466,6 +2440,21 @@ default-combinators: make map! [
                 input: pos  ; don't roll back past current pos
                 rules: next rules
                 continue
+            ]
+
+            let let-var: null
+            if rules.1 = 'let [  ; fake up LET as part of block combinator
+                rules: next rules
+                if word? rules.1 [
+                    rules: add-let-binding rules rules.1 ()
+                    rules: next rules
+                    continue
+                ]
+                if not set-word? rules.1 [
+                    panic "LET must be of WORD! or WORD!:"
+                ]
+                let-var: unchain rules.1
+                rules: next rules
             ]
 
             can-vanish: all [
@@ -2547,6 +2536,10 @@ default-combinators: make map! [
                 ^result: ^subresult  ; overwrite only if not ghost
             ]
             glom $pending subpending
+
+            if let-var [
+                rules: add-let-binding rules let-var ^subresult
+            ]
         ]
 
         input: pos
@@ -2833,8 +2826,6 @@ parsify: func [
         r: comb  ; didn't look up to combinator, just element to substitute [3]
     ]
 
-    r: inside state.env r  ; add binding if applicable
-
     ;--- SPECIAL-CASE VARIADIC SCENARIOS BEFORE DISPATCHING BY DATATYPE
 
     case [
@@ -2978,10 +2969,7 @@ parsify: func [
 ;
 ;      https://forum.rebol.info/t/1276/16
 ;
-; 2. There's no first-class ENVIRONMENT! type (yet!), so lists are used as a
-;    surrogate for exposing their bindings.  When the environment is expanded
-;    (e.g. by LET) the rules block in effect is changed to a block with the
-;    same contents (array+position) but a different binding.
+; 2. ...
 ;
 ; 3. Red has PARSE:PART, so to run their tests we fake it.  Real :PART would
 ;    tax combinator implementation, so thinking about a system-wide feature
@@ -3027,15 +3015,12 @@ parse*: func [
 
     {
         loops  ; block of FRAME!s representing stack of iterations in effect
-        env  ; no first class environment yet, use rules as proxy [1]
         furthest  ; furthest point reached in parse
         ^synthesized
         remainder
         pending
     }
 ] [
-    env: rules  ; see [1]
-
     lib/case [  ; !!! Careful... :CASE is a refinement to this function
         any-sequence? input [input: as block! input]  ; see [2]
         url? input [input: as text! input]

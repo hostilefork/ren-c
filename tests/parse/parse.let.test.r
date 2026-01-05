@@ -50,3 +50,7 @@
         parse x: copy:deep [(-hi-there- 1 2 3 (hello 2 3 4))] function-rule
     }
 )
+
+(
+    "a" = parse "aaaa" [let x, x: some "a", (x)]
+)
