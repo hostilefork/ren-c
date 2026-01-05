@@ -1487,7 +1487,7 @@ Bounce Stepper_Executor(Level* L)
     assert(
         Is_Word(CURRENT) or Is_Meta_Form_Of(WORD, CURRENT)
         or Is_Tuple(CURRENT) or Is_Meta_Form_Of(TUPLE, CURRENT)
-        or Is_Lifted_Ghost(CURRENT)
+        or Is_Space(CURRENT)
     );
     STATE = ST_STEPPER_GENERIC_SET;
 
