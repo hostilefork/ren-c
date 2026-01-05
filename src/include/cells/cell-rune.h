@@ -97,7 +97,8 @@ INLINE bool Rune_Is_Single_Codepoint(const Cell* cell) {
         assert(cell->extra.at_least_4[IDX_EXTRA_LEN] == 1);
         return true;
     }
-    assert(cell->extra.at_least_4[IDX_EXTRA_LEN] > 1);
+    if (not Stringlike_Has_Stub(cell))
+        assert(cell->extra.at_least_4[IDX_EXTRA_LEN] > 1);
     return false;
 }
 
@@ -217,7 +218,7 @@ INLINE Element* Init_Utf8_Non_String_From_Strand(
 
     Utf8(const*) utf8 = Strand_Head(strand);
     Length len = Strand_Len(strand);
-    Size size = Strand_Size(strand);;
+    Size size = Strand_Size(strand);
     if (Try_Init_Small_Utf8_Untracked(out, heart, utf8, len, size))
         return out;
 
