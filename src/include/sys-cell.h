@@ -60,14 +60,12 @@
     #define Possibly_Antiform(v)  (v)
     #define Known_Stable(v)       (v)
     #define Possibly_Unstable(v)  (v)
-    #define Known_Value(v)        (v)
     #define Possibly_Dual(v)      (v)
 #else
     #define Known_Element(v)      known(Element*, (v))
     #define Possibly_Antiform(v)  known_not(Element*, (v))
     #define Known_Stable(v)       known(Stable*, (v))
     #define Possibly_Unstable(v)  known_not(Stable*, (v))
-    #define Known_Value(v)        known(Value*, (v))
     #define Possibly_Dual(v)      known_not(Value*, (v))
 #endif
 
@@ -333,6 +331,15 @@ INLINE Cell* Force_Erase_Cell_Untracked(Cell* c) {
     (known(Cell*, (c))->header.bits == CELL_MASK_ERASED_0)
 
 #define Not_Cell_Erased(c)  (not Is_Cell_Erased(c))
+
+#if DEBUG_POISON_UNINITIALIZED_CELLS
+    INLINE Init(Value) Force_Init_Cell(Cell* out) {
+        assert(Is_Cell_Poisoned(out) or Is_Cell_Erased(out));
+        return Force_Erase_Cell(out);
+    }
+#else
+    #define Force_Init_Cell(out) (out)
+#endif
 
 
 //=//// UNREADABLE CELLS //////////////////////////////////////////////////=//
@@ -615,21 +622,20 @@ INLINE void Set_Cell_Crumb(Cell* c, Crumb crumb) {
 // Note that Ensure_Readable() is a no-op in the release build.
 //
 
-#define Unchecked_Cell_Has_Lift_Sigil_Heart(lift,sigil,heart,cell) \
+#define Unchecked_Cell_Has_Lift_Sigil_Heart(cell,lift,sigil,heart) \
     (((cell)->header.bits & CELL_MASK_HEART_AND_SIGIL_AND_LIFT) \
         == (FLAG_SIGIL(sigil) | FLAG_HEART(heart) | FLAG_LIFT_BYTE(lift)))
 
-#define Cell_Has_Lift_Sigil_Heart(lift,sigil,heart,cell) \
-    Unchecked_Cell_Has_Lift_Sigil_Heart((lift), (sigil), (heart), \
-        Ensure_Readable(cell))
+#define Cell_Has_Lift_Sigil_Heart(cell,lift,sigil,heart) \
+    Unchecked_Cell_Has_Lift_Sigil_Heart(Ensure_Readable(cell), \
+        (lift), (sigil), (heart))
 
-#define Unchecked_Cell_Has_Lift_Heart_No_Sigil(lift,heart,cell) \
-    Unchecked_Cell_Has_Lift_Sigil_Heart((lift), SIGIL_0, (heart), (cell))
+#define Unchecked_Cell_Has_Lift_Heart_No_Sigil(cell,lift,heart) \
+    Unchecked_Cell_Has_Lift_Sigil_Heart((cell), (lift), SIGIL_0, (heart))
 
-#define Cell_Has_Lift_Heart_No_Sigil(lift,heart,cell) \
-    Unchecked_Cell_Has_Lift_Heart_No_Sigil((lift), (heart), \
-        Ensure_Readable(cell))
-
+#define Cell_Has_Lift_Heart_No_Sigil(cell,lift,heart) \
+    Unchecked_Cell_Has_Lift_Heart_No_Sigil(Ensure_Readable(cell), \
+        (lift), (heart))
 
 //=//// HOOKABLE KIND_BYTE() ACCESSOR ////////////////////////////////////=//
 //

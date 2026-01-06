@@ -284,11 +284,11 @@ bool Specialize_Action_Throws(
     Option(InfixMode) infix_mode = Frame_Infix_Mode(specializee);
 
     for (; key != tail; ++key, ++param, ++slot) {
-        Stable* arg = Slot_Hack(slot);
+        Value* arg = Slot_Hack(slot);
 
         if (Is_Specialized(param)) {  // was specialized in underlying phase
-            if (not Is_Unspecialized_Void(arg))
-                assert(not Is_Parameter(arg));  // couldn't change
+            if (not Is_Unspecialized_Void(arg))  // v-- couldn't change
+                assert(not Is_Possibly_Unstable_Value_Parameter(arg));
             continue;
         }
 
@@ -314,8 +314,10 @@ bool Specialize_Action_Throws(
         require (
           bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(TOP_LEVEL, param, arg)
         );
-        if (not check)
-            panic (Error_Arg_Type(label, key, param, arg));
+        if (not check) {
+            assert(Is_Cell_Stable(arg));  // had to decay before rejecting
+            panic (Error_Arg_Type(label, key, param, As_Stable(arg)));
+        }
 
         Mark_Typechecked(arg);
 

@@ -1498,7 +1498,7 @@ RebolValue* API_rebEnrescue(
     Lift_Cell(v);
     assert(not Is_Light_Null(v));  // lift operations cannot produce NULL
 
-    if (Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_4, TYPE_WARNING, v))  // lifted
+    if (Cell_Has_Lift_Heart_No_Sigil(v, QUASIFORM_4, TYPE_WARNING))  // lifted
         LIFT_BYTE(v) = NOQUOTE_3;  // plain error
     else
         assert(LIFT_BYTE(v) > NOQUOTE_3);
@@ -1533,7 +1533,7 @@ RebolValue* API_rebRescue2(
 
     Lift_Cell(v);
 
-    if (Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_4, TYPE_WARNING, v)) { // lifted
+    if (Cell_Has_Lift_Heart_No_Sigil(v, QUASIFORM_4, TYPE_WARNING)) { // lifted
         LIFT_BYTE(v) = NOQUOTE_3;  // plain error
         return v;  // caller must rebRelease();
     }

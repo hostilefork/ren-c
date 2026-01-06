@@ -166,13 +166,13 @@ Bounce Group_Branch_Executor(Level* const L)
         return Copy_Cell(OUT, with);
 
     require (
-      Decay_If_Unstable(branch)
+      Stable* stable_branch = Decay_If_Unstable(branch)
     );
-    if (Is_Pinned_Form_Of(WORD, branch))
+    if (Is_Group(stable_branch))
         panic (Error_Bad_Branch_Type_Raw());  // stop recursions (good?)
 
     STATE = ST_GROUP_BRANCH_RUNNING_BRANCH;
-    return CONTINUE(OUT, cast(Stable*, branch), with);
+    return CONTINUE(OUT, stable_branch, with);
 }}
 
 

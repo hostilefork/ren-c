@@ -158,54 +158,52 @@ INLINE Result(Managed(const Symbol*)) Intern_Unsized_Symbol(const char *bp)
   { return Intern_Symbol(b_cast(bp), strsize(bp)); }
 
 
-// It's fundamental to PARSE to recognize `|` and skip ahead to it to the end.
-// The checked build has enough checks on things like Word_Symbol() that
-// it adds up when you already tested someting Is_Word().  This reaches a
-// bit lower level to try and still have protections but speed up some--and
-// since there's no inlining in the checked build, FETCH_TO_BAR_OR_END=>macro
-//
-// !!! The quick check that was here was undermined by words no longer always
-// storing their symbols in the word; this will likely have to hit a keylist.
-//
-INLINE bool Is_Bar(const Stable* v) {
-    return (
-        Heart_Of(v) == TYPE_WORD
-        and LIFT_BYTE(v) == NOQUOTE_3
-        and Word_Symbol(v) == CANON(BAR_1)  // caseless | always canon
-    );
-}
 
-INLINE bool Is_Bar_Bar(const Value* v) {
-    return (
-        Heart_Of(v) == TYPE_WORD
-        and LIFT_BYTE(v) == NOQUOTE_3
-        and Word_Symbol(v) == CANON(_B_B)  // caseless || always canon
-    );
-}
+//=//// WORD ID CHECKS ////////////////////////////////////////////////////=//
+//
+// Because WORD! doesn't change its Symbol* over the lifetime of the cell, we
+// could theoretically do things like store the SymId in the extra 32-bits
+// of the header on 64-bit builds (for instance) and be able to check for
+// certain word identities by just looking at the header.
+//
+// In any case, it's better to test if a word has an ID by using these checks
+// rather than extracting the Symbol* and asking it.
+//
 
-INLINE bool Is_Anti_Word_With_Id_Core(const Stable* v, SymId id) {
+INLINE bool Is_Word_With_Id_Core(const Cell* v, LiftByte lift, SymId id) {
     assert(id != SYM_0_constexpr);
-    if (not Is_Keyword(v))
+    if (not Cell_Has_Lift_Sigil_Heart(v, lift, SIGIL_0, TYPE_WORD))
         return false;
-    return id == Word_Id(v);
+    return id == Word_Id(v);  // is CANON(id) == Word_Symbol(v) faster?
 }
 
 #define Is_Anti_Word_With_Id(v,id) \
-    Is_Anti_Word_With_Id_Core(Possibly_Antiform(v), (id))
+    Is_Word_With_Id_Core(Known_Stable(Possibly_Antiform(v)), \
+        STABLE_ANTIFORM_2, (id))
 
-INLINE bool Is_Quasi_Word_With_Id(const Stable* v, SymId id) {
-    assert(id != SYM_0_constexpr);
-    if (not Is_Quasi_Word(v))
-        return false;
-    return id == Word_Id(v);
-}
+#define Is_Word_With_Id(v,id) \
+    Is_Word_With_Id_Core(Known_Stable(v), NOQUOTE_3, (id))
 
-INLINE bool Is_Word_With_Id(const Stable* v, SymId id) {
-    assert(id != SYM_0_constexpr);
-    if (not Is_Word(v))
-        return false;
-    return id == Word_Id(v);
-}
+#define Is_Quasi_Word_With_Id(v,id) \
+    Is_Word_With_Id_Core(Known_Stable(v), QUASIFORM_4, (id))
+
+
+//=//// '| AND '|| WORD CHECKS ////////////////////////////////////////////=//
+//
+// Early micro-optimizations of PARSE3 noticed that recognizing `|` and
+// skipping to the end was actually one of the more expensive parts.  There
+// were optimized tests for recognizing | and ||.
+//
+// However, the system has changed significantly since that time, and the
+// performance concerns are different...not to mention that builtin symbol
+// recognition is much faster.  These are now checked "normally".
+//
+
+#define Is_Bar(v) \
+    Is_Word_With_Id(v, SYM_BAR_1)  // caseless | always canon
+
+#define Is_Bar_Bar(v) \
+    Is_Word_With_Id(v, SYM__B_B)  // caseless || always canon
 
 
 //=//// <end> SIGNALING WITH UNSET (_ dual) ///////////////////////////////=//

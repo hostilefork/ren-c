@@ -184,9 +184,9 @@ INLINE bool Is_Dual_Meta_Alias_Signal(const Stable* dual) {
 
 INLINE bool Is_Dual_Slot_Alias_Signal(Slot* slot) {
     return Cell_Has_Lift_Sigil_Heart(
-        DUAL_0, SIGIL_META, TYPE_WORD, known(Slot*, (slot))
+        slot, DUAL_0, SIGIL_META, TYPE_WORD
     ) or Cell_Has_Lift_Sigil_Heart(
-        DUAL_0, SIGIL_META, TYPE_TUPLE, known(Slot*, (slot))
+        slot, DUAL_0, SIGIL_META, TYPE_TUPLE
     );
 }
 

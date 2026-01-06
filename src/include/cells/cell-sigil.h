@@ -69,14 +69,16 @@
     Unlifted_Cell_Has_Sigil(SIGIL_TIE, Known_Stable(v))
 
 #define Is_Pinned_Form_Of(heartname, v) \
-    Cell_Has_Lift_Sigil_Heart(NOQUOTE_3, SIGIL_PIN, TYPE_##heartname, (v))
+    Cell_Has_Lift_Sigil_Heart(Known_Stable(v), \
+        NOQUOTE_3, SIGIL_PIN, TYPE_##heartname)
 
 #define Is_Meta_Form_Of(heartname, v) \
-    Cell_Has_Lift_Sigil_Heart(NOQUOTE_3, SIGIL_META, TYPE_##heartname, (v))
+    Cell_Has_Lift_Sigil_Heart(Known_Stable(v), \
+        NOQUOTE_3, SIGIL_META, TYPE_##heartname)
 
 #define Is_Tied_Form_Of(heartname, v) \
-    Cell_Has_Lift_Sigil_Heart(NOQUOTE_3, SIGIL_TIE, TYPE_##heartname, (v))
-
+    Cell_Has_Lift_Sigil_Heart(Known_Stable(v), \
+        NOQUOTE_3, SIGIL_TIE, TYPE_##heartname)
 
 INLINE Option(Sigil) Sigil_Of(const Element* e) {
     assert(LIFT_BYTE(e) == NOQUOTE_3);

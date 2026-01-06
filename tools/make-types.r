@@ -259,7 +259,7 @@ e-types/emit [--[
      * the specific heart byte:
      *
      *     #define Is_Text(cell) \
-     *         Cell_Has_Lift_Heart_No_Sigil(NOQUOTE_3, TYPE_TEXT, (cell))
+     *         Cell_Has_Lift_Heart_No_Sigil((cell), NOQUOTE_3, TYPE_TEXT)
      *
      * This avoids the branching in Type_Of(), so it's a slight bit faster.
      */
@@ -274,9 +274,13 @@ for-each-datatype 't [
     ]
 
     e-types/emit [propercase-of t --[
-        #define Is_${propercase-of T.name}(value) \
-            Cell_Has_Lift_Heart_No_Sigil(NOQUOTE_3, TYPE_$<T.NAME>, \
-                Known_Stable(value))
+        #define Is_${propercase-of T.name}(v) \
+            Cell_Has_Lift_Heart_No_Sigil(Known_Stable(v), \
+                NOQUOTE_3, TYPE_$<T.NAME>)
+
+        #define Is_Possibly_Unstable_Value_${propercase-of T.name}(v) \
+            Cell_Has_Lift_Heart_No_Sigil(Possibly_Unstable(v), \
+                NOQUOTE_3, TYPE_$<T.NAME>)
     ]--]
 ]
 
@@ -356,7 +360,7 @@ for-each [ts-name types] sparse-typesets [
 for-each-datatype 't [
     if not t.antiname [continue]  ; no special name for antiform form
 
-    let need: either yes? t.unstable ["Value"] ["Stable"]
+    let need: either yes? t.unstable ["Possibly_Unstable"] ["Known_Stable"]
     let liftbyte: either yes? t.unstable [
         "UNSTABLE_ANTIFORM_1"
     ] [
@@ -369,17 +373,17 @@ for-each-datatype 't [
     ; a macro vs. an inline function.  Revisit.
     ;
     e-types/emit [t proper-name --[
-        #define Is_$<Proper-Name>(cell) \
-            Cell_Has_Lift_Heart_No_Sigil($<LIFTBYTE>, TYPE_$<T.NAME>, \
-                Known_$<Need>(cell))
+        #define Is_$<Proper-Name>(v) \
+            Cell_Has_Lift_Heart_No_Sigil($<Need>(v), \
+                $<LIFTBYTE>, TYPE_$<T.NAME>)
 
 
-        #define Is_Lifted_$<Proper-Name>(cell) \
-            Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_4, TYPE_$<T.NAME>, \
-                Known_Stable(cell))
+        #define Is_Lifted_$<Proper-Name>(v) \
+            Cell_Has_Lift_Heart_No_Sigil(Known_Stable(v), \
+                QUASIFORM_4, TYPE_$<T.NAME>)
 
-        #define Is_Quasi_$<Propercase-Of T.Name>(cell) \
-            Is_Lifted_$<Proper-Name>(cell)  /* alternative */
+        #define Is_Quasi_$<Propercase-Of T.Name>(v) \
+            Is_Lifted_$<Proper-Name>(v)  /* alternative */
     ]--]
 
     if yes? t.unstable [continue]
@@ -393,9 +397,9 @@ for-each-datatype 't [
     ; provoke some thought from testing casually.
     ;
     e-types/emit [t proper-name --[
-        #define Is_Possibly_Unstable_Value_$<Proper-Name>(atom) \
-            Cell_Has_Lift_Heart_No_Sigil(STABLE_ANTIFORM_2, TYPE_$<T.NAME>, \
-                known(Value*, (atom)))
+        #define Is_Possibly_Unstable_Value_$<Proper-Name>(v) \
+            Cell_Has_Lift_Heart_No_Sigil(Possibly_Unstable(v), \
+                STABLE_ANTIFORM_2, TYPE_$<T.NAME>)
     ]--]
 ]
 

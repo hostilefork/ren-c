@@ -78,8 +78,8 @@ INLINE Count Quotes_From_Lift_Byte(LiftByte lift_byte) {
     (LIFT_BYTE(Ensure_Readable(Known_Stable(v))) == NOQUOTE_3)
 
 #define Is_Quoted_Form_Of(heartname, v) \
-    Cell_Has_Lift_Sigil_Heart( \
-        ONEQUOTE_NONQUASI_5, SIGIL_0, TYPE_##heartname, Known_Stable(v))
+    Cell_Has_Lift_Sigil_Heart(Known_Stable(v), \
+        ONEQUOTE_NONQUASI_5, SIGIL_0, TYPE_##heartname)
 
 
 // Turns X into 'X, or '''[1 + 2] into '''''(1 + 2), etc.
@@ -377,7 +377,7 @@ INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
 }
 
 #define Stably_Antiformize_Unbound_Fundamental(v) \
-    Stably_Antiformize_Unbound_Fundamental_Core(Possibly_Antiform(v))
+    Stably_Antiformize_Unbound_Fundamental_Core(Known_Stable(v))
 
 #define Unstably_Antiformize_Unbound_Fundamental(v) \
     Unstably_Antiformize_Unbound_Fundamental_Core(Possibly_Unstable(v))
