@@ -392,15 +392,16 @@ Bounce Stepper_Executor(Level* L)
         StateByte saved_state = STATE;
         STATE = 1;
 
-        Error* e;
-        Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (e) {
+        Option(Error*) error = SUCCESS;
+        Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
             // don't care (will hit on next step if we care)
+            error = e;
         }
         STATE = saved_state;
         Copy_Cell(CURRENT, TOP_ELEMENT);
         DROP();
 
-        if (e) {
+        if (error) {
             Erase_Cell(L_next_gotten_raw);
             Erase_Cell(OUT);
             goto give_up_backward_quote_priority;
@@ -1687,12 +1688,13 @@ Bounce Stepper_Executor(Level* L)
         if (not L_next_gotten) {
             Corrupt_Cell_If_Needful(OUT);
 
-            Error* e;
-            Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (e) {
+            Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
+                UNUSED(e);
                 Erase_Cell(L_next_gotten_raw);
             }
-            if (not e)
+            else {
                 Copy_Cell(L_next_gotten_raw, OUT);
+            }
         }
         else {
           #if RUNTIME_CHECKS

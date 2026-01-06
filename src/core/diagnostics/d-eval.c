@@ -219,15 +219,14 @@ static void Evaluator_Shared_Checks_Debug(Level* const L)
         StateByte saved_state = STATE;
         STATE = 1;
 
-        Error* e;
-        Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (e) {
+        Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
+            UNUSED(e);
+            assert(Not_Cell_Readable(L_next_gotten_raw));
         }
-        if (not e)
+        else {
             assert(
                 memcmp(OUT, L_next_gotten_raw, 4 * sizeof(uintptr_t)) == 0
             );
-        else {
-            assert(Not_Cell_Readable(L_next_gotten_raw));
         }
 
         STATE = saved_state;

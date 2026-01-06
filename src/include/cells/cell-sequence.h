@@ -508,18 +508,19 @@ INLINE Result(Element*) Pop_Sequence_Or_Conflation(
     }
 
     if (TOP_INDEX - base == 2) {  // two-element path optimization
-        Option(Error*) e;
+        Option(Error*) error = SUCCESS;
         Init_Any_Sequence_Or_Conflation_Pairlike(
             out,
             heart,
             TOP_ELEMENT - 1,
             TOP_ELEMENT
-        ) except (e) {
+        ) except (Error* e) {
             // drop stack before returning error
+            error = e;
         };
         Drop_Data_Stack_To(base);
-        if (e)
-            return fail (unwrap e);
+        if (error)
+            return fail (unwrap error);
         return out;
     }
 

@@ -78,23 +78,25 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
         // and the rules apply.
 
         Sink(Stable) out_value = out;
-        Option(Error*) e;
-        Get_Word(out_value, look, binding) except (e) {
+        Get_Word(out_value, look, binding) except (Error* e) {
             // !!! this code tolerated with `not e`, review right answer
+            UNUSED(e);
         }
-
-        if (not e and Is_Action(out_value)) {
-            Option(InfixMode) infix_mode = Frame_Infix_Mode(out_value);
-            if (infix_mode) {
-                if (
-                    pclass == PARAMCLASS_NORMAL or
-                    infix_mode == INFIX_DEFER
-                ){
-                    Init_For_Vararg_End(out, op);
-                    return true;
+        else {
+            if (Is_Action(out_value)) {
+                Option(InfixMode) infix_mode = Frame_Infix_Mode(out_value);
+                if (infix_mode) {
+                    if (
+                        pclass == PARAMCLASS_NORMAL or
+                        infix_mode == INFIX_DEFER
+                    ){
+                        Init_For_Vararg_End(out, op);
+                        return true;
+                    }
                 }
             }
         }
+
         Corrupt_Cell_If_Needful(out);
     }
 

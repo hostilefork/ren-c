@@ -371,6 +371,9 @@ typedef enum {
 **         // e scoped to the block
 **         printf("caught an error: %s\n", e->message);
 **     }
+**     else {
+**         printf("didn't have an error, and else clause works!!");
+**     }
 **
 ** So the macros enable a shockingly literate style of programming that is
 ** portable between C and C++, avoids exceptions and longjmps, and provides
@@ -388,6 +391,14 @@ typedef enum {
 **
 ** These can be functions or macros with the same signature.  They should use
 ** thread-local state if they're to work in multi-threaded code.
+**
+** 1. It bears some explanation that the trick to get except() to be able to
+**    take an else() clause involves a for loop that runs exactly once.  It
+**    accomplishes this using the C99 feature allowing you do declare multiple
+**    variables scoped to a for loop *if* they are of the same type.  If we
+**    assume your error type is a pointer, then we can declare both the error
+**    variable and a dummy pointer `_once` in the loop, and use a pointer
+**    increment to ensure the loop only runs once.  :-)
 */
 
 #define NeedfulResult(T)  T
@@ -431,8 +442,9 @@ typedef enum {
     Needful_Assert_Not_Failing()
 
 #define needful_except(_decl_) \
-    /* _stmt_ */ needful_postfix_extract_result; \
-    for (_decl_ = Needful_Get_Failure(); Needful_Test_And_Clear_Failure(); )
+    /* _stmt_ */ needful_postfix_extract_result; /* v-- see [1] */ \
+    for (_decl_ = Needful_Get_Failure(), *_once = nullptr; !_once; ++_once) \
+      if (Needful_Test_And_Clear_Failure()) /* allow else clause to attach */
         /* {body} implicitly picked up after macro by for, decl is scoped */
 
 #define needful_rescue(_expr_) \

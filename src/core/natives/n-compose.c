@@ -541,17 +541,14 @@ Bounce Composer_Executor(Level* const L)
         goto handle_next_item;
     }
 
-    Option(Error*) e;
     Stable* out = Finalize_Composer_Level(
         SUBLEVEL, At_Level(L), conflate
-    ) except (e) {
-        // need to drop level before panic
+    ) except (Error* e) {
+        Drop_Level(SUBLEVEL);  // have to drop level before panic !!! (why?)
+        panic (e);
     }
 
     Drop_Level(SUBLEVEL);
-
-    if (e)
-        panic (unwrap e);
 
     if (Is_Nulled(out)) {
         // compose:deep [a (void)/(void) b] => path makes null, vaporize it

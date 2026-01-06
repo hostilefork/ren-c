@@ -291,8 +291,9 @@ INLINE void Raw_Pooled_Free(PoolId pool_id, void* p)
 
     Option(Error*) error = SUCCESS;
     if (not pool->last) {  // Fill pool if empty
-        Fill_Pool(pool) except (error) {
+        Fill_Pool(pool) except (Error* e) {
             // error handled below (want to still run common code)
+            error = e;
         }
     }
 

@@ -1301,7 +1301,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
     if (body_needs_binding)
         Construct_Binder(binder);
 
-    Option(Error*) e = SUCCESS;
+    Option(Error*) error = SUCCESS;
 
     SymId dummy_sym = SYM_DUMMY1;
 
@@ -1311,7 +1311,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
 
         if (Is_Space(item)) {
             if (dummy_sym == SYM_DUMMY9)
-                e = Error_User(
+                error = Error_User(
                     "Current limitation: only up to 9 foreign/space keys"
                 );
 
@@ -1336,7 +1336,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
 
         if (kind == Kind_From_Sigil_And_Heart(SIGIL_TIE, TYPE_WORD)) {
             if (dummy_sym == SYM_DUMMY9)
-                e = Error_User(
+                error = Error_User(
                     "Current limitation: only up to 9 foreign/space keys"
                 );
 
@@ -1352,7 +1352,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
             if (not Try_Add_Binder_Index(binder, symbol, index)) {
                 DECLARE_ELEMENT (word);
                 Init_Word(word, symbol);
-                e = Error_Dup_Vars_Raw(word);
+                error = Error_Dup_Vars_Raw(word);
                 break;  // note for-each [x $x] can be legal
             }
 
@@ -1388,9 +1388,9 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
     if (body_needs_binding)
         Destruct_Binder(binder);  // must remove bind indices even if failing
 
-    if (e) {
+    if (error) {
         Free_Unmanaged_Flex(Varlist_Array(varlist));
-        return fail (unwrap e);
+        return fail (unwrap error);
     }
 
     Manage_Stub(varlist);  // must be managed to use in binding

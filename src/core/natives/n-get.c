@@ -162,16 +162,20 @@ Result(None) Get_Word_Or_Tuple(
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    Error* e;
+    Option(Error*) error = SUCCESS;
 
     STATE = 1;
-    Get_Var_In_Scratch_To_Out(L, GROUPS_OK) except (e) {
+    Get_Var_In_Scratch_To_Out(L, GROUPS_OK) except (Error* e) {
         // still need to restore state and scratch
+        error = e;
     }
-
-    require (
-        Decay_If_Unstable(OUT)
-    );
+    else {
+        require (
+            Stable* stable = Decay_If_Unstable(OUT)
+        );
+        if (out != OUT)
+            Copy_Cell(out, stable);
+    }
 
     Restore_Level_Scratch_Spare(L, saved_state);
 
@@ -181,8 +185,8 @@ Result(None) Get_Word_Or_Tuple(
         DROP();
     }
 
-    if (e)
-        return fail (e);
+    if (error)
+        return fail (unwrap error);
 
     return none;
 }
@@ -288,7 +292,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
 
     StackIndex base = TOP_INDEX;
 
-    Option(Error*) e = SUCCESS;
+    Option(Error*) error = SUCCESS;
 
   #if RUNTIME_CHECKS
     Protect_Cell(SCRATCH);  // (common exit path undoes this protect)
@@ -298,7 +302,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
     assert(Is_Path(path));
 
     if (not Sequence_Has_Pointer(path)) {  // byte compressed
-        e = Error_Bad_Value(path);  // no meaning to 1.2.3/ or /1.2.3 etc.
+        error = Error_Bad_Value(path);  // no meaning to 1.2.3/ or /1.2.3 etc.
         goto return_error;
     }
 
@@ -313,7 +317,8 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
         Element* spare = Copy_Cell(SPARE, path);
         KIND_BYTE(spare) = TYPE_WORD;
 
-        Get_Word(OUT, spare, SPECIFIED) except (e) {
+        Get_Word(OUT, spare, SPECIFIED) except (Error* e) {
+            error = e;
             goto return_error;
         }
 
@@ -341,7 +346,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
     Sink(Stable) spare_left = SPARE;
     if (Is_Group(at)) {
         if (Eval_Value_Throws(SPARE, at, binding)) {
-            e = Error_No_Catch_For_Throw(TOP_LEVEL);
+            error = Error_No_Catch_For_Throw(TOP_LEVEL);
             goto return_error;
         }
         require (
@@ -351,14 +356,17 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
     else if (Is_Word(at) or Is_Tuple(at)) {
         Get_Word_Or_Tuple(
             OUT, at, binding
-        ) except (e) {
+        ) except (Error* e) {
+            error = e;
             goto return_error;
         }
         Copy_Cell(spare_left, As_Stable(OUT));
     }
     else if (Is_Chain(at)) {
         if ((at + 1 != tail) and not Is_Space(at + 1)) {
-            e = Error_User("CHAIN! can only be last item in a path right now");
+            error = Error_User(
+                "CHAIN! can only be last item in a path right now"
+            );
             goto return_error;
         }
         Get_Chain_Push_Refinements(
@@ -366,14 +374,15 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
             cast(Element*, at),
             Derive_Binding(binding, at)
         )
-        except (e) {
+        except (Error* e) {
+            error = e;
             goto return_error;
         }
 
         goto return_success;  // chain must resolve to an action (?!)
     }
     else {
-        e = Error_Bad_Value(at);  // what else could it have been?
+        error = Error_Bad_Value(at);  // what else could it have been?
         goto return_error;
     }
 
@@ -391,7 +400,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
     // LIB and make sure it is an action.
     //
     if (not Any_Context(spare_left)) {
-        e = Error_Bad_Value(path);
+        error = Error_Bad_Value(path);
         goto return_error;
     }
 
@@ -405,7 +414,8 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
             at,
             Cell_Context(spare_left)  // need to find head of chain in object
         )
-        except (e) {
+        except (Error* e) {
+            error = e;
             goto return_error;
         }
 
@@ -421,8 +431,8 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
       Level* sub = Make_End_Level(&Action_Executor, LEVEL_MASK_NONE)
     );
 
-    e = Trap_Call_Pick_Refresh_Dual_In_Spare(TOP_LEVEL, sub, TOP_INDEX);
-    if (e)
+    error = Trap_Call_Pick_Refresh_Dual_In_Spare(TOP_LEVEL, sub, TOP_INDEX);
+    if (error)
         goto return_error;
 
     Drop_Level(sub);
@@ -448,12 +458,12 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
         goto return_success;
     }
 
-    e = Error_User("PATH! must retrieve an action or frame");
+    error = Error_User("PATH! must retrieve an action or frame");
     goto return_error;
 
 } return_error: { ////////////////////////////////////////////////////////////
 
-    assert(e);
+    assert(error);
     Drop_Data_Stack_To(base);
     goto finalize_and_return;
 
@@ -466,7 +476,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
 
     assert(Is_Action(As_Stable(OUT)));
 
-    assert(not e);
+    assert(not error);
     goto finalize_and_return;
 
 } finalize_and_return: { /////////////////////////////////////////////////////
@@ -479,8 +489,8 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
     Unprotect_Cell(SCRATCH);
   #endif
 
-    if (e)
-        return fail (unwrap e);
+    if (error)
+        return fail (unwrap error);
 
     return none;
 }}
@@ -514,12 +524,13 @@ Result(Value*) Meta_Get_Var(
     if (Is_Chain(var) or Is_Path(var)) {
         StackIndex base = TOP_INDEX;
 
-        Option(Error*) error;
+        Option(Error*) error = SUCCESS;
         if (Is_Chain(var)) {
             Get_Chain_Push_Refinements(
                 out, var, context
-            ) except (error) {
+            ) except (Error* e) {
                 // need to drop level before returning
+                error = e;
             }
         } else {
             require (
@@ -533,8 +544,9 @@ Result(Value*) Meta_Get_Var(
             heeded (Copy_Cell_May_Bind(SCRATCH, var, context));
             heeded (Corrupt_Cell_If_Needful(SPARE));
 
-            Get_Path_Push_Refinements(level_) except (error) {
+            Get_Path_Push_Refinements(level_) except (Error* e) {
                 // need to drop level before returning
+                error = e;
             }
 
             Drop_Level(level_);

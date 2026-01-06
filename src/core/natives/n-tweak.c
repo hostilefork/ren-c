@@ -377,7 +377,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     StackIndex base = TOP_INDEX;
     StackIndex stackindex_top;
 
-    Option(Error*) e = SUCCESS;  // for common exit path on error
+    Option(Error*) error = SUCCESS;  // for common exit path on error
 
     Element* scratch_var = As_Element(SCRATCH);
 
@@ -397,13 +397,13 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     if (Is_Pinned_Form_Of(BLOCK, scratch_var))
         goto handle_scratch_var_as_pinned_steps_block;
 
-    e = Error_Bad_Value(scratch_var);
+    error = Error_Bad_Value(scratch_var);
     goto return_error;
 
   handle_scratch_var_as_wordlike: {
 
     if (not Try_Get_Binding_Of(SPARE, scratch_var)) {
-        e = Error_No_Binding_Raw(scratch_var);
+        error = Error_No_Binding_Raw(scratch_var);
         goto return_error;
     }
 
@@ -421,7 +421,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
       case SIGIL_PIN:
       case SIGIL_TIE:
-        e = Error_User(
+        error = Error_User(
             "PICK instruction only understands ^META sigil, for now..."
         );
         goto return_error;
@@ -439,7 +439,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     // caller has asked us to return steps.
 
     if (not Sequence_Has_Pointer(scratch_var)) {  // compressed byte form
-        e = Error_Bad_Value(scratch_var);
+        error = Error_Bad_Value(scratch_var);
         goto return_error;
     }
 
@@ -451,7 +451,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
       case FLAVOR_SYMBOL: {
         if (Get_Cell_Flag(scratch_var, LEADING_SPACE)) {  // `/a` or `.a`
             if (Heart_Of(scratch_var) != TYPE_TUPLE) {
-                e = Error_User("GET leading space only allowed on TUPLE!");
+                error = Error_User("GET leading space only allowed on TUPLE!");
                 goto return_error;
             }
             Init_Word(SPARE, CANON(DOT_1));
@@ -461,7 +461,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             );
             if (not Try_Get_Binding_Of(PUSH(), u_cast(Element*, SPARE))) {
                 DROP();
-                e = Error_No_Binding_Raw(As_Element(SPARE));
+                error = Error_No_Binding_Raw(As_Element(SPARE));
                 goto return_error;
             }
             Lift_Cell(TOP_STABLE);
@@ -494,7 +494,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             PUSH(), Copy_Cell_May_Bind(SPARE, head, at_binding)
         )){
             DROP();
-            e = Error_No_Binding_Raw(As_Element(SPARE));
+            error = Error_No_Binding_Raw(As_Element(SPARE));
             goto return_error;
         }
 
@@ -518,17 +518,20 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
         if (Heart_Of(at) == TYPE_GROUP) {
             if (not groups_ok) {
-                e = Error_Bad_Get_Group_Raw(scratch_var);
+                error = Error_Bad_Get_Group_Raw(scratch_var);
                 goto return_error;
             }
 
             if (Eval_Any_List_At_Throws(SPARE, at, at_binding)) {
                 Drop_Data_Stack_To(base);
-                e = Error_No_Catch_For_Throw(TOP_LEVEL);
+                error = Error_No_Catch_For_Throw(TOP_LEVEL);
                 goto return_error;
             }
 
-            Stable* spare_picker = Decay_If_Unstable(SPARE) except (e) {
+            Stable* spare_picker = (
+                Decay_If_Unstable(SPARE)
+            ) except (Error* e) {
+                UNUSED(e);
                 goto return_error;
             }
 
@@ -582,7 +585,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     OnStack(Element) at = Data_Stack_At(Element, stackindex);
     Copy_Cell(spare_location_dual, at);  // dual protocol, leave lifted
     if (not Any_Lifted(spare_location_dual)) {
-        e = Error_User("First Element in STEPS must be lifted");
+        error = Error_User("First Element in STEPS must be lifted");
         goto return_error;
     }
 
@@ -604,10 +607,10 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     );
 
     for (; stackindex != limit; ++stackindex, Restart_Action_Level(sub)) {
-        e = Trap_Call_Pick_Refresh_Dual_In_Spare(
+        error = Trap_Call_Pick_Refresh_Dual_In_Spare(
             level_, sub, stackindex
         );
-        if (e) {
+        if (error) {
             if (sub->varlist)
                 Drop_Action(sub);  // drop any varlist, if it exists
             Drop_Level(sub);
@@ -626,7 +629,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
         if (Is_Dual_Nulled_Absent_Signal(As_Stable(SPARE))) {
             Copy_Cell(SPARE, Data_Stack_At(Element, stackindex));
-            e = Error_Bad_Pick_Raw(As_Element(SPARE));
+            error = Error_Bad_Pick_Raw(As_Element(SPARE));
             if (
                 stackindex == limit - 1
                 and not Is_Metaform(Data_Stack_At(Element, stackindex))
@@ -635,10 +638,10 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
                 Unprotect_Cell(OUT);
               #endif
 
-                Init_Warning(OUT, unwrap e);
+                Init_Warning(OUT, unwrap error);
                 Failify(OUT);  // signal bad pick distinct from panics
 
-                e = SUCCESS;
+                error = SUCCESS;
                 Drop_Level(sub);
                 goto return_success;  // last step can be tolerant, see [A]
             }
@@ -666,7 +669,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             continue;
         }
 
-        e = Error_User("TWEAK* (dual protocol) gave unknown state for PICK");
+        error = Error_User("TWEAK* (dual protocol) gave unknown state for PICK");
         Drop_Level(sub);
         goto return_error;
     }
@@ -706,20 +709,20 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
       Level* sub = Make_End_Level(&Action_Executor, flags)
     );
 
-    e = Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
+    error = Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         level_,
         sub,
         stackindex  // picker_index
     );
     if (sub != TOP_LEVEL) {
-        assert(e);  // ack, fix!
+        assert(error);  // ack, fix!
         Push_Level_Erase_Out_If_State_0(SPARE, sub);
     }
     if (sub->varlist)
         Drop_Action(sub);
     Drop_Level(sub);
 
-    if (e)
+    if (error)
         goto return_error;
 
     Stable* spare_writeback_dual = As_Stable(SPARE);
@@ -734,7 +737,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     }
 
     if (stackindex_top == base + 1) {
-        e = Error_User(
+        error = Error_User(
             "Last TWEAK* step in POKE gave non-null writeback instruction"
         );
         goto return_error;
@@ -749,7 +752,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
 }}} return_error: { ///////////////////////////////////////////////////////////
 
-    assert(e);
+    assert(error);
   #if RUNTIME_CHECKS
     Unprotect_Cell(OUT);
     if (Is_Dual_Nulled_Pick_Signal(OUT))
@@ -763,7 +766,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
     possibly(Is_Error(OUT));  // success may be ERROR! antiform, see [A]
 
-    assert(not e);
+    assert(not error);
 
     DROP();  // drop pushed cell for decaying OUT/etc.
 
@@ -780,7 +783,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     assert(not (OUT->header.bits & CELL_FLAG_PROTECTED));
   #endif
 
-    return e;
+    return error;
 }}
 
 
