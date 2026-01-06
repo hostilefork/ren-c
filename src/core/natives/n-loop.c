@@ -979,7 +979,7 @@ Element* Init_Loop_Each_May_Alias_Data(Sink(Element) iterator, Stable* data)
     assert(not Is_Api_Value(data));  // used to be cue to free, but not now
 
     if (Is_Quoted(data)) {
-        Morph_Quoted_To_Block(Known_Element(data));
+        Morph_Quoted_To_Block(As_Element(data));
     }
 
     require (
@@ -1011,11 +1011,11 @@ Element* Init_Loop_Each_May_Alias_Data(Sink(Element) iterator, Stable* data)
         }
         else if (Is_Module(data)) {
             les->flex = g_empty_array;  // !!! workaround, not a Flex
-            Init_Evars(&les->u.evars, Known_Element(data));
+            Init_Evars(&les->u.evars, As_Element(data));
         }
         else if (Any_Context(data)) {
             les->flex = Varlist_Array(Cell_Varlist(data));
-            Init_Evars(&les->u.evars, Known_Element(data));
+            Init_Evars(&les->u.evars, As_Element(data));
         }
         else if (Is_Map(data)) {
             les->flex = MAP_PAIRLIST(VAL_MAP(data));
@@ -1125,13 +1125,13 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
 
       switch_on_heart: {
 
-        Heart heart = Heart_Of_Builtin_Fundamental(Known_Element(les->data));
+        Heart heart = Heart_Of_Builtin_Fundamental(As_Element(les->data));
 
         if (Any_List_Type(heart)) {
             Element* spare_element = Copy_Cell_May_Bind(
                 SPARE,
                 Array_At(cast(Array*, les->flex), les->u.eser.index),
-                List_Binding(Known_Element(les->data))
+                List_Binding(As_Element(les->data))
             );
             trap (
               Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_element)
@@ -1922,7 +1922,7 @@ DECLARE_NATIVE(REMOVE_EACH)
     if (breaking)
         return BREAKING_NULL;
 
-    assert(Type_Of(Known_Stable(OUT)) == Type_Of(data));
+    assert(Type_Of(As_Stable(OUT)) == Type_Of(data));
 
 }} return_pack: { //////////////////////////////////////////////////////////=//
 
@@ -2034,9 +2034,9 @@ DECLARE_NATIVE(MAP)
     }
     else if (
         not Is_Quoted(data)
-        or Quotes_Of(Known_Element(data)) != 1
+        or Quotes_Of(As_Element(data)) != 1
         or not (
-            Any_Series(Unquote_Cell(Known_Element(data)))  // <= UNQUOTIFY here!
+            Any_Series(Unquote_Cell(As_Element(data)))  // <= UNQUOTIFY here!
             or Is_Path(data)  // has been unquoted
             or Any_Context(data)
             or Any_Sequence(data)

@@ -90,7 +90,7 @@ DECLARE_NATIVE(BUILTIN_EXTENSIONS)
     for (i = 0; i != g_num_builtin_extensions; ++i) {
         ExtensionCollator* collator = g_builtin_collators[i];
 
-        Api(Element*) block = Known_Element(
+        Api(Element*) block = As_Element(
             Apply_Cfunc(collator, nullptr)  // don't pass g_librebol [1]
         );
         assert(Is_Block(block));

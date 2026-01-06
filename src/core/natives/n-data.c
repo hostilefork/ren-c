@@ -67,7 +67,7 @@ DECLARE_NATIVE(BIND)
             Copy_Cell_May_Bind(Stub_Cell(use), at, Cell_Binding(spec));
             KIND_BYTE(Stub_Cell(use)) = TYPE_WORD;
 
-            Element* overbind = Known_Element(Stub_Cell(use));
+            Element* overbind = As_Element(Stub_Cell(use));
             if (not IS_WORD_BOUND(overbind))
                 panic (Error_Not_Bound_Raw(overbind));
 
@@ -144,7 +144,7 @@ DECLARE_NATIVE(BINDABLE_Q)
     if (Is_Antiform(v))
         return fail ("ANTIFORM! values are not bindable");  // caller can TRY
 
-    return LOGIC(Is_Cell_Bindable(Known_Element(v)));
+    return LOGIC(Is_Cell_Bindable(As_Element(v)));
 }
 
 
@@ -314,7 +314,7 @@ DECLARE_NATIVE(WITHOUT)
             ctx
         );
         Tweak_Word_Index(OUT, unwrap n);
-        Copy_Kind_Byte(Known_Element(OUT), v);
+        Copy_Kind_Byte(As_Element(OUT), v);
         return OUT;
     }
 

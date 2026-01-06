@@ -262,7 +262,7 @@ DECLARE_NATIVE(LAMBDA)
     if (bounce)
         return bounce;
 
-    Details* details = Ensure_Frame_Details(Known_Stable(OUT));
+    Details* details = Ensure_Frame_Details(As_Stable(OUT));
 
     Pop_Unpopped_Return(  // SYM_DUMMY1 parameter was not popped
         Details_At(details, IDX_LAMBDA_RESULT_PARAM),
@@ -297,7 +297,7 @@ DECLARE_NATIVE(DIVERGER)
     if (bounce)
         return bounce;
 
-    Details* details = Ensure_Frame_Details(Known_Stable(OUT));
+    Details* details = Ensure_Frame_Details(As_Stable(OUT));
 
     Init_Space(Details_At(details, IDX_LAMBDA_RESULT_PARAM));  // panic signal
 

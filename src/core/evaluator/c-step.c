@@ -412,12 +412,12 @@ Bounce Stepper_Executor(Level* L)
         if (
             not Is_Possibly_Unstable_Value_Action(L_next_gotten_raw)
             or not (
-                infix_mode = Frame_Infix_Mode(Known_Stable(L_next_gotten_raw))
+                infix_mode = Frame_Infix_Mode(As_Stable(L_next_gotten_raw))
             )
         ){
             goto give_up_backward_quote_priority;
         }
-        infixed = Frame_Phase(Known_Stable(L_next_gotten_raw));
+        infixed = Frame_Phase(As_Stable(L_next_gotten_raw));
         break; }
 
       case TYPE_CHAIN:
@@ -709,7 +709,7 @@ Bounce Stepper_Executor(Level* L)
     if (Is_Antiform(OUT))
         panic ("$ operator cannot bind antiforms");
 
-    Bind_Cell_If_Unbound(Known_Element(OUT), Level_Binding(L));
+    Bind_Cell_If_Unbound(As_Element(OUT), Level_Binding(L));
     goto lookahead;
 
 
@@ -738,7 +738,7 @@ Bounce Stepper_Executor(Level* L)
       Get_Var_In_Scratch_To_Out(L, NO_STEPS)
     );
 
-    possibly(Not_Cell_Stable(OUT) or Is_Trash(Known_Stable(OUT)));
+    possibly(Not_Cell_Stable(OUT) or Is_Trash(As_Stable(OUT)));
 
     if (Get_Level_Flag(L, AFRAID_OF_GHOSTS) and Is_Ghost(OUT))
         Set_Cell_Flag(OUT, OUT_NOTE_SCARY_GHOST);  // avoid accidents [1]
@@ -811,7 +811,7 @@ Bounce Stepper_Executor(Level* L)
     Quote_Cell(out);  // !!! was quoting, to avoid binding?
 
     Element* spare = Init_Word(SPARE, CANON(PACK));
-    dont(Quote_Cell(Known_Element(SPARE)));  // want to run word
+    dont(Quote_Cell(As_Element(SPARE)));  // want to run word
 
     Api(Value*) temp = rebUndecayed_helper(
         cast(RebolContext*, Level_Binding(L)),
@@ -1425,7 +1425,7 @@ Bounce Stepper_Executor(Level* L)
         panic (e);  // don't FAIL, PANIC [1]
     }
 
-    Stable* out = Known_Stable(OUT);
+    Stable* out = As_Stable(OUT);
     assert(Is_Action(out));
 
     if (slash_at_tail) {  // do not run action, just return it [3]
@@ -1526,15 +1526,15 @@ Bounce Stepper_Executor(Level* L)
 
     switch (opt Type_Of(spare)) {
       case TYPE_BLOCK:
-        Copy_Cell(CURRENT, Known_Element(spare));
+        Copy_Cell(CURRENT, As_Element(spare));
         goto handle_set_block;
 
       case TYPE_WORD:
-        Copy_Cell(CURRENT, Known_Element(spare));
+        Copy_Cell(CURRENT, As_Element(spare));
         goto handle_generic_set;
 
       case TYPE_TUPLE:
-        Copy_Cell(CURRENT, Known_Element(spare));
+        Copy_Cell(CURRENT, As_Element(spare));
         goto handle_generic_set;
 
       default:
@@ -1576,7 +1576,7 @@ Bounce Stepper_Executor(Level* L)
     Quote_Cell(out);
 
     Element* spare = Init_Word(SPARE, CANON(FENCE_X_EVAL));
-    dont(Quote_Cell(Known_Element(SPARE)));  // want to run word
+    dont(Quote_Cell(As_Element(SPARE)));  // want to run word
 
     Api(Value*) temp = rebValue_helper(  // pass binding explicitly to helper
         cast(RebolContext*, Level_Binding(L)),
@@ -1738,7 +1738,7 @@ Bounce Stepper_Executor(Level* L)
             )
             and not Is_Frame(L_next)
         )
-        or not (infix_mode = Frame_Infix_Mode(Known_Stable(L_next_gotten_raw)))
+        or not (infix_mode = Frame_Infix_Mode(As_Stable(L_next_gotten_raw)))
     ){
       lookback_quote_too_late: // run as if starting new expression
 
@@ -1879,7 +1879,7 @@ Bounce Stepper_Executor(Level* L)
       Level* sub = Make_Action_Sublevel(L_next_gotten_raw)
     );
     require (
-      Push_Action(sub, Known_Stable(L_next_gotten_raw), infix_mode)
+      Push_Action(sub, As_Stable(L_next_gotten_raw), infix_mode)
     );
     Fetch_Next_In_Feed(L->feed);
 

@@ -243,7 +243,7 @@ INLINE const Element* Copy_Reified_Variadic_Feed_Cell(
         Set_Cell_Flag(out, FEED_HINT_ANTIFORM);  // `@` and `^` can handle [2]
     }
     else
-        Copy_Cell(out, Known_Element(v));
+        Copy_Cell(out, As_Element(v));
 
     return out;
 }
@@ -304,7 +304,7 @@ INLINE Option(const Element*) Try_Reify_Variadic_Feed_At(
         // vs. putting it in fetched/MARKED_TEMPORARY...but that makes
         // this more convoluted.  Review.
 
-        Stable* single = Known_Stable(Stub_Cell(inst1));
+        Stable* single = As_Stable(Stub_Cell(inst1));
         feed->p = single;
         feed->p = Copy_Reified_Variadic_Feed_Cell(
             &feed->fetched,

@@ -345,7 +345,7 @@ bool Do_Vararg_Op_Maybe_End_Throws(
         return false;
 
     if (op == VARARG_OP_TAIL_Q) {
-        Stable* stable = Known_Stable(out);
+        Stable* stable = As_Stable(out);
         assert(Is_Logic(stable));
         UNUSED(stable);
         return false;
@@ -365,7 +365,7 @@ bool Do_Vararg_Op_Maybe_End_Throws(
             // vararg.  Revisit the question of how to give better errors.
             //
             if (not vararg_level)
-                panic (Known_Stable(out));
+                panic (As_Stable(out));
 
             panic (Error_Phase_Arg_Type(
                 unwrap vararg_level, key, param, cast(const Stable*, out))
@@ -476,7 +476,7 @@ IMPLEMENT_GENERIC(TAKE, Is_Varargs)
         if (Is_Antiform(out))
             panic (Error_Bad_Antiform_Raw(out));
 
-        Move_Cell(PUSH(), Known_Element(out));
+        Move_Cell(PUSH(), As_Element(out));
     }
 
     return Init_Block(OUT, Pop_Source_From_Stack(STACK_BASE));  // block? [1]
@@ -562,7 +562,7 @@ IMPLEMENT_GENERIC(TAIL_Q, Is_Varargs)
         assert(false);
         return THROWN;
     }
-    assert(Is_Logic(Known_Stable(OUT)));
+    assert(Is_Logic(As_Stable(OUT)));
     return OUT;
 }
 

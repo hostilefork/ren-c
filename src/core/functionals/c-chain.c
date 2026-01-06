@@ -188,7 +188,7 @@ Bounce Cascader_Executor(Level* const L)
 
     sub->varlist = nullptr;
 
-    Element* pipeline = Known_Element(SPARE);
+    Element* pipeline = As_Element(SPARE);
     assert(Is_Block(pipeline));  // series indexes frame to call
     const Element* pipeline_tail;
     const Element* pipeline_at = List_At(&pipeline_tail, pipeline);

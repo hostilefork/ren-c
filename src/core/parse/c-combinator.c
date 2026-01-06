@@ -677,7 +677,7 @@ static bool Combinator_Param_Hook(
 
             if (rebRunThrows(SPARE, "let temp"))
                 assert(!"LET failed");
-            Element* temp = Known_Element(SPARE);
+            Element* temp = As_Element(SPARE);
             Api(Stable*) parser = rebStable(
                 "[_", temp, "]: parsify", rebQ(ARG(STATE)), ARG(RULES)
             );

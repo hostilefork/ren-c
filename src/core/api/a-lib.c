@@ -815,7 +815,7 @@ unsigned char* API_rebBlobHead_internal(const RebolValue* binary)
 {
     ENTER_API;
 
-    return Binary_Head(Cell_Binary_Known_Mutable(Known_Stable(binary)));
+    return Binary_Head(Cell_Binary_Known_Mutable(As_Stable(binary)));
 }
 
 
@@ -826,7 +826,7 @@ unsigned char* API_rebBlobAt_internal(const RebolValue* binary)
 {
     ENTER_API;
 
-    return Blob_At_Known_Mutable(Known_Stable(binary));
+    return Blob_At_Known_Mutable(As_Stable(binary));
 }
 
 

@@ -236,7 +236,7 @@ IMPLEMENT_GENERIC(MAKE, Any_List)
             if (Is_Antiform(out))
                 panic (Error_Bad_Antiform_Raw(out));
 
-            Move_Cell(PUSH(), Known_Element(out));
+            Move_Cell(PUSH(), As_Element(out));
         } while (true);
 
         return Init_Any_List(OUT, heart, Pop_Source_From_Stack(base));
@@ -1360,8 +1360,8 @@ static int Qsort_Values_Callback(void *state, const void *p1, const void *p2)
 {
     SortInfo* info = cast(SortInfo*, state);
 
-    const Element* v1 = Known_Element(cast(Value*, p1));
-    const Element* v2 = Known_Element(cast(Value*, p2));
+    const Element* v1 = As_Element(cast(Value*, p1));
+    const Element* v2 = As_Element(cast(Value*, p2));
     possibly(info->cased);  // !!! not applicable in LESSER? comparisons
     bool strict = false;
 
@@ -1544,10 +1544,10 @@ DECLARE_NATIVE(ENVELOP)
         if (not Any_List_Type(Datatype_Type(example)))
             panic ("If ENVELOP example is datatype, must be a list type");
 
-        copy = Known_Element(rebValue(CANON(MAKE), ARG(EXAMPLE), rebI(1)));
+        copy = As_Element(rebValue(CANON(MAKE), ARG(EXAMPLE), rebI(1)));
     }
     else
-        copy = Known_Element(rebValue("copy:deep", rebQ(ARG(EXAMPLE))));
+        copy = As_Element(rebValue("copy:deep", rebQ(ARG(EXAMPLE))));
 
     Length len;
     if (

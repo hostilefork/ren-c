@@ -354,7 +354,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Blob)
 
         REBLEN size;
         REBLEN ret = Find_Value_In_Binstr(  // returned length is byte index
-            &size, v, tail, Known_Element(pattern), flags, skip
+            &size, v, tail, As_Element(pattern), flags, skip
         );
 
         if (ret == NOT_FOUND)

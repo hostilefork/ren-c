@@ -517,7 +517,7 @@ DECLARE_NATIVE(YIELDER)
     if (bounce)
         return bounce;
 
-    Details* details = Ensure_Frame_Details(Known_Stable(OUT));
+    Details* details = Ensure_Frame_Details(As_Stable(OUT));
 
     assert(Is_Block(Details_At(details, IDX_YIELDER_BODY)));
     Init_Nulled(Details_At(details, IDX_YIELDER_ORIGINAL_FRAME));

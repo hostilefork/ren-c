@@ -261,7 +261,7 @@ DECLARE_NATIVE(EXCEPT)
         return COPY(left);  // pass thru any non-errors
 
     LIFT_BYTE(left) = NOQUOTE_3;  // turn antiform error into plain warning
-    Element* warning = Known_Element(left);
+    Element* warning = As_Element(left);
 
     return DELEGATE_BRANCH(OUT, branch, warning);  // !!! pass antiform? [1]
 }
@@ -300,7 +300,7 @@ DECLARE_NATIVE(TRAP)
 
     Element* lifted_error = Lift_Cell(v);
 
-    return rebDelegate(rebRUN(Known_Stable(OUT)), lifted_error);
+    return rebDelegate(rebRUN(As_Stable(OUT)), lifted_error);
 }
 
 

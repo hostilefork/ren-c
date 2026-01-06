@@ -648,7 +648,7 @@ Result(ParamList*) Pop_Paramlist(
         *key = CANON(DOT_1);
         Copy_Cell(param, unwrap methodization);
         assert(Is_Parameter(param));
-        Quotify_Parameter_Local(Known_Element(param));
+        Quotify_Parameter_Local(As_Element(param));
         Set_Cell_Flag(param, PARAM_NOTE_TYPECHECKED);
         ++key;
         ++param;

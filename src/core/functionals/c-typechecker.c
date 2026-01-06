@@ -483,7 +483,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
     if (Is_Error(SCRATCH))
         goto test_failed;  // e.g. see NULL? for its ERROR! on heavy null
 
-    Stable* scratch = Known_Stable(SCRATCH);
+    Stable* scratch = As_Stable(SCRATCH);
 
     if (not Is_Logic(scratch))  // sub wasn't limited to intrinsics
         panic (Error_No_Logic_Typecheck(label));
@@ -574,8 +574,8 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
     if (Any_Sigiled_Space(at)) {
         if (
             not Is_Antiform(v)
-            and Any_Sigiled_Space(Known_Element(v))
-            and Sigil_Of(at) == Sigil_Of(Known_Element(v))
+            and Any_Sigiled_Space(As_Element(v))
+            and Sigil_Of(at) == Sigil_Of(As_Element(v))
         ){
             goto test_succeeded;
         }
@@ -639,7 +639,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
             bool strict = true;  // system now case-sensitive by default
             require (
               bool equal = Equal_Values(
-                Known_Element(v),
+                As_Element(v),
                 splice_at,
                 strict
             ));
@@ -734,7 +734,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
         }
 
         assume (
-          Unsingleheart_Sequence(Known_Element(SPARE))
+          Unsingleheart_Sequence(As_Element(SPARE))
         );
         assume (
           Unsingleheart_Sequence(scratch)
@@ -910,7 +910,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
         return true;
 
     if (Get_Parameter_Flag(param, SPACE_DEFINITELY_OK))  // !!! worth it?
-        if (Is_Cell_Stable(v) and Is_Space(Known_Stable(v)))
+        if (Is_Cell_Stable(v) and Is_Space(As_Stable(v)))
             return true;
 
 } try_parameter_byte_optimizations: {
@@ -947,17 +947,17 @@ bool Typecheck_Uses_Spare_And_Scratch(
       case TYPE_DATATYPE:
         if (not Is_Cell_Stable(v))
             return false;
-        return Type_Of(Known_Stable(v)) == Datatype_Type(tests);
+        return Type_Of(As_Stable(v)) == Datatype_Type(tests);
 
       case TYPE_BLOCK:
         at = List_At(&tail, tests);
-        derived = Derive_Binding(tests_binding, Known_Element(tests));
+        derived = Derive_Binding(tests_binding, As_Element(tests));
         match_all = false;
         break;
 
       case TYPE_GROUP:
         at = List_At(&tail, tests);
-        derived = Derive_Binding(tests_binding, Known_Element(tests));
+        derived = Derive_Binding(tests_binding, As_Element(tests));
         match_all = true;
         break;
 
@@ -1157,7 +1157,7 @@ Result(Stable*) Init_Typechecker(
 
     Init_Set_Word(PUSH(), CANON(TEST));
 
-    const Element* block = Known_Element(datatype_or_block);
+    const Element* block = As_Element(datatype_or_block);
     Init_Unconstrained_Parameter(
         PUSH(), FLAG_PARAMCLASS_BYTE(PARAMCLASS_NORMAL)
     );

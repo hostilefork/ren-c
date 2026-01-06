@@ -473,7 +473,7 @@ IMPLEMENT_GENERIC(ROUND, Is_Integer)
         REBDEC dec = Round_Dec(
             cast(REBDEC, num), level_, VAL_DECIMAL(to)
         );
-        Heart to_heart = Heart_Of_Builtin_Fundamental(Known_Element(to));
+        Heart to_heart = Heart_Of_Builtin_Fundamental(As_Element(to));
         Init(Element) out = OUT;
         Reset_Cell_Header_Noquote(
             TRACK(out),

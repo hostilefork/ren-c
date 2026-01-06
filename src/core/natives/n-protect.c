@@ -223,7 +223,7 @@ static Bounce Protect_Unprotect_Core(Level* level_, Flags flags)
     //  flags |= PROT_WORDS;
 
     if (Is_Block(value)) {
-        Element* block = Known_Element(value);
+        Element* block = As_Element(value);
 
         if (ARG(WORDS))
             panic ("WORDS not currently implemented in PROTECT");

@@ -892,7 +892,7 @@ Result(Element*) Alias_Any_Utf8_As(
         //
         const Stable* datatype_as = Datatype_From_Type(as);
         Api(Stable*) result = rebStable(CANON(TO), rebQ(datatype_as), rebQ(v));
-        Copy_Cell(out, Known_Element(result));
+        Copy_Cell(out, As_Element(result));
         rebRelease(result);
         return out;
     }

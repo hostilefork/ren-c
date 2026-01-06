@@ -769,7 +769,7 @@ DECLARE_NATIVE(COLLECT_WORDS)
 
     Option(Stump*) stump = cl->binder.stump_list;
     for (; stump != cl->base_stump; stump = Link_Stump_Next(unwrap stump)) {
-        REBINT index = VAL_INT32(Known_Element(Stub_Cell(unwrap stump)));
+        REBINT index = VAL_INT32(As_Element(Stub_Cell(unwrap stump)));
         assert(index != 0);
         if (index < 0)
             continue;
@@ -899,7 +899,7 @@ VarList* Make_Varlist_Detect_Managed(
             bool deeply = true;  // !!! Copies series deeply, why? [1]
             if (not Is_Antiform(dest)) {  // !!! whole model needs review
                 require (
-                  Clonify(Known_Element(dest), clone_flags, deeply)
+                  Clonify(As_Element(dest), clone_flags, deeply)
                 );
                 Clear_Cell_Flag(dest, CONST);  // remove constness from copies
             }

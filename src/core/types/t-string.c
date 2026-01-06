@@ -845,7 +845,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
 
         REBLEN len;
         REBINT find = Find_Value_In_Binstr(
-            &len, v, tail, Known_Element(pattern), flags, skip
+            &len, v, tail, As_Element(pattern), flags, skip
         );
 
         if (find == NOT_FOUND)

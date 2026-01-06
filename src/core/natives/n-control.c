@@ -1193,7 +1193,7 @@ DECLARE_NATIVE(DEFAULT)
 
 } branch_result_in_out: {  ///////////////////////////////////////////////////
 
-    assert(Is_Pinned(Known_Element(SCRATCH)));  // steps is the "var" to set
+    assert(Is_Pinned(As_Element(SCRATCH)));  // steps is the "var" to set
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS) except (Error* e) {

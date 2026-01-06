@@ -170,7 +170,7 @@ DECLARE_NATIVE(WRITE)
             Api(Stable*) delimited = rebStable("delimit:tail newline @", data);
             if (not delimited)  // e.g. [] input
                 return COPY(port);
-            Copy_Cell(data, Known_Element(delimited));
+            Copy_Cell(data, As_Element(delimited));
             rebRelease(delimited);
         }
 

@@ -570,7 +570,7 @@ INLINE Result(Map*) Copy_Map(const Map* map, bool deeply) {
         Flags flags = BASE_FLAG_MANAGED;  // !!! Review
         if (not Is_Antiform(v)) {
             require (
-              Clonify(Known_Element(v), flags, deeply)
+              Clonify(As_Element(v), flags, deeply)
             );
         }
     }

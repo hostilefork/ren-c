@@ -67,7 +67,7 @@ Result(Element*) Transcode_One(
         rebRelease(result);
         return fail ("Transcode_One() gave unwanted type");
     }
-    Copy_Cell(out, Known_Element(result));
+    Copy_Cell(out, As_Element(result));
     rebRelease(result);
     return out;
 }
@@ -257,7 +257,7 @@ DECLARE_NATIVE(TRANSCODE)
         return OUT;
     }
 
-    assert(Is_Tripwire(Known_Stable(OUT)));  // TRASH! if it not an ERROR!
+    assert(Is_Tripwire(As_Stable(OUT)));  // TRASH! if it not an ERROR!
 
     if (ARG(ONE)) {  // want *exactly* one element
         if (TOP_INDEX == STACK_BASE)
@@ -313,7 +313,7 @@ DECLARE_NATIVE(TRANSCODE)
     Drop_Level(SUBLEVEL);
 
     if (not ARG(NEXT)) {
-        assert(Is_Block(Known_Element(OUT)));
+        assert(Is_Block(As_Element(OUT)));
         return OUT;  // single block result
     }
 

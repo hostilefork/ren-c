@@ -492,7 +492,7 @@ INLINE Result(bool) Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
         require (
           Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
         );
-        if (Is_Word(right) and Is_Action(Known_Stable(OUT)))
+        if (Is_Word(right) and Is_Action(As_Stable(OUT)))
             panic (
                 "words/tuples can't be action as right side of OR AND XOR"
             );

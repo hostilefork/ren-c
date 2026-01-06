@@ -50,7 +50,7 @@ DECLARE_NATIVE(MAKE)
         datatype = type;
     }
     else {
-        datatype = Datatype_Of_Fundamental(Known_Element(type));
+        datatype = Datatype_Of_Fundamental(As_Element(type));
     }
 
     return Dispatch_Generic_Core(

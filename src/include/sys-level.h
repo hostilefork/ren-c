@@ -721,7 +721,7 @@ INLINE Result(Level*) Prep_Level_Core(
         Level_Arg_Core(level_, param_##name##_, param_opt_##name##_))
 
 #define Element_ARG(name) /* checked build asserts it's an Element */ \
-    Known_Element(Level_Arg(level_, param_##name##_))
+    As_Element(Level_Arg(level_, param_##name##_))
 
 #define PARAM_INDEX(name) /* can't use in some macro expansion orders */ \
     (param_##name##_)
@@ -730,19 +730,19 @@ INLINE Result(Level*) Prep_Level_Core(
     Level_Arg(level_, PARAM_INDEX(name))  // initialized to unset state!
 
 #define Element_LOCAL(name) \
-    Known_Element(Level_Arg(level_, PARAM_INDEX(name)))
+    As_Element(Level_Arg(level_, PARAM_INDEX(name)))
 
 #define Stable_LOCAL(name) \
-    Known_Stable(Level_Arg(level_, PARAM_INDEX(name)))
+    As_Stable(Level_Arg(level_, PARAM_INDEX(name)))
 
 #define PARAM(name) \
     Phase_Param(Level_Phase(level_), param_##name##_)  // a TYPESET!
 
 #define ARG_N(n) \
-    Known_Stable(Level_Arg(level_, (n)))
+    As_Stable(Level_Arg(level_, (n)))
 
 #define Element_ARG_N(n) \
-    Known_Element(Level_Arg(level_, (n)))
+    As_Element(Level_Arg(level_, (n)))
 
 #define PARAM_N(n) \
     Phase_Param(Level_Phase(level_), (n))
@@ -797,7 +797,7 @@ INLINE Value* Native_Trash_Result_Untracked(
 
   #if RUNTIME_CHECKS
     Details* details = Ensure_Level_Details(level_);
-    Element* param = Known_Element(Details_At(details, IDX_RAW_NATIVE_RETURN));
+    Element* param = As_Element(Details_At(details, IDX_RAW_NATIVE_RETURN));
     assert(Get_Parameter_Flag(param, AUTO_TRASH));  // only `return: ~` [1]
   #endif
 

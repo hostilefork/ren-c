@@ -172,7 +172,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Port)
 
     const bool strict = false;
     Option(Ordinal) n = Find_Symbol_In_Context(
-        Known_Element(spare_actor), verb, strict
+        As_Element(spare_actor), verb, strict
     );
 
     Sink(Stable) scratch_action = SCRATCH;
@@ -232,7 +232,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Port)
             assert(Is_Text(out));
 
             DECLARE_ELEMENT (temp);
-            Move_Cell(temp, Known_Element(out));
+            Move_Cell(temp, As_Element(out));
             Init_Block(OUT, Split_Lines(temp));
         }
     }

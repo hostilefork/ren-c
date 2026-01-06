@@ -389,7 +389,7 @@ DECLARE_NATIVE(OF)
 } have_sym_of: { /////////////////////////////////////////////////////////////
 
     heeded (Init_Word(SCRATCH, sym_of));
-    heeded (Bind_Cell_If_Unbound(Known_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
@@ -406,7 +406,7 @@ DECLARE_NATIVE(OF)
     require (
       Level* sub = Make_Level(&Stepper_Executor, level_->feed, flags)
     );
-    Copy_Lifted_Cell(Evaluator_Level_Current(sub), Known_Stable(OUT));
+    Copy_Lifted_Cell(Evaluator_Level_Current(sub), As_Stable(OUT));
     LIFT_BYTE(Evaluator_Level_Current(sub)) = NOQUOTE_3;  // plain FRAME!
     Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
 

@@ -980,7 +980,7 @@ void Startup_Core(void)
       Read_Slot(user, Get_System(SYS_CONTEXTS, CTX_USER))
     );
 
-    g_user_module = Known_Element(user);
+    g_user_module = As_Element(user);
     rebUnmanage(g_user_module);
 
     g_user_context = Cell_Module_Sea(g_user_module);

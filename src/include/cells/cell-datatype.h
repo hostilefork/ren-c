@@ -129,7 +129,7 @@ INLINE RebolValue* Register_Datatype(const char* name)  // return "holder" [1]
 
 INLINE void Unregister_Datatype(RebolValue* datatype_holder)
 {
-    assert(Is_Datatype(Known_Stable(datatype_holder)));
+    assert(Is_Datatype(As_Stable(datatype_holder)));
     rebRelease(datatype_holder);
 }
 

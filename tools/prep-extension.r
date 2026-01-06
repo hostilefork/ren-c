@@ -456,7 +456,7 @@ for-each 'symbol opt try ext-header.extended-types [
         extern RebolValue* DATATYPE_HOLDER(${Is_Xxx});
 
         #define EXTRA_HEART_$<STEM> \
-            Datatype_Extra_Heart(Known_Stable(DATATYPE_HOLDER(${Is_Xxx})))
+            Datatype_Extra_Heart(As_Stable(DATATYPE_HOLDER(${Is_Xxx})))
 
         INLINE bool ${Is_Xxx}(const Cell* cell) {
             if (not Type_Of_Is_0(cell))

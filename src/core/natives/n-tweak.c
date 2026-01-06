@@ -108,7 +108,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     assert(Is_Possibly_Unstable_Value_Quoted(SPARE));
     location_arg = Copy_Cell(
         Force_Erase_Cell(Level_Arg(sub, 1)),
-        Known_Element(SPARE)
+        As_Element(SPARE)
     );
     Unquote_Cell(location_arg);
 
@@ -138,7 +138,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
             );
     }
     else {
-        Element* pick_instruction = Known_Element(picker_arg);
+        Element* pick_instruction = As_Element(picker_arg);
         if (Sigil_Of(pick_instruction))
             return Error_User(
                 "PICK instruction cannot have sigil for variable access"
@@ -200,7 +200,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     assert(Is_Possibly_Unstable_Value_Quoted(spare_location_dual));
     location_arg = Copy_Cell(
         Force_Erase_Cell(Level_Arg(sub, 1)),
-        Known_Element(spare_location_dual)
+        As_Element(spare_location_dual)
     );
     Unquote_Cell(location_arg);
 
@@ -238,11 +238,11 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
             break;
         }
 
-        Element* picker_instruction = Known_Element(picker_arg);
+        Element* picker_instruction = As_Element(picker_arg);
         Option(Sigil) picker_sigil = Sigil_Of(picker_instruction);
         UNUSED(picker_sigil);  // ideas on the table for this...
 
-        if (SIGIL_META == Cell_Underlying_Sigil(Known_Element(SCRATCH))) {
+        if (SIGIL_META == Cell_Underlying_Sigil(As_Element(SCRATCH))) {
             Copy_Cell(value_arg, TOP_ELEMENT);  // don't decay
             continue;
         }
@@ -281,7 +281,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         };
         Lift_Cell(value_arg);
 
-        if (Is_Lifted_Action(Known_Stable(value_arg))) {
+        if (Is_Lifted_Action(As_Stable(value_arg))) {
             //
             // !!! SURPRISING ACTION ASSIGNMENT DETECTION WOULD GO HERE !!!
             // Current concept is that actions-in-a-pack would be how the
@@ -297,7 +297,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
             if (Is_Word(picker_arg)) {
                 Update_Frame_Cell_Label(  // !!! is this a good idea?
-                    Known_Stable(value_arg), Word_Symbol(picker_arg)
+                    As_Stable(value_arg), Word_Symbol(picker_arg)
                 );
             }
         }
@@ -310,7 +310,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         }
     }
     then {  // not quoted...
-        Clear_Cell_Sigil(Known_Element(picker_arg));  // drop any sigils
+        Clear_Cell_Sigil(As_Element(picker_arg));  // drop any sigils
     }
 
     Clear_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION);  // consider *once*
@@ -356,7 +356,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 ){
     assert(OUT != SCRATCH and OUT != SPARE);
 
-    Stable* out = Known_Stable(OUT);
+    Stable* out = As_Stable(OUT);
 
     assert(LEVEL == TOP_LEVEL);
     possibly(Get_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION));
@@ -379,7 +379,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
     Option(Error*) e = SUCCESS;  // for common exit path on error
 
-    Element* scratch_var = Known_Element(SCRATCH);
+    Element* scratch_var = As_Element(SCRATCH);
 
   #if RUNTIME_CHECKS
     Protect_Cell(scratch_var);  // (common exit path undoes this protect)
@@ -407,7 +407,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
         goto return_error;
     }
 
-    Copy_Cell(PUSH(), Known_Element(SPARE));
+    Copy_Cell(PUSH(), As_Element(SPARE));
     Lift_Cell(TOP_STABLE);  // dual protocol, lift (?)
 
     Copy_Cell(PUSH(), scratch_var);  // save var for steps + error messages
@@ -461,7 +461,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             );
             if (not Try_Get_Binding_Of(PUSH(), u_cast(Element*, SPARE))) {
                 DROP();
-                e = Error_No_Binding_Raw(Known_Element(SPARE));
+                e = Error_No_Binding_Raw(As_Element(SPARE));
                 goto return_error;
             }
             Lift_Cell(TOP_STABLE);
@@ -494,7 +494,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             PUSH(), Copy_Cell_May_Bind(SPARE, head, at_binding)
         )){
             DROP();
-            e = Error_No_Binding_Raw(Known_Element(SPARE));
+            e = Error_No_Binding_Raw(As_Element(SPARE));
             goto return_error;
         }
 
@@ -571,7 +571,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
     stackindex_top = TOP_INDEX;  // capture "top of stack" before push
 
-    Copy_Cell(PUSH(), Known_Stable(OUT));
+    Copy_Cell(PUSH(), As_Stable(OUT));
 
   poke_again: { //////////////////////////////////////////////////////////////
 
@@ -624,9 +624,9 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             continue;
         }
 
-        if (Is_Dual_Nulled_Absent_Signal(Known_Stable(SPARE))) {
+        if (Is_Dual_Nulled_Absent_Signal(As_Stable(SPARE))) {
             Copy_Cell(SPARE, Data_Stack_At(Element, stackindex));
-            e = Error_Bad_Pick_Raw(Known_Element(SPARE));
+            e = Error_Bad_Pick_Raw(As_Element(SPARE));
             if (
                 stackindex == limit - 1
                 and not Is_Metaform(Data_Stack_At(Element, stackindex))
@@ -646,16 +646,16 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             goto return_error;
         }
 
-        if (Is_Frame(Known_Stable(SPARE))) {
-            Api(Value*) result = rebUndecayed(Known_Stable(SPARE));
+        if (Is_Frame(As_Stable(SPARE))) {
+            Api(Value*) result = rebUndecayed(As_Stable(SPARE));
             Copy_Cell(SPARE, result);
             Lift_Cell(SPARE);
             rebRelease(result);
             continue;
         }
 
-        if (Is_Dual_Meta_Alias_Signal(Known_Element(SPARE))) {
-            Quote_Cell(Known_Element(SPARE));
+        if (Is_Dual_Meta_Alias_Signal(As_Element(SPARE))) {
+            Quote_Cell(As_Element(SPARE));
             Api(Value*) result = rebUndecayed(CANON(GET), SPARE);
             Copy_Cell(SPARE, result);
             Lift_Cell(SPARE);
@@ -719,7 +719,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     if (e)
         goto return_error;
 
-    Stable* spare_writeback_dual = Known_Stable(SPARE);
+    Stable* spare_writeback_dual = As_Stable(SPARE);
 
     // Subsequent updates become pokes, regardless of initial updater function
 

@@ -324,7 +324,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Pair)
     if (Is_Antiform(dual))
         panic (Error_Bad_Antiform(dual));
 
-    Element* poke = Known_Element(dual);
+    Element* poke = As_Element(dual);
 
     if (not Is_Integer(poke))
         panic (PARAM(DUAL));

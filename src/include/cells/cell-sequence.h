@@ -930,7 +930,7 @@ INLINE bool Is_Set_Run_Word(const Stable* v) {
     if (not Is_Path(v))
         return false;
 
-    return did Try_Get_Settable_Word_Symbol(nullptr, Known_Element(v));
+    return did Try_Get_Settable_Word_Symbol(nullptr, As_Element(v));
 }
 
 

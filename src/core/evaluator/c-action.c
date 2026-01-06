@@ -217,8 +217,8 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
         return false;
 
     heeded (Copy_Cell(SCRATCH, At_Feed(L->feed)));
-    Bind_Cell_If_Unbound(Known_Element(SCRATCH), Feed_Binding(L->feed));
-    Metafy_Cell(Known_Element(SCRATCH));  // need for unstable lookup
+    Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(L->feed));
+    Metafy_Cell(As_Element(SCRATCH));  // need for unstable lookup
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
@@ -233,7 +233,7 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
         return false;
 
     Option(InfixMode) infix_mode = Frame_Infix_Mode(
-        Known_Stable(&L->feed->gotten)
+        As_Stable(&L->feed->gotten)
     );
     if (not infix_mode)
         return false;
@@ -908,7 +908,7 @@ Bounce Action_Executor(Level* L)
         if (Get_Parameter_Flag(param, VARIADIC)) {  // can't check now [2]
             if (
                 Not_Cell_Stable(ARG)
-                or not Is_Varargs(Known_Stable(ARG))
+                or not Is_Varargs(As_Stable(ARG))
             ){
                 require (
                   Stable* arg = Decay_If_Unstable(ARG)

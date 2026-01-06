@@ -348,7 +348,7 @@ void Set_Location_Of_Error(
     Level* L = where;
     for (; L != BOTTOM_LEVEL; L = L->prior) {
         if (Get_Level_Flag(L, DISPATCHING_INTRINSIC)) {  // [1]
-            Stable* frame = Known_Stable(Level_Scratch(L));
+            Stable* frame = As_Stable(Level_Scratch(L));
             possibly(Is_Action(frame));
             Option(const Symbol*) label = Frame_Label_Deep(frame);
             if (label)
@@ -517,7 +517,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Warning)
             // Find correct message for ID: (if any)
 
             Slot* correct_message = opt Select_Symbol_In_Context(
-                Known_Element(Slot_Hack(category)),
+                As_Element(Slot_Hack(category)),
                 Word_Symbol(&vars->id)
             );
             if (correct_message) {

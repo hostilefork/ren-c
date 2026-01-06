@@ -103,7 +103,7 @@ Result(Length) Modify_List(
   handle_non_splice: {  // use passed in Cell as "single element splice"
 
     len = 1;
-    src = Known_Element(v);
+    src = As_Element(v);
     goto expand_or_resize_array;
 
 } handle_splice: { ///////////////////////////////////////////////////////////
@@ -625,7 +625,7 @@ Result(Length) Modify_String_Or_Blob(  // returns tail of insertions [1]
 } handle_generic_form: {  ////////////////////////////////////////////////////
 
     Push_Mold(mo);
-    Mold_Or_Form_Element(mo, Known_Element(v), true);
+    Mold_Or_Form_Element(mo, As_Element(v), true);
 
     // Don't capture `src` pointer until after mold (it may expand the buffer)
 

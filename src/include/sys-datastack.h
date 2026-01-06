@@ -219,10 +219,10 @@
 // TOP is the most recently pushed item.
 //
 #define TOP_STABLE \
-    cast(OnStack(Stable), Known_Stable(g_ds.movable_top))
+    cast(OnStack(Stable), As_Stable(g_ds.movable_top))
 
 #define TOP_ELEMENT \
-    cast(OnStack(Element), Known_Element(g_ds.movable_top))
+    cast(OnStack(Element), As_Element(g_ds.movable_top))
 
 #define TOP \
     cast(OnStack(Value), g_ds.movable_top)  // assume valid

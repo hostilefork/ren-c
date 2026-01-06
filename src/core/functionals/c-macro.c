@@ -161,14 +161,14 @@ Bounce Inliner_Dispatcher(Level* const L)
     if (Is_Splice(out)) {
         LIFT_BYTE(out) = NOQUOTE_3;
         KIND_BYTE(out) = TYPE_BLOCK;
-        Splice_Block_Into_Feed(L->feed, Known_Element(out));
+        Splice_Block_Into_Feed(L->feed, As_Element(out));
         goto continue_evaluating;
     }
 
     if (Is_Antiform(out))
         panic ("MACRO body must return GHOST, ANY-ELEMENT?, or SPLICE!");
 
-    Splice_Element_Into_Feed(L->feed, Known_Element(out));
+    Splice_Element_Into_Feed(L->feed, As_Element(out));
     goto continue_evaluating;
 
 } continue_evaluating: {  ////////////////////////////////////////////////////

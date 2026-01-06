@@ -306,11 +306,11 @@ INLINE Stable* Deactivate_If_Action(Exact(Stable*) v) {
 // persistable with LIFT, and can be manipulated consciously in usermode.
 //
 
-INLINE Value* Packify_Action(Value* atom) {  // put ACTION! in a PACK! [1]
-    assert(Is_Action(Known_Stable(atom)));
+INLINE Value* Packify_Action(Value* v) {  // put ACTION! in a PACK! [1]
+    assert(Is_Action(As_Stable(v)));
     Source *a = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
-    Copy_Lifted_Cell(Stub_Cell(a), atom);
-    return Init_Pack(atom, a);
+    Copy_Lifted_Cell(Stub_Cell(a), v);
+    return Init_Pack(v, a);
 }
 
 

@@ -235,7 +235,7 @@ DECLARE_NATIVE(REDUCE)
     else if (Is_Antiform(spare))
         return fail (Error_Bad_Antiform(spare));
     else {
-        Move_Cell(PUSH(), Known_Element(spare));  // not void, not antiform
+        Move_Cell(PUSH(), As_Element(spare));  // not void, not antiform
         SUBLEVEL->baseline.stack_base += 1;  // [3]
 
         if (Get_Cell_Flag(v, NEWLINE_BEFORE))  // [2]

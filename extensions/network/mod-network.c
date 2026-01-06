@@ -457,7 +457,7 @@ Stable* Trap_Open_And_Connect_Socket_For_Hostname(  // synchronous [1]
     uv_freeaddrinfo(addr_info);
 
     // All IPs failed, return a generic connection failure message
-    return Known_Stable(
+    return As_Stable(
         rebValue("make warning! -[Connection failed to all IP addresses]-")
     );
 }

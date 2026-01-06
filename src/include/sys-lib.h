@@ -58,7 +58,7 @@ INLINE const Value* Lib_Value(SymId id) {
     return v;
 }
 
-#define Lib_Stable(id)  Known_Stable(Lib_Value(id))
+#define Lib_Stable(id)  As_Stable(Lib_Value(id))
 
 INLINE Value* Mutable_Lib_Value(SymId id) {  // writing LIB is risky [A]
     assert(id <= MAX_SYM_LIB_PREMADE);
@@ -67,7 +67,7 @@ INLINE Value* Mutable_Lib_Value(SymId id) {  // writing LIB is risky [A]
     return v;
 }
 
-#define Mutable_Lib_Stable(id)  Known_Stable(Mutable_Lib_Value(id))
+#define Mutable_Lib_Stable(id)  As_Stable(Mutable_Lib_Value(id))
 
 INLINE Sink(Value) Sink_Lib_Value(SymId id) {
     assert(id <= MAX_SYM_LIB_PREMADE);

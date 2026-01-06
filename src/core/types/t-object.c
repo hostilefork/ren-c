@@ -780,7 +780,7 @@ VarList* Copy_Varlist_Extra_Managed(
         Flags flags = BASE_FLAG_MANAGED;  // !!! Review, which flags?
         if (not Is_Antiform(dest)) {
             require (
-              Clonify(Known_Element(dest), flags, deeply)
+              Clonify(As_Element(dest), flags, deeply)
             );
         }
     }
@@ -882,7 +882,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
                 panic (Error_Bad_Antiform(var));  // can't FORM antiforms
             }
             else
-                Mold_Element(mo, Known_Element(var));
+                Mold_Element(mo, As_Element(var));
 
             Append_Codepoint(mo->strand, LF);
             had_output = true;
@@ -937,12 +937,12 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
             }
             else {
                 Lift_Cell(var);  // will become quasi...
-                Mold_Element(mo, Known_Element(var));  // ...molds as `~xxx~`
+                Mold_Element(mo, As_Element(var));  // ...molds as `~xxx~`
                 UNUSED(var);
             }
         }
         else {
-            Element* elem = Known_Element(var);
+            Element* elem = As_Element(var);
             Output_Apostrophe_If_Not_Inert(s, elem);
             Mold_Element(mo, elem);
         }
@@ -1002,7 +1002,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Let)
         if (Is_Antiform(var))
             panic (Error_Bad_Antiform(var));  // can't FORM antiforms
 
-        Mold_Element(mo, Known_Element(var));
+        Mold_Element(mo, As_Element(var));
 
         Drop_Pointer_From_Flex(g_mold.stack, let);
         return TRASH;
@@ -1029,7 +1029,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Let)
         Mold_Element(mo, reified);  // ...molds as `~xxx~`
     }
     else {
-        const Element* elem = Known_Element(var);
+        const Element* elem = As_Element(var);
         Output_Apostrophe_If_Not_Inert(s, elem);
         Mold_Element(mo, elem);
     }
@@ -1336,8 +1336,8 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     if (LIFT_BYTE(OUT) == DUAL_0) {  // return as nonquoted/nonquasi thing
         LIFT_BYTE(OUT) = NOQUOTE_3;
         assert(
-            Is_Frame(Known_Stable(OUT))
-            or Is_Dual_Meta_Alias_Signal(Known_Stable(OUT))
+            Is_Frame(As_Stable(OUT))
+            or Is_Dual_Meta_Alias_Signal(As_Stable(OUT))
         );
         return OUT;  // not lifted, so not a "normal" state
     }

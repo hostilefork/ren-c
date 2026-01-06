@@ -592,7 +592,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Time)
     if (Is_Antiform(dual))
         panic (Error_Bad_Antiform(dual));
 
-    Element* poke = Known_Element(dual);
+    Element* poke = As_Element(dual);
 
     REBINT n;
     if (Is_Integer(poke) || Is_Decimal(poke))

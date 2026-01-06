@@ -198,7 +198,7 @@ static Result(Stable*) Finalize_Composer_Level(
     const Element* composee,  // special handling if the output is a sequence
     bool conflate
 ){
-    Stable* out = Known_Stable(L->out);
+    Stable* out = As_Stable(L->out);
 
     if (Is_Nulled(out)) {  // a composed slot evaluated to VETO error antiform
         Drop_Data_Stack_To(L->baseline.stack_base);
@@ -229,7 +229,7 @@ static Result(Stable*) Finalize_Composer_Level(
         Count num_quotes = Quotes_Of(composee);
 
         if (not Is_Nulled(out))  // don't add quoting levels (?)
-            Quotify_Depth(Known_Element(out), num_quotes);
+            Quotify_Depth(As_Element(out), num_quotes);
         return out;
     }
 
@@ -353,7 +353,7 @@ Bounce Composer_Executor(Level* const L)
 
     if (not predicate) {
         STATE = ST_COMPOSER_EVAL_GROUP;
-        return CONTINUE(OUT, Known_Element(SPARE));
+        return CONTINUE(OUT, As_Element(SPARE));
     }
 
     STATE = ST_COMPOSER_RUNNING_PREDICATE;
@@ -431,7 +431,7 @@ Bounce Composer_Executor(Level* const L)
   //        == [a
   //               bar b]
 
-    Copy_Cell(PUSH(), Known_Element(out));
+    Copy_Cell(PUSH(), As_Element(out));
 
     if (sigil) {
         if (Sigil_Of(TOP_ELEMENT))
@@ -530,7 +530,7 @@ Bounce Composer_Executor(Level* const L)
         return OUT;
     }
 
-    assert(Is_Okay(Known_Stable(OUT)));  // "return values" are on data stack
+    assert(Is_Okay(As_Stable(OUT)));  // "return values" are on data stack
 
     if (not SUBLEVEL->u.compose.changed) {  // optimize on no substitutions [2]
         Drop_Data_Stack_To(SUBLEVEL->baseline.stack_base);  // [1]
@@ -577,7 +577,7 @@ Bounce Composer_Executor(Level* const L)
 
     assert(Get_Level_Flag(L, TRAMPOLINE_KEEPALIVE));  // caller needs [1]
 
-    assert(Is_Logic(Known_Stable(OUT)));  // null if veto
+    assert(Is_Logic(As_Stable(OUT)));  // null if veto
 
     return OUT;
 }}}
@@ -677,7 +677,7 @@ DECLARE_NATIVE(COMPOSE2)
 
 } list_compose_finished_out_is_null_if_vetoed: {  ////////////////////////////
 
-    assert(Is_Logic(Known_Stable(OUT)));
+    assert(Is_Logic(As_Stable(OUT)));
 
     trap (
       Finalize_Composer_Level(SUBLEVEL, input, did ARG(CONFLATE))
@@ -711,7 +711,7 @@ DECLARE_NATIVE(COMPOSE2)
 
     StackIndex base = TOP_INDEX;  // base above the triples pushed so far
 
-    Element* handle = Known_Element(SCRATCH);
+    Element* handle = As_Element(SCRATCH);
     TranscodeState* transcode = Cell_Handle_Pointer(TranscodeState, handle);
 
     Utf8(const*) head = Cell_Utf8_At(input);
@@ -871,9 +871,9 @@ DECLARE_NATIVE(COMPOSE2)
     if (Is_Error(OUT))  // transcode had a problem
         panic (Cell_Error(OUT));
 
-    Element* handle = Known_Element(SCRATCH);
+    Element* handle = As_Element(SCRATCH);
     TranscodeState* transcode = Cell_Handle_Pointer(TranscodeState, handle);
-    Element* elem_start_offset = Known_Element(SPARE);
+    Element* elem_start_offset = As_Element(SPARE);
     assert(Is_Integer(elem_start_offset));
 
     Utf8(const*) at = cast(Utf8(const*), transcode->at);  // valid UTF-8 [1]
@@ -902,7 +902,7 @@ DECLARE_NATIVE(COMPOSE2)
   //    legal?  Or we could just say that if you use an illegal pattern but
   //    no instances come up, that's ok?
 
-    Element* handle = Known_Element(SCRATCH);
+    Element* handle = As_Element(SCRATCH);
     TranscodeState* transcode = Cell_Handle_Pointer(TranscodeState, handle);
 
     if (TOP_INDEX == STACK_BASE) {  // no triples pushed, so no matches [1]
@@ -929,7 +929,7 @@ DECLARE_NATIVE(COMPOSE2)
   // preferable.  It also helps with locality.  But it means the evaluations
   // have to be done on an already built stack.
 
-    StackIndex triples = VAL_INT32(Known_Element(SCRATCH));
+    StackIndex triples = VAL_INT32(As_Element(SCRATCH));
 
     assert(Is_Integer(Data_Stack_At(Element, triples)));  // start offset
     OnStack(Element) code = Data_Stack_At(Element, triples + 1);
@@ -964,7 +964,7 @@ DECLARE_NATIVE(COMPOSE2)
         );
     }
 
-    StackIndex triples = VAL_INT32(Known_Element(SCRATCH));
+    StackIndex triples = VAL_INT32(As_Element(SCRATCH));
     assert(Is_Block(Data_Stack_At(Element, triples + 1)));  // evaluated code
     Copy_Cell(Data_Stack_At(Stable, triples + 1), result);  // replace w/eval
 

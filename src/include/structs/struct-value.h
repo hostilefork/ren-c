@@ -35,10 +35,6 @@
 #endif
 
 
-#define Stable_Unchecked(atom) \
-    m_cast(Stable*, known(Value*, (atom)))
-
-
 //=//// EXTANT STACK POINTERS /////////////////////////////////////////////=//
 //
 // See %sys-datastack.h for a deeper explanation.

@@ -31,7 +31,7 @@
 // Another big benefit is that casts to Element can enusre that no antiforms
 // are in the cell, and casts to Value don't hold unstable antiforms.  This
 // could be accomplished without casts with helper functions such as
-// Known_Element() or Known_Stable(), but using a cast makes the checks
+// As_Element() or As_Stable(), but using a cast makes the checks
 // work generically in macros parameterized by type.  Also, using a cast
 // helps point out "ugliness" that encourages caution at these points, and
 // looking to find another way to do it.

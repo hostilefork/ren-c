@@ -358,8 +358,8 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
   // get the integer typecheck.  But if WORD! is unbound then it would act
   // as a WORD! typecheck.  This seems bad.)
 
-    assert(Is_Word(Known_Element(SCRATCH)));
-    heeded (Bind_Cell_If_Unbound(Known_Element(SCRATCH), spec_binding));
+    assert(Is_Word(As_Element(SCRATCH)));
+    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), spec_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     require (
@@ -369,7 +369,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
     if (Not_Cell_Stable(OUT))
         panic ("Parameter spec words must be bound to stable values");
 
-    Stable* fetched = Known_Stable(OUT);
+    Stable* fetched = As_Stable(OUT);
 
     Option(Type) type = Type_Of(fetched);
 
@@ -924,7 +924,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Parameter)
     if (Is_Antiform(dual))
         panic (Error_Bad_Antiform(dual));
 
-    Element* poke = Known_Element(dual);
+    Element* poke = As_Element(dual);
 
     switch (opt Word_Id(picker)) {
       case SYM_TEXT: {

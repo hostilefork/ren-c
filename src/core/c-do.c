@@ -170,11 +170,11 @@ bool Pushed_Continuation(
 
     switch (opt Type_Of(branch)) {
       case TYPE_QUOTED:  // note: not bound (use $tied to get a binding)
-        Unquote_Cell(Copy_Cell(out, Known_Element(branch)));
+        Unquote_Cell(Copy_Cell(out, As_Element(branch)));
         goto just_use_out;
 
       case TYPE_QUASIFORM:
-        Copy_Cell(out, Known_Element(branch));
+        Copy_Cell(out, As_Element(branch));
         require (
           Unlift_Cell_No_Decay(out)
         );
@@ -190,7 +190,7 @@ bool Pushed_Continuation(
 
       case TYPE_TIED:  // note: bound (use 'quoted to avoid binding)
         Clear_Cell_Sigil(
-            Copy_Cell_May_Bind(out, Known_Element(branch), binding)
+            Copy_Cell_May_Bind(out, As_Element(branch), binding)
         );
         goto just_use_out;
 
@@ -208,13 +208,13 @@ bool Pushed_Continuation(
         );
         Tweak_Link_Inherit_Bind(
             varlist,
-            Derive_Binding(binding, Known_Element(branch))
+            Derive_Binding(binding, As_Element(branch))
         );
         binding = varlist;  // update binding
         goto handle_list_with_adjusted_binding; }
 
       case TYPE_BLOCK:  // plain execution
-        binding = Derive_Binding(binding, Known_Element(branch));
+        binding = Derive_Binding(binding, As_Element(branch));
         goto handle_list_with_adjusted_binding;
 
       handle_list_with_adjusted_binding: {
@@ -272,11 +272,11 @@ bool Pushed_Continuation(
       case TYPE_PATH: {
         Length len = Sequence_Len(branch);
         Copy_Sequence_At(out, branch, len - 1);
-        if (not Is_Space(Known_Element(out)))
+        if (not Is_Space(As_Element(out)))
             panic ("Only terminal-slash PATH! can act as BRANCH!");
 
         require (
-          Meta_Get_Var(out, NO_STEPS, Known_Element(branch), binding)
+          Meta_Get_Var(out, NO_STEPS, As_Element(branch), binding)
         );
         require (
           branch = Decay_If_Unstable(out)

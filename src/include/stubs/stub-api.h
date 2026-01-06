@@ -125,7 +125,7 @@ INLINE void Disconnect_Api_Handle_From_Level(Stub* stub)
 INLINE Api(Stable*) Known_Stable_Api(Api(Value*) v) {
     if (v == nullptr)
         return nullptr;
-    return Known_Stable(v);
+    return As_Stable(v);
 }
 
 #define rebStable(...)  Known_Stable_Api(rebValue(__VA_ARGS__))

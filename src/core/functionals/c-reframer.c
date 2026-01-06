@@ -118,7 +118,7 @@ Level* Make_Pushed_Level_From_Action_Feed_May_Throw(
     assert(Not_Base_Managed(varlist));  // shouldn't be [3]
     L->varlist = varlist;  // put varlist back
 
-    assert(Is_Tripwire(Known_Stable(L->out)));  // only gathers arguments
+    assert(Is_Tripwire(As_Stable(L->out)));  // only gathers arguments
 
     assert(Get_Flavor_Flag(VARLIST, L->varlist, FRAME_HAS_BEEN_INVOKED));
     Clear_Flavor_Flag(VARLIST, L->varlist, FRAME_HAS_BEEN_INVOKED);  // [2]
@@ -174,7 +174,7 @@ Result(None) Init_Invokable_From_Feed(
         Fetch_Next_In_Feed(feed);  // we've seen it now
 
     if (not Is_Action(out)) {
-        Quote_Cell(Known_Element(out));
+        Quote_Cell(As_Element(out));
         return none;
     }
 

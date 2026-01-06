@@ -90,7 +90,7 @@ Bounce Arrow_Dispatcher(Level* const L)
     Details* details = Ensure_Level_Details(L);
     assert(Details_Max(details) == MAX_IDX_ARROW);
 
-    const Element* body = Known_Element(Details_At(details, IDX_ARROW_BODY));
+    const Element* body = As_Element(Details_At(details, IDX_ARROW_BODY));
     assert(Is_Block(body) or Is_Fence(body));
 
     assert(Link_Inherit_Bind(L->varlist) == nullptr);

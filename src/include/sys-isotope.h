@@ -45,7 +45,7 @@
 //    coercion of API values to antiforms--as a general rule.
 //
 INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
-    Element* elem = Known_Element(v);  // efficient unwrapped extraction [1]
+    Element* elem = As_Element(v);  // efficient unwrapped extraction [1]
 
     assert(not Is_Api_Value(elem));  // API uses nullptr, not nulled cells [2]
 

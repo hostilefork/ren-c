@@ -91,7 +91,7 @@ INLINE Details* Level_Intrinsic_Details(Level* L) {
     if (Not_Level_Flag(L, DISPATCHING_INTRINSIC))
         return Ensure_Level_Details(L);
 
-    Stable* frame = Known_Stable(Level_Scratch(L));
+    Stable* frame = As_Stable(Level_Scratch(L));
     possibly(Is_Antiform(frame));  // LIFT_BYTE() is not canonized
     return Ensure_Frame_Details(frame);
 }
@@ -100,7 +100,7 @@ INLINE Option(const Symbol*) Level_Intrinsic_Label(Level* L) {
     if (Not_Level_Flag(L, DISPATCHING_INTRINSIC))
         return Try_Get_Action_Level_Label(L);
 
-    Stable* frame = Known_Stable(Level_Scratch(L));
+    Stable* frame = As_Stable(Level_Scratch(L));
     possibly(Is_Antiform(frame));  // LIFT_BYTE() is not canonized
     return Frame_Label_Deep(frame);
 }
@@ -153,7 +153,7 @@ INLINE Result(Option(Element*)) Typecheck_Element_Intrinsic_Arg(
     Level* L
 ){
     if (Not_Level_Flag(L, DISPATCHING_INTRINSIC))
-        return Known_Element(Level_Arg(L, 1));  // was checked
+        return As_Element(Level_Arg(L, 1));  // was checked
 
     Value* arg = Level_Dispatching_Intrinsic_Arg(L);
 
@@ -163,7 +163,7 @@ INLINE Result(Option(Element*)) Typecheck_Element_Intrinsic_Arg(
         return fail (Error_Bad_Intrinsic_Arg_1(L));
     }
 
-    return Known_Element(arg);
+    return As_Element(arg);
 }
 
 // Because decay can call the evaluator (e.g. for GETTER or ALIAS that is
@@ -177,8 +177,8 @@ INLINE Stable* Stable_Decayed_Intrinsic_Arg(
     Level* L
 ){
     if (Not_Level_Flag(L, DISPATCHING_INTRINSIC))
-        return Known_Stable(Level_Arg(L, 1));  // was checked
+        return As_Stable(Level_Arg(L, 1));  // was checked
 
     Value* arg = Level_Dispatching_Intrinsic_Arg(L);
-    return Known_Stable(arg);
+    return As_Stable(arg);
 }

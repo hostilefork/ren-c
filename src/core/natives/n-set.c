@@ -111,7 +111,7 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
 ){
     USE_LEVEL_SHORTHANDS (L);
 
-    Element* scratch = Known_Element(SCRATCH);
+    Element* scratch = As_Element(SCRATCH);
 
     assert(STATE == ST_STEPPER_SET_BLOCK and Is_Block(scratch));
 
@@ -243,10 +243,10 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
                 panic (Error_Bad_Antiform(spare));
 
             if (Is_Pinned_Form_Of(GROUP, scratch)) {
-                Pinify_Cell(Known_Element(spare));  // add @ decoration
+                Pinify_Cell(As_Element(spare));  // add @ decoration
             }
             else if (Is_Meta_Form_Of(GROUP, scratch)) {
-                Metafy_Cell(Known_Element(spare));  // add ^ decoration
+                Metafy_Cell(As_Element(spare));  // add ^ decoration
             }
             else
                 assert(Is_Group(scratch));
@@ -575,7 +575,7 @@ DECLARE_NATIVE(SET)
     if (b)
         return unwrap b;  // keep bouncing while we couldn't get OUT as answer
 
-    Element* lifted = Known_Element(dual);
+    Element* lifted = As_Element(dual);
     assert(Any_Lifted(lifted));
 
     return UNLIFT(lifted);  // unlift TWEAK dual result to normal [2]

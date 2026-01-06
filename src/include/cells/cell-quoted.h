@@ -267,7 +267,7 @@ INLINE bool Is_Lifted_Unstable_Antiform(const Value* v) {  // costs more [3]
     );
 }
 
-#define Known_Stable(v) /* cast-checked builds will still double-check! */ \
+#define As_Stable(v) /* cast-checked builds will still double-check! */ \
     cast(Stable*, known_not(Stable*, (v)))
 
 #if NO_RUNTIME_CHECKS
@@ -287,26 +287,26 @@ MUTABLE_IF_C(Result(Stable*), INLINE) Ensure_Stable(CONST_IF_C(Value*) v_) {
 
 //=//// ENSURE THINGS ARE ELEMENTS ////////////////////////////////////////=//
 //
-// An array element can't be an antiform.  Use Known_Element() when you are
+// An array element can't be an antiform.  Use As_Element() when you are
 // sure you have an element and only want it checked in the debug build, and
 // Ensure_Element() when you are not sure and want to panic if not.
 //
 
-MUTABLE_IF_C(Option(Element*), INLINE) As_Element(CONST_IF_C(Stable*) v_) {
+MUTABLE_IF_C(Option(Element*), INLINE) Try_As_Element(CONST_IF_C(Stable*) v_) {
     CONSTABLE(Stable*) v = m_cast(Stable*, Ensure_Readable(v_));
     if (Is_Antiform(v))
         return nullptr;
-    return u_cast(Element*, v);
+    return As_Element(v);
 }
 
-#define Known_Element(v) /* cast-checked builds will still double-check! */ \
+#define As_Element(v) /* cast-checked builds will still double-check! */ \
     cast(Element*, known_not(Element*, (v)))
 
 MUTABLE_IF_C(Element*, INLINE) Ensure_Element(CONST_IF_C(Value*) cell) {
     CONSTABLE(Value*) v = m_cast(Value*, cell);
     if (LIFT_BYTE(v) <= STABLE_ANTIFORM_2)
         panic (Error_Bad_Antiform(v));
-    return Known_Element(v);
+    return As_Element(v);
 }
 
 #if CHECK_CELL_SUBCLASSES
@@ -347,10 +347,10 @@ INLINE Element* Quasify_Antiform(Exact(Stable*) v) {
 
 INLINE Element* Reify(Value* v) {
     if (LIFT_BYTE(v) > STABLE_ANTIFORM_2)
-        return Known_Element(v);
+        return As_Element(v);
     assert(LIFT_BYTE_RAW(v) != DUAL_0);
     LIFT_BYTE_RAW(v) = QUASIFORM_4;  // all antiforms can become quasi
-    return Known_Element(v);
+    return As_Element(v);
 }
 
 
@@ -412,11 +412,11 @@ INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
 
 INLINE Element* Lift_Cell(Value* v) {
     if (LIFT_BYTE_RAW(v) > STABLE_ANTIFORM_2)
-        return Quote_Cell(Known_Element(v));  // non-antiform winds up quoted
+        return Quote_Cell(As_Element(v));  // non-antiform winds up quoted
 
     assert(LIFT_BYTE_RAW(v) != DUAL_0);
     LIFT_BYTE_RAW(v) = QUASIFORM_4;  // both unstable and stable become quasi
-    return Known_Element(v);
+    return As_Element(v);
 }
 
 INLINE Result(Value*) Unlift_Cell_No_Decay_Core(Value* v) {
@@ -427,7 +427,7 @@ INLINE Result(Value*) Unlift_Cell_No_Decay_Core(Value* v) {
         return v;
     }
     unnecessary(assert(LIFT_BYTE_RAW(v) > STABLE_ANTIFORM_2));
-    return Unquote_Cell(Known_Element(v));  // asserts that it's quoted
+    return Unquote_Cell(As_Element(v));  // asserts that it's quoted
 }
 
 #define Unlift_Cell_No_Decay(v) \

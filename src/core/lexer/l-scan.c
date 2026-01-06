@@ -2979,7 +2979,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
         Pinify_Cell(items);  // don't want to evaluate
         Api(Stable*) email = rebStable("as email! delimit -[.]-", items);
 
-        Element* scratch = Copy_Cell(SCRATCH, Known_Element(email));
+        Element* scratch = Copy_Cell(SCRATCH, As_Element(email));
         rebRelease(email);
         Copy_Cell(PUSH(), scratch);
         goto sequence_or_conflation_was_pushed;
@@ -3172,7 +3172,7 @@ Bounce Scanner_Executor(Level* level_)
             if (Is_Error(level_->out))
                 assert(TOP_INDEX == STACK_BASE);
             else
-                assert(Is_Tripwire(Known_Stable(level_->out)));
+                assert(Is_Tripwire(As_Stable(level_->out)));
         }
         else
             assert(b == BOUNCE_CONTINUE);

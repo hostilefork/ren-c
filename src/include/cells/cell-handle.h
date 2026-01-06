@@ -82,7 +82,7 @@ MUTABLE_IF_C(Cell*, INLINE) Extract_Cell_Handle_Canon(CONST_IF_C(Cell*) cell)
     if (not Cell_Payload_1_Needs_Mark(c))
         return c;  // changing instance won't be seen by copies
 
-    return Known_Stable(
+    return As_Stable(
         Stub_Cell(Extract_Cell_Handle_Stub(c))  // has shared base
     );
 }

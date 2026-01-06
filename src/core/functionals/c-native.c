@@ -270,7 +270,7 @@ void Register_Generics(const ExtraGenericTable* generics)
     for (; entry->table != nullptr; ++entry) {
         assert(entry->ext_info->ext_heart == nullptr);
         entry->ext_info->ext_heart = Datatype_Extra_Heart(
-            Known_Stable(*entry->datatype_ptr)
+            As_Stable(*entry->datatype_ptr)
         );
 
         assert(entry->ext_info->next == nullptr);
@@ -296,7 +296,7 @@ void Unregister_Generics(const ExtraGenericTable* generics)
     const ExtraGenericTable* entry = generics;
     for (; entry->table != nullptr; ++entry) {
         assert(entry->ext_info->ext_heart == Datatype_Extra_Heart(
-            Known_Stable(*entry->datatype_ptr)
+            As_Stable(*entry->datatype_ptr)
         ));
         assert(Stub_Flavor(entry->ext_info->ext_heart) == FLAVOR_PATCH);
         entry->ext_info->ext_heart = nullptr;  // null out datatype [1]
@@ -638,7 +638,7 @@ void Startup_Natives(const Element* boot_natives)
     assert(not threw);
     UNUSED(threw);
 
-    assert(Is_Okay(Known_Stable(L->out)));
+    assert(Is_Okay(As_Stable(L->out)));
 
 } finished: {
 

@@ -275,7 +275,7 @@ DECLARE_NATIVE(UNLIFT)
 {
     INCLUDE_PARAMS_OF_UNLIFT;
 
-    Element* v = Known_Element(Intrinsic_ARG(LEVEL));
+    Element* v = As_Element(Intrinsic_ARG(LEVEL));
 
     if (Get_Level_Flag(LEVEL, DISPATCHING_INTRINSIC)) {  // wasn't typechecked
         if (not Is_Quoted(v) and not Is_Quasiform(v))
@@ -312,7 +312,7 @@ DECLARE_NATIVE(UNLIFT_P)
             panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
     }
 
-    return UNLIFT(Known_Element(v));  // must be lifted (quoted or quasi)
+    return UNLIFT(As_Element(v));  // must be lifted (quoted or quasi)
 }
 
 
@@ -398,7 +398,7 @@ DECLARE_NATIVE(UNANTI)
     Value* v = Intrinsic_ARG(LEVEL);
     LIFT_BYTE(v) = NOQUOTE_3;  // turn to plain form
 
-    return COPY(Known_Element(v));
+    return COPY(As_Element(v));
 }
 
 
@@ -438,7 +438,7 @@ DECLARE_NATIVE(SPREAD)
     if (Any_Void(ARG(VALUE)))
         return GHOST;  // void is a no-op, so just pass it through
 
-    Stable* v = Known_Stable(ARG(VALUE));
+    Stable* v = As_Stable(ARG(VALUE));
 
     if (Is_Nulled(v))
         return NULLED;
@@ -510,7 +510,7 @@ DECLARE_NATIVE(PACK)
         return THROWN;
     }
 
-    return Init_Pack(OUT, Cell_Array(Known_Stable(SPARE)));
+    return Init_Pack(OUT, Cell_Array(As_Stable(SPARE)));
 }
 
 

@@ -311,7 +311,7 @@ static bool Subparse_Throws(
 
             if (Frame_Phase(label) == Frame_Phase(LIB(PARSE_BREAK))) {
                 CATCH_THROWN(out, LEVEL);
-                assert(Is_Integer(Known_Element(out)));
+                assert(Is_Integer(As_Element(out)));
                 *interrupted_out = true;
                 return false;
             }
@@ -621,7 +621,7 @@ static Result(REBIXO) Parse_One_Rule(
         if (Is_Light_Null(subresult))
             return END_FLAG;
 
-        REBINT index = VAL_INT32(Known_Element(subresult));
+        REBINT index = VAL_INT32(As_Element(subresult));
         assert(index >= 0);
         return index; }
 
@@ -642,7 +642,7 @@ static Result(REBIXO) Parse_One_Rule(
             if (Is_Antiform(SPARE))
                 panic (Error_Bad_Antiform(SPARE));
 
-            rule = Known_Element(SPARE);  // fall through to direct match
+            rule = As_Element(SPARE);  // fall through to direct match
         }
         else switch (opt Type_Of(rule)) {
           case TYPE_FRAME: {  // want to run a type constraint...
@@ -691,7 +691,7 @@ static Result(REBIXO) Parse_One_Rule(
             );
             if (Is_Antiform(SPARE))
                 panic (Error_Bad_Antiform(SPARE));
-            rule = Known_Element(SPARE);
+            rule = As_Element(SPARE);
         }
 
         // Build upon FIND's behavior to mold quoted items, e.g.:
@@ -1079,7 +1079,7 @@ static Result(REBIXO) To_Thru_Non_Block_Rule(
             );
             if (Is_Antiform(temp))
                 panic (Error_Bad_Antiform(temp));
-            rule = Known_Element(temp);  // fall through to direct match
+            rule = As_Element(temp);  // fall through to direct match
         }
         else if (Is_Lifted_Datatype(rule)) {
             DECLARE_ELEMENT (rule_value);
@@ -1123,7 +1123,7 @@ static Result(REBIXO) To_Thru_Non_Block_Rule(
             );
             if (Is_Antiform(SPARE))
                 panic (Error_Bad_Antiform(SPARE));
-            rule = Known_Element(SPARE);
+            rule = As_Element(SPARE);
         }
     }
 
@@ -1196,7 +1196,7 @@ static Result(None) Handle_Seek_Rule_Dont_Update_Begin(
         );
         if (Is_Antiform(OUT))
             panic (Error_Bad_Antiform(OUT));
-        rule = Copy_Cell(SPARE, Known_Element(OUT));
+        rule = Copy_Cell(SPARE, As_Element(OUT));
         Erase_Cell(OUT);
         t = Type_Of(rule);
     }
@@ -1659,7 +1659,7 @@ DECLARE_NATIVE(SUBPARSE)
                 if (Is_Antiform(eval))
                     panic (Error_Bad_Antiform(eval));
 
-                rule = Copy_Cell(P_SAVE, Known_Element(eval));
+                rule = Copy_Cell(P_SAVE, As_Element(eval));
 
                 goto reparse_rule; }
 
@@ -1836,14 +1836,14 @@ DECLARE_NATIVE(SUBPARSE)
 
             Copy_Cell(SPARE, lookup);
             LIFT_BYTE(SPARE) = NOQUOTE_3;
-            rule = Known_Element(SPARE);
+            rule = As_Element(SPARE);
             assert(Is_Frame(rule));
 
         }
         else if (Is_Antiform(lookup))
             panic (Error_Bad_Antiform(lookup));
         else
-            rule = Copy_Cell(P_SAVE, Known_Element(lookup));
+            rule = Copy_Cell(P_SAVE, As_Element(lookup));
     }
     else if (Is_Path(rule)) {
         require (
@@ -1854,7 +1854,7 @@ DECLARE_NATIVE(SUBPARSE)
             panic ("PATH! in PARSE3 must be an ACTION!");
 
         LIFT_BYTE(spare) = NOQUOTE_3;
-        rule = Copy_Cell(P_SAVE, Known_Element(spare));
+        rule = Copy_Cell(P_SAVE, As_Element(spare));
     }
     else if (Is_Set_Tuple(rule)) {
       handle_set:
@@ -2092,7 +2092,7 @@ DECLARE_NATIVE(SUBPARSE)
                     i = END_FLAG;
                 }
                 else {
-                    Element* out = Known_Element(OUT);
+                    Element* out = As_Element(OUT);
                     if (VAL_INT32(out) != Series_Len_Head(into))
                         i = END_FLAG;
                     else
@@ -2140,7 +2140,7 @@ DECLARE_NATIVE(SUBPARSE)
             if (Is_Light_Null(SPARE))
                 i = END_FLAG;
             else {
-                Stable* spare = Known_Element(SPARE);
+                Stable* spare = As_Element(SPARE);
                 assert(Is_Integer(spare));
                 i = VAL_INT32(spare);
             }
@@ -2568,7 +2568,7 @@ DECLARE_NATIVE(PARSE3)
         return fail (Error_Parse3_Incomplete_Raw());
     }
 
-    Index index = VAL_UINT32(Known_Element(OUT));
+    Index index = VAL_UINT32(As_Element(OUT));
     assert(index <= Series_Len_Head(input));
 
     if (index != Series_Len_Head(input)) {  // didn't reach end of input

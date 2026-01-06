@@ -176,7 +176,7 @@ Result(None) Get_Word_Or_Tuple(
     Restore_Level_Scratch_Spare(L, saved_state);
 
     if (OUT != out) {
-        Copy_Cell(out, Known_Stable(OUT));
+        Copy_Cell(out, As_Stable(OUT));
         Force_Blit_Cell(OUT, TOP);
         DROP();
     }
@@ -294,7 +294,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
     Protect_Cell(SCRATCH);  // (common exit path undoes this protect)
   #endif
 
-    const Element* path = Known_Element(SCRATCH);
+    const Element* path = As_Element(SCRATCH);
     assert(Is_Path(path));
 
     if (not Sequence_Has_Pointer(path)) {  // byte compressed
@@ -354,7 +354,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
         ) except (e) {
             goto return_error;
         }
-        Copy_Cell(spare_left, Known_Stable(OUT));
+        Copy_Cell(spare_left, As_Stable(OUT));
     }
     else if (Is_Chain(at)) {
         if ((at + 1 != tail) and not Is_Space(at + 1)) {
@@ -413,7 +413,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
     }
 
     possibly(Is_Frame(spare_left));
-    Quote_Cell(Known_Element(spare_left));  // lifted protocol
+    Quote_Cell(As_Element(spare_left));  // lifted protocol
 
     Copy_Cell(PUSH(), at);
 
@@ -438,7 +438,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
 
 }} ensure_out_is_action: { ///////////////////////////////////////////////////
 
-    Stable* out = Known_Stable(OUT);
+    Stable* out = As_Stable(OUT);
 
     if (Is_Action(out))
         goto return_success;
@@ -464,7 +464,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
   // mean "try the result of the function invoked by the path"?  e.g. TRY
   // on a PATH! that ends in slash?
 
-    assert(Is_Action(Known_Stable(OUT)));
+    assert(Is_Action(As_Stable(OUT)));
 
     assert(not e);
     goto finalize_and_return;
@@ -547,7 +547,7 @@ Result(Value*) Meta_Get_Var(
 
         if (TOP_INDEX != base) {
             DECLARE_STABLE (action);
-            Move_Cell(action, Known_Stable(out));
+            Move_Cell(action, As_Stable(out));
             Deactivate_If_Action(action);
 
             Option(Element*) def = nullptr;  // !!! g_empty_block doesn't work?
@@ -641,7 +641,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
     if (not check)
         return fail (out);
 
-    Copy_Cell(target, Known_Element(out));  // update ARG(TARGET)
+    Copy_Cell(target, As_Element(out));  // update ARG(TARGET)
     Corrupt_Cell_If_Needful(OUT);
 
     return false;

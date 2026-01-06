@@ -212,8 +212,8 @@ static void Evaluator_Shared_Checks_Debug(Level* const L)
         Blit_Cell(PUSH(), SCRATCH);
 
         heeded (Copy_Cell(SCRATCH, L_next));
-        Bind_Cell_If_Unbound(Known_Element(SCRATCH), L_binding);
-        Metafy_Cell(Known_Element(SCRATCH));
+        Bind_Cell_If_Unbound(As_Element(SCRATCH), L_binding);
+        Metafy_Cell(As_Element(SCRATCH));
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         StateByte saved_state = STATE;

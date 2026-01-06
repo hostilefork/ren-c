@@ -520,7 +520,7 @@ DECLARE_NATIVE(PROCEDURE)
 
   tweak_unconstrained_parameter_to_auto_trash: {
 
-    Details* details = Ensure_Frame_Details(Known_Stable(OUT));
+    Details* details = Ensure_Frame_Details(As_Stable(OUT));
 
     Element* param = m_cast(Element*, Quoted_Returner_Of_Paramlist(
         Phase_Paramlist(details), SYM_RETURN

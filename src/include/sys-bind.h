@@ -283,7 +283,7 @@ INLINE Option(REBINT) Try_Get_Binder_Index(  // 0 if not present
 
     Stump* stump = cast(Stump*, Misc_Hitch(symbol));
     assert(Info_Stump_Bind_Symbol(stump) == symbol);
-    REBINT index = VAL_INT32(Known_Element(Stub_Cell(stump)));
+    REBINT index = VAL_INT32(As_Element(Stub_Cell(stump)));
     assert(index != 0);
     return index;
 }
@@ -303,7 +303,7 @@ INLINE void Update_Binder_Index(
 
     Stump* stump = cast(Stump*, Misc_Hitch(symbol));
     assert(Info_Stump_Bind_Symbol(stump) == symbol);
-    assert(VAL_INT32(Known_Element(Stub_Cell(stump))) != 0);
+    assert(VAL_INT32(As_Element(Stub_Cell(stump))) != 0);
     Init_Integer(Stub_Cell(stump), index);
 }
 

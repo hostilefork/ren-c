@@ -315,7 +315,7 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
     next = opt Link_Inherit_Bind(c);  // save so we can update `c`
 
     if (flavor == FLAVOR_USE) {
-        Element* overbind = Known_Element(Stub_Cell(c));
+        Element* overbind = As_Element(Stub_Cell(c));
 
         if (Is_Word(overbind)) {  // OVERBIND use of single WORD!
             if (Word_Symbol(overbind) != symbol)
@@ -555,7 +555,7 @@ DECLARE_NATIVE(LET)
     if (Is_Antiform(SPARE))
         panic (Error_Bad_Antiform(SPARE));
 
-    Element* spare = Known_Element(SPARE);
+    Element* spare = As_Element(SPARE);
 
     if (Is_Quoted(spare))  // should (let 'x: <whatever>) be legal? [1]
         panic ("QUOTED? escapes not supported at top level of LET");
@@ -793,7 +793,7 @@ DECLARE_NATIVE(LET)
     if (Get_Level_Flag(L, LET_IS_SETTING))
         goto eval_right_hand_side_if_let_is_setting;
 
-    Element* out = Known_Element(OUT);
+    Element* out = As_Element(OUT);
     assert(Is_Word(out) or Is_Block(out) or Is_Meta_Form_Of(WORD, out));
     USED(out);
     goto integrate_let_bindings;
@@ -812,7 +812,7 @@ DECLARE_NATIVE(LET)
     // LET, so this requires reevaluation--as opposed to just evaluating
     // the right hand side and then running SET on the result.)
 
-    Element* spare = Known_Element(SPARE);
+    Element* spare = As_Element(SPARE);
     assert(
         Try_Get_Settable_Word_Symbol(nullptr, spare)
         or Is_Set_Block(spare)
@@ -1231,7 +1231,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
         );
         if (Is_Antiform(temp))
             return fail (Error_Bad_Antiform(temp));
-        Move_Cell(spec, Known_Element(temp));
+        Move_Cell(spec, As_Element(temp));
     }
 
     REBLEN num_vars = Is_Block(spec) ? Series_Len_At(spec) : 1;
@@ -1465,7 +1465,7 @@ Result(None) Read_Slot(Sink(Stable) out, const Slot* slot) {
     );
     if (Not_Cell_Stable(atom_out))
         return fail ("Cannot read unstable slot with Read_Slot()");
-    return none;  // out is Known_Stable()
+    return none;  // out is As_Stable()
 }
 
 

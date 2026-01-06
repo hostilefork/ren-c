@@ -167,7 +167,7 @@ DECLARE_NATIVE(PICK)
     if (Is_Error(OUT))
         return OUT;
 
-    Stable* dual = Known_Stable(OUT);
+    Stable* dual = As_Stable(OUT);
 
     if (Is_Action(dual))
         panic ("TWEAK* delegation machinery not done yet");
@@ -354,7 +354,7 @@ DECLARE_NATIVE(POKE)
     if (bounce)
         return bounce;  // we will get a callback (if not error/etc.)
 
-    Stable* writeback = Known_Stable(OUT);
+    Stable* writeback = As_Stable(OUT);
 
     if (not Is_Nulled(writeback))  // see TWEAK* for meaning of non-null
         panic (
