@@ -767,6 +767,42 @@ INLINE Bounce Native_Thrown_Result(Level* L) {
     return BOUNCE_THROWN;
 }
 
+
+// !!! Currently unused concept, Cooperative PANIC
+//
+// If possible, we want to avoid exceptions or longjmps crossing arbitray
+// C stack frames.  It's generally dicey, can break C++ code by skipping
+// destructors, and means that the only choice architectures that don't have
+// longjmp or exception support is to crash.
+//
+// So the system tries to bubble errors up via the Result(T) system, where
+// any return type that can carry a zero state can receive that state as
+// a return result...which a global `g_failure` pointer set to indicate an
+// error occurred.
+//
+// When this error state bubbles up to a native dispatcher, we have a choice
+// that we could either treat it as a "definitional error" as if you had put
+// an ERROR! into the output cell--or we could treat it as a panic.  We want
+// `return fail()` to work definitionally.  So it does not panic.
+//
+// But the only places in C stacks where we can `return` gracefully are at
+// the native boundaries to the trampoline.  So any `require` or `panic` that
+// is not in a native body would have to be "abrupt".  This should be avoided
+// if at all possible.
+//
+// !!! UPDATE: It was at one point deemed too difficult to discern being in
+// a top-level native from being in other C code, and the codebase had far
+// too many panic()s in it to be able to reason about.  So the cooperative
+// panic idea was shelved in favor of just making all panics abrupt.  I'd
+// forgotten that it had been shelved on purpose...so started to reinvent it.
+// Leaving behind to serve as commentary for potentially revisiting the idea.
+//
+INLINE Bounce Native_Panic_Result(Level* L, Error* e) {;
+    Force_Location_Of_Error(e, L);
+    return Native_Thrown_Result(L);
+}
+
+
 // Dispatchers like Lambda_Dispatcher() etc. have their own knowledge of
 // whether they are `return: ~` or not, based on where they keep the return
 // information.  So they can't use the `return TRASH;` idiom.
@@ -885,6 +921,17 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
     #define TRASH       TRACK(Native_Trash_Result_Untracked(level_))
     #define THROWN      Native_Thrown_Result(level_)
     #define UNLIFT(v)   Native_Unlift_Result(level_, (v))
+
+    #define PANIC(p) \
+        return Native_Panic_Result(level_, Derive_Error_From_Pointer(p))
+
+    #define REQUIRE(_stmt_) /* based on needful_require */ \
+        NEEDFUL_SCOPE_GUARD; \
+        Needful_Assert_Not_Failing(); \
+        _stmt_  needful_postfix_extract_result; \
+        if (Needful_Get_Failure()) { \
+            return PANIC(Needful_Test_And_Clear_Failure()); \
+        } NEEDFUL_NOOP  /* force require semicolon at callsite */
 
     #define COPY(v) \
         (Native_Copy_Result_Untracked(level_, (v)), x_cast(Bounce, TRACK(OUT)))
