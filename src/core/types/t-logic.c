@@ -36,24 +36,26 @@
 //  ]
 //
 DECLARE_NATIVE(NULL_Q)
+//
+// !!! It seems that NULL? should return true for "any null", e.g. heavy forms
+// as well.  The questions discerning them should be separate (e.g. LIGHT-NULL?
+// and HEAVY-NULL?).
 {
     INCLUDE_PARAMS_OF_NULL_Q;
 
-    const Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Intrinsic_ARG(LEVEL);
 
     if (not Is_Pack(v))
         return LOGIC(Is_Light_Null(v));
 
-    DECLARE_VALUE (decayed);
-    Copy_Cell(decayed, v);
-    trap (
-        Decay_If_Unstable(decayed)
-    );
-
-    if (Is_Light_Null(decayed))  // e.g. oriinal first pack element was null
+    if (Is_Heavy_Null(v))
         return fail (
             "Heavy null detected by NULL?, use NULL? DECAY if intentional"
        );
+
+    trap (  // if pack is undecayable, we don't want to panic if typecheck :-/
+        Decay_If_Unstable(v)  // so this would just be an ERROR! result
+    );
 
     return LOGIC(false);
 }
