@@ -117,6 +117,8 @@ static Result(None) Push_Keys_And_Params_For_Fence(
 
             Move_Cell(PUSH(), decayed);
         }
+
+        Reset_Evaluator_Erase_Out(sub);
     }
 
     Drop_Level_Unbalanced(sub);  // we pushed values
