@@ -208,10 +208,10 @@ INLINE bool Is_Dual_Slot_Alias_Signal(Slot* slot) {
 //
 
 #define Decay_If_Unstable(v) \
-    Decay_Or_Elide_Core(known_not(Stable*, (v)), true)
+    Decay_Or_Elide_Core(Possibly_Unstable(v), true)
 
 #define Elide_Unless_Error_Including_In_Packs(v) \
-    Decay_Or_Elide_Core(known_not(Stable*, (v)), false)
+    Decay_Or_Elide_Core(Possibly_Unstable(v), false)
 
 INLINE Result(Stable*) Decay_Or_Elide_Core(
     Value* v,

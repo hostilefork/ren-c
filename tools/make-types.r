@@ -276,7 +276,7 @@ for-each-datatype 't [
     e-types/emit [propercase-of t --[
         #define Is_${propercase-of T.name}(value) \
             Cell_Has_Lift_Heart_No_Sigil(NOQUOTE_3, TYPE_$<T.NAME>, \
-                known(Stable*, (value)))
+                Known_Stable(value))
     ]--]
 ]
 
@@ -371,12 +371,12 @@ for-each-datatype 't [
     e-types/emit [t proper-name --[
         #define Is_$<Proper-Name>(cell) \
             Cell_Has_Lift_Heart_No_Sigil($<LIFTBYTE>, TYPE_$<T.NAME>, \
-                known($<Need>*, (cell)))
+                Known_$<Need>(cell))
 
 
         #define Is_Lifted_$<Proper-Name>(cell) \
             Cell_Has_Lift_Heart_No_Sigil(QUASIFORM_4, TYPE_$<T.NAME>, \
-                known(Stable*, (cell)))
+                Known_Stable(cell))
 
         #define Is_Quasi_$<Propercase-Of T.Name>(cell) \
             Is_Lifted_$<Proper-Name>(cell)  /* alternative */

@@ -191,7 +191,7 @@ INLINE bool Is_Anti_Word_With_Id_Core(const Stable* v, SymId id) {
 }
 
 #define Is_Anti_Word_With_Id(v,id) \
-    Is_Anti_Word_With_Id_Core(known_not(Element*, (v)), (id))
+    Is_Anti_Word_With_Id_Core(Possibly_Antiform(v), (id))
 
 INLINE bool Is_Quasi_Word_With_Id(const Stable* v, SymId id) {
     assert(id != SYM_0_constexpr);

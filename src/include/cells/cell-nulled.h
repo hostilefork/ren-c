@@ -88,14 +88,14 @@
 //
 
 #define Is_Light_Null(v) /* test allowed on potentially unstable values */ \
-    ((Ensure_Readable(known_not(Stable*, (v)))->header.bits & ( \
+    ((Ensure_Readable(Possibly_Unstable(v))->header.bits & ( \
         CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_KEYWORD_IS_NULL \
     )) == ( \
         FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
             | CELL_FLAG_KEYWORD_IS_NULL))
 
 #define Is_Nulled(v) /* test for stable values, name avoids confusion [2] */ \
-    ((Ensure_Readable(known_not(Element*, (v)))->header.bits & ( \
+    ((Ensure_Readable(Possibly_Antiform(v))->header.bits & ( \
         CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_KEYWORD_IS_NULL \
     )) == ( \
         FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
@@ -124,7 +124,7 @@ INLINE bool Is_Lifted_Null(const Value* v) {
     Init_Lifted_Null(out)
 
 #define Is_Quasi_Null(v) \
-    Is_Lifted_Null(known(Stable*, (v)))  // subtle distinction of question...
+    Is_Lifted_Null(Known_Stable(v))  // subtle distinction of question...
 
 
 //=//// "HEAVY NULLS" (BLOCK! Antiform Pack with `~null~` in it) //////////=//

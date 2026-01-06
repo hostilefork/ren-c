@@ -77,7 +77,7 @@ INLINE bool Is_Logic_Core(const Stable* v) {
 }
 
 #define Is_Logic(v) \
-    Is_Logic_Core(known_not(Element*, (v)))
+    Is_Logic_Core(Possibly_Antiform(v))
 
 #define Is_Okay(v) \
     Is_Anti_Word_With_Id((v), SYM_OKAY)
@@ -115,7 +115,7 @@ INLINE bool Cell_Logic_Core(const Stable* v) {
 }
 
 #define Cell_Logic(v) \
-    Cell_Logic_Core(known_not(Element*, (v)))
+    Cell_Logic_Core(Possibly_Antiform(v))
 
 
 //=//// BOOLEAN WORDS [TRUE FALSE] ////////////////////////////////////////=//

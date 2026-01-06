@@ -42,6 +42,56 @@
 //
 
 
+//=/// known() AND known_not() WRAPPERS ///////////////////////////////////=//
+//
+// known() and known_not() are helpful tools for writing macros that can do
+// const-correct typechecks at compile-time, with no runtime cost.
+//
+// e.g. you can block the passing of Element* to routines that expect Stable*
+// by using `known_not(Element*, v)` in a macro.  But that only works for when
+// CHECK_CELL_SUBCLASSES is on.  If it's not, then Value* will be the same as
+// Element*, and the check will fail.
+//
+// These wrappers can be no-ops in DONT_CHECK_CELL_SUBCLASSES builds.
+//
+
+#if DONT_CHECK_CELL_SUBCLASSES
+    #define Known_Element(v)      (v)
+    #define Possibly_Antiform(v)  (v)
+    #define Known_Stable(v)       (v)
+    #define Possibly_Unstable(v)  (v)
+    #define Known_Value(v)        (v)
+    #define Possibly_Dual(v)      (v)
+#else
+    #define Known_Element(v)      known(Element*, (v))
+    #define Possibly_Antiform(v)  known_not(Element*, (v))
+    #define Known_Stable(v)       known(Stable*, (v))
+    #define Possibly_Unstable(v)  known_not(Stable*, (v))
+    #define Known_Value(v)        known(Value*, (v))
+    #define Possibly_Dual(v)      known_not(Value*, (v))
+#endif
+
+
+//=//// As_Xxx() SELF-CAST PROTECTED CASTS ////////////////////////////////=//
+//
+// Generally speaking, cast() has to allow casting from a type to itself... or
+// else higher-level macros become too unweildy.  But we'd like to catch any
+// case of people trying to cast Element* to Element* (for instance) because
+// that's noise in the code, and also may reprsent some misunderstanding.
+//
+// These macros provide the protection of making sure you're not doing a
+// self-cast.  They also look a little cleaner at the callsite.
+//
+// Note: due to the CastHook<> mechanism, some builds instrument cast() to
+// validate that the bits actually match the type (e.g. that you don't cast
+// a Cell with an antiform LIFT_BYTE() to an Element*).
+//
+
+#define As_Element(v)   cast(Element*, Possibly_Antiform(v))
+#define As_Stable(v)    cast(Stable*, Possibly_Unstable(v))
+#define As_Value(v)     cast(Value*, Possibly_Dual(v))
+
+
 //=//// CELL READABLE + WRITABLE + INITABLE CHECKS ////////////////////////=//
 //
 // [READABILITY]
@@ -810,17 +860,17 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
     #define Type_Of_Maybe_Unstable  Type_Of_Unchecked
 #else
     #define Underlying_Type_Of(v) \
-        Underlying_Type_Of_Unchecked(Ensure_Readable(known(Stable*, (v))))
+        Underlying_Type_Of_Unchecked(Ensure_Readable(Known_Stable(v)))
 
     #define Type_Of(v) \
-        Type_Of_Unchecked(Ensure_Readable(known(Stable*, (v))))
+        Type_Of_Unchecked(Ensure_Readable(Known_Stable(v)))
 
     #define Type_Of_Maybe_Unstable(v) \
         Type_Of_Unchecked(Ensure_Readable(v))
 #endif
 
 #define Datatype_Of(v) \
-    Datatype_Of_Maybe_Unstable(known(Stable*, (v)))
+    Datatype_Of_Maybe_Unstable(Known_Stable(v))
 
 INLINE Option(Type) Type_Of_When_Unquoted(const Element* elem) {
     if (LIFT_BYTE(elem) == QUASIFORM_4)
@@ -990,8 +1040,6 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
 #else
     INLINE void Tweak_Cell_Binding(Element* c, Option(Context*) binding) {
         Assert_Cell_Writable(c);
-        Element* x = known(Element*, c);
-        USED(x);
         assert(Is_Cell_Bindable(c));
         c->extra.base = opt binding;
         if (binding)

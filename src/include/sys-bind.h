@@ -102,7 +102,7 @@ INLINE void Unbind_Cell_If_Bindable_Core(Value* v) {
 }
 
 #define Unbind_Cell_If_Bindable(v) \
-    Unbind_Cell_If_Bindable_Core(known(Element*, (v)))
+    Unbind_Cell_If_Bindable_Core(Known_Element(v))
 
 
 // The concept behind `Cell` usage is that it represents a view of a cell

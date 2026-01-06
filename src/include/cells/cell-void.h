@@ -73,7 +73,7 @@ INLINE bool Is_Heavy_Void_Core(const Value* v) {
 }
 
 #define Is_Heavy_Void(v) \
-    Is_Heavy_Void_Core(known_not(Stable*, (v)))
+    Is_Heavy_Void_Core(Possibly_Unstable(v))
 
 INLINE Element* Init_Lifted_Heavy_Void_Untracked(Sink(Element) out) {
     Init_Any_List_At_Core_Untracked(
@@ -99,7 +99,7 @@ INLINE bool Any_Void_Core(const Value* v) {
 }
 
 #define Any_Void(v) \
-    Any_Void_Core(known_not(Stable*, (v)))
+    Any_Void_Core(Possibly_Unstable(v))
 
 INLINE bool Is_Any_Lifted_Void(const Stable* v) {
     return Is_Lifted_Ghost(v) or Is_Lifted_Heavy_Void(v);

@@ -66,21 +66,20 @@ INLINE Count Quotes_From_Lift_Byte(LiftByte lift_byte) {
 }
 
 #define Is_Unquoted(v) \
-    (LIFT_BYTE(Ensure_Readable(known(Stable*, (v)))) == NOQUOTE_3)
+    (LIFT_BYTE(Ensure_Readable(Known_Stable(v))) == NOQUOTE_3)
 
 #define Is_Possibly_Unstable_Value_Quoted(v) \
     (LIFT_BYTE(Ensure_Readable(v)) >= ONEQUOTE_NONQUASI_5)
 
 #define Is_Quoted(v) \
-    Is_Possibly_Unstable_Value_Quoted(known(Stable*, (v)))
+    Is_Possibly_Unstable_Value_Quoted(Known_Stable(v))
 
 #define Any_Fundamental(v) \
-    (LIFT_BYTE(Ensure_Readable(known(Stable*, (v)))) == NOQUOTE_3)
-
+    (LIFT_BYTE(Ensure_Readable(Known_Stable(v))) == NOQUOTE_3)
 
 #define Is_Quoted_Form_Of(heartname, v) \
     Cell_Has_Lift_Sigil_Heart( \
-        ONEQUOTE_NONQUASI_5, SIGIL_0, TYPE_##heartname, known(Stable*, (v)))
+        ONEQUOTE_NONQUASI_5, SIGIL_0, TYPE_##heartname, Known_Stable(v))
 
 
 // Turns X into 'X, or '''[1 + 2] into '''''(1 + 2), etc.
@@ -238,7 +237,7 @@ INLINE Count Noquotify(Element* elem) {
     }
 
     #define Is_Cell_Stable(v) \
-        Is_Cell_Stable_Core(known_not(Stable*, (v)))  // not *known* Stable...
+        Is_Cell_Stable_Core(Possibly_Unstable(v))
 
     INLINE bool Is_Antiform_Stable_Core(const Value* a) {  // narrow check [2]
         unnecessary(Ensure_Readable(a));  // Is_Antiform() checked readable
@@ -248,7 +247,7 @@ INLINE Count Noquotify(Element* elem) {
     }
 
     #define Is_Antiform_Stable(v) \
-        Is_Antiform_Stable_Core(known_not(Stable*, (v)))
+        Is_Antiform_Stable_Core(Possibly_Unstable(v))
 #endif
 
 #define Not_Cell_Stable(v)  (not Is_Cell_Stable(v))
@@ -266,9 +265,6 @@ INLINE bool Is_Lifted_Unstable_Antiform(const Value* v) {  // costs more [3]
         or mask == (FLAG_HEART(TYPE_GROUP) | FLAG_LIFT_BYTE(QUASIFORM_4))
     );
 }
-
-#define As_Stable(v) /* cast-checked builds will still double-check! */ \
-    cast(Stable*, known_not(Stable*, (v)))
 
 #if NO_RUNTIME_CHECKS
     #define Assert_Cell_Stable(v)  NOOP
@@ -299,9 +295,6 @@ MUTABLE_IF_C(Option(Element*), INLINE) Try_As_Element(CONST_IF_C(Stable*) v_) {
     return As_Element(v);
 }
 
-#define As_Element(v) /* cast-checked builds will still double-check! */ \
-    cast(Element*, known_not(Element*, (v)))
-
 MUTABLE_IF_C(Element*, INLINE) Ensure_Element(CONST_IF_C(Value*) cell) {
     CONSTABLE(Value*) v = m_cast(Value*, cell);
     if (LIFT_BYTE(v) <= STABLE_ANTIFORM_2)
@@ -324,7 +317,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) atom);
 INLINE Result(Element*) Coerce_To_Quasiform(Exact(Element*) v);
 
 #define Is_Quasiform(v) \
-    (LIFT_BYTE(Ensure_Readable(known(Stable*, v))) == QUASIFORM_4)
+    (LIFT_BYTE(Ensure_Readable(Known_Stable(v))) == QUASIFORM_4)
 
 INLINE Element* Unquasify(Element* elem) {
     assert(LIFT_BYTE(elem) == QUASIFORM_4);
@@ -384,11 +377,10 @@ INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
 }
 
 #define Stably_Antiformize_Unbound_Fundamental(v) \
-    Stably_Antiformize_Unbound_Fundamental_Core(known_not(Element*, (v)))
+    Stably_Antiformize_Unbound_Fundamental_Core(Possibly_Antiform(v))
 
 #define Unstably_Antiformize_Unbound_Fundamental(v) \
-    Unstably_Antiformize_Unbound_Fundamental_Core(known_not(Stable*, (v)))
-
+    Unstably_Antiformize_Unbound_Fundamental_Core(Possibly_Unstable(v))
 
 //=//// LIFTING ///////////////////////////////////////////////////////////=//
 
@@ -431,7 +423,7 @@ INLINE Result(Value*) Unlift_Cell_No_Decay_Core(Value* v) {
 }
 
 #define Unlift_Cell_No_Decay(v) \
-    Unlift_Cell_No_Decay_Core(known_not(Stable*, (v)))
+    Unlift_Cell_No_Decay_Core(Possibly_Unstable(v))
 
 INLINE Stable* Known_Stable_Unlift_Cell_Core(Stable* v) {
     assume (
@@ -442,4 +434,4 @@ INLINE Stable* Known_Stable_Unlift_Cell_Core(Stable* v) {
 }
 
 #define Known_Stable_Unlift_Cell(v) \
-    Known_Stable_Unlift_Cell_Core(known_not(Element*, (v)))
+    Known_Stable_Unlift_Cell_Core(Possibly_Antiform(v))

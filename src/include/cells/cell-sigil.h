@@ -57,17 +57,16 @@
     Unchecked_Unlifted_Cell_Has_Sigil((sigil), Ensure_Readable(cell))
 
 #define Any_Plain(v) \
-    Unlifted_Cell_Has_Sigil(SIGIL_0, known(Stable*, (v)))
+    Unlifted_Cell_Has_Sigil(SIGIL_0, Known_Stable(v))
 
 #define Is_Metaform(v) \
-    Unlifted_Cell_Has_Sigil(SIGIL_META, known(Stable*, (v)))
+    Unlifted_Cell_Has_Sigil(SIGIL_META, Known_Stable(v))
 
 #define Is_Pinned(v) \
-    Unlifted_Cell_Has_Sigil(SIGIL_PIN, known(Stable*, (v)))
+    Unlifted_Cell_Has_Sigil(SIGIL_PIN, Known_Stable(v))
 
 #define Is_Tied(v) \
-    Unlifted_Cell_Has_Sigil(SIGIL_TIE, known(Stable*, (v)))
-
+    Unlifted_Cell_Has_Sigil(SIGIL_TIE, Known_Stable(v))
 
 #define Is_Pinned_Form_Of(heartname, v) \
     Cell_Has_Lift_Sigil_Heart(NOQUOTE_3, SIGIL_PIN, TYPE_##heartname, (v))

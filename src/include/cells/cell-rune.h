@@ -395,7 +395,7 @@ INLINE bool Is_Tripwire_Core(const Stable* v)
  { return Is_Space_With_Lift_Sigil(STABLE_ANTIFORM_2, SIGIL_0, v); }
 
 #define Is_Tripwire(v) \
-    Is_Tripwire_Core(known_not(Element*, (v)))
+    Is_Tripwire_Core(Possibly_Antiform(v))
 
 INLINE Stable* Init_Tripwire_Untracked(Init(Stable) out) {
     Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base
