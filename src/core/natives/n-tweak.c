@@ -657,9 +657,12 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
         if (Is_Dual_Meta_Alias_Signal(As_Element(SPARE))) {
             Quote_Cell(As_Element(SPARE));
             Api(Value*) result = rebUndecayed(CANON(GET), SPARE);
-            Copy_Cell(SPARE, result);
-            Lift_Cell(SPARE);
-            rebRelease(result);
+            if (not result)
+                Init_Lifted_Null(SPARE);
+            else {
+                Copy_Lifted_Cell(SPARE, result);
+                rebRelease(result);
+            }
             continue;
         }
 

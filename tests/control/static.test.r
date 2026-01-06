@@ -51,3 +51,6 @@
     x: 1020
     x = 1020, y = 30
 })
+
+(y: static [null] null? y)
+(y: static [] ghost? ^y)
