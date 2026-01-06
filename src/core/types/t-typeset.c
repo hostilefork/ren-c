@@ -510,12 +510,12 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Parameter)
 // so you can decorate a type block, like @([integer! block!])
 //
 Element* Decorate_According_To_Parameter(
-    Element* e,
+    Element* v,
     const Element* param
 ){
     if (Get_Parameter_Flag(param, REFINEMENT)) {
         require (
-          Refinify(e)
+          Refinify(v)
         );
     }
 
@@ -524,21 +524,17 @@ Element* Decorate_According_To_Parameter(
         break;
 
       case PARAMCLASS_META:
-        Metafy_Cell(e);
+        Add_Cell_Sigil(v, SIGIL_META);
         break;
 
       case PARAMCLASS_SOFT: {
         Source *a = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
-        Move_Cell(Stub_Cell(a), e);
-        Pinify_Cell(Init_Group(e, a));
+        Move_Cell(Stub_Cell(a), v);
+        Add_Cell_Sigil(Init_Group(v, a), SIGIL_PIN);
         break; }
 
-      case PARAMCLASS_JUST:
-        Quote_Cell(e);
-        break;
-
-      case PARAMCLASS_THE:
-        Pinify_Cell(e);
+      case PARAMCLASS_LITERAL:
+        Add_Cell_Sigil(v, SIGIL_PIN);
         break;
 
       default:
@@ -546,7 +542,10 @@ Element* Decorate_According_To_Parameter(
         DEAD_END;
     }
 
-    return e;
+    if (Get_Parameter_Flag(param, UNBIND_ARG))
+        Quote_Cell(v);
+
+    return v;
 }
 
 
@@ -898,12 +897,9 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Parameter)
           case PARAMCLASS_META:
             return DUAL_LIFTED(Init_Word(OUT, CANON(META)));
 
-          case PARAMCLASS_THE:
+          case PARAMCLASS_LITERAL:
           case PARAMCLASS_SOFT:
             return DUAL_LIFTED(Init_Word(OUT, CANON(THE)));
-
-          case PARAMCLASS_JUST:
-            return DUAL_LIFTED(Init_Word(OUT, CANON(JUST)));
 
           default: assert(false);
         }

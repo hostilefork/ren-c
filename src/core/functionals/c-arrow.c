@@ -190,6 +190,8 @@ DECLARE_NATIVE(ARROW)
         Flags param_flags = 0;
         ParamClass pclass;
         const Symbol* symbol;
+        if (Is_Quoted(at))
+            panic ("ARROW doesn't support UNBIND via quote (yet!)");
         if (Is_Word(at)) {
             pclass = PARAMCLASS_NORMAL;
             symbol = Word_Symbol(at);
@@ -198,17 +200,8 @@ DECLARE_NATIVE(ARROW)
             pclass = PARAMCLASS_META;
             symbol = Word_Symbol(at);
         }
-        else if (Is_Quoted(at)) {
-            if (Quotes_Of(at) != 1)
-                panic (at);
-            if (Heart_Of(at) == TYPE_WORD)
-                pclass = PARAMCLASS_JUST;
-            else
-                panic (at);
-            symbol = Word_Symbol(at);
-        }
         else if (Is_Pinned_Form_Of(WORD, at)) {
-            pclass = PARAMCLASS_THE;
+            pclass = PARAMCLASS_LITERAL;
             symbol = Word_Symbol(at);
         }
         else if (Is_Refinement(at)) {

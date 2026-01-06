@@ -523,12 +523,7 @@ Bounce Action_Executor(Level* L)
                 Move_Value(ARG, OUT);
                 break; }
 
-              case PARAMCLASS_JUST: {
-                assert(Not_Antiform(OUT));
-                Move_Value(ARG, OUT);
-                break; }
-
-              case PARAMCLASS_THE: {
+              case PARAMCLASS_LITERAL: {
                 assert(Not_Antiform(OUT));
                 Move_Value(ARG, OUT);
                 break; }
@@ -658,18 +653,13 @@ Bounce Action_Executor(Level* L)
 
             return CONTINUE_SUBLEVEL(sub); }
 
-  //=//// HARD QUOTED ARG-OR-REFINEMENT-ARG ///////////////////////////////=//
+  //=//// LITERAL ARG-OR-REFINEMENT-ARG ///////////////////////////////////=//
 
     // 1. Have to account for infix deferrals in cases like:
     //
     //        return the 10 then (x => [x + 10])
 
-          case PARAMCLASS_JUST:
-            Just_Next_In_Feed(ARG, L->feed);  // don't pick up binding
-            Lookahead_To_Sync_Infix_Defer_Flag(L);  // [1]
-            goto continue_fulfilling;
-
-          case PARAMCLASS_THE:
+          case PARAMCLASS_LITERAL:
             The_Next_In_Feed(ARG, L->feed);  // pick up binding
             Lookahead_To_Sync_Infix_Defer_Flag(L);  // [1]
             goto continue_fulfilling;

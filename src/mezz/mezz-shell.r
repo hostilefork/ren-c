@@ -22,7 +22,7 @@ cd: lambda [
     "CHANGE-DIR convenience (literal argument), returns directory after change"
 
     []: [file! url!]
-    'path [
+    '@path [
         <end> "CD with no argument just returns current directory"
         text! "Local filesystem convention (backslashes on Windows)"
         file! "Translated to local filesystem convention"
@@ -42,7 +42,7 @@ cd: lambda [
 more: lambda [
     "Print file (shell shortcut function)"
 
-    'file "Accepts %file and also just words (as file names)"
+    '@file "Accepts %file and also just words (as file names)"
         [file! word! path! text!]
 ][
     print deline read:string switch:type file [

@@ -334,7 +334,7 @@ interrupt: adapt breakpoint*/ [
 
 debug: proc [
     "Dialect for interactive debugging, see documentation for details"
-    'value "Stack level to inspect or dialect block, or enter debug mode"
+    '@value "Stack level to inspect or dialect block, or enter debug mode"
         [<opt> integer! frame! block!]
 ][
     if not integer? value [

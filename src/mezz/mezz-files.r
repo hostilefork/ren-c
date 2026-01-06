@@ -289,7 +289,7 @@ confirm: func [
 list-dir: proc [
     "Print contents of a directory (ls)"
 
-    'path [<end> file! word! path! text!]
+    '@path [<end> file! word! path! text!]
         "Accepts %file, :variables, and just words (as dirs)"
     :l "Line of info format"
     :f "Files only"

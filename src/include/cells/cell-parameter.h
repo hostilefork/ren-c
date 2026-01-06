@@ -336,6 +336,17 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
     FLAG_LEFT_BIT(23)
 
 
+//=//// PARAMETER_FLAG_UNBIND_ARG /////////////////////////////////////////=//
+//
+// If you put a quote mark on a parameter in the function spec, it means you
+// want the argument to have any bindings removed (if applicable).  This is
+// a good choice if you can make it...because not propagating bindings reduces
+// the GC burden of "leaky bindings".
+//
+#define PARAMETER_FLAG_UNBIND_ARG \
+    FLAG_LEFT_BIT(23)
+
+
 #define Get_Parameter_Flag(v,name) \
     ((CELL_PARAMETER_PAYLOAD_2_FLAGS(v) & PARAMETER_FLAG_##name) != 0)
 

@@ -21,7 +21,7 @@
         "Barrier that's willing to only run one expression after it"
 
         right [any-stable? <variadic>]
-        'lookahead [element? <variadic>]
+        '@lookahead [element? <variadic>]
         {look}
     ][
         take right  ; returned value

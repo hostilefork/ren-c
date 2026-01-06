@@ -264,7 +264,7 @@ summarize-obj: func [
     "Comment until end of line, or end of current list"
 
     return: [ghost!]
-    'args [element? <variadic>]
+    '@args [element? <variadic>]
 ][
     let value
     while [all [

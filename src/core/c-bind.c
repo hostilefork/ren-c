@@ -442,7 +442,7 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
 //          word!        "the new variable if (let $x)"
 //          ghost!       "vanishes if (let x)"
 //      ]
-//      'vars "Variable(s) to create"  ; can't soft quote due to DEFAULT
+//      '@vars "Variable(s) to create"  ; can't soft quote due to DEFAULT
 //          [
 //              word! ^word! group! block!
 //              word!: ^word!: /word!: block!: group!:

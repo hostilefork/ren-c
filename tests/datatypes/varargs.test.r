@@ -31,7 +31,7 @@
 )
 
 (
-    f: lambda ['look [<variadic>]] [try first look]
+    f: lambda ['@look [<variadic>]] [try first look]
     null? applique f/ [look: make varargs! []]
 )
 
@@ -93,7 +93,7 @@
     ([7] = eval [(1 + 2) (3 + 4) soft])
 ][
     (
-        hard: infix func ['v [any-stable? <variadic>]] [
+        hard: infix func ['@v [any-stable? <variadic>]] [
             return collect [
                 until [tail? v] [
                     keep take v

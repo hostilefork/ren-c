@@ -172,7 +172,7 @@ elide-if-heavy-void: vanishable func [
     "Inertly consumes all subsequent data, evaluating to previous result"
 
     return: [ghost!]
-    'omit [element? <variadic>]
+    '@omit [element? <variadic>]
 ][
     insist [null? try take omit]
     return ()

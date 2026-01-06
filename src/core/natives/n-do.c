@@ -77,9 +77,9 @@ DECLARE_NATIVE(REEVAL)
 //  "Shove a parameter into an ACTION! as its first argument"
 //
 //      return: [any-value?]
-//      'left "Hard literal, will be processed according to right's first arg"
+//      '@left "Hard literal, will be processed according to right's first arg"
 //          [element?]
-//      'right "Arbitrary variadic feed of expressions on the right"
+//      '@right "Arbitrary variadic feed of expressions on the right"
 //          [<variadic> <end> element?]
 //  ]
 //
@@ -209,11 +209,7 @@ DECLARE_NATIVE(SHOVE)
         }
         break; }
 
-      case PARAMCLASS_JUST:  // took the input as hard literal, so it's good
-        Copy_Cell(OUT, left);
-        break;
-
-      case PARAMCLASS_THE:  // cheat and do something usermode can't ATM [2]
+      case PARAMCLASS_LITERAL:  // cheat and do something usermode can't ATM [2]
         Copy_Cell_May_Bind(OUT, left, Level_Binding(L));
         break;
 

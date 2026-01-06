@@ -643,7 +643,7 @@ find-all: func [
     "Find all occurrences of a value within a series (allows modification)."
 
     return: ~
-    'series "Variable for block, string, or other series"
+    @series "Variable for block, string, or other series"
         [word!]
     value
     body "Evaluated for each occurrence"

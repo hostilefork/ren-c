@@ -48,7 +48,7 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
     enum Reb_Vararg_Op op,
     Option(const Element*) opt_look, // the first value in the varargs input
     Context* binding,
-    ParamClass pclass
+    const Param *param
 ){
     if (not opt_look) {
         Init_For_Vararg_End(out, op); // exhausted
@@ -56,6 +56,8 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
     }
 
     const Element* look = unwrap opt_look;
+
+    ParamClass pclass = Parameter_Class(param);
 
     if (pclass == PARAMCLASS_NORMAL and Is_Comma(look)) {
         Init_For_Vararg_End(out, op);  // non-quoted COMMA!
@@ -105,12 +107,12 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
     }
 
     if (op == VARARG_OP_FIRST) {
-        if (pclass == PARAMCLASS_JUST)
-            Copy_Cell(out, look);
-        else if (pclass == PARAMCLASS_THE)
-            Copy_Cell_May_Bind(out, look, binding);
-        else
+        if (pclass != PARAMCLASS_LITERAL)
             panic (Error_Varargs_No_Look_Raw()); // hard quote only
+
+        Copy_Cell_May_Bind(out, look, binding);
+        if (Get_Parameter_Flag(param, UNBIND_ARG))
+            Unbind_Cell_If_Bindable_Core(out);
 
         return true; // only a lookahead, no need to advance
     }
@@ -140,16 +142,14 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
 //
 // If an evaluation is involved, then a thrown value is possibly returned.
 //
-bool Do_Vararg_Op_Maybe_End_Throws_Core(
+bool Do_Vararg_Op_Maybe_End_Throws(
     Sink(Value) out,
     enum Reb_Vararg_Op op,
-    const Cell* vararg,
-    ParamClass pclass  // PARAMCLASS_0 to use vararg's class
+    const Cell* vararg
 ){
     const Key* key;
     const Param* param = Param_For_Varargs_Maybe_Null(&key, vararg);
-    if (pclass == PARAMCLASS_0)
-        pclass = Parameter_Class(param);
+    ParamClass pclass = Parameter_Class(param);
 
     Option(Level*) vararg_level;
 
@@ -169,7 +169,7 @@ bool Do_Vararg_Op_Maybe_End_Throws_Core(
             op,
             Is_Cell_Poisoned(shared) ? nullptr : List_Item_At(shared),
             Is_Cell_Poisoned(shared) ? SPECIFIED : List_Binding(shared),
-            pclass
+            param
         )){
             goto type_check_and_return;
         }
@@ -222,7 +222,7 @@ bool Do_Vararg_Op_Maybe_End_Throws_Core(
             Drop_Level(L_temp);
             break; }
 
-        case PARAMCLASS_THE:
+        case PARAMCLASS_LITERAL:
             Copy_Cell_May_Bind(
                 out,
                 List_Item_At(shared),
@@ -231,10 +231,6 @@ bool Do_Vararg_Op_Maybe_End_Throws_Core(
             SERIES_INDEX_UNBOUNDED(shared) += 1;
             break;
 
-        case PARAMCLASS_JUST:
-            Copy_Cell(out, List_Item_At(shared));
-            SERIES_INDEX_UNBOUNDED(shared) += 1;
-            break;
 
         case PARAMCLASS_SOFT:
             if (Is_Soft_Escapable_Group(List_Item_At(shared))) {
@@ -286,7 +282,7 @@ bool Do_Vararg_Op_Maybe_End_Throws_Core(
             op,
             look,
             Level_Binding(L),
-            pclass
+            param
         )){
             goto type_check_and_return;
         }
@@ -313,11 +309,7 @@ bool Do_Vararg_Op_Maybe_End_Throws_Core(
             }
             break; }
 
-          case PARAMCLASS_JUST:
-            Just_Next_In_Feed(out, L->feed);
-            break;
-
-          case PARAMCLASS_THE:
+          case PARAMCLASS_LITERAL:
             The_Next_In_Feed(out, L->feed);
             break;
 
@@ -611,7 +603,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
     const Key* key;
     const Param* param = Param_For_Varargs_Maybe_Null(&key, v);
     if (param == NULL) {
-        pclass = PARAMCLASS_JUST;
+        pclass = PARAMCLASS_LITERAL;
         require (
           Append_Ascii(mo->strand, "???")  // never bound to arg
         );
@@ -623,11 +615,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
             Init_Word(param_word, Key_Symbol(key));
             break; }
 
-          case PARAMCLASS_JUST: {
-            Quote_Cell(Init_Word(param_word, Key_Symbol(key)));
-            break; }
-
-          case PARAMCLASS_THE: {
+          case PARAMCLASS_LITERAL: {
             Pinify_Cell(Init_Word(param_word, Key_Symbol(key)));
             break; }
 
@@ -641,6 +629,10 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
           default:
             crash (nullptr);
         };
+
+        if (Get_Parameter_Flag(param, UNBIND_ARG))
+            Quote_Cell(param_word);
+
         Mold_Element(mo, param_word);
     }
 
@@ -656,7 +648,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
               Append_Ascii(mo->strand, "[]")
             );
         }
-        else if (pclass == PARAMCLASS_JUST or pclass == PARAMCLASS_THE)
+        else if (pclass == PARAMCLASS_LITERAL)
             Mold_Element(mo, shared); // full feed can be shown if hard quoted
         else {
             require (
@@ -675,7 +667,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
               Append_Ascii(mo->strand, "[]")
             );
         }
-        else if (pclass == PARAMCLASS_JUST or pclass == PARAMCLASS_THE) {
+        else if (pclass == PARAMCLASS_LITERAL) {
             require (
               Append_Ascii(mo->strand, "[")
             );

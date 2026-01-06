@@ -93,7 +93,7 @@ cache: lambda [
 ;
 ===: func [
     return: [ghost!]
-    'remarks [element? <variadic>]
+    '@remarks [element? <variadic>]
     :visibility [onoff?]
 ](
 bind construct [

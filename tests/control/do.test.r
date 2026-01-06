@@ -353,6 +353,6 @@
 
 ; evaluating quoted argument
 (
-    rtest: lambda ['op [word!] 'thing] [reeval op thing]
+    rtest: lambda ['@op [word!] '@thing] [reeval op thing]
     -1 = rtest negate 1
 )

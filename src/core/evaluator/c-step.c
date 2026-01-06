@@ -445,15 +445,11 @@ Bounce Stepper_Executor(Level* L)
     if (not pclass)
         goto give_up_backward_quote_priority;
 
-    if (pclass == PARAMCLASS_JUST)  // infix func ['x ...] [...]
-        Copy_Cell(OUT, CURRENT);  // put left side in OUT [1]
-    else {
-        assert(
-            pclass == PARAMCLASS_THE  // infix func [@x ...] [...]
-            or pclass == PARAMCLASS_SOFT
-        );
-        Copy_Cell_May_Bind(OUT, CURRENT, L_binding);  // left side in OUT [1]
-    }
+    assert(
+        pclass == PARAMCLASS_LITERAL  // infix func [@x ...] [...]
+        or pclass == PARAMCLASS_SOFT
+    );
+    Copy_Cell_May_Bind(OUT, CURRENT, L_binding);  // left side in OUT [1]
 
     Force_Blit_Cell(L_current_gotten_raw, L_next_gotten_raw);
     Copy_Cell(CURRENT, L_next);  // CURRENT now invoking word (->-, OF, =>)
@@ -1102,11 +1098,7 @@ Bounce Stepper_Executor(Level* L)
           case PARAMCLASS_META:
             break;
 
-          case PARAMCLASS_JUST:
-            Just_Next_In_Feed(SPARE, L->feed);
-            goto intrinsic_arg_in_spare;
-
-          case PARAMCLASS_THE:
+          case PARAMCLASS_LITERAL:
             The_Next_In_Feed(SPARE, L->feed);
             goto intrinsic_arg_in_spare;
 

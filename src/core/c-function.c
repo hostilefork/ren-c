@@ -314,13 +314,22 @@ static Result(None) Push_Keys_And_Params_Core(
 } handle_any_word_parameters_themselves: { ///////////////////////////////////
 
     bool quoted = false;  // single quote is "unbind" signal in spec
+    Element* spare = Copy_Cell(SPARE, v);
+
+    v = spare;  // need to mutate if CHAIN! or quoted
+
     if (Quotes_Of(v) > 0) {
-        if (Quotes_Of(v) > 1)
+        if (LIFT_BYTE(v) != ONEQUOTE_NONQUASI_5)
             return fail (Error_Bad_Func_Def_Raw(v));
+
+        LIFT_BYTE(SPARE) = NOQUOTE_3;
         quoted = true;
+
+        if (Is_Word(v))
+            panic (Error_Bad_Func_Def_Raw(v));  // until all 'word => '@word
     }
 
-    Option(Type) type = Type_Of_When_Unquoted(v);
+    Option(Type) type = Type_Of(v);
     if (not type)
         return fail (
             "Extension types not supported in function spec"
@@ -333,23 +342,13 @@ static Result(None) Push_Keys_And_Params_Core(
     bool is_returner = false;
     if (type == TYPE_CHAIN) {
         switch (opt Try_Get_Sequence_Singleheart(v)) {
-          case LEADING_SPACE_AND(WORD): {
+          case LEADING_SPACE_AND(WORD): {  // review: ^META-refinements
             refinement = true;
             symbol = Cell_Refinement_Symbol(v);
-            if ((type == TYPE_METAFORM) and Heart_Of(v) == TYPE_WORD) {
-                if (not quoted)
-                    pclass = PARAMCLASS_META;
-            }
-            else {
-                if (quoted)
-                    pclass = PARAMCLASS_JUST;
-                else
-                    pclass = PARAMCLASS_NORMAL;
-            }
+            pclass = PARAMCLASS_NORMAL;
             break; }
 
           case TRAILING_SPACE_AND(BLOCK): {
-            Element* spare = Copy_Cell(SPARE, v);
             trap (
                 Unsingleheart_Sequence(spare)
             );
@@ -398,19 +397,13 @@ static Result(None) Push_Keys_And_Params_Core(
         symbol = Word_Symbol(v);
 
         if (Is_Pinned_Form_Of(WORD, v)) {  // output
-            if (quoted)
-                return fail ("Can't quote @WORD! parameters");
-            pclass = PARAMCLASS_THE;
+            pclass = PARAMCLASS_LITERAL;
         }
         else if (Is_Meta_Form_Of(WORD, v)) {
-            if (not quoted)
-                pclass = PARAMCLASS_META;
+            pclass = PARAMCLASS_META;
         }
         else if (type == TYPE_WORD) {
-            if (quoted)
-                pclass = PARAMCLASS_JUST;
-            else
-                pclass = PARAMCLASS_NORMAL;
+            pclass = PARAMCLASS_NORMAL;
         }
     }
     else
@@ -463,12 +456,14 @@ static Result(None) Push_Keys_And_Params_Core(
             FLAG_PARAMCLASS_BYTE(pclass)
                 | PARAMETER_FLAG_REFINEMENT  // must preserve if type block
                 | PARAMETER_FLAG_NULL_DEFINITELY_OK  // need if refinement
+                | (quoted ? PARAMETER_FLAG_UNBIND_ARG : 0)
         );
     }
     else {
         Init_Unconstrained_Parameter(
             PUSH(),
             FLAG_PARAMCLASS_BYTE(pclass)
+                | (quoted ? PARAMETER_FLAG_UNBIND_ARG : 0)
         );
     }
 
@@ -904,8 +899,7 @@ Details* Make_Dispatch_Details(
             break;
 
           case PARAMCLASS_SOFT:
-          case PARAMCLASS_JUST:
-          case PARAMCLASS_THE:
+          case PARAMCLASS_LITERAL:
             Set_Flavor_Flag(VARLIST, paramlist, PARAMLIST_LITERAL_FIRST);
             break;
 

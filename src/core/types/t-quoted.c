@@ -85,7 +85,7 @@ DECLARE_NATIVE(THE)
 //  "Returns value passed in without evaluation, and no additional binding"
 //
 //      return: [element?]
-//      'value [element?]
+//      '@value [element?]
 //  ]
 //
 DECLARE_NATIVE(JUST)

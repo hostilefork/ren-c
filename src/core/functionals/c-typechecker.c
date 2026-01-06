@@ -1102,6 +1102,9 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
 
 } return_result: { ///////////////////////////////////////////////////////////
 
+    if (Get_Parameter_Flag(param, UNBIND_ARG))
+        Unbind_Cell_If_Bindable_Core(v);
+
   #if RUNTIME_CHECKS
     if ((result == true) and Not_Cell_Stable(v))
         assert(

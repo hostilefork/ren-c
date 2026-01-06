@@ -236,7 +236,3 @@ INLINE const Param* Param_For_Varargs_Maybe_Null(
     assert(not Is_Stub_Varlist(Cell_Varargs_Origin(v)));
     return nullptr;
 }
-
-
-#define Do_Vararg_Op_Maybe_End_Throws(out,op,vararg) \
-    Do_Vararg_Op_Maybe_End_Throws_Core((out), (op), (vararg), PARAMCLASS_0)

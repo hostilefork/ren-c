@@ -262,26 +262,9 @@ typedef enum {
     //
     PARAMCLASS_NORMAL,
 
-    // `PARAMCLASS_JUST` is cued by a quoted WORD! in the function spec
+    // `PARAMCLASS_LITERAL` is cued by an @WORD! in the function spec
     // dialect.  It indicates that a single value of content at the callsite
-    // should be passed through *literally*, with no evaluation or binding:
-    //
-    //     >> foo: lambda ['a] [a]
-    //
-    //     >> foo (1 + 2)
-    //     == (1 + 2)
-    //
-    //     >> x: 10, foo x
-    //     == x
-    //
-    //     >> x: 10, get foo x
-    //     ** Error: not bound
-    //
-    PARAMCLASS_JUST,
-
-    // `PARAMCLASS_THE` is cued by an @WORD! in the function spec
-    // dialect.  It indicates that a single value of content at the callsite
-    // should be passed through literally, BUT it will pick up binding:
+    // should be passed through literally:
     //
     //     >> foo: lambda [@a] [a]
     //
@@ -294,7 +277,7 @@ typedef enum {
     //     >> x: 10, get foo x
     //     == 10  ; different from (lambda ['a] [a]) result
     //
-    PARAMCLASS_THE,
+    PARAMCLASS_LITERAL,
 
     // `PARAMCLASS_SOFT` is cued by an @GROUP! in the function spec
     // dialect.  It quotes with the exception of GROUP!, which is evaluated:
@@ -324,6 +307,12 @@ typedef enum {
     //     right-escapable X left-literal Y
     //     =>
     //     right-escapable (X left-literal Y)
+    //
+    // !!! This feature was once used by branching structures to accomplish
+    // the trick of (if condition [...] then x -> [...])...but that has been
+    // reconsidered in light of the importance of taking GROUP! literally.
+    // The feature thus may be on the chopping block, if it complicates the
+    // evaluator more than it's worth.
     //
     PARAMCLASS_SOFT,
 

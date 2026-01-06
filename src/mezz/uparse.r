@@ -1726,7 +1726,7 @@ default-combinators: make map! [
         return: [element?]
         input [any-series?]
         {pending}: [none? quoted! block!]
-        'value [element?]
+        '@value [element?]
         {comb}
     ][
         comb: state.combinators.(quoted!)
@@ -1960,7 +1960,7 @@ default-combinators: make map! [
         "Synthesize quoted form of literal value (not matched against INPUT)"
         return: [element?]
         input [any-series?]
-        'value [element?]
+        '@value [element?]
     ][
         return value
     ]
@@ -2080,7 +2080,7 @@ default-combinators: make map! [
         "Comment out an arbitrary amount of PARSE material"
         return: [ghost!]
         input [any-series?]
-        'ignored [block! text! tag! rune!]
+        '@ignored [block! text! tag! rune!]
     ][
         return ()
     ]
@@ -2565,7 +2565,7 @@ default-combinators: make map! [
     'panic combinator [
         return: []
         input [any-series?]
-        'reason [block! text!]
+        '@reason [block! text!]
         {e}
     ][
         e: make warning! [

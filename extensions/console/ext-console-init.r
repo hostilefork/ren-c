@@ -946,7 +946,7 @@ console*: func [
 
 export why: proc [
     "Explain the last error in more detail."
-    'err [<end> word! path! warning!] "Optional error value"
+    '@err [<end> word! path! warning!] "Optional error value"
 ][
     let err: default [system.state.last-error]
 

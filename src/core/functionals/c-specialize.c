@@ -511,9 +511,8 @@ Option(ParamClass) Get_First_Param_Literal_Class(Phase* phase) {
     ParamClass pclass = Parameter_Class(
         First_Unspecialized_Param(nullptr, phase)
     );
-    assert(  // !!! said it quoted its first parameter!
-        pclass == PARAMCLASS_JUST
-        or pclass == PARAMCLASS_THE
+    assert(  // !!! said first parameter was literal!
+        pclass == PARAMCLASS_LITERAL
         or pclass == PARAMCLASS_SOFT
     );
     return pclass;
