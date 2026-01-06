@@ -259,7 +259,7 @@ bool Pushed_Continuation(
             if (Is_Specialized(param))
                 Blit_Param_Drop_Mark(arg, param);
             else
-                Init_Void_For_Unset(Erase_Cell(arg));
+                Init_Ghost_For_Unset(Erase_Cell(arg));
         }
 
         arg = First_Unspecialized_Arg(&param, L);

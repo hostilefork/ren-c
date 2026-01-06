@@ -253,7 +253,7 @@ Result(None) Handle_Barrier_Hit(Sink(Value) out, Level* L) {
     if (Not_Parameter_Flag(PARAM, ENDABLE))
         return fail (Error_No_Arg(Level_Label(L), Key_Symbol(KEY)));
 
-    Init_Void_For_End(out);
+    Init_Ghost_For_End(out);
     return none;
 }
 

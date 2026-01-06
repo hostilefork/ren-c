@@ -255,7 +255,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         }
 
         if (Is_Any_Lifted_Void(TOP_STABLE)) {  // (x: ~()~) or (x: ())
-            Init_Void_For_End(value_arg);  // both act like (^x: ())
+            Init_Ghost_For_End(value_arg);  // both act like (^x: ())
             Lift_Cell(value_arg);
             continue;
         }

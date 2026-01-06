@@ -1082,7 +1082,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
     Slot* slot = Varlist_Slots(&slot_tail, vars_ctx);
     for (; slot != slot_tail; ++slot) {
         if (not les->more_data) {  // Y is ghost in `for-each [x y] [1] ...`
-            Init_Void_For_Unset(SPARE);
+            Init_Ghost_For_Unset(SPARE);
             trap (
               Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
             );
@@ -1114,7 +1114,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                     //
                     return true;
                 }
-                Init_Void_For_Unset(SPARE);
+                Init_Ghost_For_Unset(SPARE);
                 trap (
                   Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
                 );

@@ -595,7 +595,7 @@ Result(ParamList*) Pop_Paramlist(
         for (; stump != params_stump; stump = Link_Stump_Next(unwrap stump)) {
             const Symbol* symbol = Info_Stump_Bind_Symbol(unwrap stump);
             Init_Word(PUSH(), symbol);
-            Init_Void_For_Unset(PUSH());
+            Init_Ghost_For_Unset(PUSH());
         }
 
         Destruct_Collector(cl);

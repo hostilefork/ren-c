@@ -109,7 +109,7 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
     (((out)->header.bits & CELL_MASK_SCARY_GHOST) == CELL_MASK_SCARY_GHOST)
 
 
-//=//// VOID is Used To Signal <end> Reached /////////////////////////////=//
+//=//// GHOST! Signals ////////////////////////////////////////////////////=//
 //
 // Unstable antiforms stored in variables is where the sidewalk ends as far
 // as it comes to the idea of "truly unset".  Hence, if you want to signal
@@ -146,10 +146,10 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
 // that is intended to stay trash for a reason...)
 //
 
-#define Init_Void_For_End(out)  Init_Ghost(out)
+#define Init_Ghost_For_End(out)  Init_Ghost(out)
 #define Is_Endlike_Void(v)  Is_Ghost(v)
 
-#define Init_Void_For_Unset(out)  Init_Ghost(out)
+#define Init_Ghost_For_Unset(out)  Init_Ghost(out)
 #define Is_Unsetlike_Void(v)  Is_Ghost(v)
 
 #define Init_Unspecialized_Void(out)  Init_Ghost(out)

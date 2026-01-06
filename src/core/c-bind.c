@@ -63,7 +63,7 @@ void Bind_Values_Inner_Loop(
                     and Is_Set_Word(v)
                 )
             ){
-                Init_Void_For_Unset(Append_Context_Bind_Word(context, v));
+                Init_Ghost_For_Unset(Append_Context_Bind_Word(context, v));
             }
           }
           else {
@@ -253,7 +253,7 @@ Let* Make_Let_Variable(
     );
 
     Init(Slot) slot = Slot_Init_Hack(u_cast(Slot*, Stub_Cell(let)));
-    Init_Void_For_Unset(slot);
+    Init_Ghost_For_Unset(slot);
 
     Tweak_Link_Inherit_Bind_Raw(let, inherit);  // linked list [1]
     Corrupt_Unused_Field(let->misc.corrupt);  // not currently used
@@ -1356,7 +1356,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
                 break;  // note for-each [x $x] can be legal
             }
 
-            Init_Void_For_Unset(slot);
+            Init_Ghost_For_Unset(slot);
             if (kind == Kind_From_Sigil_And_Heart(SIGIL_META, TYPE_WORD))
                 Set_Cell_Flag(slot, LOOP_SLOT_ROOT_META);
             else
