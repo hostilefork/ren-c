@@ -174,23 +174,6 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 }
 
 
-//=//// DUAL STATE DEFINITIONS ///////////////////////////////////////////////
-
-#define Is_Dual_Word_Named_Signal(dual)  Is_Word(dual)
-
-INLINE bool Is_Dual_Meta_Alias_Signal(const Stable* dual) {
-    return Is_Meta_Form_Of(WORD, (dual)) or Is_Meta_Form_Of(TUPLE, (dual));
-}
-
-INLINE bool Is_Dual_Slot_Alias_Signal(Slot* slot) {
-    return Cell_Has_Lift_Sigil_Heart(
-        slot, DUAL_0, SIGIL_META, TYPE_WORD
-    ) or Cell_Has_Lift_Sigil_Heart(
-        slot, DUAL_0, SIGIL_META, TYPE_TUPLE
-    );
-}
-
-
 //=//// ELIDING AND DECAYING UNSTABLE ANTIFORMS ///////////////////////////=//
 //
 // Decay is the process of producing a stable value from an unstable one.  It
@@ -307,7 +290,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
 
 INLINE Result(Stable*) Unliftify_Decayed(Stable* v) {
     trap (
-      Value *atom = Unlift_Cell_No_Decay(cast(Value*, v))
+      Value *unlifted = Unlift_Cell_No_Decay(cast(Value*, v))
     );
-    return Decay_If_Unstable(atom);
+    return Decay_If_Unstable(unlifted);
 }

@@ -421,14 +421,14 @@ void Mold_Or_Form_Cell_Ignore_Quotes(
 //
 // 1. There's a complex story for why quoted space renders as just the quotes:
 //
-//     https://rebol.metaeducation.com/t/why-decorated space-vanishes/2550/
+//     https://rebol.metaeducation.com/t/why-decorated-space-vanishes/2550/
 //
-void Mold_Or_Form_Element(Molder* mo, const Element* e, bool form)
+void Mold_Or_Form_Element(Molder* mo, const Element* v, bool form)
 {
     // Mold hooks take a noquote cell and not a Cell*, so they expect any
     // quotes applied to have already been done.
 
-    if (Not_Cell_Readable(e)) {
+    if (Not_Cell_Readable(v)) {
       #if RUNTIME_CHECKS
         require (
           Append_Ascii(mo->strand, "\\\\unreadable\\\\")
@@ -438,21 +438,21 @@ void Mold_Or_Form_Element(Molder* mo, const Element* e, bool form)
     }
 
     REBLEN i;
-    for (i = 0; i < Quotes_Of(e); ++i)
+    for (i = 0; i < Quotes_Of(v); ++i)
         Append_Codepoint(mo->strand, '\'');
 
     if (
-        Quotes_Of(e) > 0
-        and Is_Space_With_Lift_Sigil(
-            LIFT_BYTE(e),  // passing e's actual lift means irrelevant for test
-            SIGIL_0,
-            e
+        Quotes_Of(v) > 0
+        and Is_Cell_Space_With_Lift_Sigil(
+            v,
+            LIFT_BYTE(v),  // passing v's actual lift means irrelevant for test
+            SIGIL_0
         )
     ){
         return;  // a quoted space renders as just the quotes [1]
     }
 
-    Mold_Or_Form_Cell_Ignore_Quotes(mo, e, form);
+    Mold_Or_Form_Cell_Ignore_Quotes(mo, v, form);
 }
 
 

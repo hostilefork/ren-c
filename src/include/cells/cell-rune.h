@@ -317,12 +317,12 @@ INLINE bool Any_Sigiled_Space(const Element* e) {
     return Is_Space_Underlying(e);
 }
 
-INLINE bool Is_Space_With_Lift_Sigil(
+INLINE bool Is_Cell_Space_With_Lift_Sigil(
+    const Cell* cell,
     LiftByte lift,
-    Option(Sigil) sigil,
-    const Stable* v
+    Option(Sigil) sigil
 ){
-    bool is_space = (Ensure_Readable(v)->header.bits & (
+    bool is_space = (Ensure_Readable(cell)->header.bits & (
         CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_RUNE_IS_SPACE
     )) == (
         FLAG_HEART(TYPE_RUNE)
@@ -332,27 +332,27 @@ INLINE bool Is_Space_With_Lift_Sigil(
     );
 
   #if RUNTIME_CHECKS
-    if (Is_Rune(v))
+    if (Heart_Of(cell) == TYPE_RUNE)
         assert(
-            Get_Cell_Flag(v, RUNE_IS_SPACE)
-            == (' ' == opt Codepoint_Of_Rune_If_Single_Char(v))
+            Get_Cell_Flag(cell, RUNE_IS_SPACE)
+            == (' ' == opt Codepoint_Of_Rune_If_Single_Char(cell))
         );
   #endif
 
     return is_space;
 }
 
-#define Is_Space(v) \
-    Is_Space_With_Lift_Sigil(NOQUOTE_3, SIGIL_0, (v))  // renders as `_` [1]
+#define Is_Space(v) /* renders as `_` [1] */ \
+    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_0)
 
-#define Is_Pinned_Space(v) \
-    Is_Space_With_Lift_Sigil(NOQUOTE_3, SIGIL_PIN, (v))  // renders as `@` [1]
+#define Is_Pinned_Space(v) /* renders as `@` [1] */ \
+    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_PIN)
 
-#define Is_Metaform_Space(v) \
-    Is_Space_With_Lift_Sigil(NOQUOTE_3, SIGIL_META, (v))  // renders as `^` [1]
+#define Is_Metaform_Space(v) /* renders as `^` [1] */ \
+    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_META)
 
-#define Is_Tied_Space(v) \
-    Is_Space_With_Lift_Sigil(NOQUOTE_3, SIGIL_TIE, (v))  // renders as `$` [1]
+#define Is_Tied_Space(v) /* renders as `$` [1] */ \
+    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_TIE)
 
 
 //=//// '~' QUASIFORM (a.k.a. QUASAR) /////////////////////////////////////=//
@@ -369,7 +369,7 @@ INLINE bool Is_Space_With_Lift_Sigil(
 //
 
 #define Is_Quasar(v) \
-    Is_Space_With_Lift_Sigil(QUASIFORM_4, SIGIL_0, (v))
+    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), QUASIFORM_4, SIGIL_0)
 
 INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
     Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base
@@ -388,11 +388,11 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
 //
 // The antiform of SPACE is a particularly succinct trash state, called
 // TRIPWIRE.  It's a quick way to make a variable
-//  * Quick way to unset variables, simply `(var: ~)`
+//  * Quick way to poison variables, simply `(var: ~)`
 //
 
-INLINE bool Is_Tripwire_Core(const Stable* v)
- { return Is_Space_With_Lift_Sigil(STABLE_ANTIFORM_2, SIGIL_0, v); }
+#define Is_Tripwire_Core(v) \
+    Is_Cell_Space_With_Lift_Sigil((v), STABLE_ANTIFORM_2, SIGIL_0)
 
 #define Is_Tripwire(v) \
     Is_Tripwire_Core(Possibly_Antiform(v))

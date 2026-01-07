@@ -681,6 +681,8 @@ INLINE Error* Cell_Error(const Cell* c);
 
 //=//// ISOTOPE COERCION AND DECAY ////////////////////////////////////////=//
 
+#include "cells/cell-dual.h"
+
 #include "sys-isotope.h"
 
 //=//// EVALUATOR SERVICES ////////////////////////////////////////////////=//

@@ -114,15 +114,3 @@ INLINE Option(Dispatcher*) Get_Generic_Dispatcher(
 //
 #define GROUPS_OK  cast(Option(Element*), m_cast(Element*, g_empty_text))
 #define NO_STEPS  cast(Option(Element*), nullptr)
-
-
-#define DUAL_LIFTED(v)    Lift_Cell(v ? v : Init_Nulled(OUT))
-#define DUAL_SIGNAL_NULL_ABSENT  NULLED
-#define Is_Dual_Nulled_Absent_Signal(dual)  Is_Nulled(dual)
-
-#define WRITEBACK(out)  DUAL_LIFTED(out)  // commentary
-#define NO_WRITEBACK_NEEDED  DUAL_SIGNAL_NULL_ABSENT
-#define Is_Dual_Nulled_No_Writeback_Signal(dual)  Is_Nulled(dual)
-
-#define Is_Dual_Nulled_Pick_Signal(dual)  Is_Nulled(dual)
-#define Init_Dual_Nulled_Pick_Signal(dual)  Init_Nulled(dual)

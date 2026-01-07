@@ -76,32 +76,32 @@ void Probe_Cell_Print_Helper(
 ){
     Probe_Print_Helper(p, expr, "Value", file, line);
 
-    const Value* atom = cast(Value*, p);
+    const Value* v = cast(Value*, p);
 
-    if (Is_Cell_Poisoned(atom)) {
+    if (Is_Cell_Poisoned(v)) {
         require (
           Append_Ascii(mo->strand, "\\\\poisoned\\\\")
         );
         return;
     }
 
-    if (Not_Cell_Readable(atom)) {
+    if (Not_Cell_Readable(v)) {
         require (
           Append_Ascii(mo->strand, "\\\\unreadable\\\\")
         );
         return;
     }
 
-    if (Is_Antiform(atom)) {
+    if (Is_Antiform(v)) {
         DECLARE_ELEMENT (reified);
-        Copy_Lifted_Cell(reified, atom);
+        Copy_Lifted_Cell(reified, v);
         Mold_Element(mo, reified);
         require (
           Append_Ascii(mo->strand, "  ; anti")
         );
     }
     else
-        Mold_Element(mo, cast(const Element*, atom));
+        Mold_Element(mo, As_Element(v));
 }
 
 
