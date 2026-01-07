@@ -659,7 +659,7 @@ Result(ParamList*) Pop_Paramlist(
     StackIndex stackindex = base + 1;  // empty stack base would be 0, bad cell
     for (; stackindex <= TOP_INDEX; stackindex += 2) {
         const Symbol* symbol = Word_Symbol(Data_Stack_Cell_At(stackindex));
-        OnStack(Element) slot = Data_Stack_At(Element, stackindex + 1);
+        OnStack(Param) slot = Data_Stack_At(Param, stackindex + 1);
 
         assert(Not_Cell_Flag(slot, VAR_MARKED_HIDDEN));  // use NOTE_SEALED
 
@@ -669,7 +669,7 @@ Result(ParamList*) Pop_Paramlist(
         //
         bool hidden;
         if (Get_Cell_Flag(slot, STACK_NOTE_SEALED)) {
-            assert(Is_Specialized(cast(Param*, cast(Stable*, slot))));
+            assert(Is_Specialized(slot));
 
             // !!! This flag was being set on an uninitialized param, with the
             // remark "survives copy over".  But the copy puts the flag on

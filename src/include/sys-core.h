@@ -668,9 +668,9 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "cells/cell-rune.h"
 
 #include "cells/cell-map.h"
-#include "cells/cell-varargs.h"
 
 #include "cells/cell-parameter.h"
+#include "cells/cell-varargs.h"
 
 #include "stubs/stub-use.h"
 #include "sys-bind.h"

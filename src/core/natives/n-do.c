@@ -922,7 +922,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 
 } copy_spare_to_var_in_frame: {  /////////////////////////////////////////////
 
-    possibly(param == var);  // don't overwrite until meta test done
+    possibly(param == cast(Param*, var));  // don't write until meta test done
 
     if (/* param and */ Parameter_Class(param) != PARAMCLASS_META)
         Move_Value(var, SPARE);

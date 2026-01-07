@@ -113,7 +113,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
             }
             else {
                 assert(placeholder == nullptr);
-                Copy_Cell(Slot_Init_Hack(arg), param);
+                Copy_Cell_Core(arg, param, CELL_MASK_COPY);
             }
 
             if (binder)
@@ -312,14 +312,16 @@ bool Specialize_Action_Throws(
         heeded (Corrupt_Cell_If_Needful(Level_Spare(TOP_LEVEL)));
 
         require (
-          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(TOP_LEVEL, param, arg)
+          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+            TOP_LEVEL, Known_Unspecialized(param), arg
+          )
         );
         if (not check) {
             assert(Is_Cell_Stable(arg));  // had to decay before rejecting
             panic (Error_Arg_Type(label, key, param, As_Stable(arg)));
         }
 
-        Mark_Typechecked(arg);
+        Mark_Typechecked(cast(Param*, arg));
 
         if (first_param) {
             first_param = false;

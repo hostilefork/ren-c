@@ -356,7 +356,7 @@ bool Do_Vararg_Op_Maybe_End_Throws(
     if (param) {
         require (
           bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
-            TOP_LEVEL, param, out
+            TOP_LEVEL, Known_Unspecialized(param), out
           )
         );
         if (not check) {
@@ -712,7 +712,7 @@ DECLARE_NATIVE(VARIADIC_Q)
 
     const Key* key_tail;
     const Key* key = Phase_Keys(&key_tail, phase);
-    const Stable* param = Phase_Params_Head(phase);
+    const Param* param = Phase_Params_Head(phase);
     for (; key != key_tail; ++param, ++key) {
         if (Get_Parameter_Flag(param, VARIADIC))
             return LOGIC(true);

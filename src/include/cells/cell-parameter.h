@@ -403,12 +403,12 @@ INLINE void Set_Parameter_Strand(Cell* v, Option(const Strand*) s) {
 
 #define CELL_FLAG_PARAM_NOTE_TYPECHECKED  CELL_FLAG_NOTE
 
-INLINE bool Is_Typechecked(const Value* arg) {
-    return Get_Cell_Flag(arg, PARAM_NOTE_TYPECHECKED);
+INLINE bool Is_Typechecked(const Param* p) {
+    return Get_Cell_Flag(p, PARAM_NOTE_TYPECHECKED);
 }
 
-INLINE void Mark_Typechecked(const Value* arg) {
-    Set_Cell_Flag(arg, PARAM_NOTE_TYPECHECKED);
+INLINE void Mark_Typechecked(Param* p) {
+    Set_Cell_Flag(p, PARAM_NOTE_TYPECHECKED);
 }
 
 INLINE bool Is_Parameter_Final_Type(const Param* p) {
@@ -454,7 +454,10 @@ INLINE bool Not_Parameter_Checked_Or_Coerced(const Cell* cell) {
 // of the public interface of the function.
 //
 INLINE bool Is_Specialized(const Param* p) {
-    if (Is_Parameter(p) and Not_Cell_Flag(p, PARAM_NOTE_TYPECHECKED)) {
+    if (
+        Is_Possibly_Unstable_Value_Parameter(p)
+        and Not_Cell_Flag(p, PARAM_NOTE_TYPECHECKED)
+    ){
         if (Get_Cell_Flag_Unchecked(p, VAR_MARKED_HIDDEN))
             assert(!"Unspecialized parameter is marked hidden!");
         return false;
@@ -464,6 +467,10 @@ INLINE bool Is_Specialized(const Param* p) {
 
 #define Not_Specialized(v)      (not Is_Specialized(v))
 
+INLINE const Element* Known_Unspecialized(const Param* p) {
+    assert(Not_Specialized(p));
+    return cast(const Element*, p);
+}
 
 
 //=//// PARAMETER "BLITTING" //////////////////////////////////////////////=//
@@ -540,12 +547,10 @@ INLINE Cell* Blit_Param_Keep_Mark_Untracked(Cell* out, const Param* p) {
     ))
 
 
-INLINE Param* Init_Unconstrained_Parameter_Untracked(
+INLINE Element* Init_Unconstrained_Parameter_Untracked(
     Init(Element) out,
     Flags flags
 ){
-    Init(Param) param = u_cast(Param*, out);
-
     ParamClass pclass = u_cast(ParamClass, FIRST_BYTE(&flags));
     assert(pclass != PARAMCLASS_0);  // must have class
     if (flags & PARAMETER_FLAG_REFINEMENT) {
@@ -554,17 +559,17 @@ INLINE Param* Init_Unconstrained_Parameter_Untracked(
     UNUSED(pclass);
 
     Reset_Cell_Header_Noquote(
-        param,
+        out,
         BASE_FLAG_BASE | BASE_FLAG_CELL
             | FLAG_HEART(TYPE_PARAMETER)
             | CELL_FLAG_DONT_MARK_PAYLOAD_1  // spec (starting off null here)
             | CELL_FLAG_DONT_MARK_PAYLOAD_2  // flags, never marked
     );
-    CELL_PARAMETER_PAYLOAD_1_SPEC(param) = nullptr;
-    CELL_PARAMETER_PAYLOAD_2_FLAGS(param) = flags;
-    CELL_PARAMETER_EXTRA_STRAND(param) = nullptr;
+    CELL_PARAMETER_PAYLOAD_1_SPEC(out) = nullptr;
+    CELL_PARAMETER_PAYLOAD_2_FLAGS(out) = flags;
+    CELL_PARAMETER_EXTRA_STRAND(out) = nullptr;
 
-    return param;
+    return out;
 }
 
 #define Init_Unconstrained_Parameter(out,param_flags) \

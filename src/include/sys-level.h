@@ -745,8 +745,8 @@ INLINE Result(Level*) Prep_Level_Core(
 #define Stable_LOCAL(name) \
     As_Stable(Level_Arg(level_, PARAM_INDEX(name)))
 
-#define PARAM(name) \
-    Phase_Param(Level_Phase(level_), checked_##name##_)  // a TYPESET!
+#define PARAM(name) /* a PARAMETER! (don't use on LOCALs) */ \
+    Phase_Param(Level_Phase(level_), checked_##name##_)
 
 #define ARG_N(n) \
     As_Stable(Level_Arg(level_, (n)))

@@ -829,6 +829,24 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
 #endif
 
 
+//=//// "Param" SUBCLASS OF "Value" ///////////////////////////////////////=//
+//
+// The datatype ParamList holds a list of PARAMETER! values for unspecialized
+// arguments, and then any Value* (possibly unstable) for specialized args
+// and locals.
+//
+// Thes elements in the list are subtyped as `Param`.  They could have used
+// an existing subclass like `Slot`, however calling it Param helps indicate
+// a cell uses CELL_FLAG_NOTE for CELL_FLAG_PARAM_NOTE_TYPECHECKED (for
+// example).
+//
+#if DONT_CHECK_CELL_SUBCLASSES
+    typedef Value Param;
+#else
+    struct Param : public Value {};
+#endif
+
+
 //=//// ENSURE CELL TYPES ARE STANDARD LAYOUT /////////////////////////////=//
 //
 // Using too much C++ magic can potentially lead to the exported structure

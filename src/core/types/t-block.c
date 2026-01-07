@@ -209,7 +209,7 @@ IMPLEMENT_GENERIC(MAKE, Any_List)
                 param = Phase_Param(phase, CELL_VARARGS_SIGNED_PARAM_INDEX(arg));
 
             if (Typecheck_Uses_Spare_And_Scratch(
-                LEVEL, LIB(NULL), param, SPECIFIED
+                LEVEL, LIB(NULL), Known_Unspecialized(param), SPECIFIED
             )){
                 return fail (Error_Null_Vararg_List_Raw());
             }
@@ -1635,7 +1635,7 @@ DECLARE_NATIVE(GLOM)
 
         require (
           bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
-            LEVEL, param, OUT
+            LEVEL, Known_Unspecialized(param), OUT
           )
         );
 

@@ -877,7 +877,7 @@ Bounce Action_Executor(Level* L)
     PARAM = Phase_Params_Head(Level_Phase(L));
 
     for (; KEY != KEY_TAIL; ++KEY, ++PARAM, ++ARG) {
-        if (Is_Typechecked(ARG))
+        if (Is_Typechecked(u_cast(Param*, ARG)))
             continue;
 
         Phase* phase = Level_Phase(L);
@@ -893,7 +893,7 @@ Bounce Action_Executor(Level* L)
         if (Get_Parameter_Flag(param, OPT_OUT)) {  // <opt-out> param
             if (Any_Void(ARG)) {
                 Set_Action_Executor_Flag(L, TYPECHECK_ONLY);
-                Mark_Typechecked(ARG);
+                Mark_Typechecked(u_cast(Param*, ARG));
                 Init_Nulled(OUT);
                 continue;
             }
@@ -901,7 +901,7 @@ Bounce Action_Executor(Level* L)
 
         if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(ARG)) {
             Init_Nulled(ARG);
-            Mark_Typechecked(ARG);  // null generally not in typeset
+            Mark_Typechecked(u_cast(Param*, ARG));  // null generally rejected
             continue;
         }
 
@@ -929,7 +929,9 @@ Bounce Action_Executor(Level* L)
         }
 
         require (
-          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(L, param, ARG)
+          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+            L, Known_Unspecialized(param), ARG
+          )
         );
         if (not check) {
             require (
@@ -938,7 +940,7 @@ Bounce Action_Executor(Level* L)
             panic (Error_Phase_Arg_Type(L, KEY, param, arg));
         }
 
-        Mark_Typechecked(ARG);
+        Mark_Typechecked(u_cast(Param*, ARG));
     }
 
     Tweak_Level_Phase(L, Phase_Details(Level_Phase(L)));  // ensure Details [4]

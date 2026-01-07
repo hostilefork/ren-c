@@ -22,17 +22,7 @@
 //
 
 
-//=//// "Param" SUBCLASS OF "Value" ///////////////////////////////////////=//
-//
-// There are some tests (e.g. for Is_Specialized()) which interprets the
-// CELL_FLAG_NOTE in a particular way.  Having a subclass to help indicate
-// when this test is meaningful was believed to add some safety.
-//
-#if CHECK_CELL_SUBCLASSES
-    struct Param : public Element {};
-#else
-    typedef Element Param;
-#endif
+
 
 
 //=//// EXTANT STACK POINTERS /////////////////////////////////////////////=//

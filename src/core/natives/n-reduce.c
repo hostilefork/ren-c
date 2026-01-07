@@ -186,10 +186,10 @@ DECLARE_NATIVE(REDUCE)
         goto process_out;
 
     if (Is_Ghost(SPARE)) {  // vaporize unless accepted by predicate
-        const Param* param = First_Unspecialized_Param(
+        const Element* param = Known_Unspecialized(First_Unspecialized_Param(
             nullptr,
             Frame_Phase(unwrap predicate)
-        );
+        ));
         if (not Typecheck_Uses_Spare_And_Scratch(  // *sublevel*'s spare!
             SUBLEVEL, SPARE, param, SPECIFIED  // so passing L->spare is ok
         )){
