@@ -253,7 +253,7 @@ bool Try_Advance_Evars(EVARS *e) {
             }
 
             assert(e->lens_mode == LENS_MODE_PARTIALS);
-            if (not Is_Parameter(e->param))
+            if (Is_Specialized(e->param))
                 continue;
 
             return true;

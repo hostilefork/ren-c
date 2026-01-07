@@ -209,7 +209,7 @@ DECLARE_NATIVE(REORDER)
         if (ignore)
             continue;
 
-        const Stable* param = Phase_Param(reorderee, index);
+        const Param* param = Phase_Param(reorderee, index);
         if (
             Get_Parameter_Flag(param, REFINEMENT)
             and Is_Parameter_Unconstrained(param)

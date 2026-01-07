@@ -426,7 +426,9 @@ bool Predicate_Check_Spare_Uses_Scratch(
     Copy_Cell(arg, SPARE);  // do not decay [4]
 
     require (
-      bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(sub, param, arg)
+      bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+        sub, Known_Unspecialized(param), arg
+      )
     );
     if (not check) {
         Drop_Action(sub);

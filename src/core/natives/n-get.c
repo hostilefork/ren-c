@@ -644,7 +644,9 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
 
     const Stable* action = Lib_Stable(id);  // different TARGETS [1]
     ParamList* paramlist = Phase_Paramlist(Frame_Phase(action));
-    Param* param = Phase_Param(paramlist, PARAM_INDEX(TARGET));
+    const Element* param = Known_Unspecialized(
+        Phase_Param(paramlist, PARAM_INDEX(TARGET))
+    );
 
     require (
       bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(LEVEL, param, out)

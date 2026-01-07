@@ -88,7 +88,9 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
         if (not Is_Action_Level(TOP_LEVEL))
             return Error_Bad_Value(v);
 
-        const Param* head = Phase_Params_Head(Level_Phase(TOP_LEVEL));
+        const Value* head = cast(Value*,
+            Phase_Params_Head(Level_Phase(TOP_LEVEL))
+        );
         REBLEN num_params = Phase_Num_Params(Level_Phase(TOP_LEVEL));
 
         if (v >= head and v < head + num_params) {  // PARAM() error [3]
@@ -899,7 +901,7 @@ Error* Error_Not_Varargs(
 //
 Error* Error_Invalid_Arg(Level* L, const Param* param)
 {
-    assert(Is_Parameter(param));
+    assert(Not_Specialized(param));
 
     const Param* headparam = Phase_Params_Head(Level_Phase(L));
     assert(param >= headparam);
@@ -930,7 +932,7 @@ Error* Error_Bad_Intrinsic_Arg_1(Level* const L)
     Option(const Symbol*) label = Level_Intrinsic_Label(L);
 
     Param* param = Phase_Param(details, 1);
-    assert(Is_Parameter(param));
+    assert(Not_Specialized(param));
     UNUSED(param);
 
     const Symbol* param_symbol = Key_Symbol(Phase_Key(details, 1));

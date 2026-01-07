@@ -52,7 +52,7 @@
 // conversions from these types.
 //
 DECLARE_C_TYPE_LIST(g_convertible_to_cell,
-    Cell, Slot, Value, Stable, Element,
+    Cell, Slot, Param, Value, Stable, Element,
     Pairing,  // same size as Stub, holds two Cells
     char,  // some memory blobs use char* for debuggers to read UTF-8 easier
     Base, Byte, void
