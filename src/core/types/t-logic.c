@@ -32,7 +32,7 @@
 //
 //      return: [logic?]
 //      ^value "Use DECAY if testing heavy null (e.g. PACK! containing null)"
-//           [any-stable? pack!]
+//           '[any-stable? pack!]
 //  ]
 //
 DECLARE_NATIVE(NULL_Q)
@@ -43,19 +43,21 @@ DECLARE_NATIVE(NULL_Q)
 {
     INCLUDE_PARAMS_OF_NULL_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);  // we must decay!
 
-    if (not Is_Pack(v))
-        return LOGIC(Is_Light_Null(v));
+    if (Is_Light_Null(v))
+        return LOGIC(true);
 
     if (Is_Heavy_Null(v))
         return fail (
             "Heavy null detected by NULL?, use NULL? DECAY if intentional"
        );
 
-    trap (  // if pack is undecayable, we don't want to panic if typecheck :-/
-        Decay_If_Unstable(v)  // so this would just be an ERROR! result
-    );
+    Elide_Unless_Error_Including_In_Packs(v) except (Error* e) {
+        if (Get_Level_Flag(LEVEL, RUNNING_TYPECHECK))
+            return LOGIC(false);  // don't panic on undecayable in typecheck
+        panic (e);
+    }
 
     return LOGIC(false);
 }
@@ -67,7 +69,7 @@ DECLARE_NATIVE(NULL_Q)
 //  "Tells you if the argument is an ~okay~ antiform (canon branch trigger)"
 //
 //      return: [logic?]
-//      value
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(OKAY_Q)
@@ -85,8 +87,8 @@ DECLARE_NATIVE(OKAY_Q)
 //
 //  "Tells you if the argument is either the ~null~ or ~okay~ antiform"
 //
-//      return: [keyword!]  ; Note: using LOGIC? to typecheck is recursive
-//      value
+//      return: '[logic?]  ; recursion allowed due to '[...], unchecked!
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(LOGIC_Q)
@@ -123,7 +125,7 @@ DECLARE_NATIVE(LOGICAL)
 //  "Tells you if the argument is the TRUE or FALSE word"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(BOOLEAN_Q)
@@ -146,7 +148,7 @@ DECLARE_NATIVE(BOOLEAN_Q)
 //  "Tells you if the argument is the ON or OFF word"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(ONOFF_Q)
@@ -169,7 +171,7 @@ DECLARE_NATIVE(ONOFF_Q)
 //  "Tells you if the argument is the YES or NO word"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(YESNO_Q)
@@ -427,7 +429,7 @@ DECLARE_NATIVE(NULL_IF_ZERO)
 //  "Returns the logic complement (inverts the nullness of what's passed in)"
 //
 //      return: [logic?]
-//      value
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(NOT_1)  // see TO-C-NAME
@@ -449,7 +451,7 @@ DECLARE_NATIVE(NOT_1)  // see TO-C-NAME
 //  "Returns logic of what's given (null if null, okay for everything else)"
 //
 //      return: [logic?]
-//      value
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(TO_LOGIC)

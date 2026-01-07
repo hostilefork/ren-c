@@ -922,14 +922,9 @@ Error* Error_Invalid_Arg(Level* L, const Param* param)
 //
 //  Error_Bad_Intrinsic_Arg_1: C
 //
-// 1. See DETAILS_FLAG_CAN_DISPATCH_AS_INTRINSIC for why a non-intrinsic
-//    dispatch doesn't defer typechecking and reuse the "fast" work of
-//    the intrinsic mode.
-//
 Error* Error_Bad_Intrinsic_Arg_1(Level* const L)
 {
-    assert(Get_Level_Flag(L, DISPATCHING_INTRINSIC));  // valid otherwise [1]
-    Value* arg = Level_Dispatching_Intrinsic_Arg(L);
+    Value* arg = Unchecked_Intrinsic_Arg(L);
 
     Details* details = Level_Intrinsic_Details(L);
     Option(const Symbol*) label = Level_Intrinsic_Label(L);

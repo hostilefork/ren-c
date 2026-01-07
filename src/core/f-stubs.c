@@ -660,7 +660,7 @@ static Bounce Sigilize_Native_Core(Level* level_, Sigil sigil)
 //  "Convert a value to its ^XXX metaform representation"
 //
 //      return: [error! ^plain?]
-//      value [<opt-out> fundamental?]
+//      value '[<opt-out> fundamental?]
 //      :force "Meta without erroring, even if already metaform/tied/pinned"
 //  ]
 //
@@ -676,7 +676,7 @@ DECLARE_NATIVE(META)
 //  "Convert a value to its @XXX pinned representation"
 //
 //      return: [error! @plain?]
-//      value [<opt-out> fundamental?]
+//      value '[<opt-out> fundamental?]
 //      :force "Pin without erroring, even if already metaform/tied/pinned"
 //  ]
 //
@@ -692,7 +692,7 @@ DECLARE_NATIVE(PIN)
 //  "Convert a value to its $XXX tied representation"
 //
 //      return: [error! $plain?]
-//      value [<opt-out> fundamental?]
+//      value '[<opt-out> fundamental?]
 //      :force "Tie without erroring, even if already metaform/tied/pinned"
 //  ]
 //
@@ -729,7 +729,7 @@ static Bounce Unsigilize_Native_Core(Level* level_, Sigil sigil)
 //  "Convert ^XXX to plain XXX, error if not metaform"
 //
 //      return: [<null> plain? error!]
-//      value [<opt-out> fundamental?]
+//      value '[<opt-out> fundamental?]
 //  ]
 //
 DECLARE_NATIVE(UNMETA)
@@ -744,7 +744,7 @@ DECLARE_NATIVE(UNMETA)
 //  "Convert @XXX to plain XXX, error if not pinned"
 //
 //      return: [<null> plain? error!]
-//      value [<opt-out> fundamental?]
+//      value '[<opt-out> fundamental?]
 //  ]
 //
 DECLARE_NATIVE(UNPIN)
@@ -759,7 +759,7 @@ DECLARE_NATIVE(UNPIN)
 //  "Convert $XXX to plain XXX, error if not tied"
 //
 //      return: [<null> plain? error!]
-//      value [<opt-out> fundamental?]
+//      value '[<opt-out> fundamental?]
 //  ]
 //
 DECLARE_NATIVE(UNTIE)
@@ -774,7 +774,7 @@ DECLARE_NATIVE(UNTIE)
 //  "Convert a value into its plain representation"
 //
 //      return: [<null> plain?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(PLAIN)

@@ -69,14 +69,14 @@ DECLARE_NATIVE(VETO)
 //  "Detect whether argument is an error with (id = 'veto)"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(VETO_Q)
 {
     INCLUDE_PARAMS_OF_VETO_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (not Is_Error(v))
         return LOGIC(false);

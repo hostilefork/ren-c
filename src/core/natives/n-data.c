@@ -374,7 +374,7 @@ DECLARE_NATIVE(USE)
 //  "Test if an argument is a chain with a leading space"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(REFINEMENT_Q)
@@ -397,7 +397,7 @@ DECLARE_NATIVE(REFINEMENT_Q)
 //  "Test if an argument is a chain with a word and trailing space"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(SET_WORD_Q)
@@ -420,7 +420,7 @@ DECLARE_NATIVE(SET_WORD_Q)
 //  "Test if argument is a path like /WORD: (for setting action variables)"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(SET_RUN_WORD_Q)
@@ -443,7 +443,7 @@ DECLARE_NATIVE(SET_RUN_WORD_Q)
 //  "Test if argument is a path like /WORD"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(RUN_WORD_Q)
@@ -470,7 +470,7 @@ DECLARE_NATIVE(RUN_WORD_Q)
 //  "Test if an argument is a chain with a leading space and a word"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(GET_WORD_Q)
@@ -493,7 +493,7 @@ DECLARE_NATIVE(GET_WORD_Q)
 //  "Test if an argument is a chain with a tuple and trailing space"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(SET_TUPLE_Q)
@@ -516,7 +516,7 @@ DECLARE_NATIVE(SET_TUPLE_Q)
 //  "Test if an argument is a chain with a leading space and a tuple"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(GET_TUPLE_Q)
@@ -539,7 +539,7 @@ DECLARE_NATIVE(GET_TUPLE_Q)
 //  "Test if an argument is a chain with a group and trailing space"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(SET_GROUP_Q)
@@ -562,7 +562,7 @@ DECLARE_NATIVE(SET_GROUP_Q)
 //  "Test if an argument is a chain with a leading space and a group"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(GET_GROUP_Q)
@@ -585,7 +585,7 @@ DECLARE_NATIVE(GET_GROUP_Q)
 //  "Test if an argument is a chain with a block and trailing space"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(SET_BLOCK_Q)
@@ -608,7 +608,7 @@ DECLARE_NATIVE(SET_BLOCK_Q)
 //  "Test if an argument is a chain with a leading space and a block"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(GET_BLOCK_Q)
@@ -631,7 +631,7 @@ DECLARE_NATIVE(GET_BLOCK_Q)
 //  "Test if an argument is a 2-element chain with a trailing space"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(ANY_SET_VALUE_Q)
@@ -654,7 +654,7 @@ DECLARE_NATIVE(ANY_SET_VALUE_Q)
 //  "Test if an argument is a 2-element chain with a leading space"
 //
 //      return: [logic?]
-//      value
+//      value '[<opt-out> any-value?]
 //  ]
 //
 DECLARE_NATIVE(ANY_GET_VALUE_Q)
@@ -677,7 +677,7 @@ DECLARE_NATIVE(ANY_GET_VALUE_Q)
 //  "Test if an argument is an QUASI form of word"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(QUASI_WORD_Q)
@@ -700,7 +700,7 @@ DECLARE_NATIVE(QUASI_WORD_Q)
 //  "Test if an argument is a rune with one codepoint (or #{00} NUL blob)"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(CHAR_Q)
@@ -723,7 +723,7 @@ DECLARE_NATIVE(CHAR_Q)
 //  "Test if an argument is quoted word"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(LIT_WORD_Q)
@@ -748,7 +748,7 @@ DECLARE_NATIVE(LIT_WORD_Q)
 //  "Test if an argument is a quoted path"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(LIT_PATH_Q)
@@ -771,7 +771,7 @@ DECLARE_NATIVE(LIT_PATH_Q)
 //  "Test if a value type always produces itself in the evaluator"
 //
 //      return: [logic?]
-//      value
+//      value '[<opt-out> any-value?]
 //  ]
 //
 DECLARE_NATIVE(ANY_INERT_Q)
@@ -790,7 +790,7 @@ DECLARE_NATIVE(ANY_INERT_Q)
 //  "If a value is bindable, unbind it at the 'tip' (if it's bound)"
 //
 //      return: [any-stable?]
-//      value [any-stable?]
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(UNBIND)
@@ -1108,7 +1108,7 @@ DECLARE_NATIVE(VANISHABLE_Q)
 //  "Returns input value (https://en.wikipedia.org/wiki/Identity_function)"
 //
 //      return: [any-value?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(IDENTITY)  // sample uses: https://stackoverflow.com/q/3136338
@@ -1121,7 +1121,7 @@ DECLARE_NATIVE(IDENTITY)  // sample uses: https://stackoverflow.com/q/3136338
 {
     INCLUDE_PARAMS_OF_IDENTITY;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     return COPY(v);
 }
@@ -1219,7 +1219,7 @@ DECLARE_NATIVE(ALIASES_Q)
 //  "Tells you if the argument (taken as meta) is storable in a variable"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(ANY_STABLE_Q)
@@ -1231,7 +1231,7 @@ DECLARE_NATIVE(ANY_STABLE_Q)
 {
     INCLUDE_PARAMS_OF_ANY_STABLE_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     return LOGIC(Is_Cell_Stable(v));
 }
@@ -1243,7 +1243,7 @@ DECLARE_NATIVE(ANY_STABLE_Q)
 //  "Accepts absolutely any argument state (unstable antiforms included)"
 //
 //      return: [logic?]
-//      ^value  ; can't use any-value? - recursive
+//      ^value  '[any-value?]    ; recursion allowed due to '[...], unchecked!
 //  ]
 //
 DECLARE_NATIVE(ANY_VALUE_Q)  // synonym for internal concept of ANY_ATOM
@@ -1267,7 +1267,7 @@ DECLARE_NATIVE(ANY_VALUE_Q)  // synonym for internal concept of ANY_ATOM
 //  "!!! Temporary !!! attempt to answer if [word ^word $word @word]"
 //
 //      return: [logic?]
-//      value [<opt-out> any-stable?]
+//      value '[<opt-out> any-stable?]
 //  ]
 //
 DECLARE_NATIVE(ANY_WORD_Q)
@@ -1288,7 +1288,7 @@ DECLARE_NATIVE(ANY_WORD_Q)
 //  "Tells you if argument is an ~[]~ antiform, e.g. an empty splice"
 //
 //      return: [logic?]
-//      value
+//      value '[<opt-out> any-stable?]
 //  ]
 //
 DECLARE_NATIVE(NONE_Q)
@@ -1307,7 +1307,7 @@ DECLARE_NATIVE(NONE_Q)
 //  "Tells you if argument is an ~ antiform, e.g. an tripwire TRASH! form"
 //
 //      return: [logic?]
-//      value
+//      value '[<opt-out> any-stable?]
 //  ]
 //
 DECLARE_NATIVE(TRIPWIRE_Q)
@@ -1347,7 +1347,7 @@ DECLARE_NATIVE(NOOP)  // lack of a hyphen common, e.g. jQuery.noop
 //  "Tells you if argument is a quasiform space (~)"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> any-stable?]
 //  ]
 //
 DECLARE_NATIVE(QUASAR_Q)
@@ -1370,7 +1370,7 @@ DECLARE_NATIVE(QUASAR_Q)
 //  "Is VALUE the RUNE! representing a single space character [_]"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> any-stable?]
 //  ]
 //
 DECLARE_NATIVE(SPACE_Q)
@@ -1393,7 +1393,7 @@ DECLARE_NATIVE(SPACE_Q)
 //  "Is VALUE a RUNE! consisting only of spaces [_ __ ____ _______ ...]"
 //
 //      return: [logic?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> any-stable?]
 //  ]
 //
 DECLARE_NATIVE(BLANK_Q)
@@ -1428,14 +1428,14 @@ DECLARE_NATIVE(BLANK_Q)
 //  "Make the heavy forms of NULL (null in PACK!) and VOID (empty PACK!)"
 //
 //      return: [any-value? pack!]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(HEAVY)
 {
     INCLUDE_PARAMS_OF_HEAVY;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Is_Light_Null(v))
         return Init_Heavy_Null(OUT);
@@ -1453,14 +1453,14 @@ DECLARE_NATIVE(HEAVY)
 //  "Determine if argument is the heavy form of NULL, ~(~null~)~ antiform"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(HEAVY_NULL_Q)
 {
     INCLUDE_PARAMS_OF_HEAVY_NULL_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     return LOGIC(Is_Heavy_Null(v));
 }
@@ -1472,14 +1472,14 @@ DECLARE_NATIVE(HEAVY_NULL_Q)
 //  "Make the light form of NULL (passes through all other values)"
 //
 //      return: [any-value?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(LIGHT)
 {
     INCLUDE_PARAMS_OF_LIGHT;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (not Is_Pack(v))
         return COPY(v);
@@ -1503,7 +1503,7 @@ DECLARE_NATIVE(LIGHT)
 //  "Handle unstable isotopes like assignments do, pass through other values"
 //
 //      return: [any-stable?]
-//      value
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(DECAY)
@@ -1522,14 +1522,14 @@ DECLARE_NATIVE(DECAY)
 //  "Answer if a value is decayable"
 //
 //      return: [logic?]
-//      ^value  ; constrain to PACK? (extra typecheck work for intrinsic...)
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(DECAYABLE_Q)
 {
     INCLUDE_PARAMS_OF_DECAYABLE_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     Elide_Unless_Error_Including_In_Packs(v) except (Error* e) {
         UNUSED(e);
@@ -1546,7 +1546,7 @@ DECLARE_NATIVE(DECAYABLE_Q)
 //  "Make antiforms into their quasiforms, quote all other values"
 //
 //      return: [element?]
-//      value
+//      value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(REIFY)
@@ -1576,7 +1576,7 @@ DECLARE_NATIVE(REIFY)
 //  "Make quasiforms into their plain forms, pass through all other elements"
 //
 //      return: [element?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(NOQUASI)
@@ -1628,7 +1628,7 @@ DECLARE_NATIVE(DEGRADE)
 //  "Turn antiforms into their plain forms, pass thru other values"
 //
 //      return: [element?]
-//      value
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(NOANTIFORM)
