@@ -52,14 +52,16 @@ DECLARE_NATIVE(NIHIL)
 //  "Tells you if argument is a comma antiform (unstable)"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(GHOST_Q)
 {
     INCLUDE_PARAMS_OF_GHOST_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    // !!! what about ERROR!?  Should this panic?
 
     return LOGIC(Is_Ghost(v));
 }
@@ -71,14 +73,16 @@ DECLARE_NATIVE(GHOST_Q)
 //  "Is VALUE a VOID (antiform comma, e.g. ghost!) or HEAVY VOID (empty pack!)"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(VOID_Q)
 {
     INCLUDE_PARAMS_OF_VOID_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    // !!! what about ERROR!?  Should this panic?
 
     return LOGIC(Any_Void(v));
 }
@@ -90,14 +94,16 @@ DECLARE_NATIVE(VOID_Q)
 //  "Is VALUE specifically HEAVY VOID (empty pack!)"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(HEAVY_VOID_Q)
 {
     INCLUDE_PARAMS_OF_HEAVY_VOID_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    // !!! what about ERROR!?  Should this panic?
 
     return LOGIC(Is_Heavy_Void(v));
 }
@@ -110,14 +116,17 @@ DECLARE_NATIVE(HEAVY_VOID_Q)
 //
 //      return: [ghost!]
 //      @skipped "Literal to skip, (comment print -[x]-) disallowed"
-//          [any-list? any-utf8? blob! any-scalar?]
+//          '[any-list? any-utf8? blob! any-scalar?]
 //  ]
 //
 DECLARE_NATIVE(COMMENT)
 {
     INCLUDE_PARAMS_OF_COMMENT;
 
-    UNUSED(Intrinsic_ARG(LEVEL));
+    Element* v = As_Element(Unchecked_Intrinsic_Arg(LEVEL));
+
+    if (not (Any_List(v) or Any_Utf8(v) or Is_Blob(v) or Any_Scalar(v)))
+       panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
 
     return GHOST;
 }
@@ -129,14 +138,14 @@ DECLARE_NATIVE(COMMENT)
 //  "Argument evaluated, result discarded (not ERROR!, or packs with ERROR!s)"
 //
 //      return: [ghost!]
-//      ^discarded [any-stable? pack! ghost!]
+//      ^discarded '[any-stable? pack! ghost!]
 //  ]
 //
 DECLARE_NATIVE(ELIDE)
 {
     INCLUDE_PARAMS_OF_ELIDE;  // no ARG(DISCARDED), parameter is intrinsic
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     require (
       Elide_Unless_Error_Including_In_Packs(v)
@@ -152,7 +161,7 @@ DECLARE_NATIVE(ELIDE)
 //  "Argument evaluated, result discarded (even ERROR! and undecayable packs)"
 //
 //      return: [ghost!]
-//      ^discarded [any-value?]
+//      ^discarded '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(IGNORE)
@@ -169,7 +178,7 @@ DECLARE_NATIVE(IGNORE)
 //  "If the argument is a GHOST!, convert it to a HEAVY VOID, else passthru"
 //
 //      return: [any-value?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(UNVOID)
@@ -179,7 +188,7 @@ DECLARE_NATIVE(UNVOID)
 {
     INCLUDE_PARAMS_OF_UNVOID;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Is_Ghost(v))
         return Init_Heavy_Void(OUT);

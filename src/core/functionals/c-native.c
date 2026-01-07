@@ -60,48 +60,33 @@ bool Raw_Native_Details_Querier(
 
 
 //
-//  Make_Native_Dispatch_Details: C
+//  Make_Native_Dispatch_Details_May_Update_Spec: C
 //
-// Reused function in Startup_Natives() as well as extensions loading natives,
-// which can be parameterized with a different context in which to look up
-// bindings by deafault in the API when that native is on the stack.
+// Reused function in Startup_Natives() as well as extensions loading natives.
 //
-// Entries look like:
-//
-//    some-name: native [spec content]
-//
-// It is optional to put INFIX between the assignment and NATIVE.
-//
-// If refinements are added, this will have to get more sophisticated.
-//
-// Though the manual building of this table is not as "nice" as running the
-// evaluator, the evaluator makes comparisons against native values.  Having
-// all natives loaded fully before ever running Eval_Core() helps with
-// stability and invariants...also there's "state" in keeping track of which
-// native index is being loaded, which is non-obvious.  But these issues
-// could be addressed (e.g. by passing the native index number / DLL in).
-//
-Result(Details*) Make_Native_Dispatch_Details(
-    Element* spec,
+Result(Details*) Make_Native_Dispatch_Details_May_Update_Spec(
+    Element* spec,  // e.g. COMBINATOR may expand it
     NativeType native_type,
     Dispatcher* dispatcher
 ){
-    // There are implicit parameters to both NATIVE:COMBINATOR and usermode
-    // COMBINATOR.  The native needs the full spec.
-    //
-    // !!! Note: Will manage the combinator's array.  Changing this would need
-    // a version of Make_Paramlist_Managed() which took an array + index
-    //
-    DECLARE_ELEMENT (expanded_spec);
+  expand_spec_if_combinator: {
+
+  // There are implicit parameters to both NATIVE:COMBINATOR and usermode
+  // COMBINATOR.  The native needs the full spec.
+  //
+  // !!! Note: Will manage the combinator's array.  Changing this would need
+  // a version of Make_Paramlist_Managed() which took an array + index
+
     if (native_type == NATIVE_COMBINATOR) {
-        Init_Block(expanded_spec, Expanded_Combinator_Spec(spec));
-        Tweak_Cell_Binding(expanded_spec, g_lib_context);
-        spec = expanded_spec;
+        Init_Block(spec, Expanded_Combinator_Spec(spec));
+        Tweak_Cell_Binding(spec, g_lib_context);
     }
 
-    // With the components extracted, generate the native and add it to
-    // the Natives table.  The associated C function is provided by a
-    // table built in the bootstrap scripts, `g_core_native_dispatchers`.
+} generate_native: {
+
+  // With the components extracted, generate the native and add it to the
+  // Natives table.  The associated C function is provided by a table built
+  // in the bootstrap scripts, `g_core_native_dispatchers`.
 
     StackIndex base = TOP_INDEX;
 
@@ -136,40 +121,71 @@ Result(Details*) Make_Native_Dispatch_Details(
 
     Pop_Unpopped_Return(Details_At(details, IDX_RAW_NATIVE_RETURN), base);
 
-    // NATIVE-COMBINATORs actually aren't *quite* their own dispatchers, they
-    // all share a common hook to help with tracing and doing things like
-    // calculating the furthest amount of progress in the parse.  So we call
-    // that the actual "native" in that case.
-    //
-    if (native_type == NATIVE_COMBINATOR) {
-        DECLARE_ELEMENT (native);
-        Init_Frame(native, details, ANONYMOUS, UNCOUPLED);
-        details = Make_Dispatch_Details(
-            BASE_FLAG_MANAGED,  // *not* a native, calls one...
-            native,
-            &Combinator_Dispatcher,
-            MAX_IDX_COMBINATOR  // details array capacity
-        );
+  dispatch_finalization: {
 
-        // !!! Not strictly needed, as it's available as Details[0]
-        // However, there's a non-native form of combinator as well, which
-        // puts a body block in the slot.
-        //
-        Copy_Cell(Details_At(details, IDX_COMBINATOR_BODY), native);
+    switch (native_type) {
+      case NATIVE_NORMAL: break;
+      case NATIVE_COMBINATOR: goto finalize_combinator;
+      case NATIVE_INTRINSIC: goto finalize_intrinsic;
+      default: assert(false);
     }
 
-    // Some features are not supported by intrinsics on their first argument,
-    // because it would make them too complicated.
-    //
+    goto return_details;
+
+} finalize_combinator: { /////////////////////////////////////////////////////
+
+  // NATIVE-COMBINATORs actually aren't *quite* their own dispatchers, they
+  // all share a common hook to help with tracing and doing things like
+  // calculating the furthest amount of progress in the parse.  We wrap the
+  // native implementation inside of that hook.
+  //
+  // 1. Technically, we're already storing the the information for the
+  //    implementation native inside the hook.  So we would seem to not need
+  //    to put it in the combinator's body as well.  However, it's more
+  //    "obvious" to do so--and it also permits the hook to be used to wrap
+  //    non-native combinators as well.
+
+    DECLARE_ELEMENT (native);
+    Init_Frame(native, details, ANONYMOUS, UNCOUPLED);
+    details = Make_Dispatch_Details(
+        BASE_FLAG_MANAGED,  // *not* a native, calls one...
+        native,  // reuse the args/types on native's interface [1]
+        &Combinator_Dispatcher,
+        MAX_IDX_COMBINATOR  // details array capacity
+    );
+
+    Copy_Cell(Details_At(details, IDX_COMBINATOR_BODY), native);  // [1]
+
+    goto return_details;
+
+} finalize_intrinsic: { //////////////////////////////////////////////////////
+
+  // 1. Intrinsics are designed to be fast, and also can't invoke nested
+  //    evaluation layers.  They are expected to handle typechecking in their
+  //    own native code, so the type spec should have had the argument marked
+  //    as not checked (by having the block be quoted).
+  //
+  // 2. As of yet, there's been no motivation for arity-0 intrinsics, nor
+  //    arity-1-or-0 intrinsics.  They'd be possible, but the complexity
+  //    to support them does not seem justified at this time.
+  //
+  // 3. An arity-1 intrinsic that is willing to still run if it reaches the
+  //    end of evaluation is another thing that's possible, but complicated
+  //    the intrinsic machinery does not seem worth it.
+
     if (native_type == NATIVE_INTRINSIC) {
         const Param* param = Phase_Param(details, 1);
-        assert(Not_Parameter_Flag(param, REFINEMENT));
-        assert(Not_Parameter_Flag(param, ENDABLE));
+        assert(Not_Parameter_Checked_Or_Coerced(param));  // [1]
+        assert(Not_Parameter_Flag(param, REFINEMENT));  // [2]
+        assert(Not_Parameter_Flag(param, ENDABLE));  // [3]
         UNUSED(param);
     }
+    goto return_details;
+
+} return_details: { //////////////////////////////////////////////////////////
 
     return details;
-}
+}}}
 
 
 //
@@ -219,7 +235,7 @@ DECLARE_NATIVE(NATIVE)
     }
     else {
         require (
-          Details* details = Make_Native_Dispatch_Details(
+          Details* details = Make_Native_Dispatch_Details_May_Update_Spec(
             spec,
             native_type,
             f_cast(Dispatcher*, cfunc)
@@ -541,7 +557,7 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
     Dispatcher* dispatcher = f_cast(Dispatcher*, *g_native_cfunc_pos);
 
     assume (
-      Details* details = Make_Native_Dispatch_Details(
+      Details* details = Make_Native_Dispatch_Details_May_Update_Spec(
         spec, NATIVE_NORMAL, dispatcher
     ));
 

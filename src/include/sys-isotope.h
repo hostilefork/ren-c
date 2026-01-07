@@ -189,6 +189,11 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 // The concern about searching for embedded ERROR!s is shared between the
 // decay and elide routines, so they are implemented using a common function.
 //
+// 1. If you want a value, then in the general case of getters and setters
+//    that involves running code, which can't be done from an intrinsic.
+//    This would foil things like ELIDE... except they just say they don't
+//    want a value.  This raises some questions about undecayables that
+//    need greater study.
 
 #define Decay_If_Unstable(v) \
     Decay_Or_Elide_Core(Possibly_Unstable(v), true)
@@ -200,6 +205,9 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
     Value* v,
     bool want_value  // ELIDE is more permissive, doesn't want the value
 ){
+    if (want_value)  // eval required in general case (getters, alias) [1]
+        assert(Not_Level_Flag(TOP_LEVEL, DISPATCHING_INTRINSIC));
+
     if (Is_Cell_Stable(v))
         goto finished;
 

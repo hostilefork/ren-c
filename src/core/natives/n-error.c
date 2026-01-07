@@ -32,14 +32,14 @@
 //  "Suppress escalation to PANIC from ERROR!s, by returning NULL"
 //
 //      return: [<null> any-value?]
-//      ^value [any-value? error!]  ; e.g. TRY on a pack returns the pack
+//      ^value '[any-value? error!]  ; e.g. TRY on a pack returns the pack
 //  ]
 //
 DECLARE_NATIVE(TRY)
 {
     INCLUDE_PARAMS_OF_TRY;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Any_Void(v) or Is_Light_Null(v))
         return NULLED;
@@ -332,14 +332,14 @@ DECLARE_NATIVE(REQUIRE)
 //  "Tells you if argument is an ERROR! antiform, doesn't panic if it is"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(ERROR_Q)
 {
     INCLUDE_PARAMS_OF_ERROR_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     return LOGIC(Is_Error(v));
 }

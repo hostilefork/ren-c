@@ -75,14 +75,14 @@ DECLARE_NATIVE(DONE)
 //  "Detect whether argument is an error with (id = 'done)"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(DONE_Q)
 {
     INCLUDE_PARAMS_OF_DONE_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (not Is_Error(v))
         return LOGIC(false);

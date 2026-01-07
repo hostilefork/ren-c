@@ -80,8 +80,9 @@
 //    off quotes etc.) and always copied the checked value back into the
 //    spare cell for each dispatch.  So now it's always mutable.
 //
-INLINE Value* Level_Dispatching_Intrinsic_Arg(Level* L) {
-    assert(Get_Level_Flag(L, DISPATCHING_INTRINSIC));
+INLINE Value* Unchecked_Intrinsic_Arg(Level* L) {
+    if (Not_Level_Flag(L, DISPATCHING_INTRINSIC))
+        return Level_Arg(L, 1);  // was checked
 
     assert(Not_Cell_Flag(Level_Spare(L), PROTECTED));  // no longer true [1]
     return Level_Spare(L);
@@ -103,21 +104,6 @@ INLINE Option(const Symbol*) Level_Intrinsic_Label(Level* L) {
     Stable* frame = As_Stable(Level_Scratch(L));
     possibly(Is_Antiform(frame));  // LIFT_BYTE() is not canonized
     return Frame_Label_Deep(frame);
-}
-
-
-// Unchecked argument to an intrinsic function, adjusted for whether you
-// are dispatching an intrinsic or not.
-//
-// Typically use this when you take a ^value with typespec [any-value?]
-//
-// !!! Make this a macro that can't be accidentally used w/non-intrinsic.
-//
-INLINE Value* Intrinsic_ARG(Level* L) {
-    if (Get_Level_Flag(L, DISPATCHING_INTRINSIC))
-        return Level_Spare(L);
-
-    return Level_Arg(L, 1);
 }
 
 
@@ -152,10 +138,7 @@ INLINE Value* Intrinsic_ARG(Level* L) {
 INLINE Result(Option(Element*)) Typecheck_Element_Intrinsic_Arg(
     Level* L
 ){
-    if (Not_Level_Flag(L, DISPATCHING_INTRINSIC))
-        return As_Element(Level_Arg(L, 1));  // was checked
-
-    Value* arg = Level_Dispatching_Intrinsic_Arg(L);
+    Value* arg = Unchecked_Intrinsic_Arg(L);
 
     if (Is_Antiform(arg)) {
         if (Get_Level_Flag(L, RUNNING_TYPECHECK))
@@ -176,9 +159,5 @@ INLINE Result(Option(Element*)) Typecheck_Element_Intrinsic_Arg(
 INLINE Stable* Stable_Decayed_Intrinsic_Arg(
     Level* L
 ){
-    if (Not_Level_Flag(L, DISPATCHING_INTRINSIC))
-        return As_Stable(Level_Arg(L, 1));  // was checked
-
-    Value* arg = Level_Dispatching_Intrinsic_Arg(L);
-    return As_Stable(arg);
+    return As_Stable(Unchecked_Intrinsic_Arg(L));
 }

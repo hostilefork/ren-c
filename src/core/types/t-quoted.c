@@ -219,14 +219,14 @@ DECLARE_NATIVE(UNQUASI)
 //  "antiforms -> quasiforms, adds a quote to rest"
 //
 //      return: [quoted! quasiform!]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(LIFT)
 {
     INCLUDE_PARAMS_OF_LIFT;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     return Copy_Lifted_Cell(OUT, v);
 }
@@ -241,14 +241,14 @@ DECLARE_NATIVE(LIFT)
 //          quoted! quasiform! "lifted forms"
 //          ghost! <null> error! "passed through"
 //      ]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(LIFT_P)
 {
     INCLUDE_PARAMS_OF_LIFT_P;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Is_Error(v))
         return COPY(v);
@@ -269,21 +269,19 @@ DECLARE_NATIVE(LIFT_P)
 //  "Variant of UNQUOTE that also accepts quasiforms to make antiforms"
 //
 //      return: [any-value?]
-//      ^value [quoted! quasiform!]  ; REVIEW: decay PACK!?
+//      ^value '[quoted! quasiform!]  ; REVIEW: decay PACK!?
 //  ]
 //
 DECLARE_NATIVE(UNLIFT)
 {
     INCLUDE_PARAMS_OF_UNLIFT;
 
-    Element* v = As_Element(Intrinsic_ARG(LEVEL));
+    Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
-    if (Get_Level_Flag(LEVEL, DISPATCHING_INTRINSIC)) {  // wasn't typechecked
-        if (not Is_Quoted(v) and not Is_Quasiform(v))
-            panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
-    }
+    if (not Any_Lifted(v))
+        panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
 
-    return UNLIFT(v);  // quoted or quasi
+    return UNLIFT(As_Element(v));  // quoted or quasi
 }
 
 
@@ -293,14 +291,17 @@ DECLARE_NATIVE(UNLIFT)
 //  "Variant of UNLIFT that only unlifts THEN-reactive values"
 //
 //      return: [any-value?]
-//      ^value [<null> ghost! quoted! quasiform!]
+//      ^value '[<null> ghost! quoted! quasiform!]
 //  ]
 //
 DECLARE_NATIVE(UNLIFT_P)
+//
+// 1. While the implementation of UNLIFT is trivial, avoiding the duplication
+//    of logic for the intrinsic still seems worthwhile (?)
 {
     INCLUDE_PARAMS_OF_UNLIFT_P;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
     if (Is_Ghost(v))
         return GHOST;
@@ -308,12 +309,7 @@ DECLARE_NATIVE(UNLIFT_P)
     if (Is_Light_Null(v))
         return NULLED;
 
-    if (Get_Level_Flag(LEVEL, DISPATCHING_INTRINSIC)) {  // wasn't typechecked
-        if (not Any_Lifted(v))
-            panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
-    }
-
-    return UNLIFT(As_Element(v));  // must be lifted (quoted or quasi)
+    return Apply_Cfunc(NATIVE_CFUNC(UNLIFT), LEVEL);
 }
 
 
@@ -323,7 +319,7 @@ DECLARE_NATIVE(UNLIFT_P)
 //  "Tells you whether argument is a stable or unstable antiform"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //      :type
 //  ]
 //
@@ -335,7 +331,7 @@ DECLARE_NATIVE(ANTIFORM_Q)
 {
     INCLUDE_PARAMS_OF_ANTIFORM_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Get_Level_Flag(LEVEL, DISPATCHING_INTRINSIC))  // intrinsic shortcut
         return LOGIC(Is_Antiform(v));
@@ -389,14 +385,14 @@ DECLARE_NATIVE(ANTI)
 //  "Give the plain form of the antiform argument"
 //
 //      return: [plain?]
-//      ^value [antiform?]
+//      ^value '[antiform?]
 //  ]
 //
 DECLARE_NATIVE(UNANTI)
 {
     INCLUDE_PARAMS_OF_UNANTI;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
     LIFT_BYTE(v) = NOQUOTE_3;  // turn to plain form
 
     return COPY(As_Element(v));
@@ -521,14 +517,14 @@ DECLARE_NATIVE(PACK)
 //  "Tells you if argument is a parameter pack (antiform block)"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(PACK_Q)
 {
     INCLUDE_PARAMS_OF_PACK_Q;
 
-    Value* v = Intrinsic_ARG(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     return LOGIC(Is_Pack(v));
 }
@@ -646,84 +642,47 @@ DECLARE_NATIVE(UNSPLICE)
 }
 
 
-// We want OPT and ? to be intrinsics, so the strictness is not controlled
-// with a refinement.  Share the code.
-//
-static Bounce Optional_Intrinsic_Native_Core(Level* level_, bool veto) {
-    Value* v = Intrinsic_ARG(LEVEL);
-
-    if (Is_Error(v))
-        return COPY(v);  // will pass thru vetos, and other errors
-
-    if (Any_Void(v))
-        goto opting_out;  // void => void in OPT, or void => veto in OPT:VETO
-
-  decay_if_unstable: {
-
-    Copy_Cell(OUT, v);  // we pass through original, but test decayed form
-
-    require (
-      Stable* decayed = Decay_If_Unstable(v)
-    );
-    if (Is_Nulled(decayed))
-        goto opting_out;
-
-    return OUT;
-
-} opting_out: { //////////////////////////////////////////////////////////////
-
-    if (veto)
-        return fail (Cell_Error(g_error_veto));  // OPT:VETO
-
-    return GHOST;
-}}
-
-
 //
 //  optional: native:intrinsic [
 //
-//  "If argument is NULL, make it GHOST! (or VETO), else passthru"
+//  "If argument is NULL, make it GHOST!, else passthru"
 //
-//      return: [any-value? ghost! error!]
-//      ^value [any-value?]
-//      :veto "If true, then return VETO instead of GHOST!"
+//      return: [any-stable? ghost!]
+//      value '[any-stable?]
 //  ]
 //
-DECLARE_NATIVE(OPTIONAL)  // ususally used via its aliases of OPT or ?
+DECLARE_NATIVE(OPTIONAL)  // usually used via its aliases of OPT or ?
 {
     INCLUDE_PARAMS_OF_OPTIONAL;
 
-    bool veto;
-    if (Get_Level_Flag(LEVEL, DISPATCHING_INTRINSIC))
-        veto = false;  // default in intrinsic dispatch to not light
-    else
-        veto = did ARG(VETO);  // slower dispatch with frame + refinement
+    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    return Optional_Intrinsic_Native_Core(LEVEL, veto);
+    if (Is_Nulled(v))
+        return GHOST;
+
+    return COPY(v);
 }
 
 
 //
 //  optional-veto: native:intrinsic [
 //
-//  "If argument is null or error antiform make it VETO, else passthru"
+//  "If argument is null make it VETO, else passthru"
 //
-//      return: [any-value?]
-//      ^value "Decayed if pack"
-//          [any-value?]
+//      return: [any-stable? error!]
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(OPTIONAL_VETO)  // usually used via its alias of ?!
-//
-// This is functionally equivalent to OPTIONAL:VETO, but much faster to run
-// because it's dispatched intrinsically.  (Plain OPT with no refinements
-// is also dispatched intrinsically, but adding the refinement slows it down
-// with CHAIN! calculations and requires building a FRAME!)
 {
     INCLUDE_PARAMS_OF_OPTIONAL_VETO;
 
-    bool veto = true;
-    return Optional_Intrinsic_Native_Core(LEVEL, veto);
+    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+
+    if (Is_Nulled(v))
+        return fail (Cell_Error(g_error_veto));
+
+    return COPY(v);
 }
 
 
@@ -733,7 +692,7 @@ DECLARE_NATIVE(OPTIONAL_VETO)  // usually used via its alias of ?!
 //  "If argument is NULL, make it an empty SPLICE! antiform (NONE)"
 //
 //      return: [any-value?]
-//      value [any-stable?]
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(OPT_IN)
@@ -755,7 +714,7 @@ DECLARE_NATIVE(OPT_IN)
 //  "Removes all levels of quoting from a (potentially) quoted element"
 //
 //      return: [fundamental?]
-//      value [<opt-out> element?]
+//      value '[<opt-out> element?]
 //  ]
 //
 DECLARE_NATIVE(NOQUOTE)
