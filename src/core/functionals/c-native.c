@@ -500,18 +500,26 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
     assert(Is_Set_Word(At_Level(L)));
 
     switch (id) {
-      case SYM_NATIVE:  // native-bedrock: native [...]
+      case SYM_NATIVE:
+        // native-bedrock: native [...]
         assert(Word_Id(At_Level(L)) == SYM_NATIVE_BEDROCK);
         break;
 
-      case SYM_TWEAK_P:  // tweak*-bedrock: native [...]
+      case SYM_TWEAK_P:
+        // tweak*-bedrock: native [...]
         assert(Word_Id(At_Level(L)) == SYM_TWEAK_P_BEDROCK);
         break;
 
-      case SYM_C_DEBUG_BREAK:  // c-debug-break: vanishable  native [...]
+      case SYM_C_DEBUG_BREAK:
+        // c-debug-break: vanishable native [...]
         assert(Word_Id(At_Level(L)) == SYM_C_DEBUG_BREAK);
         Fetch_Next_In_Feed(L->feed);
         assert(Word_Id(At_Level(L)) == SYM_VANISHABLE);
+        break;
+
+      case SYM_TYPECHECKER_ARCHETYPE:
+        // typechecker-archetype: native:intrinsic [...]
+        assert(Word_Id(At_Level(L)) == SYM_TYPECHECKER_ARCHETYPE);
         break;
 
       default:
@@ -519,7 +527,7 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
     }
 
     Fetch_Next_In_Feed(L->feed);
-    assert(Word_Id(At_Level(L)) == SYM_NATIVE);
+    assert(Is_Chain(At_Level(L)) or Word_Id(At_Level(L)) == SYM_NATIVE);
 
     Fetch_Next_In_Feed(L->feed);
     assert(Is_Block(At_Level(L)));
@@ -625,6 +633,15 @@ void Startup_Natives(const Element* boot_natives)
   // valid, in order to do its "interception" trick to bypass normal dispatch.
 
     Make_Native_In_Lib_By_Hand(L, SYM_C_DEBUG_BREAK);
+
+} make_typechecker_archetype_by_hand: {
+
+  // Startup_Type_Predicates() uses symbols, data stack, adds words to lib.
+  // Not possible until this point in time.
+
+    Make_Native_In_Lib_By_Hand(L, SYM_TYPECHECKER_ARCHETYPE);
+
+    Startup_Type_Predicates();
 
 } make_other_natives: {
 

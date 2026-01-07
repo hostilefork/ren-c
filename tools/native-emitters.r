@@ -173,7 +173,12 @@ export emit-include-params-macro: func [
 
   === "BUILD PARAMETER LIST FROM (ADJUSTED) SPEC BLOCK" ===
 
-  ; 1. All natives *should* specify a `return:`, because it's important to
+  ; 1. We are looking for the adjusted patterns:
+  ;
+  ;       return <:> [type1! type2!]     ; was [return: [type1! type2!]]
+  ;       return <:> <'> [type1! type2]  ; was [return: '[type1! type2!]]
+  ;
+  ;    All natives *should* specify a `return:`, because it's important to
   ;    document what the return types are (and HELP should show it).  But only
   ;    CHECK_RAW_NATIVE_RETURNS builds actually *type check* the result; the C
   ;    code is trusted otherwise to do the correct thing.
@@ -196,25 +201,31 @@ export emit-include-params-macro: func [
         ]
         spec: my next
 
-        all [  ; want [RETURN <:> [type1! type2!]], see [1]
-            'return = spec.1
-            <:> = spec.2
-            (block? spec.3) or (spec.3 = <~>)
-            not text? opt try spec.4
-        ] then [
-            spec: my skip 3
-        ] else [
-            any [
-                native-name = "native-bedrock"
-                native-name = "tweak*-bedrock"
-            ] else [
-                panic [
-                    "has a bad RETURN: [<typespec>] specification" newline
-                    "Note no string text for RETURN is allowed!" newline
-                    "(Main description stored in RETURN PARAMETER!)" newline
-                    "You can put strings *inside* the typespec instead!"
-                ]
+        let panic-bad-return: does [  ; see [1]
+            panic [
+                "has a bad RETURN: [<typespec>] specification" newline
+                "Note no string text for RETURN is allowed!" newline
+                "(Main description stored in RETURN PARAMETER!)" newline
+                "You can put strings *inside* the typespec instead!"
             ]
+        ]
+
+        if not any [
+            native-name = "native-bedrock"
+            native-name = "tweak*-bedrock"
+        ][
+            if 'return <> spec.1 [panic-bad-return]
+            spec: next spec
+
+            if <:> <> spec.1 [panic-bad-return]
+            spec: next spec
+
+            if <'> = spec.1 [  ; optional: don't check return
+                spec: next spec
+            ]
+
+            if not any [block? spec.1, spec.1 = <~>] [panic-bad-return]
+            spec: next spec
         ]
 
         if find proto "native:combinator" [  ; implicit combinator params [2]
@@ -284,7 +295,8 @@ export emit-include-params-macro: func [
                 param.refinement: okay
                 iter: next iter
             ]
-            if not word? name: iter.1 [
+            let name: iter.1
+            if not word? name [
                 panic ["Unknown item in spec for bootstrap:" mold name]
             ]
             iter: next iter
@@ -293,7 +305,7 @@ export emit-include-params-macro: func [
                 iter: next iter
             ]
 
-            if iter.1 = <'> [  ; quote on spec block
+            if (try iter.1) = <'> [  ; quote on spec block
                 param.unchecked: okay
                 iter: next iter
             ]

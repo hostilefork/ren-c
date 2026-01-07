@@ -754,14 +754,7 @@ void Startup_Core(void)
         &Unimplemented_Details_Querier
     );
 
-} startup_type_predicates: {
-
-  // Startup_Type_Predicates() uses symbols, data stack, adds words to lib.
-  // Not possible until this point in time.
-
-    Startup_Type_Predicates();
-
-} startup_natives: {
+} startup_natives_and_type_predicates: {
 
   // boot->natives is from the automatically gathered list of natives found
   // by scanning comments in the C sources for `native: ...` declarations.

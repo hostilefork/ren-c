@@ -41,9 +41,9 @@
 //
 //  "For internal use (builds parameters and return slot)"
 //
-//      return: [logic?]
+//      return: '[logic?]
 //      value "Value to test"
-//          [<opt-out> any-stable?]
+//          '[<opt-out> any-stable?]
 //      :type "Test a concrete type, (integer?:type integer!) passes"
 //      :quoted
 //      :quasiform
@@ -53,12 +53,6 @@
 //  ]
 //
 DECLARE_NATIVE(TYPECHECKER_ARCHETYPE)
-//
-// !!! Due to bootstrapping issues, we can't simply use the phase of
-// LIB(TYPECHECKER_ARCHETYPE) to get the paramlist to use when building
-// typecheckers.  It has to be built manually.  This paramlist is just
-// for reference, to use as INCLUDE_PARAMS_OF_TYPECHECKER_ARCHETYPE in the
-// Typechecker_Dispatcher().
 {
     INCLUDE_PARAMS_OF_TYPECHECKER_ARCHETYPE;
 
@@ -78,18 +72,10 @@ Bounce Typechecker_Dispatcher(Level* const L)
 {
     USE_LEVEL_SHORTHANDS (L);
 
-    Value* arg = Intrinsic_ARG(LEVEL);
-
-    if (Any_Void(arg))
-        return LOGIC(false);  // opt-out of the typecheck (null fails)
-
     Details* details = Level_Intrinsic_Details(L);
     assert(Details_Max(details) == MAX_IDX_TYPECHECKER);
 
-    require (
-      Stable* v = Decay_If_Unstable(arg)
-    );
-
+    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
     Option(Type) type = Type_Of(v);
 
     if (Not_Level_Flag(L, DISPATCHING_INTRINSIC)) {
@@ -224,44 +210,17 @@ bool Typechecker_Details_Querier(
 //    bytes it uses to store cached TypesetByte.  This way it doesn't look
 //    them up each time.  0 is reserved to prematurely terminate the array.
 //
-// 2. We need a spec for our typecheckers, which is really just `value` with
-//    no type restrictions as the argument.  !!! REVIEW: add help strings?
+// 2. We need a spec for our typecheckers, which comes from the built-by-hand
+//    native TYPECHECKER-ARCHETYPE.
 //
 // 3. Since the return type is always a LOGIC?, Typechecker_Details_Querier()
 //    can fabricate that return without it taking up a cell's worth of space
 //    on each typechecker instantiation (that isn't intrinsic).
 //
 Details* Make_Typechecker(TypesetByte typeset_byte) {  // parameter cache [1]
-    DECLARE_ELEMENT (spec);  // simple spec [2]
-    Source* spec_array = Make_Source_Managed(7);
-    Set_Flex_Len(spec_array, 7);
-    Metafy_Cell(Init_Word(Array_At(spec_array, 0), CANON(VALUE)));
-    Init_Get_Word(Array_At(spec_array, 1), CANON(TYPE));
-    Init_Get_Word(Array_At(spec_array, 2), CANON(QUOTED));
-    Init_Get_Word(Array_At(spec_array, 3), CANON(QUASIFORM));
-    Init_Get_Word(Array_At(spec_array, 4), CANON(TIED));
-    Init_Get_Word(Array_At(spec_array, 5), CANON(PINNED));
-    Init_Get_Word(Array_At(spec_array, 6), CANON(METAFORM));
-    Init_Block(spec, spec_array);
-
-    StackIndex base = TOP_INDEX;
-
-    Element* gather = nullptr;
-
-    assume (
-      ParamList* paramlist = Make_Paramlist_Managed(
-        spec,
-        MKF_DONT_POP_RETURN,  // no RETURN: in spec (always logic)
-        SYM_0,  // return type for all typecheckers is the same [3]
-        gather
-    ));
-
-    DECLARE_ELEMENT (discard);
-    Pop_Unpopped_Return(discard, base);  // no typespec, no description
-
     Details* details = Make_Dispatch_Details(
         BASE_FLAG_MANAGED | DETAILS_FLAG_CAN_DISPATCH_AS_INTRINSIC,
-        Phase_Archetype(paramlist),
+        LIB(TYPECHECKER_ARCHETYPE),  // use archetype's paramlist [2]
         &Typechecker_Dispatcher,
         MAX_IDX_TYPECHECKER  // details array capacity
     );
