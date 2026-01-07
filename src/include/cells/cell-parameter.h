@@ -347,6 +347,13 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
     FLAG_LEFT_BIT(23)
 
 
+//=//// PARAMETER_FLAG_24 /////////////////////////////////////////////////=//
+
+#define PARAMETER_FLAG_24 \
+    FLAG_LEFT_BIT(24)
+
+
+
 #define Get_Parameter_Flag(v,name) \
     ((CELL_PARAMETER_PAYLOAD_2_FLAGS(v) & PARAMETER_FLAG_##name) != 0)
 
@@ -409,6 +416,36 @@ INLINE bool Is_Parameter_Final_Type(const Param* p) {
     return Get_Parameter_Flag(p, FINAL_TYPECHECK);
 }
 
+
+//=//// CELL_FLAG_PARAM_NOT_CHECKED_OR_COERCED ////////////////////////////=//
+//
+// Functions may want to display what types they accept in the interface for
+// HELP, but not actually have the system pay the cost of typechecking them.
+// A quote mark on the typespec accomplishes this goal in a subtle way (it
+// may even be *too* subtle...but, the tradeoff seems worth it for the
+// readability and efficiency.)
+//
+// If the implementation is native code, it needs to make sure that native is
+// doing the typecheck work internally with whatever switch() statements it
+// is doing, so as not to crash on invalid bit patterns.  Non-native code can
+// be more trusting that things won't crash, but should still be careful if
+// using this feature.
+//
+// This is made a CELL_FLAG_XXX rather than a PARAMETER_FLAG_XXX because when
+// you extract a parameter from a function's paramlist into a variable to
+// use for typechecking outside the native implementation, you want the flag
+// be able to be flipped.  It is not necessarily guaranteed that parameter
+// flags themselves live in the Cell (implementation detail may change) but
+// CELL_FLAG_XXX are always in the Cell.
+//
+
+#define CELL_FLAG_PARAM_NOT_CHECKED_OR_COERCED \
+    CELL_FLAG_TYPE_SPECIFIC_A
+
+INLINE bool Not_Parameter_Checked_Or_Coerced(const Cell* cell) {
+    assert(Heart_Of(cell) == TYPE_PARAMETER);
+    return Get_Cell_Flag(cell, PARAM_NOT_CHECKED_OR_COERCED);
+}
 
 
 // A PARAMETER! that has not been typechecked represents an unspecialized

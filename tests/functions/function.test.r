@@ -487,3 +487,17 @@
         z = <inner-z>
     })
 ]
+
+; Quote marks on type specs mean they show up in help, but aren't actually
+; checked for the function.
+(
+    foo: lambda [x '[integer!]] [x]
+    <unchecked> = foo <unchecked>
+)
+
+(
+    foo: func [return: '[integer!]] [
+        return <unchecked>
+    ]
+    <unchecked> = foo <unchecked>
+)

@@ -124,7 +124,22 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
     Source* copy;
 
-  copy_derelativized_spec_array: {
+  notice_request_for_no_typechecking: {
+
+  // See CELL_FLAG_PARAM_NOT_CHECKED_OR_COERCED for rationale and guidance on
+  // using a quote mark on type specs to suppress type checking.
+
+    Count quotes = Quotes_Of(spec);
+    if (quotes) {
+        if (quotes > 1)
+            return fail (
+                "Only one level of quote to suppress checking of types in spec"
+            );
+
+        Set_Cell_Flag(TOP_ELEMENT, PARAM_NOT_CHECKED_OR_COERCED);
+    }
+
+} copy_derelativized_spec_array: {
 
   // We go ahead and make a copy of the spec array, because we want to write
   // optimization bytes into it as we go.  Also, we do lookups of words which
@@ -357,8 +372,21 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
   // as their word.  So if you said `word!: integer!` and used WORD!, you'd
   // get the integer typecheck.  But if WORD! is unbound then it would act
   // as a WORD! typecheck.  This seems bad.)
+  //
+  // 1. !!! In order to get the system booting, if a parameter is marked as
+  //    being not checked or coerced, we allow it to not exist at all.
+  //    But we shouldn't be doing that.  There needs to be better logic
+  //    for validating the case with parameters that you aren't checking.
+  //
+  // 2. Pursuant to [1] there may be someone who wants to check the parameter
+  //    when the NOT_CHECKED_OR_COERCED flag is flipped in the Cell.  We
+  //    should be optimizing for if that happens.
 
     assert(Is_Word(As_Element(SCRATCH)));
+
+    if (Not_Parameter_Checked_Or_Coerced(TOP_ELEMENT))
+        goto cant_optimize;  // Typecheck will work, but slowly [2]
+
     heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), spec_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 

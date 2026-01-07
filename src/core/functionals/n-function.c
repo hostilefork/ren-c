@@ -672,6 +672,9 @@ Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
 
     assert(Parameter_Class(param) == PARAMCLASS_META);
 
+    if (Not_Parameter_Checked_Or_Coerced(param))
+        return true;  // skip all typechecking and coercion
+
     if (Is_Error(v))
         return true;  // for now, all functions allow definitional errors
 

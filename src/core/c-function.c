@@ -191,7 +191,7 @@ static Result(None) Push_Keys_And_Params_Core(
     if (Is_Text(v))
         goto handle_description_or_parameter_note;
 
-    if (Is_Block(v))
+    if (Heart_Of(v) == TYPE_BLOCK)  // may be quoted to suppress typechecking
         goto handle_block_of_types_for_typeset;
 
     if (Is_Fence(v))

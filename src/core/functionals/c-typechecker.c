@@ -1000,15 +1000,6 @@ bool Typecheck_Uses_Spare_And_Scratch(
 // Parameter_Class() being ^META or not is taken into account for decay and
 // coercion.  It also applies the <const> property.
 //
-// 1. !!! Should explicit mutability override, so people can say things
-//    like (foo: func [...] mutable [...]) ?  This seems bad, because the
-//    contract of the function hasn't been "tweaked" with reskinning.
-//
-// 2. The assert at the end wants to make sure the scratch and spare are
-//    trashed, and calling typecheck does this.  But the coerce step for an
-//    unstable antiform for a non-^META parameter may shortcut past the
-//    typechecking (e.g. on an ERROR!).
-//
 Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     Level* const L,
     const Element* param,
@@ -1016,37 +1007,54 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
 ){
     USE_LEVEL_SHORTHANDS (L);
 
-    if (Get_Parameter_Flag(param, CONST))
-        Set_Cell_Flag(v, CONST);  // mutability override? [1]
+    Corrupt_Cell_If_Needful(SCRATCH);  // always corrupt...
+    Corrupt_Cell_If_Needful(SPARE);  // ...since we always might...
 
     bool result;
 
     bool coerced = false;
 
-    if (Parameter_Class(param) == PARAMCLASS_META) {
-        //
-        // check as-is, try coercing if it doesn't work
-    }
-    else if (Not_Cell_Stable(v)) {
-        Corrupt_Cell_If_Needful(SCRATCH);  // may not make it to typecheck [2]
-        Corrupt_Cell_If_Needful(SPARE);
+  mandatory_checking: {
 
-        if (Is_Endlike_Void(v)) {  // non-^META endable parameters can be void
-            if (Get_Parameter_Flag(param, ENDABLE))
-                goto return_true;
-        }
-        goto do_coercion;
-    }
+  // We could say that applying the CONST bit would be the responsibility of
+  // the callee in the case of opted out typechecking, but that doesn't seem
+  // to have a lot of value.  It wasn't the const bit test they're seeking
+  // to avoid paying for.
+  //
+  // The <opt-out> mechanics are handled at a higher level than typechecking,
+  // as typechecking never gets called at all.
+  //
+  // 1. !!! Should explicit mutability override, so people can say things
+  //    like (foo: func [...] mutable [...]) ?  This seems bad, because the
+  //    contract of the function hasn't been "tweaked" with reskinning.
 
-    goto call_typecheck;
-
-  call_typecheck: {  /////////////////////////////////////////////////////////
+    if (Get_Parameter_Flag(param, CONST))
+        Set_Cell_Flag(v, CONST);  // mutability override? [1]
 
     if (Get_Parameter_Flag(param, OPT_OUT)) {
         assert(not Any_Void(v));  // should have bypassed this check
         if (Is_Light_Null(v))
             return false;  // can never run an opt-out with nulled arg
     }
+
+    if (Not_Cell_Stable(v) and Parameter_Class(param) != PARAMCLASS_META) {
+        if (Is_Endlike_Void(v)) {  // non-^META endable parameters can be void
+            if (Get_Parameter_Flag(param, ENDABLE))
+                goto return_true;
+        }
+        trap (
+            Decay_If_Unstable(v)
+        );
+    }
+
+} bypass_typecheck_if_typespec_was_quoted: {
+
+    if (Not_Parameter_Checked_Or_Coerced(param))
+        return true;  // skip all the non-mandatory checking
+
+    goto call_typecheck;
+
+} call_typecheck: {  /////////////////////////////////////////////////////////
 
     if (Typecheck_Uses_Spare_And_Scratch(L, v, param, SPECIFIED))
         goto return_true;
