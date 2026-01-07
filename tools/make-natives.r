@@ -128,6 +128,8 @@ leaders: [
 
     c-debug-break
 
+    typechecker-archetype
+
     native  ; REAL native (overwrites bootstrap)
 
     logic?
