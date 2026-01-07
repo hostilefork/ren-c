@@ -282,6 +282,12 @@
 //    specialized while objects can.  However, we want "universal references"
 //    which is how (T&& arg) is interpreted for functions vs. objects.
 //
+// 5. If the input is a thin Needful wrapper, validate the cast based on its
+//    underlying representation.  This avoids forcing wrapper-to-wrapper
+//    conversions during hook dispatch (e.g. Need(Value*) -> Need(const Value*)
+//    when constifying), while still letting wrapper expressions participate
+//    in CastHook specializations written for raw pointers.
+//
 
 template<typename>
 struct IsResultWrapper : std::false_type {};
@@ -399,8 +405,13 @@ Hookable_Cast_Helper(FromRef&& from)
     );
 
   #if NEEDFUL_CAST_CALLS_HOOKS
-    using ConstFrom = needful_constify_t(From);
-    CastHook<ConstFrom, ConstTo>::Validate_Bits(std::forward<FromRef>(from));
+        using HookFrom = conditional_t<  // validate beneath thin wrapper [5]
+            HasWrappedType<From>::value,
+            needful_unwrapped_type(From),
+            From
+        >;
+        using ConstFrom = needful_constify_t(HookFrom);
+        CastHook<ConstFrom, ConstTo>::Validate_Bits(static_cast<ConstFrom>(from));
   #endif
 
     return needful_mutable_cast(
@@ -662,3 +673,4 @@ struct FunctionPointerCastHelper {
     (reinterpret_cast< \
         needful::FunctionPointerCastHelper<decltype(expr),T>::type \
     >(expr))
+
