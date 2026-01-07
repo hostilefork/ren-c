@@ -385,8 +385,8 @@ ATTRIBUTE_NO_RETURN void Crash_Core(
 //  "Terminate abnormally.  By design, do not allow any more user code to run."
 //
 //      return: []
-//      @info "If you want to implicate a value, use (crash @value)"
-//          [<end> warning! text! @word!]
+//      @info "If you want to implicate a value, use (crash $value)"
+//          [<end> warning! text! $word!]
 //  ]
 //
 DECLARE_NATIVE(CRASH)
@@ -408,11 +408,14 @@ DECLARE_NATIVE(CRASH)
 
     const void *p;
 
-    if (Is_Pinned_Form_Of(WORD, info)) {  // interpret as value to diagnose
-        Api(Stable*) fetched = rebStable(CANON(GET), rebQ(info));
-        Copy_Cell(info, fetched);
+    if (Is_Tied_Form_Of(WORD, info)) {  // interpret as value to diagnose
+        Clear_Cell_Sigil(info);
+        Add_Cell_Sigil(info, SIGIL_META);  // permissive GET
+        Quote_Cell(info);
+        Api(Value*) fetched = rebValue(CANON(GET), info);
+        Copy_Cell(SPARE, fetched);
         rebRelease(fetched);
-        p = info;
+        p = SPARE;
     }
     else {  // interpret reason as a message
         if (Is_Text(info)) {
