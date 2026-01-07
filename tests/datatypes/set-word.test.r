@@ -84,3 +84,16 @@
 (null? set:groups () pack [10 20])
 (null? set:groups ^ghost ~)
 (null? set:groups (^ghost) ())
+
+; You can assign light voids to variables to unset them, but not heavy ones.
+;
+; If you allowed the assignment, then you'd either have to assign a heavy
+; void to the variable or "lie" and turn it into a light one.
+;
+; The lie would be quickly exposed if you changed the code to ^x: ~[]~... so
+; rather than lie we just prohibit it.
+[
+    (x: (), ghost? ^x)
+
+    ~???~ !! (x: ~[]~)
+]

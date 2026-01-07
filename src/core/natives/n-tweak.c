@@ -254,8 +254,8 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
             continue;  // dual signal, do not lift dual
         }
 
-        if (Is_Any_Lifted_Void(TOP_STABLE)) {  // (x: ~()~) or (x: ())
-            Init_Ghost_For_End(value_arg);  // both act like (^x: ())
+        if (Is_Lifted_Ghost(TOP_STABLE)) {  // (x: ()) works, (x: ~()~ doesn't)
+            Init_Ghost_For_Unset(value_arg);
             Lift_Cell(value_arg);
             continue;
         }
