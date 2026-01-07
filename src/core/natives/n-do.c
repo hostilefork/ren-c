@@ -966,7 +966,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 
 
 //
-//  apply: native [  ; !!! MUST UPDATE SPEC FOR // NATIVE IF CHANGED [1]
+//  apply: native [  ; !!! MUST UPDATE SPEC FOR `//` NATIVE IF CHANGED [1]
 //
 //  "Invoke an action with all required arguments specified"
 //

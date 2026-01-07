@@ -704,27 +704,37 @@ INLINE Result(Level*) Prep_Level_Core(
 //    say that for librebol-based natives as well).
 //
 
-#define DECLARE_PARAM(T,name,n,opt) \
-    enum { param_##name##_ = (n) }; /* enums force compile-time const [1] */ \
-    enum { param_opt_##name##_ = (opt) }; \
-    typedef T param_type_##name##_; \
-    USED(sizeof(param_type_##name##_)) /* trust author :-/ [2] */
+#define DECLARE_CHECKED_PARAM(T,name,n,opt) \
+    enum { checked_##name##_ = (n) }; /* enum for compile-time const [1] */ \
+    enum { checked_opt_##name##_ = (opt) }; \
+    typedef T checked_type_##name##_; \
+    USED(sizeof(checked_type_##name##_)) /* trust author :-/ [2] */
+
+#define DECLARE_UNCHECKED_PARAM(T,name,n,opt) \
+    enum { unchecked_##name##_ = (n) }; /* enum for compile-time const [1] */ \
+    enum { unchecked_opt_##name##_ = (opt) }; \
+    typedef T unchecked_type_##name##_; \
+    USED(sizeof(unchecked_type_##name##_)) /* trust author :-/ [2] */
 
 #define DECLARE_INTRINSIC_PARAM(name)  /* was used, not used at the moment */ \
     NOOP  // the INCLUDE_PARAMS_OF_XXX macros still make this, may find a use
 
 #define Erase_ARG(name) \
-    Erase_Cell(Level_Arg(level_, param_##name##_))
+    Erase_Cell(Level_Arg(level_, checked_##name##_))
 
 #define ARG(name) \
-    cast(param_type_##name##_, \
-        Level_Arg_Core(level_, param_##name##_, param_opt_##name##_))
+    cast(checked_type_##name##_, \
+        Level_Arg_Core(level_, checked_##name##_, checked_opt_##name##_))
+
+#define Unchecked_ARG(name) \
+    cast(unchecked_type_##name##_, \
+        Level_Arg_Core(level_, unchecked_##name##_, unchecked_opt_##name##_))
 
 #define Element_ARG(name) /* checked build asserts it's an Element */ \
-    As_Element(Level_Arg(level_, param_##name##_))
+    As_Element(Level_Arg(level_, checked_##name##_))
 
 #define PARAM_INDEX(name) /* can't use in some macro expansion orders */ \
-    (param_##name##_)
+    (checked_##name##_)
 
 #define LOCAL(name) /* alias for ARG() when slot is {local} */ \
     Level_Arg(level_, PARAM_INDEX(name))  // initialized to unset state!
@@ -736,7 +746,7 @@ INLINE Result(Level*) Prep_Level_Core(
     As_Stable(Level_Arg(level_, PARAM_INDEX(name)))
 
 #define PARAM(name) \
-    Phase_Param(Level_Phase(level_), param_##name##_)  // a TYPESET!
+    Phase_Param(Level_Phase(level_), checked_##name##_)  // a TYPESET!
 
 #define ARG_N(n) \
     As_Stable(Level_Arg(level_, (n)))

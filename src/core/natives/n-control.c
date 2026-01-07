@@ -191,7 +191,7 @@ DECLARE_NATIVE(IF)
     INCLUDE_PARAMS_OF_IF;
 
     Stable* condition = ARG(CONDITION);
-    Stable* branch = ARG(BRANCH);
+    Element* branch = ARG(BRANCH);
 
     require (
       bool cond = Test_Conditional(condition)
@@ -218,7 +218,7 @@ DECLARE_NATIVE(WHEN)
     INCLUDE_PARAMS_OF_WHEN;
 
     Stable* condition = ARG(CONDITION);
-    Stable* branch = ARG(BRANCH);
+    Element* branch = ARG(BRANCH);
 
     require (
       bool cond = Test_Conditional(condition)
@@ -270,7 +270,8 @@ DECLARE_NATIVE(THEN_Q)
 {
     INCLUDE_PARAMS_OF_THEN_Q;
 
-    Value* v = ARG(VALUE);
+    Value* v = Possibly_Unstable(ARG(VALUE));
+
     return LOGIC(not (Is_Light_Null(v) or Is_Ghost(v)));
 }
 
@@ -288,7 +289,8 @@ DECLARE_NATIVE(ELSE_Q)
 {
     INCLUDE_PARAMS_OF_ELSE_Q;
 
-    Value* v = ARG(VALUE);
+    Value* v = Possibly_Unstable(ARG(VALUE));
+
     return LOGIC(Is_Light_Null(v) or Is_Ghost(v));
 }
 
@@ -307,8 +309,8 @@ DECLARE_NATIVE(THEN)
 {
     INCLUDE_PARAMS_OF_THEN;
 
-    Value* left = ARG(LEFT);
-    Stable* branch = ARG(BRANCH);
+    Value* left = Possibly_Unstable(ARG(LEFT));
+    Element* branch = ARG(BRANCH);
 
     if (Is_Error(left))
         return COPY(left);
@@ -334,8 +336,8 @@ DECLARE_NATIVE(THENCE)
 {
     INCLUDE_PARAMS_OF_THENCE;
 
-    Stable* branch = ARG(BRANCH);
-    Value* v = ARG(VALUE);
+    Element* branch = ARG(BRANCH);
+    Value* v = Possibly_Unstable(ARG(VALUE));
 
     if (Is_Error(v))
         return COPY(v);
@@ -361,8 +363,8 @@ DECLARE_NATIVE(ELSE)
 {
     INCLUDE_PARAMS_OF_ELSE;
 
-    Value* left = ARG(LEFT);
-    Stable* branch = ARG(BRANCH);
+    Value* left = Possibly_Unstable(ARG(LEFT));
+    Element* branch = ARG(BRANCH);
 
     if (Is_Error(left))
         return COPY(left);
@@ -388,8 +390,8 @@ DECLARE_NATIVE(ALSO)
 {
     INCLUDE_PARAMS_OF_ALSO;  // `then func [x] [(...) :x]` => `also [...]`
 
-    Value* left = ARG(LEFT);
-    Stable* branch = ARG(BRANCH);
+    Value* left = Possibly_Unstable(ARG(LEFT));
+    Element* branch = ARG(BRANCH);
 
     enum {
         ST_ALSO_INITIAL_ENTRY = STATE_0,
@@ -1116,8 +1118,8 @@ DECLARE_NATIVE(DEFAULT)
 {
     INCLUDE_PARAMS_OF_DEFAULT;
 
-    Element* target = Element_ARG(TARGET);
-    Stable* branch = ARG(BRANCH);
+    Element* target = ARG(TARGET);
+    Element* branch = ARG(BRANCH);
 
     enum {
         ST_DEFAULT_INITIAL_ENTRY = STATE_0,

@@ -115,7 +115,9 @@ DECLARE_NATIVE(HEAVY_VOID_Q)
 //
 DECLARE_NATIVE(COMMENT)
 {
-    INCLUDE_PARAMS_OF_COMMENT;  // no ARG(SKIPPED), parameter is intrinsic
+    INCLUDE_PARAMS_OF_COMMENT;
+
+    UNUSED(Intrinsic_ARG(LEVEL));
 
     return GHOST;
 }

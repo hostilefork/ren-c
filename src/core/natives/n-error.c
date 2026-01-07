@@ -254,8 +254,8 @@ DECLARE_NATIVE(EXCEPT)
 {
     INCLUDE_PARAMS_OF_EXCEPT;
 
-    Value* left = ARG(LEFT);
-    Stable* branch = ARG(BRANCH);
+    Value* left = Possibly_Unstable(ARG(LEFT));
+    Element* branch = ARG(BRANCH);
 
     if (not Is_Error(left))
         return COPY(left);  // pass thru any non-errors

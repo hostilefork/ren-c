@@ -65,7 +65,7 @@ DECLARE_NATIVE(THE)
 {
     INCLUDE_PARAMS_OF_THE;
 
-    Element* v = Element_ARG(VALUE);
+    Element* v = ARG(VALUE);
 
     if (ARG(SOFT) and Is_Soft_Escapable_Group(v)) {
         if (Eval_Any_List_At_Throws(OUT, v, SPECIFIED))
@@ -94,8 +94,9 @@ DECLARE_NATIVE(JUST)
 {
     INCLUDE_PARAMS_OF_JUST;
 
-    Element* quoted = Element_ARG(VALUE);
-    return COPY(quoted);
+    Element* v = ARG(VALUE);
+
+    return COPY(v);
 }
 
 

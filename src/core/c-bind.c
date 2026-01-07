@@ -473,7 +473,7 @@ DECLARE_NATIVE(LET)
 {
     INCLUDE_PARAMS_OF_LET;
 
-    Element* vars = Element_ARG(VARS);
+    Element* vars = ARG(VARS);
 
     UNUSED(ARG(EXPRESSION));
     Level* L = level_;  // fake variadic [2]

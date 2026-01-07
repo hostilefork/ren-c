@@ -534,7 +534,7 @@ DECLARE_NATIVE(YIELDER)
 //  "Make arity-0 action you can call repeatedly until it yields DONE"
 //
 //      return: [action!]
-//      :spec [] "internal use only"
+//      {spec}  ; for frame compatibility with YIELDER
 //      body "Code containing YIELD statements"
 //          [block!]
 //  ]

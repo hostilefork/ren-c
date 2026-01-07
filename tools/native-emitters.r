@@ -115,53 +115,6 @@ export extract-native-protos: func [
 ; to take in the textual spec, "massage" it in a way that doesn't destroy the
 ; information being captured, and then TRANSCODE it.
 ;
-;  1. Currently we do not need the information from $XXX or @XXX when
-;     processing parameters to make the include macros.  So we just strip
-;     the $ and @ characters out.
-;
-;     `^` is turned into a `m3ta-` so that ^XXX becomes m3ta-XXX so we can
-;     tell when something is a ^META argument and ARG() should be a Value*
-;     instead of a Stable.
-;
-;     Escapable parameters like @(foo) were seen as just GROUP! before but
-;     we have a more important usage for groups, so strip the parens.
-;
-;     We want {local1 local2} to become locals in the spec dialect, but this
-;     will load as a string in the bootstrap executable so we turn the braces
-;     into parentheses so we see that as a GROUP! (local1 local2)
-;
-;     !!! Note: temporarily just stripping the braces, as there's no special
-;     treatment for locals, but this is likely temporary.
-;
-;  2. All natives *should* specify a `return:`, because it's important to
-;     document what the return types are (and HELP should show it).  But only
-;     CHECK_RAW_NATIVE_RETURNS builds actually *type check* the result; the C
-;     code is trusted otherwise to do the correct thing.
-;
-;     Natives store their return type specification in their Details, not in
-;     their ParamList (the way a FUNC does), because there is no need for
-;     instances of natives to have a RETURN function slot.
-;
-;     (There are two exceptions: The NATIVE native itelf and TWEAK, in
-;     versions used during system boot.)
-;
-;  3. NATIVE:COMBINATOR instances have implicit parameters just like usermode
-;     COMBINATORs do.  We want those implicit parameters in ARG() macro list
-;     so the native bodies see them (again, just as the usermode combinators
-;     can use `state` and `input` in their body code)
-;
-;  4. We need `Set_Flex_Info(level_varlist, HOLD)` here because native code
-;     trusts that type checking has ensured it won't get bits in its argument
-;     slots that the C won't recognize.  Usermode code that gets its hands on
-;     a native's FRAME! (e.g. for debug viewing) can't be allowed to change
-;     the frame values to other bit patterns out from under the C or it could
-;     result in a crash.  The native itself doesn't care because it's not
-;     using ordinary variable assignment.
-;
-;     !!! This prevents API use inside natives which is binding-based.  That
-;     is an inconvenience, and if a native wants to do it for expedience then
-;     it needs to clear this bit itself (and set it back when done).
-;
 export emit-include-params-macro: func [
     "Return block of symbols for macros that access a native's parameters"
 
@@ -192,23 +145,50 @@ export emit-include-params-macro: func [
     ] else [
         panic "Could not extract native name in emit-include-params-macro"
     ]
+
+  === "PRE-PROCESS SPEC FOR BOOTSTRAP LOAD-ABILITY" ===
+
+  ; 1. Sigils like [$ ^ @] and quoted/quasiforms [' ~] are mostly not legal in
+  ;    the bootstrap executable.  We work around this, by transforming them
+  ;    into tags that are spaced off from anything they are attached to.  This
+  ;    makes them LOAD-able (albeit more awkward to parse)
+  ;
+  ; 2. We want {local1 local2} to become locals in the spec dialect, but this
+  ;    will load as a string in the bootstrap executable. So we have to
+  ;    transform those too if we want to see them.
+
     let spec: copy find proto "["  ; make copy (we'll corrupt it)
 
-    let caret-surrogate: "m3ta-"
-    replace spec "@" -[]-  ; @WORD! would be invalid EMAIL! [1]
-    replace spec "$" -[]-  ; $WORD! would be invalid MONEY! [1]
-    replace spec "^^" caret-surrogate  ; ^WORD! would just be invalid [1]
-    replace spec "~[" ""  ; stop ~[on off]~ from becoming "~on off~"
-    replace spec "]~" ""
-    replace spec "~(" ""  ; stop ~(type2! type2!)~ from becoming "~type1 type2~"
-    replace spec ")~" ""
-    replace spec "(" ""  ; make escapable @(foo) just be @foo [1]
-    replace spec ")" ""
-    replace spec "{" ""  ; load {local1 local2} as local1 local2 [1]
-    replace spec "}" ""
-    replace spec "#" ""  ; stop ~[#foo]~ from becoming ~#foo~
+    replace spec "'" " <'> "  ; turn decorations to tags for bootstrap LOAD [1]
+    replace spec "@" " <@> "
+    replace spec "$" " <$> "
+    replace spec "^^" " <caret> "  ; <^^> doesn't work atm
+    replace spec "~" " <~> "
+    replace spec ":" " <:> "
+
+    replace spec "{" " <{> "  ; account for FENCE! transition as well [2]
+    replace spec "}" " <}> "
 
     spec: transcode:one spec
+
+  === "BUILD PARAMETER LIST FROM (ADJUSTED) SPEC BLOCK" ===
+
+  ; 1. All natives *should* specify a `return:`, because it's important to
+  ;    document what the return types are (and HELP should show it).  But only
+  ;    CHECK_RAW_NATIVE_RETURNS builds actually *type check* the result; the C
+  ;    code is trusted otherwise to do the correct thing.
+  ;
+  ;    Natives store their return type specification in their Details, not in
+  ;    their ParamList (the way a FUNC does), because there is no need for
+  ;    instances of natives to have a RETURN function slot.
+  ;
+  ;    (There are two exceptions: The NATIVE native itelf and TWEAK, in
+  ;     versions used during system boot.)
+  ;
+  ; 2. NATIVE:COMBINATOR instances have implicit parameters just like usermode
+  ;    COMBINATORs do.  We want those implicit parameters in ARG() macro list
+  ;    so the native bodies see them (again, just as the usermode combinators
+  ;    can use `state` and `input` in their body code)
 
     let paramlist: collect [  ; no PARSE COLLECT in bootstrap exe :-(
         if not text? spec.1 [
@@ -216,11 +196,14 @@ export emit-include-params-macro: func [
         ]
         spec: my next
 
-        any [  ; (almost) all natives should have `RETURN: [<typespec>]`  ; [2]
-            (the return:) <> spec.1
-            (not block? spec.2) and (spec.2 <> '~)
-            text? opt try spec.3
+        all [  ; want [RETURN <:> [type1! type2!]], see [1]
+            'return = spec.1
+            <:> = spec.2
+            (block? spec.3) or (spec.3 = <~>)
+            not text? opt try spec.4
         ] then [
+            spec: my skip 3
+        ] else [
             any [
                 native-name = "native-bedrock"
                 native-name = "tweak*-bedrock"
@@ -232,11 +215,9 @@ export emit-include-params-macro: func [
                     "You can put strings *inside* the typespec instead!"
                 ]
             ]
-        ] else [
-            spec: my skip 2
         ]
 
-        if find proto "native:combinator" [  ; implicit combinator params [3]
+        if find proto "native:combinator" [  ; implicit combinator params [2]
             keep spread [
                 state [frame!]
                 input [any-series?]
@@ -246,36 +227,118 @@ export emit-include-params-macro: func [
         keep spread spec
     ]
 
+  === "GENERATE TEXT! OF INCLUDE_PARAMS_OF_XXX() MACRO" ===
+
     let is-intrinsic: did find proto "native:intrinsic"
 
     let symbols: copy []
     let n: 1
+    let processing-locals: null
     let items: collect [
-        while [not tail? paramlist] [
-            let item: paramlist.1
-            paramlist: next paramlist
-            if not match [word! get-word3! lit-word3!] item [
-                continue  ; note get-word3! is refinement?
+        let iter: paramlist
+        while [not tail? iter] [
+            if iter.1 = <{> [
+                assert [not processing-locals]
+                processing-locals: okay
+                iter: next iter
+                continue
             ]
-            while [text? opt try paramlist.1] [paramlist: next paramlist]
-            if spec: match block! opt try paramlist.1 [
-                paramlist: next paramlist
+            if iter.1 = <}> [
+                assert [processing-locals]
+                processing-locals: null
+                iter: next iter
+                continue
+            ]
+            let param: make object! [
+                refinement: null
+                class: either processing-locals ['local] ['normal]
+                unbind: null
+                unchecked: null
+            ]
+            if iter.1 = <'> [  ; unbound parameter
+                param.unbind: okay
+                iter: next iter
+            ]
+            switch iter.1 [
+                <caret> [
+                    param.class: 'meta
+                ]
+                <$> [
+                    param.class: 'aliasable
+                    panic "no $PARAM aliasable parameters in specs... YET!"
+                ]
+                <@> [
+                    if group? iter.2 [  ; escapable
+                        param.class: 'soft
+                        iter.2: first iter.2
+                    ]
+                    else [
+                        param.class: 'literal
+                    ]
+                ]
+            ] then [
+                assert [not processing-locals]
+                iter: next iter
+            ]
+            if iter.1 = <:> [
+                param.refinement: okay
+                iter: next iter
+            ]
+            if not word? name: iter.1 [
+                panic ["Unknown item in spec for bootstrap:" mold name]
+            ]
+            iter: next iter
+
+            while [text? opt try iter.1] [  ; allow TEXT! before spec
+                iter: next iter
             ]
 
-            let name: to text! resolve noquote item
-
-            let type: "Stable*"
-            parse3 name [
-                remove caret-surrogate (type: "Value*") to <end>
-                | to <end>
+            if iter.1 = <'> [  ; quote on spec block
+                param.unchecked: okay
+                iter: next iter
+            ]
+            if spec: match block! opt try iter.1 [
+                iter: next iter
+            ]
+            else [
+                if not param.refinement [  ; !!! fix this once everything ready
+                   ; panic "Non-refinement arg missing spec block:" mold item
+                ]
             ]
 
-            let need: not any [
-                get-word3? item  ; refinements are optional
-                did find opt spec <opt>  ; <opt> arguments are optional
+            while [text? opt try iter.1] [  ; allow TEXT! after spec
+                iter: next iter
             ]
 
-            append symbols as word! name
+            let ctype
+            let copt
+            case [
+                param.class = 'meta [
+                    ctype: "Need(Value*)"
+                    copt: "false"
+                ]
+                param.refinement or (find opt spec <opt>) [
+                    ctype: "Option(Stable*)"
+                    copt: "true"
+                ]
+                param.class = 'literal [
+                    ctype: "Need(Element*)"
+                    copt: "false"
+                ]
+                param.class = 'local [
+                    assert [not param.refinement]
+                    ctype: "Need(Stable*)"  ; REVIEW: what should this be?
+                    copt: "false"
+                ]
+            ] else [
+                ctype: "Need(Stable*)"
+                copt: "false"
+            ]
+
+            let mode: either param.unchecked ["UNCHECKED"] ["CHECKED"]
+
+            append symbols name
+
             all [
                 is-intrinsic
                 n = 1  ; first parameter
@@ -284,20 +347,25 @@ export emit-include-params-macro: func [
                     "DECLARE_INTRINSIC_PARAM(${NAME})"
                 ]
             ] else [
-                if need [  ; optional = false
-                    keep cscape [n name type
-                        "DECLARE_PARAM(Need($<Type>), ${NAME}, $<n>, false)"
-                    ]
-                ]
-                else [  ; optional = true
-                    keep cscape [n name type
-                        "DECLARE_PARAM(Option($<Type>), ${NAME}, $<n>, true)"
-                    ]
+                keep cscape [mode ctype name n copt
+                    "DECLARE_$<MODE>_PARAM($<CType>, ${NAME}, $<n>, $<copt>)"
                 ]
             ]
             n: n + 1
         ]
     ]
+
+  ; 1. We need `Set_Flex_Info(level_varlist, HOLD)` here because native code
+  ;    trusts that type checking has ensured it won't get bits in its argument
+  ;    slots that the C won't recognize.  Usermode code that gets its hands on
+  ;    a native's FRAME! (e.g. for debug viewing) can't be allowed to change
+  ;    the frame values to other bit patterns out from under the C or it could
+  ;    result in a crash.  The native itself doesn't care because it's not
+  ;    using ordinary variable assignment.
+  ;
+  ;    !!! This prevents API use inside natives which is binding-based.  That
+  ;    is an inconvenience, and if a native wants to do it for expedience then
+  ;    it needs to clear this bit itself (and set it back when done).
 
     let varlist-hold: if is-intrinsic [
         [

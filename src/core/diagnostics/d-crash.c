@@ -398,7 +398,7 @@ DECLARE_NATIVE(CRASH)
 {
     INCLUDE_PARAMS_OF_CRASH;
 
-    Stable* info = ARG(INFO);
+    Element* info = ARG(INFO);
 
   #if TRAMPOLINE_COUNTS_TICKS
     Tick tick = level_->tick;  // use Level's tick instead of g_tick
