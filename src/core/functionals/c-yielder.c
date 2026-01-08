@@ -32,47 +32,9 @@
 
 
 //
-//  Startup_Yielder_Errors: C
-//
-void Startup_Yielder_Errors(void)
-{
-    known_nullptr(g_error_done) = Init_Warning(
-        Alloc_Value(),
-        Error_Done_Raw()
-    );
-}
-
-
-//
-//  Shutdown_Yielder_Errors: C
-//
-void Shutdown_Yielder_Errors(void)
-{
-    rebReleaseAndNull(&g_error_done);
-}
-
-
-//
-//  done: native [
-//
-//  "Give back an error with (id = 'done), used frequently with YIELD"
-//
-//      return: [error!]
-//  ]
-//
-DECLARE_NATIVE(DONE)
-{
-    INCLUDE_PARAMS_OF_DONE;
-
-    Copy_Cell(OUT, g_error_done);
-    return Failify(OUT);
-}
-
-
-//
 //  done?: native:intrinsic [
 //
-//  "Detect whether argument is an error with (id = 'done)"
+//  "Detect whether argument is the ~(done)~ dual"
 //
 //      return: [logic?]
 //      ^value '[any-value?]
@@ -84,10 +46,7 @@ DECLARE_NATIVE(DONE_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    if (not Is_Error(v))
-        return LOGIC(false);
-
-    return LOGIC(Is_Error_Done_Signal(Cell_Error(v)));
+    return LOGIC(Is_Done_Dual(v));
 }
 
 
@@ -245,7 +204,7 @@ Bounce Yielder_Dispatcher(Level* const L)
     if (Is_Nulled(plug)) {  // no plug, must be YIELD of a RAISED...
         assert(Is_Lifted_Error(yielded_lifted));
 
-        if (Is_Error_Done_Signal(Cell_Error(yielded_lifted))) {
+        if (Is_Done_Dual(yielded_lifted)) {
             // don't elevate to a panic, just consider it finished
         }
         else {  // all other error antiforms elevated to panics
@@ -410,13 +369,13 @@ Bounce Yielder_Dispatcher(Level* const L)
         and Frame_Coupling(label) == Level_Varlist(L)
     ){
         CATCH_THROWN(OUT, L);
+        if (Is_Done_Dual(OUT)) {
+            Init_Space(original_frame);
+            goto invoke_completed_yielder;
+        }
         if (not Is_Error(OUT)) {  // YIELD:FINAL value
             Init_Space(original_frame);
             return OUT;  // done
-        }
-        if (Is_Error_Done_Signal(Cell_Error(OUT))) {
-            Init_Space(original_frame);
-            goto invoke_completed_yielder;
         }
         Init_Quasar(original_frame);
         Init_Thrown_Panic(L, Cell_Error(OUT));
@@ -428,14 +387,14 @@ Bounce Yielder_Dispatcher(Level* const L)
 
 } invoke_completed_yielder: {  ///////////////////////////////////////////////
 
-  // Our signal of completion is the EXHAUSTED definitional error.  Using an
-  // error antiform pushes it out of band from all other return states,
-  // because other error antiforms passed to YIELD are elevated to a panic.
+  // Our signal of completion is the DONE "hot potato" dual (PACK! with the
+  // unlifted WORD! "done" in it). definitional error.
+  //
+  // Using an error-like antiform pushes it out of band from all other return
+  // states, because other error antiforms passed to YIELD elevate to panic.
 
     assert(Is_Space(original_frame));
-
-    Copy_Cell(OUT, g_error_done);
-    return Failify(OUT);
+    return Copy_Cell(OUT, Lib_Value(SYM_DONE));
 
 } invoke_yielder_that_abruptly_panicked: {  //////////////////////////////////
 

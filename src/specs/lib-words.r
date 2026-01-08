@@ -29,6 +29,8 @@ Rebol [
 
 ghost
 tripwire
+veto
+done
 quasar
 null
 okay
@@ -106,7 +108,7 @@ fence!-EVAL  ; e.g. a function that turns {x: 10, y: null} => OBJECT!
     accept
     break
     reject
-    veto
+    #veto
     inline
     cond
     seek  ; Ren-C addition

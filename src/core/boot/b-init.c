@@ -821,9 +821,6 @@ void Startup_Core(void)
 
     Startup_Utf8_Errors();  // pre-make so UTF-8 failures aren't slow
 
-    Startup_Yielder_Errors();
-    Startup_Reduce_Errors();
-
     assert(TOP_INDEX == 0 and TOP_LEVEL == BOTTOM_LEVEL);
 
 } initialize_lib: {  // SYSTEM.CONTEXTS.LIB
@@ -1049,8 +1046,6 @@ void Shutdown_Core(bool clean)
 
     Shutdown_Data_Stack();
 
-    Shutdown_Reduce_Errors();
-    Shutdown_Yielder_Errors();
     Shutdown_Utf8_Errors();
     Shutdown_Stackoverflow();
     Shutdown_Type_Predicates();

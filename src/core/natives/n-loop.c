@@ -1097,10 +1097,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                 Copy_Cell(SPARE, generated);  // need mutable, non-nulled cell
             rebRelease(generated);
 
-            if (not (
-                Is_Error(SPARE)
-                and Is_Error_Done_Signal(Cell_Error(SPARE))
-            )) {
+            if (not Is_Done_Dual(SPARE)) {
                 trap (
                   Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
                 );
@@ -2120,7 +2117,7 @@ DECLARE_NATIVE(MAP)
     if (Any_Void(SPARE))
         goto next_iteration;  // okay to skip
 
-    if (Is_Error(SPARE) and Is_Error_Veto_Signal(Cell_Error(SPARE))) {
+    if (Is_Veto_Dual(SPARE)) {
         Init_Nulled(OUT);
         goto finalize_map;
     }
@@ -2543,7 +2540,7 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 
 } condition_eval_in_spare: {  ////////////////////////////////////////////////
 
-    if (Is_Error(SPARE) and Is_Error_Done_Signal(Cell_Error(SPARE)))
+    if (Is_Done_Dual(SPARE))
         goto return_out;
 
     require (

@@ -383,12 +383,12 @@ Bounce Composer_Executor(Level* const L)
         goto handle_next_item;
     }
 
-    if (Is_Error(OUT)) {
-        if (Is_Error_Veto_Signal(Cell_Error(OUT))) {
-            Init_Nulled(OUT);
-            goto finished_out_is_null_if_veto;  // compose [a (veto) b] => null
-        }
-        return OUT;
+    if (Is_Error(OUT))
+        return OUT;  // !!! Good idea?  Bad idea?
+
+    if (Is_Veto_Dual(OUT)) {
+        Init_Nulled(OUT);
+        goto finished_out_is_null_if_veto;  // compose [a (veto) b] => null
     }
 
     require (
@@ -943,12 +943,11 @@ DECLARE_NATIVE(COMPOSE2)
 
 } string_eval_in_out: { //////////////////////////////////////////////////////
 
+    if (Is_Veto_Dual(OUT))
+        return VETOING_NULL;
+
     if (Is_Error(OUT)) {
         Drop_Data_Stack_To(STACK_BASE);
-
-        if (Is_Error_Veto_Signal(Cell_Error(OUT)))
-            return VETOING_NULL;
-
         panic (Cell_Error(OUT));
     }
 

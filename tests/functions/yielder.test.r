@@ -17,7 +17,7 @@
         append stuff x
     ]
 
-    producer: func [sentence [text!] next-coroutine [action!]] [
+    producer: proc [sentence [text!] next-coroutine [action!]] [
         log <start-producing>
         let tokens: split sentence space
         for-each 'token tokens [
@@ -28,10 +28,10 @@
         log <end-producing>
     ]
 
-    pattern-filter: func [next-coroutine [action!] :pattern [text!]] [
+    pattern-filter: lambda [next-coroutine [action!] :pattern [text!]] [
         pattern: default ["ing"]
 
-        return yielder [token [null? text!]] [
+        yielder [token [null? text!]] [
             log <start-filtering>
             while [token] [  ; Python does a blocking `token = (yield)`
                 log [filter: (token)]

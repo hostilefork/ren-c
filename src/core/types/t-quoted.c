@@ -622,7 +622,7 @@ DECLARE_NATIVE(OPTIONAL_VETO)  // usually used via its alias of ?!
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
     if (Is_Nulled(v))
-        return fail (Cell_Error(g_error_veto));
+        return Copy_Cell(OUT, LIB(VETO));
 
     return COPY(v);
 }

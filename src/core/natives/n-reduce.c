@@ -26,47 +26,9 @@
 
 
 //
-//  Startup_Reduce_Errors: C
-//
-void Startup_Reduce_Errors(void)
-{
-    known_nullptr(g_error_veto) = Init_Warning(
-        Alloc_Value(),
-        Error_Veto_Raw()
-    );
-}
-
-
-//
-//  Shutdown_Reduce_Errors: C
-//
-void Shutdown_Reduce_Errors(void)
-{
-    rebReleaseAndNull(&g_error_veto);
-}
-
-
-//
-//  veto: native [
-//
-//  "Give back an error with (id = 'veto), used to cancel an operation"
-//
-//      return: [error!]
-//  ]
-//
-DECLARE_NATIVE(VETO)
-{
-    INCLUDE_PARAMS_OF_VETO;
-
-    Copy_Cell(OUT, g_error_veto);
-    return Failify(OUT);
-}
-
-
-//
 //  veto?: native:intrinsic [
 //
-//  "Detect whether argument is an error with (id = 'veto)"
+//  "Detect whether argument is the ~(veto)~ dual"
 //
 //      return: [logic?]
 //      ^value '[any-value?]
@@ -78,10 +40,7 @@ DECLARE_NATIVE(VETO_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    if (not Is_Error(v))
-        return LOGIC(false);
-
-    return LOGIC(Is_Error_Veto_Signal(Cell_Error(v)));
+    return LOGIC(Is_Veto_Dual(v));
 }
 
 
@@ -254,7 +213,7 @@ DECLARE_NATIVE(REDUCE)
     if (Is_Ghost(SPARE))
         goto next_reduce_step;  // void results are skipped by reduce
 
-    if (Is_Error(SPARE) and Is_Error_Veto_Signal(Cell_Error(SPARE)))
+    if (Is_Veto_Dual(SPARE))
         goto vetoed;  // veto means stop processing and return NULL
 
     require (

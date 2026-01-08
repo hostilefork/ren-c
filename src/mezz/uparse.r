@@ -1513,11 +1513,12 @@ default-combinators: make map! [
 
         ^result: eval value
 
+        if veto? ^result [
+            return fail "GROUP! rule synthesized ~(veto)~"  ; fail, don't panic
+        ]
+
         if error? ^result [
-            if veto? ^result [  ; VETO error means fail the GROUP! rule
-                return ^result
-            ]
-            panic ^result  ; all other error antiforms escalate to panics
+            panic ^result  ; all error antiforms escalate to panics
         ]
 
         return ^result
