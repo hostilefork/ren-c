@@ -29,22 +29,25 @@
 //
 //  try: native:intrinsic [
 //
-//  "Suppress escalation to PANIC from ERROR!s, by returning NULL"
+//  "Suppress escalation to PANIC from ERROR!s and 'hot potatoes', return NULL"
 //
 //      return: [<null> any-value?]
-//      ^value '[any-value? error!]  ; e.g. TRY on a pack returns the pack
+//      ^value '[any-value? error! dual? void?]  ; TRY on pack returns pack
 //  ]
 //
 DECLARE_NATIVE(TRY)
+//
+// 1. If you TRY something, you might be intending to test it for logic, e.g.
+//    (if try ... [...]).  So voids were historically converted to nulls.
+//    But this probably doesn't make sense; and void preservation should be
+//    done most of the time.  A separate "void to null" intrinsic may be
+//    needed, vs. folding that into TRY.
 {
     INCLUDE_PARAMS_OF_TRY;
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    if (Any_Void(v) or Is_Light_Null(v))
-        return NULLED;
-
-    if (Is_Error(v))
+    if (Is_Error(v) or Is_Hot_Potato_Dual(v))  // what about Any_Void()? [1]
         return NULLED;
 
     return COPY(v);  // !!! also tolerates other antiforms, should it?
@@ -242,28 +245,35 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 //
 DECLARE_NATIVE(EXCEPT)
 //
-// 1. While it was once "obvious" that an EXCEPT branch wouldn't want to get
-//    an unstable antiform, it's now not as clear... since they could do
-//    (... except ^e -> [...]) and use ^e in the branch, which might permit
-//    things like (^e.id) and not give an error.  This would make it easier
-//    to propagate the error without having the complexity or cost of doing
-//    another call to FAIL.
+// 1. EXCEPT branches generally don't want antiforms, though once I thought
+//    that (... except ^e -> [...]) might use ^e in the branch, with things
+//    like (^e.id) being permissive and letting you read the field.  That's
+//    not how that works... it acts as ^($e.id) not (^e).id - so basically
+//    we have to disarm before passing.
 //
-//    This is of course contingent on the behavior of (^e.id) and such, so
-//    we'll see how that shapes up.
+// 2. "Hot Potatoes" are light substitutes for ERROR!, so they pretty much
+//    need to be handled by EXCEPT.  But unlike ERROR!s they have little to
+//    extract from them, and would become (confusingly) just WORD!s if they
+//    were to lose their wrapping PACK! antiform.  By leaving them in the
+//    dual state "as-is" this means that if a branch wants to accept a
+//    hot potato it has to take its argument ^META, but once it does it
+//    can use ordinary functions like VETO? or DONE? to recognize them.
 {
     INCLUDE_PARAMS_OF_EXCEPT;
 
     Value* left = Possibly_Unstable(ARG(LEFT));
     Element* branch = ARG(BRANCH);
 
-    if (not Is_Error(left))
-        return COPY(left);  // pass thru any non-errors
+    if (Is_Error(left)) {
+        LIFT_BYTE(left) = NOQUOTE_3;  // turn error to plain WARNING! [1]
+    }
+    else if (Is_Hot_Potato_Dual(left)) {
+        // leave as-is [2]
+    }
+    else
+        return COPY(left);  // pass through non-error/non-hot-potato
 
-    LIFT_BYTE(left) = NOQUOTE_3;  // turn antiform error into plain warning
-    Element* warning = As_Element(left);
-
-    return DELEGATE_BRANCH(OUT, branch, warning);  // !!! pass antiform? [1]
+    return DELEGATE_BRANCH(OUT, branch, left);
 }
 
 

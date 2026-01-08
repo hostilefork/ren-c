@@ -67,7 +67,7 @@
             yield 1
             yield 2
             yield 3
-        ] func [x] [
+        ] proc [x] [
             keep x * 10
         ]
     ]
@@ -126,45 +126,47 @@
 )
 
 
-; Generators cannot return definitional errors... with the exception of DONE
-; (although that terminates the generator).
+; Generators can't return definitional errors, or hot potatoes, like ~(veto)~
 ;
 ; Here's a trick to make it possible to generate them, and turn null into
 ; what generates the termination condition.
 (
     e-generator: func [body [block!]] [
         let g: generator [
-            yield: enclose yield/ func [f [frame!] {temp}] [
-                if null? ^f.value [
-                    ^f.value: done
+            yield: enclose yield/ f -> [
+                ignore ^f.value
+                if '~null~ = lift ^f.value [  ; safe "light null" detection
+                    ignore ^f.value: ^done
+                    eval f
                 ]
-                return unlift eval-free f
+                ^f.value: lift ^f.value
+                unlift eval f
             ]
             eval overbind binding of $yield body
         ]
         return does [
-            unlift (g except [lift null])
+            unlift (g except (^e -> [assert [done? ^e], lift null]))
         ]
     ]
 
-    a: b: c: d: e: ~
+    a: b: c: d: e: ()
 
     g: e-generator [
-        ^a: yield done
+        ignore ^a: yield fail "a"
         b: yield 1
-        ^c: yield done
+        ignore ^c: yield ^done
         d: yield null  ; rigged to terminate the generator
         e: yield <unreachable>
     ]
 
     all [
-        done? g
+        error? g
         g = 1
         done? g
         g = null
         g = null
 
-        done? ^a
+        error? ^a
         b = 1
         done? ^c
         unset? $d

@@ -473,6 +473,44 @@ DECLARE_NATIVE(PACK_Q)
 
 
 //
+//  dual?: native:intrinsic [
+//
+//  "Tells you if argument is a 'dual' (antiform block, one unlifted item)"
+//
+//      return: [logic?]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(DUAL_Q)
+{
+    INCLUDE_PARAMS_OF_DUAL_Q;
+
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    return LOGIC(Is_Dual(v));
+}
+
+
+//
+//  hot-potato?: native:intrinsic [
+//
+//  "Tells you if argument is an undecayable PACK!, with one unlifted WORD!"
+//
+//      return: [logic?]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(HOT_POTATO_Q)
+{
+    INCLUDE_PARAMS_OF_HOT_POTATO_Q;
+
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    return LOGIC(Is_Hot_Potato_Dual(v));
+}
+
+
+//
 //  alias: native [
 //
 //  "Make a dual state for proxying SET and GET to another variable"
@@ -622,7 +660,7 @@ DECLARE_NATIVE(OPTIONAL_VETO)  // usually used via its alias of ?!
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
     if (Is_Nulled(v))
-        return fail (Cell_Error(g_error_veto));
+        return Copy_Cell(OUT, LIB(VETO));
 
     return COPY(v);
 }

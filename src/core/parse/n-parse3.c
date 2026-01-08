@@ -484,12 +484,9 @@ bool Process_Group_For_Parse_Throws(
 
     Drop_Level(sub);
 
-    if (Is_Error(eval)) {
-        if (Is_Error_Veto_Signal(Cell_Error(eval))) {
-            *veto = true;
-            return false;
-        }
-        panic (Cell_Error(eval));
+    if (Is_Veto_Dual(eval)) {
+        *veto = true;
+        return false;
     }
 
     if (Any_Void(eval)) {
@@ -1645,12 +1642,9 @@ DECLARE_NATIVE(SUBPARSE)
                 if (Any_Void(eval))
                     goto pre_rule;
 
-                if (Is_Error(eval)) {
-                    if (Is_Error_Veto_Signal(Cell_Error(eval))) {
-                        Init_Nulled(ARG(POSITION));  // treat as mismatch
-                        goto post_match_processing;
-                    }
-                    panic (Cell_Error(eval));
+                if (Is_Veto_Dual(eval)) {
+                    Init_Nulled(ARG(POSITION));  // treat as mismatch
+                    goto post_match_processing;
                 }
 
                 require (

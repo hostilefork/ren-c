@@ -141,9 +141,6 @@ PVAR Stable* g_error_codepoint_too_high;
 PVAR Stable* g_error_no_utf8_surrogates;
 PVAR Stable* g_error_illegal_zero_byte;
 
-PVAR Stable* g_error_done;
-PVAR Stable* g_error_veto;
-
 PVAR Cell g_erased_cell;  // target of bottommost level, always erased cell
 
 TVAR Feed* TG_End_Feed;

@@ -28,8 +28,26 @@
 //
 
 
-#define Is_Dual(cell) \
+#define Is_Bedrock(cell) \
     (LIFT_BYTE(known(Slot*, (cell))) == DUAL_0)
+
+
+INLINE const Element* Opt_Extract_Match_Dual(Value* v) {
+    if (not Is_Pack(v))
+        return nullptr;
+
+    const Element* tail;
+    const Element* item = List_At(&tail, v);
+    if (item == tail or item + 1 != tail)
+        return nullptr;
+
+    if (LIFT_BYTE(item) != NOQUOTE_3)
+        return nullptr;
+
+    return item;
+}
+
+#define Is_Dual(v)  u_cast(bool, Opt_Extract_Match_Dual(v))
 
 
 //=//// BLACKHOLE ~(_)~ DUAL //////////////////////////////////////////////-//
@@ -40,7 +58,7 @@
 //
 // It makes some amount of sense that the dual would be a SPACE rune.
 //
-//    >> blackhole
+//    >> ^blackhole
 //    == \~(_)~\  ; antiform (pack!) "dual: blackhole"
 //
 
@@ -57,12 +75,70 @@ INLINE Slot* Init_Blackhole_Slot(Init(Slot) out) {
 }
 
 
-//=//// ~(hot-potato)~ WORD! DUAL /////////////////////////////////////////-//
+//=//// ~(hot-potato)~ WORD! DUALS /////////////////////////////////////////-//
 //
 // WORD! duals are specifically prohibited from being stored in variables
 // -or- decaying, leading them to be a lightweight way of making something
 // that is "ERROR!-like" which can only be taken as a ^META form.
 //
+// 1. VETO error antiforms signal a desire to cancel the operation that
+//    requested the evaluation.  Unlike GHOST which opts out of slots but keeps
+//    running, many operations that observe a VETO will return NULL:
+//
+//        >> reduce ["a" ^ghost "b"]
+//        == ["a" "b"]
+//
+//        >> reduce ["a" ^veto "b"]
+//        == \~null~\  ; antiform
+//
+//    In PARSE, a GROUP! that evaluates to VETO doesn't cancel the parse,
+//    but rather just fails that specific GROUP!'s combinator, rolling over to
+//    the next alternate.
+//
+//        >> parse [a b] ['a (if 1 < 2 [^veto]) 'b | (print "alt!") 'a 'b]
+//        alt!
+//        == 'b
+//
+// 2. DONE error antiforms report that an enumeration is exhausted and has no
+//    further items to give back.  They're used by YIELD or functions that
+//    want to act as generators for looping constructs like FOR-EACH or MAP:
+//
+//        count: 0
+//        make-one-thru-five: func [
+//            return: [done? integer!]
+//        ][
+//            if count = 5 [return ^done]
+//            return count: count + 1
+//        ]
+//
+//        >> map 'i make-one-thru-five/ [i * 10]
+//        == [10 20 30 40 50]
+//
+
+INLINE bool Is_Hot_Potato_Dual(Value* v) {
+    if (not Is_Pack(v))
+        return false;
+
+    const Element* tail;
+    const Element* item = List_At(&tail, v);
+    if (item == tail or item + 1 != tail)
+        return false;
+    return Is_Word(item);
+}
+
+INLINE bool Is_Hot_Potato_Dual_With_Id(Value* v, SymId id) {
+    if (not Is_Pack(v))
+        return false;
+
+    const Element* tail;
+    const Element* item = List_At(&tail, v);
+    if (item == tail or item + 1 != tail)
+        return false;
+    return Is_Word_With_Id(item, id);
+}
+
+#define Is_Veto_Dual(v)  Is_Hot_Potato_Dual_With_Id(v, SYM_VETO)  // [1]
+#define Is_Done_Dual(v)  Is_Hot_Potato_Dual_With_Id(v, SYM_DONE)  // [2]
 
 
 //=//// ALIAS ~(^var)~ ~(^obj.field)~ DUALS ///////////////////////////////-//

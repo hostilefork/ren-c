@@ -912,12 +912,12 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
         const Symbol* spelling = Key_Symbol(evars.key);
 
         DECLARE_ELEMENT (set_word);
-        Init_Set_Word(set_word, spelling);  // want escaping, e.g `|::|: 10`
+        Init_Set_Word(set_word, spelling);  // need escaping, e.g `[::]: 10`
 
         Mold_Element(mo, set_word);
         Append_Codepoint(mo->strand, ' ');
 
-        if (Is_Dual(evars.slot)) {
+        if (Is_Bedrock(evars.slot)) {
             require (
               Append_Ascii(mo->strand, "??? ; dual cell")  // !!! rethink
             );
