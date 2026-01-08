@@ -711,7 +711,7 @@ DECLARE_NATIVE(CHAR_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return LOGIC(false);
 
     return LOGIC(Is_Rune_And_Is_Char(v));
 }

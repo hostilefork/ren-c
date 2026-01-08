@@ -161,3 +161,17 @@ INLINE Stable* Stable_Decayed_Intrinsic_Arg(
 ){
     return As_Stable(Unchecked_Intrinsic_Arg(L));
 }
+
+
+INLINE bool Is_Intrinsic_Typechecker(Details* details) {
+    const Element* param = As_Element(
+        Details_At(details, IDX_RAW_NATIVE_RETURN)
+    );
+    const Source* array = opt Parameter_Spec(param);
+    return (
+        array
+        and Array_Len(array) == 1
+        and Is_Word(Array_At(array, 0))
+        and Word_Id(Array_At(array, 0)) == SYM_LOGIC_Q
+    );
+}

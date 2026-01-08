@@ -1025,6 +1025,26 @@ Bounce Action_Executor(Level* L)
     if (not b)
         goto check_output;  // consolidated return result into OUT cell
 
+  ensure_typecheckers_dont_overwrite_output: {
+
+  // If a NATIVE:INTRINSIC returns [logic?] then it is supposed to return
+  // that logic by means of either `nullptr` or `BOUNCE_OKAY`, as opposed
+  // to disrupting the output cell.  We can check enforce that even if
+  // not being called intrinsically, to catch bugs in the typecheckers.
+
+  #if RUNTIME_CHECKS
+    if (
+        Get_Details_Flag(details, CAN_DISPATCH_AS_INTRINSIC)
+        and b != nullptr
+        and b != BOUNCE_OKAY
+        and Is_Intrinsic_Typechecker(details)
+    ){
+        panic ("Intrinsic typechecker overwrote output cell");
+    }
+  #endif
+
+} handle_bounce: {
+
     switch (Bounce_Type(b)) {  // need some actual Bounce behavior...
       case C_CONTINUATION:
         return BOUNCE_CONTINUE;  // Note: may not have pushed a new level...
@@ -1058,7 +1078,7 @@ Bounce Action_Executor(Level* L)
         assert(!"Invalid pseudotype returned from action dispatcher");
     }
 
-} check_output: {  ///////////////////////////////////////////////////////////
+}} check_output: {  ///////////////////////////////////////////////////////////
 
   // Here we know the function finished and nothing threw past it or had an
   // abrupt panic().  (It may have done a `return fail (...)`, however.)
