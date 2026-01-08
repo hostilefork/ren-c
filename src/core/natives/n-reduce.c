@@ -85,6 +85,22 @@ DECLARE_NATIVE(VETO_Q)
 }
 
 
+// PACK piggy-backs on REDUCE's implementation.  But REDUCE ignores ghosts
+// (at least by default--maybe someday a refinement will control it being able
+// to see them...but it's too annoying to pass ghosts to predicates in the
+// general case).  So it can't be just REDUCE:PREDICATE with LIFT, it has to
+// slip in a flag to tell REDUCE to behave like PACK.
+//
+// Note: Since REDUCE and PACK are FRAME!-compatible, there could be a special
+// value of the :PREDICATE refinement that cued PACK! behavior.  One might
+// even say that some trick like "pass a quoted FRAME! and you get GHOST!"
+// could be a back-door to the functionality, vs. bloating the frame with an
+// extra refinement.  For now avoiding weird magic, or exposing the feature
+// via something users could trip over accidentally.
+//
+#define LEVEL_FLAG_REDUCE_IS_ACTUALLY_PACK  LEVEL_FLAG_MISCELLANEOUS
+
+
 //
 //  reduce: native [
 //
@@ -162,13 +178,23 @@ DECLARE_NATIVE(REDUCE)
 
 } next_reduce_step: {  ///////////////////////////////////////////////////////
 
-  // 1. We want the output newline status to mirror newlines of the start
+  // 1. !!! Skipping COMMA! saves time here, but raises questions regarding
+  //    RebindableSyntax...what if COMMA! has been rethought not to make
+  //    ghosts?  It's actually semantically important for PACK (which reuses
+  //    this code) to skip the commas, so this needs further thought.
+  //
+  // 2. We want the output newline status to mirror newlines of the start
   //    of the eval positions.  But when the evaluation callback happens, we
   //    won't have the starting value anymore.  Cache the newline flag on
   //    the ARG(VALUE) cell, as newline flags on ARG()s are available.
 
     if (Is_Level_At_End(SUBLEVEL))
         goto finished;
+
+    if (Is_Comma(At_Level(SUBLEVEL))) {
+        Fetch_Next_In_Feed(SUBLEVEL->feed);
+        goto next_reduce_step;  // PACK can't let COMMA! eval to GHOST! [1]
+    }
 
     if (Get_Cell_Flag(At_Level(SUBLEVEL), NEWLINE_BEFORE))
         Set_Cell_Flag(v, NEWLINE_BEFORE);  // cache newline flag [1]
@@ -182,20 +208,29 @@ DECLARE_NATIVE(REDUCE)
 
 } reduce_step_result_in_spare: { /////////////////////////////////////////////
 
+  // 1. If not doing (pack [...]) semantics, we skip ghosts.  Consider:
+  //
+  //        >> reduce:predicate [1 + 2, if 3 = 4 [5], 6 + 7] negate/
+  //        == [-3 -7]
+  //
+  //    NEGATE doesn't necessarily accept ghosts...and even if it did, it
+  //    would probably return NULL, which is an antiform REDUCE wouldn't be
+  //    able to handle.
+  //
+  // 2. It's possible that the function being used as a predicate is an
+  //    intrinsic and doesn't do type checking.  In that case, we need to
+  //    tweak the parameter to request that it be checked.
+
+    if (Get_Level_Flag(LEVEL, REDUCE_IS_ACTUALLY_PACK)) {
+        Copy_Lifted_Cell(PUSH(), SPARE);
+        goto next_reduce_step;
+    }
+
     if (not predicate)  // default is no processing
         goto process_out;
 
-    if (Is_Ghost(SPARE)) {  // vaporize unless accepted by predicate
-        const Element* param = Known_Unspecialized(First_Unspecialized_Param(
-            nullptr,
-            Frame_Phase(unwrap predicate)
-        ));
-        if (not Typecheck_Uses_Spare_And_Scratch(  // *sublevel*'s spare!
-            SUBLEVEL, SPARE, param, SPECIFIED  // so passing L->spare is ok
-        )){
-            goto next_reduce_step;  // not accepted, so skip it
-        }
-    }
+    if (Is_Ghost(SPARE))
+        goto next_reduce_step;  // don't pass ghosts to predicate
 
     SUBLEVEL->executor = &Just_Use_Out_Executor;
     STATE = ST_REDUCE_RUNNING_PREDICATE;
@@ -209,12 +244,18 @@ DECLARE_NATIVE(REDUCE)
   //    function dispatch has pushed refinements, etc.  When the REDUCE
   //    underneath it pushes a value to the data stack, that level must be
   //    informed the stack element is "not for it" before the next call.
+  //
+  // 2. See above section for how we remembered the newline that was on the
+  //    source originally, and cache it on the input argument cell.
+  //
+  // 3. We're performing more evaluations using the same sublevel, and it
+  //    needs to know its baseline correctly.  Adjust for any pushes we do.
 
     if (Is_Ghost(SPARE))
         goto next_reduce_step;  // void results are skipped by reduce
 
     if (Is_Error(SPARE) and Is_Error_Veto_Signal(Cell_Error(SPARE)))
-        goto vetoed;
+        goto vetoed;  // veto means stop processing and return NULL
 
     require (
       Stable* spare = Decay_If_Unstable(SPARE)
@@ -222,10 +263,10 @@ DECLARE_NATIVE(REDUCE)
     if (Is_Splice(spare)) {
         const Element* tail;
         const Element* at = List_At(&tail, spare);
-        bool newline = Get_Cell_Flag(v, NEWLINE_BEFORE);
+        bool newline = Get_Cell_Flag(v, NEWLINE_BEFORE);  // [2]
         for (; at != tail; ++at) {
             Copy_Cell(PUSH(), at);  // Note: no binding on antiform SPLICE!
-            SUBLEVEL->baseline.stack_base += 1;  // [1]
+            SUBLEVEL->baseline.stack_base += 1;  // [3]
             if (newline) {
                 Set_Cell_Flag(TOP, NEWLINE_BEFORE);  // [2]
                 newline = false;
@@ -233,9 +274,9 @@ DECLARE_NATIVE(REDUCE)
         }
     }
     else if (Is_Antiform(spare))
-        return fail (Error_Bad_Antiform(spare));
+        panic (Error_Bad_Antiform(spare));  // [4]
     else {
-        Move_Cell(PUSH(), As_Element(spare));  // not void, not antiform
+        Move_Cell(PUSH(), As_Element(spare));
         SUBLEVEL->baseline.stack_base += 1;  // [3]
 
         if (Get_Cell_Flag(v, NEWLINE_BEFORE))  // [2]
@@ -246,6 +287,9 @@ DECLARE_NATIVE(REDUCE)
 
 } finished: {  ///////////////////////////////////////////////////////////////
 
+  // 1. As with COMPOSE, we don't bind the output list.  It's the caller's
+  //    responsibility to bind it if desired.
+
     Drop_Level_Unbalanced(SUBLEVEL);  // Drop_Level() asserts on accumulation
 
     Source* a = Pop_Source_From_Stack(STACK_BASE);
@@ -253,7 +297,10 @@ DECLARE_NATIVE(REDUCE)
         Set_Source_Flag(a, NEWLINE_AT_TAIL);
 
     Element* out = Init_Any_List(OUT, Heart_Of_Builtin_Fundamental(v), a);
-    Tweak_Cell_Binding(out, Cell_Binding(v));
+
+    dont(Tweak_Cell_Binding(out, Cell_Binding(v)));  // [1]
+    UNUSED(out);
+
     return OUT;
 
 } vetoed: {  ///////////////////////////////////////////////////////////////
@@ -262,6 +309,78 @@ DECLARE_NATIVE(REDUCE)
     Drop_Level(SUBLEVEL);
     return NULLED;
 }}
+
+
+//
+//  pack: native [
+//
+//  "Create a pack of arguments from a list"
+//
+//      return: [pack!]
+//      block "Reduce if plain BLOCK!, don't if @BLOCK!"
+//          [<opt-out> block! @block!]
+//      {predicate}  ; for FRAME!-compatibility with REDUCE
+//  ]
+//
+DECLARE_NATIVE(PACK)
+//
+// PACK piggy-backs on REDUCE.  See LEVEL_FLAG_REDUCE_IS_ACTUALLY_PACK.
+//
+// 1. A PINNED! pack will just lifts the items as-is:
+//
+//       >> pack @[1 + 2]
+//       == \~['1 '+ '2']~\  ; antiform (pack!)
+//
+// 2. Using LIFT as a predicate means error antiforms are tolerated; it is
+//    expected that you IGNORE (vs. ELIDE) a PACK which contains errors, as
+//    ordinary elisions (such as in multi-step evaluations) will complain:
+//
+//        https://rebol.metaeducation.com/t/2206
+{
+    INCLUDE_PARAMS_OF_PACK;
+
+    if (STATE == STATE_0) { // PACK is GHOST-aware REDUCE with LIFT predicate
+        Element* block = Element_ARG(BLOCK);
+
+        if (Is_Pinned_Form_Of(BLOCK, block)) {  // lift elements literally [1]
+            const Element* tail;
+            const Element* at = List_At(&tail, block);
+
+            Length len = tail - at;
+            Source* a = Make_Source_Managed(len);  // same size array
+            Set_Flex_Len(a, len);
+            Element *dest = Array_Head(a);
+
+            for (; at != tail; ++at, ++dest)
+                Copy_Lifted_Cell(dest, at);
+
+            return Init_Pack(OUT, a);
+        }
+
+        assert(Is_Block(block));
+        assert(Is_Nulled(LOCAL(PREDICATE)));
+        Set_Level_Flag(LEVEL, REDUCE_IS_ACTUALLY_PACK);
+    }
+
+    Bounce bounce = opt Irreducible_Bounce(
+        LEVEL,
+        Apply_Cfunc(NATIVE_CFUNC(REDUCE), LEVEL)
+    );
+    if (bounce)  // REDUCE wants more EVALs...final value not in OUT yet
+        return bounce;
+
+    if (Is_Nulled(OUT))  // VETO encountered
+        return NULLED;
+
+    if (Is_Error(OUT))
+        return OUT;  // definitional error (what choices would these be?)
+
+    assert(Is_Possibly_Unstable_Value_Block(OUT));
+    KIND_BYTE(OUT) = TYPE_GROUP;
+    Unstably_Antiformize_Unbound_Fundamental(OUT);
+    assert(Is_Pack(OUT));
+    return OUT;
+}
 
 
 //
@@ -275,8 +394,8 @@ DECLARE_NATIVE(REDUCE)
 //          <null>          "if BREAK encountered"
 //          ghost!           "if body never ran"
 //      ]
-//      vars "Variable to receive each reduced value (multiple TBD)"
-//          [_ word! @word! block!]
+//      @vars "Variable to receive each reduced value (multiple TBD)"
+//          [_ word! 'word! ^word!]
 //      block "Input block of expressions (@[...] acts like FOR-EACH)"
 //          [block! @block!]
 //      body [block!]
@@ -341,6 +460,11 @@ DECLARE_NATIVE(REDUCE_EACH)
     if (Is_Level_At_End(SUBLEVEL))
         goto finished;
 
+    if (Is_Comma(At_Level(SUBLEVEL))) {
+        Fetch_Next_In_Feed(SUBLEVEL->feed);
+        goto reduce_next;  // REDUCE skips commas, so REDUCE-EACH does too
+    }
+
     if (Is_Pinned_Form_Of(BLOCK, block))  // undo &Just_Use_Out_Executor
         SUBLEVEL->executor = &Inert_Stepper_Executor;
     else
@@ -352,10 +476,15 @@ DECLARE_NATIVE(REDUCE_EACH)
 
 } reduce_step_result_in_spare: {  ////////////////////////////////////////////
 
+  // 1. See notes in REDUCE for why it just skips over GHOST! results.  For
+  //    compatibility, we make REDUCE-EACH do the same thing.
+  //
+  //    (If REDUCE ever gets a :GHOSTABLE refinement, REDUCE-EACH should too.)
+
     Slot* slot = Varlist_Slot(Cell_Varlist(vars), 1);
 
-    if (Is_Ghost(SPARE) and Not_Cell_Flag(slot, LOOP_SLOT_ROOT_META))
-        goto reduce_next;  // skip void unless meta?
+    if (Is_Ghost(SPARE))
+        goto reduce_next;  // REDUCE-compatible semantics [1]
 
     trap (
       Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
@@ -407,7 +536,6 @@ DECLARE_NATIVE(REDUCE_EACH)
 
     return OUT_BRANCHED;
 }}
-
 
 
 enum FLATTEN_LEVEL {

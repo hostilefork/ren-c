@@ -11,7 +11,7 @@
 [#1760 ; unwind functions should stop evaluation
     (null? repeat 1 [reduce [break]])
 ]
-(trash? repeat 1 [reduce [continue]])
+(heavy-void? repeat 1 [reduce [continue]])
 (1 = catch [reduce [throw 1]])
 
 ; There used to be a multi-return situation where the name of a throw was
@@ -87,14 +87,14 @@
 
 ~expect-arg~ !! (reduce:predicate [null] cascade [null?/ non/])
 
-; Voids are offered, but omitted if predicate doesn't take them.
+; Ghosts not offered to predicates
 ; https://forum.rebol.info/t/should-void-be-offered-to-predicates-for-reduce-any-all-etc/1872
 ;
-(['3 ~()~ '300] = reduce:predicate [
+(['3 '300] = reduce:predicate [
     1 + 2 ^ghost 100 + 200
 ] lift/)
 
-([-3 -300] = reduce:predicate [1 + 2 when null [10 + 20] 100 + 200] negate/)
+([-3 -300] = reduce:predicate [1 + 2 if null [10 + 20] 100 + 200] negate/)
 ([3 300] = reduce:predicate [1 + 2 if null [10 + 20] 100 + 200] opt/)
 
 ([3 ~null~ 300] = reduce:predicate [1 + 2 if ok [null] 100 + 200] reify/)
@@ -126,11 +126,15 @@
 ]
 
 ; REDUCE-EACH can do ^META processing, this is the basis of ATTEMPT
+; ghosts are ignored, as in REDUCE
+; if REDUCE gets a "can see ghosts" mode, REDUCE-EACH should too
 [
-    ((the '3) = reduce-each ^x [1 + 2] [x])
+    (3 = reduce-each ^x [1 + 2] [x])  ; no effect if not unstable
+
+    ([3 7] = collect [reduce-each ^x [1 + 2 comment "hi" 3 + 4] [keep x]])
 
     (
-        e: reduce-each ^x [fail "foo"] [unquasi x]
+        e: reduce-each ^x [fail "foo"] [disarm ^x]
         e.message = "foo"
     )
 ]
