@@ -62,6 +62,8 @@ probe: func [  ; note: do not want VANISHABLE, else `1 + 2 probe eval []` is 3
     return ^value
 ]
 
+ghostly: vanishable identity/  ; avoids ghosts being turned into empty packs
+
 compose: specialize compose2/ [pattern: '()]  ; use template binding if not @()
 
 branched?: then?/  ; alias, maybe more catchy?
@@ -151,17 +153,6 @@ lesser-or-equal?: equal-or-lesser?/
 ?=: infix lax-equal?/
 ?!=: infix lax-not-equal?/
 
-
-elide-if-heavy-void: vanishable func [
-    "Argument is evaluative, but discarded if heavy void (or void)"
-
-    return: [any-value?]
-    ^value "Evaluation product to be ignored"
-        [any-value?]  ; ghost! is passed through
-][
-    if '~()~ = lift ^value [return ()]
-    return ^value
-]
 
 ; COMMA! is the new expression barrier.  But `||` is included as a way to
 ; make comma antiforms to show how to create custom barrier-like constructs.

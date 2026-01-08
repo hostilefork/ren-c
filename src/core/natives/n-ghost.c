@@ -156,6 +156,28 @@ DECLARE_NATIVE(ELIDE)
 
 
 //
+//  elide-if-void: vanishable native:intrinsic [
+//
+//  "Argument is evaluative, but discarded if VOID"
+//
+//      return: [any-value?]
+//      ^value '[any-value?]  ; ghost! is passed through
+//  ]
+//
+DECLARE_NATIVE(ELIDE_IF_VOID)
+{
+    INCLUDE_PARAMS_OF_ELIDE_IF_VOID;
+
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    if (Any_Void(v))
+        return GHOST;
+
+    return COPY(v);  // trust that a piped ERROR! etc. behaves appropriately
+}
+
+
+//
 //  ignore: native:intrinsic [
 //
 //  "Argument evaluated, result discarded (even ERROR! and undecayable packs)"

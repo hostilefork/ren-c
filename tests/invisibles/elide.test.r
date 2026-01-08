@@ -68,3 +68,32 @@
     x: ~
     x: 1 + elide (y: 10) 2 * 3  ; non-interstitial, no longer legal
 )
+
+; ELIDE-IF-VOID variation
+
+(equal? 304 300 + 4 elide-if-void ())
+(equal? 304 300 + 4 elide-if-void ~()~)
+(equal? 1020 elide-if-void 1000 + 20)
+(error? elide-if-void fail "passthru")
+('~['10 '20]~ = lift elide-if-void pack [10 20])
+
+; Usermode ELIDE-IF-VOID variant, to show you could write it yourself.
+[(
+    u-elide-if-void: vanishable func [
+        "Argument is evaluative, but discarded if heavy void (or void)"
+
+        return: [any-value?]
+        ^value "Evaluation product to be ignored"
+            [any-value?]  ; ghost! is passed through
+    ][
+        if '~()~ = lift ^value [return ()]
+        return ^value
+    ]
+    ok
+)
+    (equal? 304 300 + 4 u-elide-if-void ())
+    (equal? 304 300 + 4 u-elide-if-void ~()~)
+    (equal? 1020 u-elide-if-void 1000 + 20)
+    (error? u-elide-if-void fail "passthru")
+    ('~['10 '20]~ = lift u-elide-if-void pack [10 20])
+]

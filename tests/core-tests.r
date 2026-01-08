@@ -403,6 +403,7 @@
 %../extensions/crypt/tests/sha256.test.r
 
 %misc/assert.test.r
+%misc/identity.test.r
 %misc/pack-old.test.r
 %misc/panic.test.r
 %misc/help.test.r  ; Do this last, as it has a lot of output
