@@ -347,6 +347,7 @@ overbind: in/  ; works in a limited sense
 bindable: lambda3 [what] [:what]
 inside: lambda3 [where value] [:value]  ; no-op in bootstrap
 wrap: identity/  ; no op in bootstrap
+bind1: identity/  ; no op in bootstrap (will likely become BIND)
 
 in: ~#[Use HAS or OVERBIND instead of IN in bootstrap]#~
 

@@ -26,6 +26,28 @@
 
 
 
+//
+//  bind1: native [
+//
+//  "Bind argument in current evaluative context (synonym for $)"
+//
+//      return: [element?]
+//      value [<opt-out> element?]
+//  ]
+//
+DECLARE_NATIVE(BIND1)
+//
+// It's believed that this will likely become the meaning of BIND.  While it
+// seems a loss to use the word for a single-arity function instead of a more
+// complex dialect, it helps those who do not like reading $ as symboly-code.
+{
+    INCLUDE_PARAMS_OF_BIND1;
+
+    Element* v = Element_ARG(VALUE);
+
+    Copy_Cell_May_Bind(OUT, v, Level_Binding(level_));
+    return OUT;
+}
 
 
 //

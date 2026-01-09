@@ -1122,7 +1122,7 @@ help-object: make object! collect [parse3 help-spec [
         spec: text! (
             keep $cscape
             let expanded: spaced ["    ===" topic "===" newline spec]
-            keep reduce [expanded]
+            keep bind1 reduce [expanded]
         )
     ]
 ]]
