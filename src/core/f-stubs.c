@@ -215,12 +215,12 @@ const Stable* Datatype_From_Type(Type type)
 
 
 //
-//  Datatype_Of: C
+//  Datatype_Of_Possibly_Unstable: C
 //
 // Returns the datatype value for the given value.
 // The datatypes are all at the head of the context.
 //
-const Stable* Datatype_Of_Maybe_Unstable(const Value* v)
+const Stable* Datatype_Of_Possibly_Unstable(const Value* v)
 {
     Option(Type) type = Type_Of_Maybe_Unstable(v);
     if (type)

@@ -178,33 +178,33 @@ typedef struct BookmarkStruct Bookmark;
 //
 
 #if NO_CPLUSPLUS_11
-    #define SymbolOrStable(const_star) \
+    #define SymbolOrValue(const_star) \
         void const_star
 
-    #define Extract_Symbol_Or_Stable(sos) \
-        (sos)
+    #define Extract_Symbol_Or_Value(sov) \
+        (sov)
 #else
-    struct SymbolOrStableHolder {
+    struct SymbolOrValueHolder {
         const void* p;
 
-        SymbolOrStableHolder(const Symbol* s) : p (s) {}
+        SymbolOrValueHolder(const Symbol* s) : p (s) {}
 
       #if NEEDFUL_OPTION_USES_WRAPPER  // Option(const Symbol*) <> const Symbol*
-        SymbolOrStableHolder(Option(const Symbol*)& s) : p (opt s) {}
+        SymbolOrValueHolder(Option(const Symbol*)& s) : p (opt s) {}
       #endif
 
         template<
             typename T,
             typename std::enable_if<
-                std::is_convertible<T, const Stable*>::value
+                std::is_convertible<T, const Value*>::value
             >::type* = nullptr
         >
-        SymbolOrStableHolder(const T& v) : p (v) {}
+        SymbolOrValueHolder(const T& v) : p (v) {}
     };
 
-    #define SymbolOrStable(const_star) \
-        SymbolOrStableHolder
+    #define SymbolOrValue(const_star) \
+        SymbolOrValueHolder
 
-    #define Extract_Symbol_Or_Stable(sos) \
-        (sos).p
+    #define Extract_Symbol_Or_Value(sov) \
+        (sov).p
 #endif

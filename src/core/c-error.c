@@ -691,7 +691,7 @@ Error* Make_Error_From_Vaptr_Managed(
   // Arrays from errors.r look like `["The value" $1 "is not" $2]`
   // They can also be a single TEXT! (which will just bypass this loop).
   //
-  // 1. We know the values received in the va_list are SymbolOrStable(*)
+  // 1. We know the values received in the va_list are SymbolOrValue(*)
   //    due to construction, so no unstable Value* possible.
 
     if (not Is_Text(message)) {
@@ -717,11 +717,10 @@ Error* Make_Error_From_Vaptr_Managed(
                 break;
 
               case DETECTED_AS_CELL: {
-                Copy_Cell(slot, cast(Stable*, p));  // SymbolOrStable() [1]
+                Copy_Cell(slot, cast(Value*, p));  // SymbolOrValue() [1]
                 break; }
 
-              case DETECTED_AS_STUB: {  // let symbols act as words
-                assert(Is_Stub_Symbol(cast(Stub*, p)));
+              case DETECTED_AS_STUB: {  // let symbols act as WORD!
                 Init_Word(slot, cast(Symbol*, p));
                 break; }
 
@@ -937,10 +936,7 @@ Error* Error_Bad_Intrinsic_Arg_1(Level* const L)
 
     const Symbol* param_symbol = Key_Symbol(Phase_Key(details, 1));
 
-    Stable* stable = Decay_If_Unstable(arg) except (Error* e) {
-        return e;
-    }
-    return Error_Invalid_Arg_Raw(label, param_symbol, stable);
+    return Error_Invalid_Arg_Raw(label, param_symbol, arg);
 }
 
 
@@ -1071,12 +1067,19 @@ Error* Error_Unexpected_Type(Type expected, const Stable* actual)
 //    The argument would potentially lead to some big molding, and the error
 //    machinery isn't really equipped to handle it.
 //
+//    However...the argument is more useful to have and be able to query (you
+//    could ask many more questions than just the type).  Review as the
+//    error system is enhanced.
+//
 Error* Error_Arg_Type(
     Option(const Symbol*) label,  // function's name
     const Key* key,
     const Param* param,
-    const Stable* arg
+    const Value* arg
 ){
+    if (Is_Error(arg))  // if the argument was an error, report it directly
+        return Cell_Error(arg);
+
     const Symbol* param_symbol = Key_Symbol(key);
 
     Option(const Source*) param_array = Parameter_Spec(param);
@@ -1088,12 +1091,9 @@ Error* Error_Arg_Type(
     else
         Init_Block(spec, unwrap param_array);
 
-    DECLARE_ELEMENT (lifted_type);
-    Copy_Lifted_Cell(lifted_type, Datatype_Of(arg));
-
     return Error_Expect_Arg_Raw(
         label,
-        lifted_type,  // just datatype, not argument [1]
+        Datatype_Of_Possibly_Unstable(arg),  // datatype, not argument [1]
         param_symbol,
         spec
     );
@@ -1113,12 +1113,12 @@ Error* Error_Phase_Arg_Type(
     Level* L,
     const Key* key,
     const Param* param,
-    const Stable* arg
+    const Value* arg
 ){
     if (Level_Phase(L) == L->u.action.original)  // not an internal phase
         return Error_Arg_Type(Level_Label(L), key, param, arg);
 
-    if (Parameter_Class(param) == PARAMCLASS_META and Is_Lifted_Error(arg))
+    if (Parameter_Class(param) != PARAMCLASS_META and Is_Error(arg))
         return Cell_Error(arg);
 
     Error* error = Error_Arg_Type(Level_Label(L), key, param, arg);
@@ -1179,7 +1179,7 @@ Error* Error_Bad_Return_Type(Level* L, Value* v, const Element* param) {
     DECLARE_ELEMENT (spec);
     Init_Block(spec, unwrap array);
     return Error_Bad_Return_Type_Raw(
-        label, Datatype_Of_Maybe_Unstable(v), spec
+        label, Datatype_Of_Possibly_Unstable(v), spec
     );
 }
 

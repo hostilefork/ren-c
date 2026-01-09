@@ -906,15 +906,11 @@ Bounce Action_Executor(Level* L)
         }
 
         if (Get_Parameter_Flag(param, VARIADIC)) {  // can't check now [2]
-            if (
-                Not_Cell_Stable(ARG)
-                or not Is_Varargs(As_Stable(ARG))
-            ){
-                require (
-                  Stable* arg = Decay_If_Unstable(ARG)
-                );
-                panic (Error_Not_Varargs(L, KEY, param, arg));
-            }
+            require (
+                Stable* stable = Decay_If_Unstable(ARG)
+            );
+            if (not Is_Varargs(stable))
+                panic (Error_Not_Varargs(L, KEY, param, stable));
 
             Tweak_Cell_Varargs_Phase(ARG, phase);
 
@@ -933,12 +929,8 @@ Bounce Action_Executor(Level* L)
             L, Known_Unspecialized(param), ARG
           )
         );
-        if (not check) {
-            require (
-              Stable* arg = Decay_If_Unstable(ARG)
-            );
-            panic (Error_Phase_Arg_Type(L, KEY, param, arg));
-        }
+        if (not check)
+            panic (Error_Phase_Arg_Type(L, KEY, param, ARG));
 
         Mark_Typechecked(u_cast(Param*, ARG));
     }

@@ -541,11 +541,11 @@ for-each [sw-cat list] boot-errors [
                 ; calls are made.
                 ;
                 count-up 'i arity [
-                    keep cscape [i "SymbolOrStable(const*) arg$<i>"]
+                    keep cscape [i "SymbolOrValue(const*) arg$<i>"]
                 ]
             ]
             args: collect [
-                count-up 'i arity [keep cscape [i "Extract_Symbol_Or_Stable(arg$<i>)"]]
+                count-up 'i arity [keep cscape [i "Extract_Symbol_Or_Value(arg$<i>)"]]
                 keep "rebEND"
             ]
         ]

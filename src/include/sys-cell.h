@@ -876,7 +876,7 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
 #endif
 
 #define Datatype_Of(v) \
-    Datatype_Of_Maybe_Unstable(Known_Stable(v))
+    Datatype_Of_Possibly_Unstable(Known_Stable(v))
 
 INLINE Option(Type) Type_Of_When_Unquoted(const Element* elem) {
     if (LIFT_BYTE(elem) == QUASIFORM_4)
