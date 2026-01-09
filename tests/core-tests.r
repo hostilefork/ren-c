@@ -135,6 +135,7 @@
 %errors/trap.test.r
 
 %examples/circled.test.r
+%examples/flatten.test.r
 %examples/flow.test.r
 %examples/giulio-generate.test.r
 %examples/giulio-read-lines.test.r

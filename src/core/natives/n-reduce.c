@@ -351,7 +351,7 @@ DECLARE_NATIVE(PACK)
 //          any-value?      "last body result (if not NULL)"
 //          ~(<null>)~      "if last body result was NULL"
 //          <null>          "if BREAK encountered"
-//          ghost!           "if body never ran"
+//          ghost!          "if body never ran"
 //      ]
 //      @vars "Variable to receive each reduced value (multiple TBD)"
 //          [_ word! 'word! ^word!]
@@ -495,65 +495,3 @@ DECLARE_NATIVE(REDUCE_EACH)
 
     return OUT_BRANCHED;
 }}
-
-
-enum FLATTEN_LEVEL {
-    FLATTEN_NOT,
-    FLATTEN_ONCE,
-    FLATTEN_DEEP
-};
-
-
-static void Flatten_Core(
-    Element* head,
-    const Element* tail,
-    Context* binding,
-    enum FLATTEN_LEVEL level
-) {
-    Element* item = head;
-    for (; item != tail; ++item) {
-        if (Is_Block(item) and level != FLATTEN_NOT) {
-            Context* derived = Derive_Binding(binding, item);
-
-            const Element* sub_tail;
-            Element* sub = List_At_Ensure_Mutable(&sub_tail, item);
-            Flatten_Core(
-                sub,
-                sub_tail,
-                derived,
-                level == FLATTEN_ONCE ? FLATTEN_NOT : FLATTEN_DEEP
-            );
-        }
-        else
-            Copy_Cell_May_Bind(PUSH(), item, binding);
-    }
-}
-
-
-//
-//  flatten: native [
-//
-//  "Flattens a block of blocks"
-//
-//      return: [block!]
-//      block [block!]
-//      :deep
-//  ]
-//
-DECLARE_NATIVE(FLATTEN)
-{
-    INCLUDE_PARAMS_OF_FLATTEN;
-
-    Element* block = Element_ARG(BLOCK);
-
-    const Element* tail;
-    Element* at = List_At_Ensure_Mutable(&tail, block);
-    Flatten_Core(
-        at,
-        tail,
-        List_Binding(block),
-        ARG(DEEP) ? FLATTEN_DEEP : FLATTEN_ONCE
-    );
-
-    return Init_Block(OUT, Pop_Source_From_Stack(STACK_BASE));
-}

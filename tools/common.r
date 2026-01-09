@@ -500,3 +500,19 @@ export stripload: func [
 
     return contents
 ]
+
+
+; FLATTEN was a native, but is now expected to be written in usermode:
+;
+; https://rebol.metaeducation.com/t/how-to-flatten-anything/2643
+;
+export flatten: lambda [block [block!] :deep] [
+    collect [  ; MAP-EACH in bootstrap is not smart
+        for-each item block [
+            if deep and (block? item) [
+                item: flatten:deep item
+            ]
+            keep either block? item [spread item] [item]
+        ]
+    ]
+]
