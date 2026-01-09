@@ -198,7 +198,7 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 #define Decay_If_Unstable(v) \
     Decay_Or_Elide_Core(Possibly_Unstable(v), true)
 
-#define Elide_Unless_Error_Including_In_Packs(v) \
+#define Ensure_No_Errors_Including_In_Packs(v) \
     Decay_Or_Elide_Core(Possibly_Unstable(v), false)
 
 INLINE Result(Stable*) Decay_Or_Elide_Core(
@@ -258,7 +258,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
             Unlift_Cell_No_Decay(v)
         );
         trap (  /// elide recursively to look for hidden ERROR! [1]
-            Elide_Unless_Error_Including_In_Packs(v)
+          Ensure_No_Errors_Including_In_Packs(v)
         );
     }
 
@@ -287,11 +287,6 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
     goto finished;
 
 } finished: { ////////////////////////////////////////////////////////////////
-
-  #if NEEDFUL_DOES_CORRUPTIONS
-    if (not want_value)
-       Corrupt_Cell_If_Needful(v);
-  #endif
 
     return u_cast(Stable*, v);
 }}

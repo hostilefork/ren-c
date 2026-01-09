@@ -1404,6 +1404,10 @@ DECLARE_NATIVE(FOR_EACH)
         }
     }
 
+    require (
+      Ensure_No_Errors_Including_In_Packs(OUT)
+    );
+
     goto next_iteration;
 
 } finalize_for_each: {  //////////////////////////////////////////////////////

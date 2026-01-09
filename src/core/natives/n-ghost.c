@@ -148,7 +148,7 @@ DECLARE_NATIVE(ELIDE)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     require (
-      Elide_Unless_Error_Including_In_Packs(v)
+      Ensure_No_Errors_Including_In_Packs(v)
     );
 
     return GHOST;

@@ -1688,7 +1688,7 @@ void API_rebElide(
     }
 
     require (  // reuse semantics of ELIDE w.r.t. ERROR!s, packs
-      Elide_Unless_Error_Including_In_Packs(discarded)
+      Ensure_No_Errors_Including_In_Packs(discarded)
     );
 }
 

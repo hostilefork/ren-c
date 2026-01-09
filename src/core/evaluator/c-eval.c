@@ -229,18 +229,19 @@ Bounce Evaluator_Executor(Level* const L)
             Move_Value(OUT, PRIMED);
             goto finished;
         }
-
         goto start_new_step;  // leave previous result as-is in PRIMED
     }
 
     possibly(Get_Level_Flag(step_level, AFRAID_OF_GHOSTS));
     Set_Level_Flag(step_level, AFRAID_OF_GHOSTS);  // always unafraid now [B]
 
-    if (Is_Level_At_End(step_level))
+    if (Is_Level_At_End(step_level)) {
+        possibly(Is_Error(OUT));
         goto finished;
+    }
 
     require (  // panic if error seen before final step [2]
-      Elide_Unless_Error_Including_In_Packs(PRIMED)
+      Ensure_No_Errors_Including_In_Packs(OUT)
     );
     Move_Value(PRIMED, OUT);  // make current result the preserved one
 

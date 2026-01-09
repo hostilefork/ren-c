@@ -1303,7 +1303,7 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
 
     if (not THROWING) {
         require (
-          Elide_Unless_Error_Including_In_Packs(OUT)
+          Ensure_No_Errors_Including_In_Packs(OUT)
         );
         return GHOST;  // no throw means just return ghost (pure, for ELSE)
     }

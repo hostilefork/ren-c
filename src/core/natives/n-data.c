@@ -1553,7 +1553,7 @@ DECLARE_NATIVE(DECAYABLE_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    Elide_Unless_Error_Including_In_Packs(v) except (Error* e) {
+    Ensure_No_Errors_Including_In_Packs(v) except (Error* e) {
         UNUSED(e);
         return LOGIC(false);
     }
