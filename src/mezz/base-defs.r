@@ -127,18 +127,18 @@ lax-not-equal?: cascade [lax-equal?/ not/]
 ; https://forum.rebol.info/t/349
 
 =: infix equal?/
-<>: infix not-equal?/
+[<>]: infix not-equal?/
 !=: infix not-equal?/  ; http://www.rebol.net/r3blogs/0017.html
 
-<: infix lesser?/
->: infix greater?/
+[<]: infix lesser?/
+[>]: infix greater?/
 
 ; "Official" forms of the comparison operators.  This is what we would use
 ; if starting from scratch, and didn't have to deal with expectations people
 ; have coming from other languages: https://forum.rebol.info/t/349/
 ;
->=: infix greater-or-equal?/
-=<: infix equal-or-lesser?/
+[>=]: infix greater-or-equal?/
+[=<]: infix equal-or-lesser?/
 
 ; Compatibility Compromise: sacrifice what looks like left and right arrows
 ; for usage as comparison, even though the perfectly good `=<` winds up
@@ -147,8 +147,8 @@ lax-not-equal?: cascade [lax-equal?/ not/]
 ;
 equal-or-greater?: greater-or-equal?/
 lesser-or-equal?: equal-or-lesser?/
-=>: infix equal-or-greater?/
-<=: infix lesser-or-equal?/
+[=>]: infix equal-or-greater?/
+[<=]: infix lesser-or-equal?/
 
 ?=: infix lax-equal?/
 ?!=: infix lax-not-equal?/
@@ -195,7 +195,7 @@ requote: reframer func [
 
 ; https://forum.rebol.info/t/for-lightweight-lambda-arrow-functions/2172
 ;
-->: infix lambda [
+[->]: infix lambda [
     @(words) "Names of arguments (will not be type checked)"
         [<end> _ word! 'word! ^word! :word! block! group!]
     @(body) "Code to execute (will not be deep copied)"
@@ -207,7 +207,7 @@ requote: reframer func [
 ; Particularly helpful for annotating when a branch result is used.
 ; https://forum.rebol.info/t/2165/
 ;
-<-: identity/
+[<-]: identity/
 
 ; !!! NEXT and BACK seem somewhat "noun-like" and desirable to use as variable
 ; names, but are very entrenched in Rebol history.  Also, since they are

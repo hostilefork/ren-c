@@ -1366,12 +1366,41 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
 
     Token token;  // only set if falling through to `scan_word`
 
-    // Up-front, do a check for "arrow words".  This test bails out if any
-    // non-arrow word characters are seen.  Arrow WORD!s are contiguous
-    // sequences of *only* "<", ">", "-", "=", "+", and "|".  This covers
-    // things like `-->` and `<=`, but also applies to things that *look*
-    // like they would be tags... like `<>` or `<+>`, which are WORD!s.
-    //
+  check_for_arrow_words: {
+
+  // Up-front, do a check for "arrow words".  This test bails if any non-arrow
+  // word characters are seen.
+  //
+  // "Arrow WORD!s" are contiguous sequences of *only* [< > - = + |].  This
+  // covers things like `-->` and `<=`, but also applies to things that *look*
+  // like they would be tags... like `<>` or `<+>`, which are WORD!s.
+  //
+  // 1. At one time, `<.>` was a TUPLE!, but this was changed to a TAG!.  The
+  //    philosophy means not all WORD!s can be put in PATH!/TUPLE!/CHAIN!
+  //    (for instance, `<<` or `>>`):
+  //
+  //      https://forum.rebol.info/t/1702
+  //
+  //    The collateral damage is that things like `>/<` are illegal for the
+  //    sake of simplicity.  Such rules could be reviewed at a later date.
+  //
+  // 2. While it's kind of ugly, <>>> fits into the same "maybe useful"
+  //    category as <]> or <{> or <]]>.  And <>>> as WORD! wouldn't be a very
+  //    likely meaningful "operator".  Syntax highlighting would make it more
+  //    obvious that it's a TAG!.
+  //
+  // !!! This code was modified to drop out of arrow-word scanning when > or <
+  // were seen and a . or / happened.  Previously it had said:
+  //
+  //   "The prescan for </foo> thinks that it might be a PATH! like `</foo`
+  //   so it stops at the slash.  To solve this, we only support the `</foo>`
+  //   and <foo />` cases of slashes in TAG!.  We know this is not the latter,
+  //   because we did not hit a space while we were processing.  For the
+  //   former case, we see if we get to a `>` before we hit a delimiter."
+  //
+  // (I think prescan has to be adjusted, so this `seen_angles` might become
+  // some kind of assert.)
+
     if (
         0 == (flags & ~(  // check flags for any obvious non-arrow characters
             LEX_FLAGS_ARROW_EXCEPT_EQUAL
@@ -1379,49 +1408,48 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
             | LEX_FLAG(LEX_SPECIAL_WORD)  // `=` is WORD!-character, sets this
         ))
     ){
-        bool seen_angles = false;
+        Count angles = 0;
 
         const Byte* temp = cp;
         while (
-            (*temp == '<' and (seen_angles = true))
-            or (*temp == '>' and (seen_angles = true))
+            (*temp == '<' and (angles += 1))
+            or (*temp == '>' and (angles += 1))
             or *temp == '+' or *temp == '-'
             or *temp == '=' or *temp == '|'
         ){
             ++temp;
-            if (temp != S->end)
-                continue;
+        }
+        if (angles == 0)
+            goto continue_locate;
 
-            // There has been a change from where things like `<.>` are no
-            // longer a TUPLE! with < and > in it, to where it's a TAG!; this
-            // philosophy limits WORD!s like << or >> from being put in
-            // PATH!s and TUPLE!s:
-            //
-            // https://forum.rebol.info/t/1702
-            //
-            // The collateral damage is that things like `>/<` are illegal for
-            // the sake of simplicity.  Such rules could be reviewed at a
-            // later date.
-            //
-            // This code was modified to drop out of arrow-word scanning when
-            // > or < were seen and a . or / happened.  Previously it had said:
-            //
-            // "The prescan for </foo> thinks that it might be a PATH! like
-            // `</foo` so it stops at the slash.  To solve this, we only
-            // support the `</foo>` and <foo />` cases of slashes in TAG!.
-            // We know this is not the latter, because we did not hit a
-            // space while we were processing.  For the former case, we
-            // look to see if we get to a `>` before we hit a delimiter."
-            //
-            // I think prescan has to be adjusted, so this `seen_angles`
-            // might become some kind of assert.
-            //
-            if (seen_angles and (*temp == '/' or *temp == '.'))
-                break;
+        if (*S->begin == '<') {
+            if (temp[-1] == '>') {
+                S->end = temp;
+                if (temp == S->begin + 2)
+                    return TOKEN_WORD;  // `<>` is a WORD!, not a TAG!
+                return TOKEN_TAG;  // even <<<> is a TAG! [2]
+            }
 
+            const Byte* scan = temp;
+            while (not Is_Lex_Whitespace(*scan))
+                ++scan;
+
+            if (scan[-1] == '>') {
+                S->end = scan;
+                return TOKEN_TAG;
+            }
+        }
+
+        if (
+            Is_Lex_Whitespace(*temp)
+            or (Is_Lex_End_List(*temp) or *temp == ',')
+        ){
+            S->end = temp;
             return TOKEN_WORD;
         }
     }
+
+} continue_locate: {
 
     switch (Get_Lex_Class(*cp)) {
       case LEX_CLASS_DELIMIT:
@@ -2044,7 +2072,7 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
     S->end = cp;
 
     return token;
-}}
+}}}
 
 
 //
@@ -2207,6 +2235,30 @@ static Bounce Scanner_Executor_Core(Level* const L) {
     assert(not S->quasi_pending);
 
 } loop: { ////////////////////////////////////////////////////////////////////
+
+  // This debug check lets you stop the scan at the unicode high voltage sign
+  // (⚡) in the input stream.  This sign was chosen because VSCode shows it
+  // in color ("Emoji_Presentation") which things like the warning/biohazard
+  // sign do not do.
+
+  #if RUNTIME_CHECKS && 0
+    if (
+        transcode->at
+        and transcode->at[0] == 0xE2
+        and transcode->at[1] == 0x9A
+        and transcode->at[2] == 0xA1  // U+26A1 HIGH VOLTAGE SIGN
+    ){
+        transcode->at += 3;
+
+        Level* temp = L;
+        for (; temp->executor == &Scanner_Executor; temp = temp->prior) {
+            ScanState* SS = &temp->u.scan;
+            /* your debug code here */
+            UNUSED(SS);
+        }
+        debug_break();
+    }
+  #endif
 
 {
     assert(mo->strand == nullptr);  // pushed mold should have been handled

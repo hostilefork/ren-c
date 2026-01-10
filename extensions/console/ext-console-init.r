@@ -204,7 +204,7 @@ export console!: make object! [
         ; functions that [return: ~] give back trash with their symbol, as
         ; a debugging aid for knowing where trashes came from).
 
-        if trash? ^v [
+        if trash? opt ^v [
             exit
         ]
 

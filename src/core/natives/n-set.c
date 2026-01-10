@@ -324,13 +324,25 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
     if (Is_Pack(OUT)) {  // antiform block
         pack_at_lifted = List_At(&pack_tail, OUT);
 
-        pack_array = Cell_Array(OUT);
-        Push_Lifeguard(pack_array);
+        if (
+            pack_at_lifted + 1 == pack_tail
+            and Is_Lifted_Action(pack_at_lifted)  // "action pack", keep it
+        ){
+            Copy_Lifted_Cell(SPARE, OUT);
+            pack_at_lifted = As_Element(SPARE);
+            pack_tail = pack_at_lifted + 1;  // not a valid cell
+
+            pack_array = nullptr;
+        }
+        else {
+            pack_array = Cell_Array(OUT);
+            Push_Lifeguard(pack_array);
+        }
     }
     else {  // single item
         Copy_Lifted_Cell(SPARE, OUT);
-        pack_at_lifted = cast(Element*, SPARE);
-        pack_tail = cast(Element*, SPARE) + 1;  // not a valid cell
+        pack_at_lifted = As_Element(SPARE);
+        pack_tail = pack_at_lifted + 1;  // not a valid cell
 
         pack_array = nullptr;
     }
@@ -388,32 +400,19 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
     if (Is_Metaform_Space(var))
         goto circled_check;
 
-    if (Is_Meta_Form_Of(WORD, var)) {
-        heeded (Corrupt_Cell_If_Needful(SPARE));
-        require (
-          Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
-        );
-        goto circled_check;  // ...because we may have circled this
-    }
-
     if (Is_Error(OUT))  // don't pass thru errors if not ^ sigil
         panic (Cell_Error(OUT));
-
-    require (
-      Decay_If_Unstable(OUT)
-    );
 
     if (Is_Space(var))
         goto circled_check;
 
-    if (Is_Word(var) or Is_Tuple(var) or Is_Pinned_Form_Of(WORD, var)) {
-        heeded (Corrupt_Cell_If_Needful(SPARE));
-        require (
-          Set_Var_In_Scratch_To_Out(LEVEL, GROUPS_OK)
-        );
-    }
-    else
-        assert(false);
+    if (Is_Pinned_Form_Of(WORD, var))
+        Clear_Cell_Sigil(var);  // !!! Should use $ and not @
+
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+    require (
+        Set_Var_In_Scratch_To_Out(LEVEL, GROUPS_OK)
+    );
 
     goto circled_check;
 

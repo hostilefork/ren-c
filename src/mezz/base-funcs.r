@@ -215,7 +215,7 @@ specialized?: lambda [
 ; worth the cost, when you can just put the left hand side in parentheses
 ; if this isn't what you want.
 ;
-->-: infix shove/
+[->-]: infix shove/
 
 
 ; The -- and ++ operators were deemed too "C-like", so ME was created to allow
@@ -519,7 +519,7 @@ eval-all: func [
 ; to allow longer runs of evaluation.  "Invisible functions" (those which
 ; `return: [ghost!]`) permit a more flexible version of the mechanic.
 
-<|: infix:postpone eval-all/
+[<|]: infix:postpone eval-all/
 
 
 ; !!! This is an interim implementation of GETTER that returns nothing.

@@ -105,3 +105,24 @@
 ]
 
 (1234 = codepoint of transcode:one as blob! mold make rune! 1234)
+
+(
+    for-each [source text] [
+        "<.>" "."
+        "<:>" ":"
+        "</>" "/"
+        "<~>" "~"
+        "<{>" "{"
+        "<}>" "}"
+        "<]]>" "]]"
+        "<>>>" ">>"
+    ] [
+        all {
+            tag? tag: transcode:one source
+            text = as text! tag
+        } else [
+            fail ["Bad TAG! transcode" mold source]
+        ]
+    ]
+    ok
+)
