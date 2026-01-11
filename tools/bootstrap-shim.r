@@ -201,6 +201,7 @@ for-each [alias] [
     append3:                    ; APPEND handles splices
     change3:                    ; CHANGE handles splices
     insert3:                    ; INSERT handles splices
+    find3:                      ; FIND handles splices
     replace3:                   ; REPLACE handles splices
     join3:                      ; JOIN handles splices
     compose3:                   ; COMPOSE now arity-2, processes splices
@@ -442,21 +443,32 @@ typechecker: lambda3 [x [datatype! typeset! block!]] [
 ; bootstrap executable can build itself with the prior bootstrap executable.
 ; These few shims have worked well enough.
 
+splice!: block!  ; best we can do
+
+splice3?: lambda3 [value [<opt> any-value!]] [
+    all [
+        block? opt value
+        #splice! = (first value)
+    ]
+]
+
+none?: lambda3 [value] [
+    value = [#splice! []]
+]
+
 spread: func3 [
-    return: [~void~ ~null~ block!]  ; !!! bootstrap has stable ~void~
-    x [~null~ ~void~ block!]
+    return: [~null~ block!]
+    x [<opt> block!]
 ][
     return case [
-        null? :x [return null]
-        void? :x [return void3]
+        not x [return null]
+        none? x [return none]
+        splice3? x [panic/blame "Can't spread non-NONE! splice" $return]
         <else> [reduce [#splice! x]]
     ]
 ]
 
 none: spread []
-none?: lambda3 [value] [
-    value = [#splice! []]
-]
 assert [none? none]
 
 when: lambda3 [condition branch] [
@@ -469,9 +481,9 @@ opt-in: lambda3 [value] [
 
 append: func3 [
     series [<opt> any-element!]
-    value [<opt> any-element!]
+    value [<opt> any-element! splice!]
     /line
-    <local> only
+    <local> f
 ] [
     any [not value not series] then [
         return null
@@ -482,103 +494,146 @@ append: func3 [
         object? series
         map? series
     ] then [
-        all [
-            block? value
-            #splice! = (first value)
-        ] else [
+        if not splice3? value [
             panic:blame "Bootstrap shim for OBJECT! only APPENDs SPLICEs" $return
         ]
         return append3 series second value
     ]
 
-    only: 'only
-    if (block? value) and (#splice! = first value) [
-        value: second value
+    f: make frame! append3/
+    f.series: series
+
+    if splice3? value [
+        f.value: second value
         if not any-list? series [  ; itemwise appends for strings/etc.
             for-each 'item value [
                 append series item
             ]
             return series
         ]
-        only: null
     ]
-    return append3:(opt only):(opt line) series opt value
+    else [
+        f.value: value
+        f.only: okay
+    ]
+    f.line: line
+    return eval f
 ]
 
 insert: func3 [
     series [<opt> any-element!]
-    value [<opt> any-element!]
+    value [<opt> any-element! splice!]
     /line
-    <local> only
+    <local> f
 ] [
     any [not value not series] then [
         return null
     ]
     if none? value [return series]
 
-    only: 'only
-    if (block? value) and (#splice! = first value) [
-        value: second value
+    f: make frame! insert3/
+    f.series: series
+
+    if splice3? value [
+        f.value: second value
         if not any-list? series [  ; itemwise appends for strings/etc.
             for-each 'item value [
                 series: insert series item
             ]
             return series
         ]
-        only: null
+    ] else [
+        f.value: value
+        f.only: okay
     ]
-    return insert3:(opt only):(opt line) series opt value
+    f.line: line
+    return eval f
 ]
 
 change: func3 [
     series [<opt> any-element!]
-    value [<opt> any-element!]
+    value [<opt> any-element! splice!]
     /line
-    <local> only
+    <local> f
 ] [
     any [not value not series] then [
         return null
     ]
     if none? value [return series]
 
-    only: 'only
-    if (block? value) and (#splice! = first value) [
-        value: second value
+    f: make frame! change3/
+    f.series: series
+
+    if splice3? value [
         if not any-list? series [
-            panic ["CHANGE to SPLICE not currently in shim"]
+            panic ["CHANGE to SPLICE not currently in shim for non-lists"]
         ]
-        only: null
+        f.value: second value
     ]
-    return change3:(opt only):(opt line) series opt value
+    else [
+        f.value: value
+        f.only: okay
+    ]
+    f.line: line
+    return eval f
+]
+
+find: func3 [
+    series [<opt> any-element!]
+    value [<opt> any-element! splice!]
+    /part
+    limit [any-element!]
+    /case
+    /match
+    <local> f
+][
+    any [not value not series] then [
+        return null
+    ]
+    if none? value [return series]
+
+    f: make frame! find3/
+    f.series: series
+
+    if splice3? value [
+        f.value: second value
+    ] else [
+        f.value: value
+        f.only: okay
+    ]
+    if part [
+        f.part: part
+        f.limit: limit
+    ]
+    f.case: case
+    f.match: match
+    return eval f
 ]
 
 replace: func3 [
     target [<opt-out> any-series!]
-    pattern [<opt-out> any-element!]
-    replacement [<opt-out> any-element!]
+    pattern [<opt-out> any-element! splice!]
+    replacement [<opt-out> any-element! splice!]
 ][
     if none? pattern [
         return target
     ]
-    if none? replacement [
-        replacement: null
-    ]
 
-    if (block? pattern) and (#splice! = first pattern) [
+    if splice3? pattern [
         pattern: second pattern
     ] else [
         if pattern [
             pattern: reduce [pattern]
         ]
     ]
-    if (block? opt replacement) and (#splice! = first replacement) [
-        pattern: second replacement
+    if splice3? replacement [
+        replacement: second replacement
     ] else [
-        if pattern [
-            pattern: reduce [pattern]
+        if replacement [
+            replacement: reduce [replacement]
         ]
     ]
-    return replace3 target pattern (opt replacement)
+    return replace3 target pattern replacement
 ]
 
 join: func3 [
@@ -586,7 +641,7 @@ join: func3 [
     value [void! any-value!]
 ][
     if block? value [
-        if #splice! = (first value) [
+        if splice3? value [
             panic:blame "SPLICE no longer supported in JOIN" $return
         ]
     ]
@@ -667,10 +722,8 @@ compose: func3 [block [block!] /deep <local> result pos product count] [
         ]
 
         product: unlift product
-        all [
-            block? :product
-            #splice! = first product
-        ] then [
+        if splice3? :product [
+            ;
             ; Doing the change can insert more than one item, update pos
             ;
             pos: change3:part pos second product 1
@@ -732,6 +785,7 @@ modernize-typespec: func3 [
 ][
     types: copy types
     for-each [current bootstrap] [
+        none?           block!  ; hack
         any-value?      any-value!  ; in bootstrap, only unstable is void
         any-stable?     any-stable!
         any-string?     any-string!
