@@ -77,7 +77,7 @@ DECLARE_NATIVE(REDUCE)
     INCLUDE_PARAMS_OF_REDUCE;
 
     Element* v = Element_ARG(VALUE);  // newline flag leveraged [2]
-    Option(Stable*) predicate = ARG(PREDICATE);
+    Option(Element*) predicate = ARG(PREDICATE);
 
     enum {
         ST_REDUCE_INITIAL_ENTRY = STATE_0,

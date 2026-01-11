@@ -322,29 +322,44 @@ export emit-include-params-macro: func [
                 iter: next iter
             ]
 
-            let ctype
-            let copt
-            case [
-                param.class = 'meta [
-                    ctype: "Need(Value*)"
-                    copt: "false"
-                ]
-                param.refinement or (find opt spec <opt>) [
-                    ctype: "Option(Stable*)"
-                    copt: "true"
-                ]
-                param.class = 'literal [
-                    ctype: "Need(Element*)"
-                    copt: "false"
-                ]
-                param.class = 'local [
-                    assert [not param.refinement]
-                    ctype: "Need(Stable*)"  ; REVIEW: what should this be?
-                    copt: "false"
-                ]
+            let ctype  ; underlying type (Element, Stable, Value)
+            let copt  ; refinement or <opt>
+            if param.class = 'meta [
+                ctype: 'Value
+                copt: 'false
             ] else [
-                ctype: "Need(Stable*)"
-                copt: "false"
+                any [  ; save you from saying Element_ARG()
+                    param.class = 'literal
+                    find [  ; !!! bad way of doing this...think of better
+                        [<unrun> frame!]
+                        [element?]
+                        [<opt-out> <unrun> <const> block! frame!]
+                    ] opt spec
+                ]
+                then [
+                    ctype: 'Element
+                ]
+                else [
+                    ctype: 'Stable
+                ]
+
+                case [
+                    param.refinement or (find opt spec <opt>) [
+                        copt: 'true
+                    ]
+                    param.class = 'local [
+                        assert [not param.refinement]
+                        copt: 'false
+                    ]
+                ] else [
+                    copt: 'false
+                ]
+            ]
+
+            let cwrap: switch copt [
+                'true ['Option]
+                'false ['Need]
+                panic
             ]
 
             let mode: either param.unchecked ["UNCHECKED"] ["CHECKED"]
@@ -359,8 +374,8 @@ export emit-include-params-macro: func [
                     "DECLARE_INTRINSIC_PARAM(${NAME})"
                 ]
             ] else [
-                keep cscape [mode ctype name n copt
-                    "DECLARE_$<MODE>_PARAM($<CType>, ${NAME}, $<n>, $<copt>)"
+                keep cscape [mode ctype name n copt cwrap
+                    "DECLARE_$<MODE>_PARAM($<CWrap>($<CType>*), ${NAME}, $<n>, $<copt>)"
                 ]
             ]
             n: n + 1

@@ -296,7 +296,7 @@ void Add_Definitional_Break_Again_Continue(
 static Bounce Loop_Series_Common(
     Level* level_,
     Stable* var, // Must not be movable from context expansion, see #2274
-    const Stable* body,
+    const Element* body,
     Stable* start,
     Index end,
     REBINT bump
@@ -400,7 +400,7 @@ static Bounce Loop_Series_Common(
 static Bounce Loop_Integer_Common(
     Level* level_,
     Stable* var,  // Must not be movable from context expansion, see #2274
-    const Stable* body,
+    const Element* body,
     REBI64 start,
     REBI64 end,
     REBI64 bump
@@ -483,7 +483,7 @@ static Bounce Loop_Integer_Common(
 static Bounce Loop_Number_Common(
     Level* level_,
     Stable* var,  // Must not be movable from context expansion, see #2274
-    const Stable* body,
+    const Element* body,
     Stable* start,
     Stable* end,
     Stable* bump
@@ -599,7 +599,7 @@ DECLARE_NATIVE(CFOR)
     INCLUDE_PARAMS_OF_CFOR;
 
     Element* word = Element_ARG(WORD);
-    Element* body = Element_ARG(BODY);
+    Element* body = ARG(BODY);
 
     require (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, word)

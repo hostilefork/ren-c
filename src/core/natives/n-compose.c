@@ -270,7 +270,7 @@ Bounce Composer_Executor(Level* const L)
     bool deep;
     Element* pattern;
     bool conflate;
-    Option(Stable*) predicate;
+    Option(Element*) predicate;
 
   extract_arguments_from_original_compose_call: {
 
