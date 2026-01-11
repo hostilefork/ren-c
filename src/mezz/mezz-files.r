@@ -207,7 +207,7 @@ ask: func [
         block! [
             parse question [
                 opt prompt: text!
-                opt let word: *in* word! (type: ensure datatype! get word)
+                opt let word: word! (type: ensure datatype! get word)
             ] except [
                 panic -[ASK currently only supports ["Prompt:" datatype!]]-
             ]

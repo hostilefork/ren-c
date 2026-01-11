@@ -1463,23 +1463,6 @@ default-combinators: make map! [
         ]
     ]
 
-    === IN COMBINATOR ===
-
-    ; Propagates the binding from <input> onto a value.  This idea is being
-    ; felt out, but might become $rule or [$ rule]
-
-    '*in* combinator [
-        "Get argument binding gotten INSIDE the current input"
-        return: [any-stable?]
-        input [any-series?]
-        parser [action!]
-        {^result}
-    ][
-        [^result input]: trap parser input
-
-        return inside state.input ^result
-    ]
-
     === GROUP! AND PHASE COMBINATOR ===
 
     ; GROUP! does not advance the input, just runs the group.  It can return
@@ -1848,10 +1831,7 @@ default-combinators: make map! [
             ; it would overwrite the last useful result.  Instead, the GROUP!
             ; potentially returns...only do the assignment if it does not.
             ;
-            ; !!! Use ELIDE because packs have decay problems, and COUNT-UP
-            ; is looking at the loop body value to decay it.
-            ;
-            elide [^result input]: parser input except [
+            [^result input]: parser input except [
                 take:last state.loops
                 if i <= min [  ; `<=` not `<` as this iteration failed!
                     return fail "REPEAT did not reach minimum repetitions"
@@ -2470,7 +2450,7 @@ default-combinators: make map! [
                     input: tail of pos
                     return ^result
                 ]
-                sublimit: find:part rules [...] limit
+                sublimit: find:part rules '... limit
 
                 f: make frame! block-combinator/  ; this combinator [2]
                 f.state: state
@@ -2507,15 +2487,15 @@ default-combinators: make map! [
                         if r = '|| [break]  ; no relevant alternates after fail
                     ]
                 ] else [  ; no throw to reset position
-                    if (not thru) or (tail? input) [
+                    if (not thru) or (tail? pos) [
                         return fail* make warning! [
                             id: 'parse-mismatch
                             message:
                               "PARSE BLOCK! combinator did not match input"
                         ]
                     ]
-                    rules: value
-                    pos: input: next rules
+                    rules: value  ; for [...] restart rules from the beginning
+                    pos: next pos  ; and go to the next input item
                 ]
                 continue
             ]
@@ -2904,7 +2884,7 @@ parsify: func [
         (path? r) and (space? last r) [  ; type constraint combinator
             let ^action: get resolve r  ; ^ to not store ACTION as label
             comb: state.combinators.match
-            return combinatorize:value comb rules state action/
+            return combinatorize:value comb rules state unrun action/
         ]
 
         ; !!! Here is where we would let GET-TUPLE! and GET-WORD! be used to

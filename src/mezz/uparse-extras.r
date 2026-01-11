@@ -23,20 +23,20 @@ destructure: func [
 ][
     let combinators: copy default-combinators
     parse dialect [until <end> [
-        let set-word: *in* set-word?/, let rule: *in* block! (
+        let set-word: set-word?/, let rule: block! (
             combinators.(unchain set-word): compose [(set-word) (rule)]
         )
         |
-        let pattern: *in* block!, '=>, let branch: *in* block!
+        let pattern: block!, '=>, let branch: block!
         (
             if parse-match:combinators input pattern combinators (
                 branch
-            ) also ^r -> [
+            ) also (^r -> [
                 if not multi [
                     return ^r
                 ]
                 result: r
-            ]
+            ])
         )
         |
         panic "Invalid DESTRUCTURE dialect entry"

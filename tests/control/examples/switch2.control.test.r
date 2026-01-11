@@ -16,7 +16,7 @@ switch2: lambda [
         while cond (more) [
             ; Find next condition clause, or break loop if we hit => or end
             ;
-            condition: *in* between <here> any [
+            condition: between <here> any [
                 ['| (more: okay)]
                 ['=> (more: null)]
                 [<end> accept (^result)]
@@ -54,7 +54,7 @@ switch2: lambda [
         (more: okay)
 
         branch: [
-            *in* block!
+            block!
             |
             panic "Code must be BLOCK! in SWITCH2 (for now)"
         ]

@@ -7,10 +7,10 @@
 ; named rules that variables must match.
 
 [
-(2 = destructure [1] wrap [
+(2 = destructure [1] {
       x: [integer!]
       [x] => [x + 1]
-])
+})
 
 (<Case Two> = destructure [a b] [
     [word!] => [panic "Shouldn't call"]
@@ -20,24 +20,24 @@
 (
     block: [#stuff 1000 a 20 <tag> #other "items"]
 
-    1020 = destructure block wrap [
+    1020 = destructure block {
         x: [integer!] y: [integer!]
 
         [... x 'a y ...] => [x + y]
-    ]
+    }
 )
 
 (
     block: [1 2]
 
     [3 -1] = collect [
-        destructure:multi [1 2] wrap [
-            x: [integer!] y: [any-stable?/]
-            m: [any-stable?/] n: [integer!]
+        destructure:multi [1 2] {
+            x: [integer!] y: [one]
+            m: [one] n: [integer!]
 
             [x y] => [keep x + y]
             [m n] => [keep x - y]
-        ]
+        }
     ]
 )
 ]
