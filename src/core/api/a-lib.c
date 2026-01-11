@@ -1758,14 +1758,14 @@ void API_rebJumps(
 
 
 //
-//  rebDid: API
+//  rebLogical: API
 //
 // Simply returns the logical result, with no returned handle to release.
 //
 // If you know the argument is either NULL or OKAY antiforms, then you can
 // use rebUnboxLogic() to get a runtime check of that.  This tests ANY-STABLE?
 //
-bool API_rebDid(
+bool API_rebLogical(
     RebolContext* binding,
     const void* p, void* vaptr
 ){
@@ -1780,32 +1780,61 @@ bool API_rebDid(
         panic (e);
     }
 
-    bool cond = Test_Conditional(eval) except (Error* e) {
+    bool logic = Test_Conditional(eval) except (Error* e) {
         panic (e);
     }
 
-    return cond;
+    return logic;
 }
 
 
 //
 //  rebNot: API
 //
-// !!! If this were going to be a macro like (not (rebDid(...))) it
-// would have to be a variadic macro.  Not worth it. use separate entry point.
+// Synonym for `not rebLogical()`
 //
 bool API_rebNot(
     RebolContext* binding,
     const void* p, void* vaptr
 ){
-    return not API_rebDid(binding, p, vaptr);
+    return not API_rebLogical(binding, p, vaptr);
+}
+
+
+//
+//  rebDid: API
+//
+// Checks to see if something is not a ghost, light null, or error! antiform.
+//
+// If you know the argument is either NULL or OKAY antiforms, then you can
+// use rebUnboxLogic() to get a runtime check of that.  This tests ANY-STABLE?
+//
+bool API_rebDid(
+    RebolContext* binding,
+    const void* p, void* vaptr
+){
+    ENTER_API;
+
+    DECLARE_VALUE (eval);
+
+    Flags flags = RUN_VA_MASK_NONE;
+    Undecayed_Run_Valist_And_Call_Va_End(
+        eval, flags, binding, p, vaptr
+    ) except (Error* e) {
+        panic (e);
+    }
+
+    if (Is_Light_Null(eval) or Is_Ghost(eval) or Is_Error(eval))
+        return false;
+
+    return true;
 }
 
 
 //
 //  rebDidnt: API
 //
-// Synonym for rebNot()
+// Synonym for `not rebDid()`
 //
 bool API_rebDidnt(
     RebolContext* binding,

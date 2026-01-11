@@ -216,7 +216,7 @@ INLINE bool Eval_Element_Core_Throws(
 //
 INLINE bool Eval_Branch_Throws(
     Value* out,
-    const Stable* branch
+    const Element* branch
 ){
     if (not Pushed_Continuation(
         out,

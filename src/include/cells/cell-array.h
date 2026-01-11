@@ -86,9 +86,9 @@ INLINE const Element* List_At(
     return at;
 }
 
-INLINE const Element* List_Item_At(const Stable* v) {
+INLINE const Element* List_Item_At(const Cell* cell) {
     const Element* tail;
-    const Element* item = List_At(&tail, v);
+    const Element* item = List_At(&tail, cell);
     assert(item != tail);  // should be a valid value
     return item;
 }

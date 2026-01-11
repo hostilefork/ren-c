@@ -74,8 +74,12 @@ Result(None) Prep_Action_Level(
 
     if (with) { attempt {
         arg = First_Unspecialized_Arg(&param, L);
-        if (not arg)
+        if (not arg) {
+            require (
+              Ensure_No_Errors_Including_In_Packs(unwrap with)
+            );
             break;
+        }
 
         Copy_Cell(arg, unwrap with);  // do not decay [1]
 
@@ -99,6 +103,8 @@ void Push_Frame_Continuation(
     const Stable* frame,  // may be antiform
     Option(const Value*) with
 ){
+    possibly(with and Is_Error(unwrap with));  // won't allow ignoring errors
+
     require (
       Level* L = Make_End_Level(
         &Action_Executor,
@@ -125,7 +131,7 @@ bool Pushed_Continuation(
     Exact(Value*) out,  // not Sink (would corrupt, but with can be same as out)
     Flags flags,  // FORCE_HEAVY_BRANCH, etc. for pushed levels
     Context* binding,  // before branch forces non-empty variadic call
-    const Stable* branch,  // *cannot* be the same as out
+    const Element* branch,  // *cannot* be the same as out
     Option(const Value*) with  // can be same as out or not GC-safe, may copy
 ){
     assert(u_cast(const Value*, branch) != out);
@@ -135,26 +141,15 @@ bool Pushed_Continuation(
         or not Is_Api_Value(unwrap with)
     );
 
-    if (Is_Action(branch))  // antiform frames are legal
-        goto handle_action;
-
-    if (false) {  // !!! checked for VOID, but that's unstable antiform now
-        if (with) {
-            Copy_Cell(out, unwrap with);
-            goto just_use_out;
-        }
-        panic ("Branch has no default value to give with void");
-    }
-
-    if (Is_Antiform(branch))  // no other antiforms can be branches
-        panic (Error_Bad_Antiform(branch));
+    if (Is_Frame(branch))  // antiform frames are legal
+        goto handle_frame;
 
     if (Is_Group(branch)) {  // [2] for @(gr o up)
         assert(flags & LEVEL_FLAG_FORCE_HEAVY_BRANCH);  // branches
         require (
           Level* grouper = Make_Level_At_Core(
             &Group_Branch_Executor,  // evaluates to synthesize branch
-            cast(Element*, branch),
+            branch,
             binding,
             LEVEL_MASK_NONE  // Group_Branch_Executor() assumes heaviness
         ));
@@ -166,15 +161,38 @@ bool Pushed_Continuation(
         goto pushed_continuation;
     }
 
-  switch_on_sigil: {
+  panic_if_ignoring_with_is_dangerous: {
+
+  // A GROUP! or a FRAME! branch *may* wind up being ^META-parameterized, so
+  // that it can process a FAILURE! (or a pack with errors in it):
+  //
+  //     fail "test" else (^e -> [print "This doesn't panic..."])
+  //
+  //     fail "test" else (e -> [print "...but this panics"])
+  //
+  // However, if we get here there's no way there's parameterization.  In
+  // these cases, we want to elevate any failures to a panic so they're not
+  // dropped on the floor:
+  //
+  //     fail "test" else [print "This panics"]
+  //
+  //     fail "test" else 'this-panics-too
+
+    if (with) {
+      require (
+        Ensure_No_Errors_Including_In_Packs(unwrap with)
+      );
+    }
+
+} switch_on_sigil: {
 
     switch (opt Type_Of(branch)) {
       case TYPE_QUOTED:  // note: not bound (use $tied to get a binding)
-        Unquote_Cell(Copy_Cell(out, As_Element(branch)));
+        Unquote_Cell(Copy_Cell(out, branch));
         goto just_use_out;
 
       case TYPE_QUASIFORM:
-        Copy_Cell(out, As_Element(branch));
+        Copy_Cell(out, branch);
         require (
           Unlift_Cell_No_Decay(out)
         );
@@ -190,7 +208,7 @@ bool Pushed_Continuation(
 
       case TYPE_TIED:  // note: bound (use 'quoted to avoid binding)
         Clear_Cell_Sigil(
-            Copy_Cell_May_Bind(out, As_Element(branch), binding)
+            Copy_Cell_May_Bind(out, branch, binding)
         );
         goto just_use_out;
 
@@ -208,13 +226,13 @@ bool Pushed_Continuation(
         );
         Tweak_Link_Inherit_Bind(
             varlist,
-            Derive_Binding(binding, As_Element(branch))
+            Derive_Binding(binding, branch)
         );
         binding = varlist;  // update binding
         goto handle_list_with_adjusted_binding; }
 
       case TYPE_BLOCK:  // plain execution
-        binding = Derive_Binding(binding, As_Element(branch));
+        binding = Derive_Binding(binding, branch);
         goto handle_list_with_adjusted_binding;
 
       handle_list_with_adjusted_binding: {
@@ -263,7 +281,7 @@ bool Pushed_Continuation(
         }
 
         arg = First_Unspecialized_Arg(&param, L);
-        Copy_Cell_May_Bind(arg, cast(Element*, branch), binding);
+        Copy_Cell_May_Bind(arg, branch, binding);
         KIND_BYTE(arg) = TYPE_BLOCK;  // :[1 + 2] => [3], not :[3]
 
         Push_Level_Erase_Out_If_State_0(out, L);
@@ -271,21 +289,18 @@ bool Pushed_Continuation(
 
       case TYPE_PATH: {
         Length len = Sequence_Len(branch);
-        Copy_Sequence_At(out, branch, len - 1);
-        if (not Is_Space(As_Element(out)))
+        Element *last = Copy_Sequence_At(out, branch, len - 1);
+        if (not Is_Space(last))
             panic ("Only terminal-slash PATH! can act as BRANCH!");
 
         require (
-          Meta_Get_Var(out, NO_STEPS, As_Element(branch), binding)
+          Stable* got = Get_Var(out, NO_STEPS, branch, binding)
         );
-        require (
-          branch = Decay_If_Unstable(out)
-        );
-        assert(Is_Action(branch));
-        goto handle_action; }
+        if (not (Is_Action(got) or Is_Frame(got)))
+            panic ("Only ACTION! or FRAME! result from PATH! BRANCH allowed");
 
-      case TYPE_FRAME:
-        goto handle_action;
+        branch = As_Element(Deactivate_If_Action(got));
+        goto handle_frame; }
 
       default:
         break;
@@ -293,7 +308,7 @@ bool Pushed_Continuation(
 
     panic (Error_Bad_Branch_Type_Raw());  // narrow input types? [3]
 
-} handle_action: { ///////////////////////////////////////////////////////////
+} handle_frame: { ///////////////////////////////////////////////////////////
 
     Push_Frame_Continuation(out, flags, branch, with);
     goto pushed_continuation;

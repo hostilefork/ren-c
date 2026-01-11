@@ -102,7 +102,7 @@ DECLARE_NATIVE(LOGIC_Q)
 
 
 //
-//  logical: native [
+//  int-to-logic: native [
 //
 //  "Produces ~null~ antiform for 0, or ~okay~ antiform for all other integers"
 //
@@ -110,9 +110,9 @@ DECLARE_NATIVE(LOGIC_Q)
 //      value [integer!]
 //  ]
 //
-DECLARE_NATIVE(LOGICAL)
+DECLARE_NATIVE(INT_TO_LOGIC)
 {
-    INCLUDE_PARAMS_OF_LOGICAL;
+    INCLUDE_PARAMS_OF_INT_TO_LOGIC;
 
     Element* v = Element_ARG(VALUE);
     return LOGIC(VAL_INT64(v) != 0);

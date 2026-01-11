@@ -42,7 +42,7 @@ switch2: lambda [
                     ]
                     log ["Built frame for condition:" mold f]
 
-                    if found: did eval f [
+                    if found: logical eval f [
                         log "Result was truthy, skipping to branch!"
                     ] else [
                         log "Result was falsey, seeking next condition."

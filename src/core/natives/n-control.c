@@ -92,9 +92,8 @@ Bounce Group_Branch_Executor(Level* const L)
     if (THROWING)
         return THROWN;
 
-    Value* with = SPARE;  // passed to branch if run [1]
-    possibly(Is_Cell_Erased(with));
-    Value* branch = SCRATCH;  // GC-safe if eval target
+    Value* spare_with = SPARE;  // passed to branch if run [1]
+    possibly(Is_Cell_Erased(spare_with));
 
     enum {
         ST_GROUP_BRANCH_INITIAL_ENTRY = STATE_0,
@@ -103,15 +102,9 @@ Bounce Group_Branch_Executor(Level* const L)
     };
 
     switch (STATE) {
-      case ST_GROUP_BRANCH_INITIAL_ENTRY:
-        goto initial_entry;
-
-      case ST_GROUP_BRANCH_RUNNING_GROUP:
-        goto group_result_in_branch;
-
-      case ST_GROUP_BRANCH_RUNNING_BRANCH:
-        return OUT;
-
+      case ST_GROUP_BRANCH_INITIAL_ENTRY: goto initial_entry;
+      case ST_GROUP_BRANCH_RUNNING_GROUP: goto group_result_in_scratch;
+      case ST_GROUP_BRANCH_RUNNING_BRANCH: return OUT;
       default: assert(false);
     }
 
@@ -121,11 +114,9 @@ Bounce Group_Branch_Executor(Level* const L)
   //    from making mistakes.  Because this does something weird to use the
   //    OUT cell as `with` the LEVEL_FLAG_FORCE_HEAVY_BRANCH was taken off at
   //    the callsite.
-  //
-  // 2. For as long as the evaluator is running, its out cell is GC-safe.
 
-    if (Is_Cell_Erased(with))
-        Init_Nulled(with);
+    if (Is_Cell_Erased(spare_with))
+        Init_Nulled(spare_with);
 
     require (
       Level* sub = Make_Level(
@@ -135,12 +126,12 @@ Bounce Group_Branch_Executor(Level* const L)
             | (not LEVEL_FLAG_AFRAID_OF_GHOSTS)  // all voids act same here
     ));
     Init_Ghost(Evaluator_Primed_Cell(sub));
-    Push_Level_Erase_Out_If_State_0(branch, sub);  // branch GC-protected [2]
+    Push_Level_Erase_Out_If_State_0(SCRATCH, sub);
 
     STATE = ST_GROUP_BRANCH_RUNNING_GROUP;
     return CONTINUE_SUBLEVEL(sub);
 
-} group_result_in_branch: {  /////////////////////////////////////////////////
+} group_result_in_scratch: {  ////////////////////////////////////////////////
 
   // 1. Allowing a void branch can be useful, consider:
   //
@@ -162,17 +153,22 @@ Bounce Group_Branch_Executor(Level* const L)
 
     assert(Is_Level_At_End(L));
 
-    if (Any_Void(branch))  // void branches giving their input is useful  [1]
-        return Copy_Cell(OUT, with);
+    if (Any_Void(SCRATCH))  // void branches giving their input is useful  [1]
+        return Copy_Cell(OUT, spare_with);
 
     require (
-      Stable* stable_branch = Decay_If_Unstable(branch)
+      Stable* scratch_branch = Decay_If_Unstable(SCRATCH)
     );
-    if (Is_Group(stable_branch))
+    if (Is_Group(scratch_branch))
         panic (Error_Bad_Branch_Type_Raw());  // stop recursions (good?)
 
+    Deactivate_If_Action(scratch_branch);  // FRAME! is legal branch type
+
+    if (Is_Antiform(scratch_branch))
+        panic (Error_Bad_Antiform(scratch_branch));
+
     STATE = ST_GROUP_BRANCH_RUNNING_BRANCH;
-    return CONTINUE(OUT, stable_branch, with);
+    return CONTINUE(OUT, As_Element(scratch_branch), spare_with);
 }}
 
 
@@ -251,47 +247,59 @@ DECLARE_NATIVE(EITHER)
       bool cond = Test_Conditional(condition)
     );
 
-    Stable* branch = cond ? ARG(NON_NULL_BRANCH) : ARG(NULL_BRANCH);
+    Element* branch = cond ? ARG(NON_NULL_BRANCH) : ARG(NULL_BRANCH);
 
     return DELEGATE_BRANCH(OUT, branch, condition);  // branch semantics [A]
 }
 
 
 //
-//  then?: native [
+//  did: native:intrinsic [
 //
-//  "Test for NOT being a 'light' null (IF THEN? is prefix THEN)"
+//  "Test for NOT being ghost, 'light' null, or error! (IF DID is prefix THEN)"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
-DECLARE_NATIVE(THEN_Q)
+DECLARE_NATIVE(DID_1)
+//
+// 1. THEN runs on PACK! even if it contains errors.  That's not considered
+//    to be an error.  So we are consistent with that: it counts as "DID"
+//    for our purposes here.
 {
-    INCLUDE_PARAMS_OF_THEN_Q;
+    INCLUDE_PARAMS_OF_DID_1;
 
-    Value* v = Possibly_Unstable(ARG(VALUE));
+    Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
-    return LOGIC(not (Is_Light_Null(v) or Is_Ghost(v)));
+    if (Is_Light_Null(v) or Is_Ghost(v) or Is_Error(v))
+        return LOGIC(false);
+
+    possibly(Is_Pack(v) and Is_Lifted_Error(List_Item_At(v)));  // [1]
+
+    return LOGIC(true);
 }
 
 
 //
-//  else?: native [
+//  didn't: native:intrinsic [
 //
-//  "Test for being a 'light' null (`IF ELSE?` is prefix `ELSE`)"
+//  "Test for being ghost, 'light' null, or error! (IF DIDN'T is prefix ELSE)"
 //
 //      return: [logic?]
-//      ^value [any-value?]
+//      ^value '[any-value?]
 //  ]
 //
-DECLARE_NATIVE(ELSE_Q)
+DECLARE_NATIVE(DIDNT)
+//
+// Written in terms of DID just to emphasize consistency in the logic.
 {
-    INCLUDE_PARAMS_OF_ELSE_Q;
+    Bounce b = Apply_Cfunc(NATIVE_CFUNC(DID_1), LEVEL);
+    if (b == BOUNCE_OKAY)
+        return LOGIC(false);
 
-    Value* v = Possibly_Unstable(ARG(VALUE));
-
-    return LOGIC(Is_Light_Null(v) or Is_Ghost(v));
+    assert(b == nullptr);
+    return LOGIC(true);
 }
 
 
@@ -366,11 +374,10 @@ DECLARE_NATIVE(ELSE)
     Value* left = Possibly_Unstable(ARG(LEFT));
     Element* branch = ARG(BRANCH);
 
-    if (Is_Error(left))
+    if (not (Is_Light_Null(left) or Is_Ghost(left) or Is_Error(left)))
         return COPY(left);
 
-    if (not (Is_Light_Null(left) or Is_Ghost(left)))
-        return COPY(left);
+    possibly(Is_Error(left));  // handler must take ^META arg, or will panic
 
     return DELEGATE_BRANCH(OUT, branch, left);
 }
@@ -445,7 +452,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
     INCLUDE_PARAMS_OF_ALL;
 
     Element* block = Element_ARG(BLOCK);
-    Option(Stable*) predicate = ARG(PREDICATE);
+    Option(Element*) predicate = ARG(PREDICATE);
 
     Value* condition;  // SPARE, or SCRATCH (if testing predicate result)
 
@@ -703,7 +710,7 @@ DECLARE_NATIVE(CASE)
     INCLUDE_PARAMS_OF_CASE;
 
     Element* cases = Element_ARG(CASES);
-    Option(Stable*) predicate = ARG(PREDICATE);
+    Option(Element*) predicate = ARG(PREDICATE);
 
     enum {
         ST_CASE_INITIAL_ENTRY = STATE_0,

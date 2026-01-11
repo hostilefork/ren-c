@@ -46,7 +46,7 @@
     ]
 )]
 
-; Hard quotes need to account for infix deferral
+; Literals need to account for infix deferral
 (
     foo: func [return: [integer!] y] [return the 1 then (x -> [x + y])]
     bar: func [return: [integer!] y] [return 1 then (x -> [x + y])]
@@ -66,9 +66,6 @@
     ]
 )
 
-; This is a by-product of the wish to make it so (@ <QUASIFORM!>) can produce
-; a pure NULL, for use with the API...and that this provoking quasivalue be
-; something the API puts in automatically when a nullptr is given as input.
 (
     null? (~null~ then [panic ~#unreachable~])
 )
@@ -130,9 +127,41 @@
     (3 = (if ok [1 + 2] then (^ghost)))
 ]
 
+; THEN passes ERROR! through, ELSE will panic on error if not handled by
+; an action branch that is meta-paramterized
+[
+    (error? 1 / 0 then [~(unreachable)~])
+    ~zero-divide~ !! (assert [not error? (1 / 0 else [~(unreachable)~])])
+    ~zero-divide~ !! (assert [not error? (1 / 0 else 'unreachable)])
+    ~zero-divide~ !! (assert [not error? (1 / 0 else (e -> [~(unreachable)~]))])
+    ~zero-divide~ !! (assert [not error? (1 / 0 else (does [~(unreachable)~]))])
+    (error? (1 / 0 else (^e -> [^e])))
+]
+
 ; THENCE is prefix reversed THEN
 [
     (3 = thence [1 + 2] okay)
     (null? thence [1 + 2] null)
     (ghost? thence [1 + 2] ())
+]
+
+; IF DID is prefix THEN
+; IF DIDN'T is prefix ELSE
+[
+    (
+        did*: enclose did/ lambda [f] {
+            result: eval f
+            assert [result = not didn't ^f.value]
+        }
+        didn't*: enclose didn't/ lambda [f] {
+            result: eval f
+            assert [result = not did ^f.value]
+        }
+    )
+    (did* 1020)
+    (did* ~[]~)
+    (didn't* ())
+    (didn't* null)
+    (did* heavy null)
+    (didn't* fail "hi")
 ]

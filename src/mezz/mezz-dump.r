@@ -200,7 +200,7 @@ summarize-obj: func [
         val
     ]
 
-    let wild: to-logic find opt (match text! opt pattern) "*"
+    let wild: did find opt (match text! opt pattern) "*"
 
     return collect [
         for-each [word ^val] obj [

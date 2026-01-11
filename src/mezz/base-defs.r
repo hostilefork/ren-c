@@ -66,8 +66,6 @@ ghostly: vanishable identity/  ; avoids ghosts being turned into empty packs
 
 compose: specialize compose2/ [pattern: '()]  ; use template binding if not @()
 
-branched?: then?/  ; alias, maybe more catchy?
-
 
 ; It's easier to pre-process CASCADE's block in usermode, which also offers a
 ; lower-level version CASCADE* that just takes a block of frames.
@@ -85,8 +83,9 @@ cascade: adapt cascade*/ [
 ; like redefine NOT locally and still have access to NOT? without having to
 ; say LIB.NOT ... maybe useful.  Just trying it out.
 
-did: did?: to-logic/
-didn't: didn't?: not/
+logical?: logical: to-logic/
+did?: did/
+didn't?: didn't/
 not?: not/
 both: both?: and?/
 nor?: cascade [or?/ not/]
