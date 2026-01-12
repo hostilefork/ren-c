@@ -189,7 +189,13 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 // The concern about searching for embedded ERROR!s is shared between the
 // decay and elide routines, so they are implemented using a common function.
 //
-// 1. If you want a value, then in the general case of getters and setters
+// 1. We don't want to cast away the error state, but we don't want to give
+//    back a Stable* value either if we didn't decay.  Casting to Result(None)
+//    can be made to work in C++ but it can't work in C because that would
+//    be casting a pointer to an enum.  Cast to a void* which will hopefully
+//    discourage people from using the value directly.
+//
+// 2. If you want a value, then in the general case of getters and setters
 //    that involves running code, which can't be done from an intrinsic.
 //    This would foil things like ELIDE... except they just say they don't
 //    want a value.  This raises some questions about undecayables that
@@ -199,24 +205,28 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
     Decay_Or_Elide_Core(Possibly_Unstable(v), true)
 
 #define Ensure_No_Errors_Including_In_Packs(v) \
-    Decay_Or_Elide_Core(Possibly_Unstable(v), false)
+    u_cast(Result(void*), /* Result(None) cast can't work in C [1] */ \
+        Decay_Or_Elide_Core(m_cast(Value*, Possibly_Unstable(v)), false))
 
 INLINE Result(Stable*) Decay_Or_Elide_Core(
     Value* v,
     bool want_value  // ELIDE is more permissive, doesn't want the value
 ){
-    if (want_value)  // eval required in general case (getters, alias) [1]
+    if (want_value)  // eval required in general case (getters, alias) [2]
         assert(Not_Level_Flag(TOP_LEVEL, DISPATCHING_INTRINSIC));
 
     if (Is_Cell_Stable(v))
         goto finished;
 
     if (not Is_Pack(v)) {
-        if (want_value and Is_Ghost(v))
-            return fail ("Cannot decay GHOST! to a value");
-
         if (Is_Error(v))
             return fail (Cell_Error(v));
+
+        if (not want_value)
+            goto finished_no_value;
+
+        if (Is_Ghost(v))
+            return fail ("Cannot decay GHOST! to a value");
 
         goto finished;
     }
@@ -257,38 +267,43 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
         assume (
             Unlift_Cell_No_Decay(v)
         );
-        trap (  /// elide recursively to look for hidden ERROR! [1]
-          Ensure_No_Errors_Including_In_Packs(v)
-        );
+        Ensure_No_Errors_Including_In_Packs(v) except (Error* e) {  // [1]
+            return fail (e);
+        }
     }
 
-    if (want_value) {
-        if (Is_Lifted_Pack(first))  // don't decay first slot [2]
-            return fail ("PACK! cannot decay PACK! in first slot");
+    if (not want_value)
+        goto finished_no_value;
 
-        if (Is_Lifted_Ghost(first))
-            return fail ("PACK! cannot decay GHOST! in first slot");
+    if (Is_Lifted_Pack(first))  // don't decay first slot [2]
+        return fail ("PACK! cannot decay PACK! in first slot");
 
-        assert(not Is_Lifted_Error(first));  // we ruled these out already
+    if (Is_Lifted_Ghost(first))
+        return fail ("PACK! cannot decay GHOST! in first slot");
 
-        if (Is_Dual_Meta_Alias_Signal(first)) {
-            trap (
-                Get_Word_Or_Tuple(v, first, SPECIFIED)
-            );
-        }
-        else {
-            Copy_Cell(v, first);  // Note: no antiform binding (PACK!)
-            assume (  // Any_Lifted() already checked for all pack items
-                Unlift_Cell_No_Decay(v)
-            );
-        }
+    assert(not Is_Lifted_Error(first));  // we ruled these out already
+
+    if (Is_Dual_Meta_Alias_Signal(first)) {
+        trap (
+            Get_Word_Or_Tuple(v, first, SPECIFIED)
+        );
+    }
+    else {
+        Copy_Cell(v, first);  // Note: no antiform binding (PACK!)
+        assume (  // Any_Lifted() already checked for all pack items
+            Unlift_Cell_No_Decay(v)
+        );
     }
 
     goto finished;
 
 } finished: { ////////////////////////////////////////////////////////////////
 
-    return u_cast(Stable*, v);
+    return As_Stable(v);
+
+} finished_no_value: { ///////////////////////////////////////////////////////
+
+    return nullptr;
 }}
 
 INLINE Result(Stable*) Unliftify_Decayed(Stable* v) {
