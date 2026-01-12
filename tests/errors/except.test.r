@@ -24,7 +24,7 @@
     ghost? (^ghost except (e -> [<unused>]))
 )
 
-; Hot potatoes are tricky; they're not ERROR! but EXCEPT should probably be
+; Hot potatoes are tricky; they're not FAILURE! but EXCEPT should probably be
 ; willing to handle them.  Though it violates the convention of assuming the
 ; handler is passed a WARNING! non-antiform state.
 ;

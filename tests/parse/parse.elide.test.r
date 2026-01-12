@@ -8,7 +8,7 @@
 (
     j: ~
     all [
-        error? parse "b" [[(1000 + 20) elide (j: 304)]]
+        failure? parse "b" [[(1000 + 20) elide (j: 304)]]
         j = 304
     ]
 )

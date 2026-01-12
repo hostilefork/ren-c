@@ -522,7 +522,7 @@ static void Init_System_Object(
 
   // The "standard error" template was created as an OBJECT!, because the
   // `make warning!` functionality is not ready when %sysobj.r runs.  Fix
-  // up its archetype so that it is an actual ERROR!.
+  // up its archetype so that it is an actual WARNING!.
 
     Slot* std_error_slot = Get_System(SYS_STANDARD, STD_ERROR);
     assert(KIND_BYTE(std_error_slot) == TYPE_OBJECT);

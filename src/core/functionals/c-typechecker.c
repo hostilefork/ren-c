@@ -383,7 +383,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
             goto test_succeeded;
 
         assert(bounce == L->out);  // no BOUNCE_CONTINUE, API vals, etc
-        if (Is_Error(L->out))
+        if (Is_Failure(L->out))
             panic (Cell_Error(L->out));
         panic (Error_No_Logic_Typecheck(label));
     }
@@ -441,8 +441,8 @@ bool Predicate_Check_Spare_Uses_Scratch(
 
     Drop_Level(sub);
 
-    if (Is_Error(SCRATCH))
-        goto test_failed;  // e.g. see NULL? for its ERROR! on heavy null
+    if (Is_Failure(SCRATCH))
+        goto test_failed;  // e.g. see NULL? for its FAILURE! on heavy null
 
     Stable* scratch = As_Stable(SCRATCH);
 
@@ -1035,7 +1035,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
         goto call_typecheck;
     }
 
-    if (Is_Error(v))
+    if (Is_Failure(v))
         goto return_false;
 
     if (Is_Ghost(v))
@@ -1186,7 +1186,7 @@ DECLARE_NATIVE(TYPECHECKER)
 //
 //  "Same typechecking as function arguments"
 //
-//      return: [logic? error!]  ; returns error vs. panic [1]
+//      return: [logic? failure!]  ; returns error vs. panic [1]
 //      test [block! datatype! parameter! action!]
 //      ^value [any-value?]
 //      :meta "Don't pre-decay argument (match ^META argument mode)"
@@ -1194,7 +1194,7 @@ DECLARE_NATIVE(TYPECHECKER)
 //
 DECLARE_NATIVE(TYPECHECK)
 //
-// 1. The reason a :META typecheck that fails with ERROR! returns the error
+// 1. The reason a :META typecheck that fails with FAILURE! returns the error
 //    is to avoid a separate :RELAX switch to say you don't want to panic
 //    if an error fails the typecheck.  You just TRY the TYPECHECK.  It may
 //    be that :RELAX is a better idea, but trying this idea first...since
@@ -1214,7 +1214,7 @@ DECLARE_NATIVE(TYPECHECK)
     if (Typecheck_Uses_Spare_And_Scratch(LEVEL, v, test, SPECIFIED))
         return LOGIC(true);
 
-    if (Is_Error(v)) {
+    if (Is_Failure(v)) {
         assert(ARG(META));  // otherwise would have pre-decay'd, PANIC
         return COPY(v);  // panic would require a :RELAX option [1]
     }

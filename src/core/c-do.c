@@ -76,7 +76,7 @@ Result(None) Prep_Action_Level(
         arg = First_Unspecialized_Arg(&param, L);
         if (not arg) {
             require (
-              Ensure_No_Errors_Including_In_Packs(unwrap with)
+              Ensure_No_Failures_Including_In_Packs(unwrap with)
             );
             break;
         }
@@ -103,7 +103,7 @@ void Push_Frame_Continuation(
     const Stable* frame,  // may be antiform
     Option(const Value*) with
 ){
-    possibly(with and Is_Error(unwrap with));  // won't allow ignoring errors
+    possibly(with and Is_Failure(unwrap with));  // won't ignore failures
 
     require (
       Level* L = Make_End_Level(
@@ -180,7 +180,7 @@ bool Pushed_Continuation(
 
     if (with) {
       require (
-        Ensure_No_Errors_Including_In_Packs(unwrap with)
+        Ensure_No_Failures_Including_In_Packs(unwrap with)
       );
     }
 

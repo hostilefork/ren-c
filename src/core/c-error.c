@@ -32,14 +32,14 @@
 // This is the polymorphic code behind panic(), FAIL(), and FAIL():
 //
 //    panic ("UTF-8 string");  // delivers error with that text
-//    panic (api_value);       // ensure it's an ERROR!, release and use as-is
+//    panic (api_value);       // ensure it's a WARNING!, release and use as-is
 //    panic (error_context);   // use the Error* as-is
 //    panic (PARAM(NAME));     // impliciate parameter as having a bad value
 //    panic (other_cell);      // just report as a generic "bad value"
 //
 // 1. Currently panic() itself won't take Value* in its type check.  If it
 //    did, then that opens the doors to the idea that it might have to
-//    decay, e.g. an ERROR! which would be causing a panic of its own.
+//    decay, e.g. a FAILURE! which would be causing a panic of its own.
 //    Reconsider if taking unstable pointers seems a good idea.
 //
 // 2. We would face an ambiguity in taking API handles, as to whether that
@@ -64,7 +64,7 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
       case DETECTED_AS_STUB: {
         Flex* f = m_cast(Flex*, cast(Flex*, p));  // don't mutate
         if (not Is_Stub_Varlist(f))
-            crash (f);  // only kind of Flex allowed are contexts of ERROR!
+            crash (f);  // only kind of Flex allowed are Error* varlists
         if (CTX_TYPE(cast(VarList*, f)) != TYPE_WARNING)
             crash (f);
         return cast(Error*, f); }
@@ -78,7 +78,7 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
                 error = Cell_Error(v);
             }
             else {
-                assert(!"panic() given API handle that is not an ERROR!");
+                assert(!"panic() given API handle that is not a WARNING!");
                 error = Error_Bad_Value(v);
             }
             rebRelease(m_cast(Stable*, v));  // released even if we didn't
@@ -116,7 +116,7 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
 // to bubble up a thrown value through OUT (used to implement BREAK,
 // CONTINUE, RETURN, LEAVE, HALT...)
 //
-// The function will auto-detect if the pointer it is given is an ERROR!'s
+// The function will auto-detect if the pointer it is given is a WARNING!'s
 // VarList* or a UTF-8 char *.  If it's UTF-8, an error will be created from
 // it automatically (but with no ID...the string becomes the "ID")
 //
@@ -460,7 +460,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Warning)
     }
     else if (Is_Text(arg)) {
         //
-        // String argument to MAKE ERROR! makes a custom error from user:
+        // String argument to MAKE WARNING! makes a custom warning from user:
         //
         //     code: null  ; default is null
         //     type: null
@@ -677,9 +677,9 @@ Error* Make_Error_From_Vaptr_Managed(
         assert(Is_Text(message));
 
     // !!! Should things like NEAR and WHERE be in the ADJUNCT and not in the
-    // object for the ERROR! itself, so the error could have arguments with
+    // object for the WARNING! itself, so the warning could have arguments with
     // any name?  (e.g. NEAR and WHERE?)  In that case, we would be copying
-    // the "standard format" error as an adjunct object instead.
+    // the "standard format" warning as an adjunct object instead.
     //
     bool deeply = false;
     VarList* varlist = Copy_Varlist_Extra_Managed(
@@ -792,7 +792,7 @@ Error* Make_Error_Managed_Raw(
 //  Error_User: C
 //
 // Simple error constructor from a string (historically this was called a
-// "user error" since MAKE ERROR! of a STRING! would produce them in usermode
+// "user error" since MAKE WARNING! of a STRING! would produce them in usermode
 // without any error template in %errors.r)
 //
 Error* Error_User(const char *utf8) {
@@ -1077,7 +1077,7 @@ Error* Error_Arg_Type(
     const Param* param,
     const Value* arg
 ){
-    if (Is_Error(arg))  // if the argument was an error, report it directly
+    if (Is_Failure(arg))  // if the argument was an error, report it directly
         return Cell_Error(arg);
 
     const Symbol* param_symbol = Key_Symbol(key);
@@ -1085,7 +1085,7 @@ Error* Error_Arg_Type(
     Option(const Source*) param_array = Parameter_Spec(param);
 
     DECLARE_ELEMENT (spec);
-    assert(param_array);  // if you accept all types, no type error!
+    assert(param_array);  // if you accept all types, no type error...
     if (not param_array)
         Init_Quasi_Word(spec, CANON(ERROR));  // shouldn't happen, defensive
     else
@@ -1118,7 +1118,7 @@ Error* Error_Phase_Arg_Type(
     if (Level_Phase(L) == L->u.action.original)  // not an internal phase
         return Error_Arg_Type(Level_Label(L), key, param, arg);
 
-    if (Parameter_Class(param) != PARAMCLASS_META and Is_Error(arg))
+    if (Parameter_Class(param) != PARAMCLASS_META and Is_Failure(arg))
         return Cell_Error(arg);
 
     Error* error = Error_Arg_Type(Level_Label(L), key, param, arg);
@@ -1378,7 +1378,7 @@ void Shutdown_Utf8_Errors(void)
 }
 
 
-// Historical FORM of an ERROR! was very verbose and included formatting
+// Historical FORM of an WARNING! was very verbose and included formatting
 // aspects, such as the inclusion of `**` in the message, and multiple lines
 // with the WHERE and NEAR information, etc.  The FORM has been reduced to
 // just handling the message portion, with the rest done in usermode by

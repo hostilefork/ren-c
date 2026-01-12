@@ -792,7 +792,7 @@ INLINE Bounce Native_Thrown_Result(Level* L) {
 //
 // When this error state bubbles up to a native dispatcher, we have a choice
 // that we could either treat it as a "definitional error" as if you had put
-// an ERROR! into the output cell--or we could treat it as a panic.  We want
+// a FAILURE! into the output cell--or we could treat it as a panic.  We want
 // `return fail()` to work definitionally.  So it does not panic.
 //
 // But the only places in C stacks where we can `return` gracefully are at

@@ -187,7 +187,7 @@ Bounce To_Or_As_Checker_Executor(Level* const L)
     Level* level_ = TOP_LEVEL;  // sublevel stole the varlist
     assert(level_->prior == L);
 
-    if (Is_Error(OUT)) {
+    if (Is_Failure(OUT)) {
         Drop_Level(level_);
         return OUT;
     }
@@ -237,7 +237,7 @@ Bounce To_Or_As_Checker_Executor(Level* const L)
     if (THROWING)
         return BOUNCE_THROWN;
 
-    if (Is_Error(scratch_reverse_atom))
+    if (Is_Failure(scratch_reverse_atom))
         panic (Cell_Error(scratch_reverse_atom));
 
     require (

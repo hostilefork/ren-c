@@ -180,13 +180,13 @@ INLINE Count Noquotify(Element* elem) {
 
 //=//// UNSTABLE ANTIFORMS ////////////////////////////////////////////////=//
 //
-// Unstable antiforms like PACK!, ERROR!, and GHOST! antiforms aren't just
+// Unstable antiforms like PACK!, FAILURE!, and GHOST! antiforms aren't just
 // not allowed in blocks, they can't be in stored in "normal" variables
 // (only ^META variables can hold them).  They will either decay to stable
 // forms or cause errors in decay.
 //
 // The ^META parameter convention must be used to get unstable antiforms.
-// Code that isn't expecting such strange circumstances can error if they
+// Code that isn't expecting such strange circumstances can panic if they
 // happen, while more sensitive code can be adapted to cleanly handle the
 // intents that they care about.
 //
@@ -222,7 +222,7 @@ INLINE Count Noquotify(Element* elem) {
 
         uintptr_t mask = v->header.bits & CELL_MASK_HEART_AND_SIGIL_AND_LIFT;
         assert(stable == (
-            mask != (  // ERROR!
+            mask != (  // FAILURE!
                 FLAG_HEART(TYPE_WARNING) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
             )
             and mask != (  // GHOST!

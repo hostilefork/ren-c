@@ -55,7 +55,7 @@
 )
 
 
-; non-:UNBOUNDED (returns ERROR! if out of bounds)
+; non-:UNBOUNDED (returns FAILURE! if out of bounds)
 (
     blk: []
     same? blk skip blk 0

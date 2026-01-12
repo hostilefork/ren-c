@@ -217,13 +217,13 @@
         ignore [^result2 remainder2 pending2]: parser2 pos except (e -> [
             pack [fail e]
         ])
-        if error? ^result2 [  ; parser2 didn't succeed
-            if error? ^result1 [
+        if failure? ^result2 [  ; parser2 didn't succeed
+            if failure? ^result1 [
                 return ^result1  ; neither succeeded
             ]
         ] else [  ; parser2 succeeded
             any [
-                error? ^result1
+                failure? ^result1
                 (index of remainder1) < (index of remainder2)
             ] then [
                 pos: remainder2

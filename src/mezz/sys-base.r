@@ -72,7 +72,7 @@ make-quit: lambda [
                 quit* ^result  ; may be error
             ]
             quit* any [
-                if not error? ^result [0]  ; non-error is shell success
+                if not failure? ^result [0]  ; non-error is shell success
                 try (unanti ^result).exit-code  ; null if no exit-code field
                 1  ; generic quit signal for all non-exit-code-bearing errors
             ]
@@ -192,7 +192,7 @@ module: func [
   ;----
   ; 1. We add a QUIT slot to the module (alongside IMPORT* and EXPORT*), and
   ;    fill it in with a custom THROW word to catch it.  MAKE-QUIT gives us a
-  ;    function that interprets non-zero integers e.g. (quit 1) as ERROR!
+  ;    function that interprets non-zero integers e.g. (quit 1) as FAILURE!
   ;
   ; 2. If there's no explicit QUIT call in the body code, we act as if TRASH!
   ;    was the result.  That's also what MAKE-QUIT has (quit 0) do.
@@ -201,7 +201,7 @@ module: func [
   ;    so that an ADAPT'ed QUIT would always get a quit signal.  But this has
   ;    not been done with RETURN for FUNCTION, so it's a controversial idea.
 
-    ignore ^product: catch [  ; IGNORE stops ERROR! results becoming a panic
+    ignore ^product: catch [  ; IGNORE stops FAILURE! results becoming a panic
         set (extend mod 'quit) make-quit throw/  ; module's QUIT [1]
 
         wrap* mod body  ; add top-level declarations to module
@@ -212,7 +212,7 @@ module: func [
 
     mod.quit: ~#[Module finished init, no QUIT (do you want SYS.UTIL/EXIT?)]#~
 
-    return pack [mod ^product]  ; ERROR! antiform is legal product
+    return pack [mod ^product]  ; FAILURE! antiform is legal product
 ]
 
 

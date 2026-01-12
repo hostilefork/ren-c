@@ -177,7 +177,7 @@ parameter!  "function parameter description"
                 [any-inert?]
 
     warning!    "context with id, arguments, and stack origin"
-    ~error!~:U  "error state that is escalated to a panic if not triaged"
+    ~failure!~:U  "error state that is escalated to a panic if not triaged"
                 (payload1 payload2)
                 [any-inert?]
 

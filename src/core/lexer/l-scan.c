@@ -52,7 +52,7 @@
 #include "sys-core.h"
 
 // Generally speaking, the scanner should not panic--its job is to try and
-// load the code, and if it can't it should return a cooperative ERROR! value,
+// load the code, and if it can't it should return a cooperative FAILURE!,
 // as opposed to longjmp()/throw up the stack.
 //
 #undef panic
@@ -2740,7 +2740,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
         return fail (Error_No_Catch_For_Throw(L));
     }
 
-    if (Is_Error(OUT)) {
+    if (Is_Failure(OUT)) {
         Drop_Level(sub);
         return OUT;
     }
@@ -2875,7 +2875,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
 } child_array_scanned: {  ////////////////////////////////////////////////////
 
-    if (Is_Error(OUT)) {
+    if (Is_Failure(OUT)) {
         Drop_Level(SUBLEVEL);
         Drop_Data_Stack_To(STACK_BASE);
         return OUT;
@@ -2992,7 +2992,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
     if (threw)  // automatically drops failing stack before throwing
         return fail (Error_No_Catch_For_Throw(L));
 
-    if (Is_Error(OUT)) {  // no auto-drop without `return fail ()`
+    if (Is_Failure(OUT)) {  // no auto-drop without `return fail ()`
         Drop_Data_Stack_To(STACK_BASE);
         return OUT;
     }
@@ -3221,7 +3221,7 @@ Bounce Scanner_Executor(Level* level_)
     Bounce b = Scanner_Executor_Core(level_);
     if (u_cast(const void*, b) != nullptr) {
         if (u_cast(const void*, b) == level_->out) {
-            if (Is_Error(level_->out))
+            if (Is_Failure(level_->out))
                 assert(TOP_INDEX == STACK_BASE);
             else
                 assert(Is_Tripwire(As_Stable(level_->out)));

@@ -76,7 +76,7 @@ static Result(bool) Return_Out_For_Conditional_Optional_Or_When(Level* level_)
 
     Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
-    if (Is_Error(v))
+    if (Is_Failure(v))
         return fail (Cell_Error(v));
 
     if (Is_Ghost(v))  // [1]
@@ -335,7 +335,7 @@ DECLARE_NATIVE(EITHER)
 //
 //  did: native:intrinsic [
 //
-//  "Test for NOT being ghost, 'light' null, or error! (IF DID is prefix THEN)"
+//  "Test for NOT ghost, 'light' null, or failure! (IF DID is prefix THEN)"
 //
 //      return: [logic?]
 //      ^value '[any-value?]
@@ -351,10 +351,10 @@ DECLARE_NATIVE(DID_1)
 
     Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
-    if (Is_Light_Null(v) or Is_Ghost(v) or Is_Error(v))
+    if (Is_Light_Null(v) or Is_Ghost(v) or Is_Failure(v))
         return LOGIC(false);
 
-    possibly(Is_Pack(v) and Is_Lifted_Error(List_Item_At(v)));  // [1]
+    possibly(Is_Pack(v) and Is_Lifted_Failure(List_Item_At(v)));  // [1]
 
     return LOGIC(true);
 }
@@ -363,7 +363,7 @@ DECLARE_NATIVE(DID_1)
 //
 //  didn't: native:intrinsic [
 //
-//  "Test for being ghost, 'light' null, or error! (IF DIDN'T is prefix ELSE)"
+//  "Test for ghost, 'light' null, or failure! (IF DIDN'T is prefix ELSE)"
 //
 //      return: [logic?]
 //      ^value '[any-value?]
@@ -399,7 +399,7 @@ DECLARE_NATIVE(THEN)
     Value* left = Possibly_Unstable(ARG(LEFT));
     Element* branch = ARG(BRANCH);
 
-    if (Is_Error(left))
+    if (Is_Failure(left))
         return COPY(left);
 
     if (Is_Light_Null(left) or Is_Ghost(left))
@@ -426,7 +426,7 @@ DECLARE_NATIVE(THENCE)
     Element* branch = ARG(BRANCH);
     Value* v = Possibly_Unstable(ARG(VALUE));
 
-    if (Is_Error(v))
+    if (Is_Failure(v))
         return COPY(v);
 
     if (Is_Light_Null(v) or Is_Ghost(v))
@@ -453,10 +453,10 @@ DECLARE_NATIVE(ELSE)
     Value* left = Possibly_Unstable(ARG(LEFT));
     Element* branch = ARG(BRANCH);
 
-    if (not (Is_Light_Null(left) or Is_Ghost(left) or Is_Error(left)))
+    if (not (Is_Light_Null(left) or Is_Ghost(left) or Is_Failure(left)))
         return COPY(left);
 
-    possibly(Is_Error(left));  // handler must take ^META arg, or will panic
+    possibly(Is_Failure(left));  // handler must take ^META arg, or will panic
 
     return DELEGATE_BRANCH(OUT, branch, left);
 }
@@ -496,7 +496,7 @@ DECLARE_NATIVE(ALSO)
 
   initial_entry: {  //////////////////////////////////////////////////////////
 
-    if (Is_Error(left))
+    if (Is_Failure(left))
         return COPY(left);
 
     if (Is_Light_Null(left) or Is_Ghost(left))
@@ -1228,10 +1228,10 @@ DECLARE_NATIVE(DEFAULT)
   //    an answer for this problem by giving back a block of "steps" which can
   //    resolve the variable without doing more evaluations.
   //
-  // 2. Right now GET allows for ERROR! to be returned in cases like a missing
+  // 2. Current GET allows for FAILURE! to be returned in cases like a missing
   //    field from an OBJECT!.  This may not be a good idea, given that ^META
-  //    fields can legitimately give back ERROR! in-band if a field stores
-  //    a lifted error.  It's under review.
+  //    fields can legitimately give back FAILURE! in-band if a field stored
+  //    one.  It's under review.
   //
   // 3. TRASH!, GHOST!, NULL, empty PACK! and empty SPLICE! are "defaultable".
   //    Space runes (blanks) aren't; no stable form is overwritten by DEFAULT.
@@ -1315,7 +1315,7 @@ DECLARE_NATIVE(MAYBE)
     Element* target = Element_ARG(TARGET);
     Value* v = ARG(VALUE);
 
-    if (Is_Error(v))
+    if (Is_Failure(v))
         return COPY(v);  // pass through but don't assign anything
 
     assume (
@@ -1389,7 +1389,7 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
 
     if (not THROWING) {
         require (
-          Ensure_No_Errors_Including_In_Packs(OUT)
+          Ensure_No_Failures_Including_In_Packs(OUT)
         );
         return GHOST;  // no throw means just return ghost (pure, for ELSE)
     }
@@ -1411,11 +1411,10 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
 //
 //  definitional-throw: native [
 //
-//  "Throws control back to a previous catch"
+//  "Throws VALUE to its associated CATCH"
 //
 //      return: []
-//      ^value "What CATCH will receive (unstable antiforms ok, e.g. ERROR!)"
-//          [any-value?]
+//      ^value [any-value?]
 //  ]
 //
 DECLARE_NATIVE(DEFINITIONAL_THROW)

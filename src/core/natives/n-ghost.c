@@ -61,7 +61,7 @@ DECLARE_NATIVE(GHOST_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    // !!! what about ERROR!?  Should this panic?
+    // !!! what about FAILURE!?  Should this panic?
 
     return LOGIC(Is_Ghost(v));
 }
@@ -82,7 +82,7 @@ DECLARE_NATIVE(VOID_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    // !!! what about ERROR!?  Should this panic?
+    // !!! what about FAILURE!?  Should this panic?
 
     return LOGIC(Any_Void(v));
 }
@@ -103,7 +103,7 @@ DECLARE_NATIVE(HEAVY_VOID_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    // !!! what about ERROR!?  Should this panic?
+    // !!! what about FAILURE!?  Should this panic?
 
     return LOGIC(Is_Heavy_Void(v));
 }
@@ -135,7 +135,7 @@ DECLARE_NATIVE(COMMENT)
 //
 //  elide: vanishable native:intrinsic [
 //
-//  "Argument evaluated, result discarded (not ERROR!, or packs with ERROR!s)"
+//  "Argument evaluated, result discarded (not FAILURE!, or packs w/FAILURE!s)"
 //
 //      return: [ghost!]
 //      ^discarded '[any-stable? pack! ghost!]
@@ -148,7 +148,7 @@ DECLARE_NATIVE(ELIDE)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     require (
-      Ensure_No_Errors_Including_In_Packs(v)
+      Ensure_No_Failures_Including_In_Packs(v)
     );
 
     return GHOST;
@@ -173,14 +173,14 @@ DECLARE_NATIVE(ELIDE_IF_VOID)
     if (Any_Void(v))
         return GHOST;
 
-    return COPY(v);  // trust that a piped ERROR! etc. behaves appropriately
+    return COPY(v);  // trust that a piped FAILURE! etc. behaves appropriately
 }
 
 
 //
 //  ignore: native:intrinsic [
 //
-//  "Argument evaluated, result discarded (even ERROR! and undecayable packs)"
+//  "Argument evaluated and discarded (even FAILURE! and undecayable packs)"
 //
 //      return: [ghost!]
 //      ^discarded '[any-value?]

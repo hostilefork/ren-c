@@ -121,7 +121,7 @@
                     | #"]" when (f x)
                 ]
             ]
-            return not error? parse s [opt some r <end>]
+            return not failure? parse s [opt some r <end>]
         ]
 
         f "420,]]"

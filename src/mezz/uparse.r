@@ -1237,7 +1237,7 @@ default-combinators: make map! [
             ]
         ]
 
-        return any [result {}]  ; !!! empty object, vs an error?
+        return any [result {}]  ; !!! empty object, vs a FAILURE! ?
     ]
 
     'emit combinator [
@@ -1514,7 +1514,7 @@ default-combinators: make map! [
             return fail "GROUP! rule synthesized ~(veto)~"  ; fail, don't panic
         ]
 
-        if error? ^result [
+        if failure? ^result [
             panic ^result  ; all error antiforms escalate to panics
         ]
 
@@ -2486,7 +2486,7 @@ default-combinators: make map! [
 
             can-vanish: default [vanishable? f]
 
-            if error? ^subresult: eval f [  ; parser failed to match
+            if failure? ^subresult: eval f [  ; parser failed to match
                 ^result: ()  ; reset, e.g. `[veto |]`
 
                 if block? pending [
@@ -2994,7 +2994,7 @@ parse*: func [
             any-value? "Synthesized value from last match rule"
             [none? quoted! block!] "Any pending values"
         )~
-        error! "error if no match"
+        failure! "error if no match"
     ]
     input "Input data"
         [<cond> any-series? url! any-sequence?]

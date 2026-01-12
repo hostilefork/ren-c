@@ -53,7 +53,7 @@ DECLARE_NATIVE(NULL_Q)
             "Heavy null detected by NULL?, use NULL? DECAY if intentional"
        );
 
-    Ensure_No_Errors_Including_In_Packs(v) except (Error* e) {
+    Ensure_No_Failures_Including_In_Packs(v) except (Error* e) {
         if (Get_Level_Flag(LEVEL, RUNNING_TYPECHECK))
             return LOGIC(false);  // don't panic on undecayable in typecheck
         panic (e);

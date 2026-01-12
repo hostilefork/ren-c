@@ -736,7 +736,7 @@ Result(None) Decorate_Element(const Element* decoration, Element* element)
 //          ~[$. $: $/]~ "tied-word proxies"
 //          quoted! "allows things like [' '' ''' '@ ''^ ''$] etc."
 //          parameter! "apply parameter decoration rules as in spec dialect"
-//          error! "if decoration is invalid for the value"
+//          failure! "if decoration is invalid for the value"
 //      ]
 //      value [<cond> plain?]
 //  ]
@@ -775,7 +775,7 @@ DECLARE_NATIVE(DECORATE)
 //          ~[$. $: $/]~ "tied-word proxies"
 //          quoted! "allows things like [' '' ''' '@ ''^ ''$] etc."
 //          parameter! "apply parameter decoration rules as in spec dialect"
-//          error! "if decoration is invalid for the value"
+//          failure! "if decoration is invalid for the value"
 //      ]
 //      value [<cond> element?]
 //  ]

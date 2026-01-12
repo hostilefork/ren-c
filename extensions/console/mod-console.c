@@ -228,7 +228,7 @@ void Enable_Ctrl_C(void)
 //          was-ctrl-c-enabled
 //          can-recover
 //          code
-//          result'  ; intentionally lifted, to discern PANIC from ERROR! [1]
+//          result'  ; intentionally lifted, to discern PANIC from FAILURE! [1]
 //          state
 //      }
 //  ]
@@ -238,9 +238,9 @@ DECLARE_NATIVE(CONSOLE)
 // 1. In much of the system, you don't need to store variables in lifted form,
 //    because (^var: whatever) can really store anything, and (^var) can then
 //    read back anything.  But in the console, we want to store unstable
-//    ERROR! antiforms -and- we want to know if a PANIC was intercepted.  It
+//    FAILURE! antiforms -and- we want to know if a PANIC was intercepted.  It
 //    would be possible to do this with a separate flag, but storing normal
-//    results (including "normal" ERROR! antiform results) in lifted form
+//    results (including "normal" FAILURE! antiform results) in lifted form
 //    means we can store the PANIC as a WARNING! in the unlifted form.
 //
 // !!! The idea behind the console is that it can be called with skinning;

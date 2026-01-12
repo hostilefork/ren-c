@@ -1084,7 +1084,7 @@ Bounce Action_Executor(Level* L)
     Do_After_Action_Checks_Debug(L);
   #endif
 
-    if (not Is_Error(OUT))  // !!! Should there be an R_FAIL ?
+    if (not Is_Failure(OUT))  // !!! Should there be an R_FAIL ?
         assert(STACK_BASE == TOP_INDEX);
 
     if (Get_Level_Flag(L, AFRAID_OF_GHOSTS) and Is_Ghost(OUT))

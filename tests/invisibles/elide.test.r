@@ -3,8 +3,8 @@
 ; ELIDE is an evaluating variation of COMMENT.  It evaluates its
 ; argument, but discards the result and synthesizes GHOST!
 ;
-; ELIDE will panic if you give it an ERROR! antiform, but also if you
-; give it a PACK! that contains ERROR! antiforms.  However, it doesn't
+; ELIDE will panic if you give it a FAILURE! antiform, but also if you
+; give it a PACK! that contains FAILURE! antiforms.  However, it doesn't
 ; care if it can produce a value or not.  So it's more permissive than
 ; DECAY (which will panic if you give it something like a HEAVY VOID since
 ; that's an empty PACK! that can't give you a value, or GHOST!, or a
@@ -74,7 +74,7 @@
 (equal? 304 300 + 4 elide-if-void ())
 (equal? 304 300 + 4 elide-if-void ~()~)
 (equal? 1020 elide-if-void 1000 + 20)
-(error? elide-if-void fail "passthru")
+(failure? elide-if-void fail "passthru")
 ('~['10 '20]~ = lift elide-if-void pack [10 20])
 
 ; Usermode ELIDE-IF-VOID variant, to show you could write it yourself.
@@ -94,6 +94,6 @@
     (equal? 304 300 + 4 u-elide-if-void ())
     (equal? 304 300 + 4 u-elide-if-void ~()~)
     (equal? 1020 u-elide-if-void 1000 + 20)
-    (error? u-elide-if-void fail "passthru")
+    (failure? u-elide-if-void fail "passthru")
     ('~['10 '20]~ = lift u-elide-if-void pack [10 20])
 ]

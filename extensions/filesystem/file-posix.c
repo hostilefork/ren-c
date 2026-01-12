@@ -114,7 +114,7 @@ Stable* Get_File_Size_Cacheable(uint64_t *size, const Stable* port)
 //
 // This function will read a file directory, one file entry at a time, then
 // close when no more files are found.  The value returned is an API handle
-// of a FILE!, nullptr if there's no more left, or an ERROR!.
+// of a FILE!, nullptr if there's no more left, or a WARNING!.
 //
 // !!! R3-Alpha comment said: "The dir->path can contain wildcards * and ?.
 // The processing of these can be done in the OS (if supported) or by a
@@ -847,7 +847,7 @@ bool Set_Current_Dir_Value(const Stable* path)
 
     rebFree(path_utf8);
 
-    return result == 0;  // !!! return ERROR! value instead?
+    return result == 0;  // !!! return FAILURE! value instead?
 }
 
 

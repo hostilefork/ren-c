@@ -436,7 +436,7 @@
     i: 1
     j: ~
     all [
-        error? parse3 "a" [
+        failure? parse3 "a" [
             some [opt "a" (i: i + 1 j: opt if i = 2 [[<end> one]]) j]
         ]
         i = 2
@@ -815,13 +815,13 @@
 [#1244
     (all [
         let [a v]
-        error? parse3 a: "12" [remove v: across one]
+        failure? parse3 a: "12" [remove v: across one]
         a = "2"
         v = "1"
     ])
     (all [
         let [a v]
-        error? parse3 a: "12" [remove [v: across one]]
+        failure? parse3 a: "12" [remove [v: across one]]
         a = "2"
         v = "1"
     ])

@@ -31,7 +31,7 @@
 //=//// NOTES /////////////////////////////////////////////////////////////=//
 //
 // A. In the case of non-^META assignment, the only way to get it to return a
-//    raised ERROR! will be if the value being assigned was an ERROR!--and
+//    FAILURE! antiform will be if the value being assigned was FAILURE!--and
 //    the assignment will not be performed.  In a meta-assignment, the assign
 //    will happen and the error will be passed through.  (You may have to
 //    IGNORE the result to suppress escalation to PANIC.)
@@ -102,7 +102,7 @@
 // 1. Empty SET-BLOCK follows the same rules as any other block receiving
 //    more values than it wants: it ignores the extra values, and passes
 //    through the original assignment.  That's technically *all* potential
-//    states that might come up on the right hand side--including ERROR!
+//    states that might come up on the right hand side--including FAILURE!
 //    The behavior naturally "falls out" of the implementation.
 //
 Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
@@ -300,7 +300,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
   //
   //     rescue [[a b]: transcode "1&aa"]
 
-    if (Is_Error(OUT))  // don't assign variables [1]
+    if (Is_Failure(OUT))  // don't assign variables [1]
         goto set_block_drop_stack_and_continue;
 
  set_block_result_not_error: {
@@ -400,7 +400,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
     if (Is_Metaform_Space(var))
         goto circled_check;
 
-    if (Is_Error(OUT))  // don't pass thru errors if not ^ sigil
+    if (Is_Failure(OUT))  // don't pass thru errors if not ^ sigil
         panic (Cell_Error(OUT));
 
     if (Is_Space(var))
@@ -433,7 +433,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 } set_block_finalize_and_drop_stack: {
 
   // 1. At the start of the process we pushed the meta-value of whatever the
-  //    right side of the SET_BLOCK! was (as long as it wasn't an ERROR!).
+  //    right side of the SET_BLOCK! was (as long as it wasn't a FAILURE!).
   //    OUT gets overwritten each time we write a variable, so we have to
   //    restore it to make the overall SET-BLOCK! process match the right hand
   //    side.  (This value is overwritten by a circled value, so it may not
@@ -474,7 +474,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 //      return: [
 //          any-value?   "Same value as input (not decayed)"
 //          <null>       "If VALUE is NULL, or if <cond> of target "
-//          error!       "Passed thru from input if not a meta-assign"
+//          failure!     "Passed thru from input if not a meta-assign"
 //      ]
 //      target "Word or tuple, or calculated sequence steps (from GET)"
 //          [
@@ -487,7 +487,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 //              @block!
 //          ]
 //      ^value "Will be decayed if TARGET not BLOCK! or metavariables"
-//          [any-value? pack! error!]
+//          [any-value? pack! failure!]
 //      :groups "Allow GROUP! Evaluations"
 //      :steps "Return evaluation steps for reproducible access"
 //  ]
@@ -521,7 +521,7 @@ DECLARE_NATIVE(SET)
             return NULLED;
     }
 
-    if (Is_Error(v) and not Is_Metaform(target))
+    if (Is_Failure(v) and not Is_Metaform(target))
         return COPY(v);  // error passthru [B]
 
     if (Is_Block(target)) {

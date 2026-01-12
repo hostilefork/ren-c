@@ -75,7 +75,7 @@
     a-value: first [a/b]
     b-value: ~
     all [
-        error? parse as block! a-value [b-value: <here>]
+        failure? parse as block! a-value [b-value: <here>]
         a-value = as path! b-value
     ]
 )
@@ -128,7 +128,7 @@
     (
         p: ~
         all [
-            error? parse "ab" [#a p: <here>]
+            failure? parse "ab" [#a p: <here>]
             p = "b"
         ]
     )
@@ -190,7 +190,7 @@
     (
         p: ~
         all [
-            error? parse [a b] ['a p: <here>]
+            failure? parse [a b] ['a p: <here>]
             p = [b]
         ]
     )
@@ -252,7 +252,7 @@
     (
         p: ~
         all [
-            error? parse #{0A0B} [#{0A} p: <here>]
+            failure? parse #{0A0B} [#{0A} p: <here>]
             p = #{0B}
         ]
     )

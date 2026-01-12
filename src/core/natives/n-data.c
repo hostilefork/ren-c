@@ -103,7 +103,7 @@ DECLARE_NATIVE(BIND)
 
     if (Any_Context(spec)) {
         //
-        // Get target from an OBJECT!, ERROR!, PORT!, MODULE!, FRAME!
+        // Get target from an OBJECT!, WARNING!, PORT!, MODULE!, FRAME!
         //
         context = spec;
     }
@@ -1272,7 +1272,7 @@ DECLARE_NATIVE(ANY_VALUE_Q)  // synonym for internal concept of ANY_ATOM
 //
 // !!! The automatic typecheckers that are built don't handle unstable
 // antiforms at this time.  They need to, so things like this and PACK?
-// and ERROR? don't have to be special cased.
+// and FAILURE? don't have to be special cased.
 //
 // !!! ELEMENT? isn't ANY-ELEMENT?, so should this just be VALUE?  The policy
 // for putting ANY- in front of things has been in flux.
@@ -1553,7 +1553,7 @@ DECLARE_NATIVE(DECAYABLE_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    Ensure_No_Errors_Including_In_Packs(v) except (Error* e) {
+    Ensure_No_Failures_Including_In_Packs(v) except (Error* e) {
         UNUSED(e);
         return LOGIC(false);
     }

@@ -85,7 +85,7 @@
     (
         res: '~before~
         all [
-            error? parse "aa" [res: repeat 3 #a]
+            failure? parse "aa" [res: repeat 3 #a]
             res = '~before~
         ]
     )
@@ -127,7 +127,7 @@
     (
         res: '~before~
         all [
-            error? parse "a" [res: [#c | #b]]
+            failure? parse "a" [res: [#c | #b]]
             res = '~before~
         ]
     )
@@ -166,7 +166,7 @@
     (
         res: '~before~
         all [
-            error? parse "a" [#b (res: 1)]
+            failure? parse "a" [#b (res: 1)]
             res = '~before~
         ]
     )
@@ -187,7 +187,7 @@
     (
         res: '~before~
         all [
-            error? parse "a" [[#b (res: 1)]]
+            failure? parse "a" [[#b (res: 1)]]
             res = '~before~
         ]
     )
@@ -201,7 +201,7 @@
     (
         res: ~
         all [
-            error? parse "ab" [#a (res: 1) [#c (res: 2) | #d (res: 3)]]
+            failure? parse "ab" [#a (res: 1) [#c (res: 2) | #d (res: 3)]]
             res = 1
         ]
     )

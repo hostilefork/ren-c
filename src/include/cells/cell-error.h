@@ -20,29 +20,14 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// An ERROR! in Ren-C is an antiform failure state.
+// An FAILURE! in Ren-C is an antiform error state.
 //
 // It is specifically an "unstable antiform"...which means it not only can't
 // be stored in lists like BLOCK!...it also can't be stored in variables.
-// Errors will be elevated to an exceptions if you try to assign them or
-// otherwise use them without going through some ^META operation to triage
-// them.  While errors are in the ^META state, they it can be assigned to
-// variables or put in blocks, until they are UNMETA'd back to failure again.
+// Failures will be elevated to an exceptions if you try to manipulate them
+// without using ^META operations.
 //
 //=//// NOTES ////////////////////////////////////////////////////////////=//
-//
-// * Some ERROR!s with specific IDs (like VETO and DONE) are used as signals
-//   to indicate special handling in evaluative slots, out-of-band from the
-//   normal values that might appear there.  This signaling use starts to blur
-//   the line a little bit abot what an "error" is...but the defining
-//   characteristic is that they will promote to panics if not triaged.
-//
-//   (Compare with what would happen if you made an ERROR! with [id = 'pack]
-//   and a BLOCK! in [error.arg1], and tried to use that to simulate a signal
-//   for multi-return.  It could be made to work if a callsite was aware of
-//   the idea you were using an error for that purpose, and reacted to it.
-//   But it wouldn't gracefully decay to its first value if a receiving site
-//   didn't know about your "pack error protocol".)
 //
 
 
@@ -82,10 +67,10 @@ INLINE void Force_Location_Of_Error(Error* error, Level* L) {
 
 //=//// NON-ANTIFORM WARNING! STATE ///////////////////////////////////////=//
 //
-// It may be that ERROR! becomes simply an antiform of any generic OBJECT!
+// It may be that FAILURE! becomes simply an antiform of any generic OBJECT!
 // (a bit like "armed" errors vs. "disarmed" objects in Rebol2).
 //
-// However, the ERROR! type has historically been a specially formatted
+// However, the WARNING! type has historically been a specially formatted
 // subtype of OBJECT!.  Just to get things working for starters, there had to
 // be a name for this type of object when not an antiform...so it just got
 // called WARNING!.  It's not a terrible name, but we can see how it feels.
@@ -94,10 +79,10 @@ INLINE void Force_Location_Of_Error(Error* error, Level* L) {
 #define Init_Warning(v,c) \
     Init_Context_Cell((v), TYPE_WARNING, (c))
 
-INLINE Value* Failify(Exact(Value*) v) {  // WARNING! => ERROR!
+INLINE Value* Failify(Exact(Value*) v) {  // WARNING! => FAILURE!
     assert(Heart_Of(v) == TYPE_WARNING and LIFT_BYTE(v) == NOQUOTE_3);
     Force_Location_Of_Error(Cell_Error(v), TOP_LEVEL);  // ideally a noop
     Unstably_Antiformize_Unbound_Fundamental(v);
-    assert(Is_Error(v));
+    assert(Is_Failure(v));
     return v;
 }

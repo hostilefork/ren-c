@@ -216,7 +216,7 @@ DECLARE_NATIVE(QUERY)
 DECLARE_NATIVE(MODIFY)
 //
 // 1. !!! To the extent this is going to influence anything which would be
-//    kept, failure should be returning an ERROR! to say what happened, and
+//    kept, MODIFY should be returning a FAILURE! to say what happened, and
 //    let people TRY that or display it, not returning a logic.
 {
     INCLUDE_PARAMS_OF_MODIFY;

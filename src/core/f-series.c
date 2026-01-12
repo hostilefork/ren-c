@@ -473,17 +473,17 @@ Result(bool) Equal_Values(const Stable* s, const Stable* t, bool strict)
     Copy_Lifted_Cell(Erase_ARG(VALUE2), t);
     Init_Logic(Erase_ARG(RELAX), relax);
 
-    DECLARE_VALUE (atom_out);
+    DECLARE_VALUE (value_out);
 
-    bool threw = Trampoline_Throws(atom_out, L);
+    bool threw = Trampoline_Throws(value_out, L);
     if (threw)
         return fail (Error_No_Catch_For_Throw(TOP_LEVEL));
 
-    if (Is_Error(atom_out))
+    if (Is_Failure(value_out))
         return false;
 
     require (
-      Stable* out = Decay_If_Unstable(atom_out)
+      Stable* out = Decay_If_Unstable(value_out)
     );
     return Cell_Logic(out);
 }
@@ -539,17 +539,17 @@ bool Try_Lesser_Value(Sink(bool) lesser, const Stable* s, const Stable* t)
     Copy_Cell(Erase_ARG(VALUE1), s);
     Copy_Cell(Erase_ARG(VALUE2), t);
 
-    DECLARE_VALUE (atom_out);
+    DECLARE_VALUE (value_out);
 
-    bool threw = Trampoline_Throws(atom_out, L);
+    bool threw = Trampoline_Throws(value_out, L);
     if (threw)
         panic (Error_No_Catch_For_Throw(TOP_LEVEL));
 
-    if (Is_Error(atom_out))
+    if (Is_Failure(value_out))
         return false;
 
     require (
-      Stable* out = Decay_If_Unstable(atom_out)
+      Stable* out = Decay_If_Unstable(value_out)
     );
     *lesser = Cell_Logic(out);
     return true;

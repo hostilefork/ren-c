@@ -176,7 +176,7 @@
     i: 0
     j: ~
     all [
-        error? parse "a" [opt some [(i: i + 1, j: opt if i = 2 '[veto]) j]]
+        failure? parse "a" [opt some [(i: i + 1, j: opt if i = 2 '[veto]) j]]
         i = 2
     ]
 )]

@@ -152,7 +152,7 @@
     (
         res: '~before~
         all [
-            error? parse [a] [res: ['c | 'b]]
+            failure? parse [a] [res: ['c | 'b]]
             res = '~before~
         ]
     )

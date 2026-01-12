@@ -48,7 +48,7 @@
     (
         all {
             res: ()
-            error? parse [a] ['b (res: 1)]
+            failure? parse [a] ['b (res: 1)]
             unset? $res
         }
     )
@@ -69,7 +69,7 @@
     (
         all {
             res: ()
-            error? parse [a] [['b (res: 1)]]
+            failure? parse [a] [['b (res: 1)]]
             unset? $res
         }
     )
@@ -122,7 +122,7 @@
     (
         all {
             res: ()
-            error? parse [a a] [res: repeat 3 'a]
+            failure? parse [a a] [res: repeat 3 'a]
             unset? $res
         }
     )

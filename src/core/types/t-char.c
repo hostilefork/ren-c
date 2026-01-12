@@ -373,7 +373,7 @@ DECLARE_NATIVE(TO_CHAR)
 //
 // !!! This could probably be TO RUNE! but it would be too broad, e.g. you
 // wouldn't be guaranteed it was a single character.  Perhaps TO-CHAR could
-// just be TO RUNE! with an ERROR! raised if it generated more than one?
+// just be TO RUNE! with an FAILURE! raised if it generated more than one?
 {
     INCLUDE_PARAMS_OF_TO_CHAR;
 

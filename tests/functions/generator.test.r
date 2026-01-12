@@ -160,13 +160,13 @@
     ]
 
     all [
-        error? g
+        failure? g
         g = 1
         done? g
         g = null
         g = null
 
-        error? ^a
+        failure? ^a
         b = 1
         done? ^c
         unset? $d

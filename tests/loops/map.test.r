@@ -22,7 +22,7 @@
 ; (DONE synthesizes this error antiform)
 (
     make-one-thru-five: func [
-        return: [error! integer!]
+        return: [failure! integer!]
     ] (bind construct [count: 0] [
         if count = 5 [return done]
         return count: count + 1
@@ -32,7 +32,7 @@
     ]
 )(
     make-one-thru-five: func [
-        return: [error! integer!]
+        return: [failure! integer!]
     ] (bind construct [count: 0] [
         if count = 5 [return done]
         return count: count + 1

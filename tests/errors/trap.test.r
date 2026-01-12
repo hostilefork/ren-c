@@ -1,7 +1,7 @@
 ; %trap.test.r
 ;
 ; TRAP is a tool that's like the ? operator in Rust, which passes through a
-; successful result, but propagates an ERROR! to whatever the definition of
+; successful result, but propagates a FAILURE! to whatever the definition of
 ; RETURN is in the current scope.
 
 (

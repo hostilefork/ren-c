@@ -389,8 +389,8 @@ for-each-datatype 't [
     if yes? t.unstable [continue]
 
     ; Usually we don't want people testing Value* directly to see if it's any
-    ; stable type (antiform or otherwise) because it might be a PACK! or an
-    ; ERROR! and need to decay.  But occasionally code is checking return
+    ; stable type (antiform or otherwise) because it might be a PACK! or a
+    ; FAILURE! and need to decay.  But occasionally code is checking return
     ; types and has special reasons to see if an Value is an ACTION! or a
     ; TRASH!, etc.  Allow the test, but throw in a speedbump by naming them
     ; Is_Possibly_Unstable_Value_Action() instead of just Is_Action(), to

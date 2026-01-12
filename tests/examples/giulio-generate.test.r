@@ -3,7 +3,7 @@
 ; This was some generator code from @giuliolunati which pre-dated the creation
 ; of stackless YIELDER and GENERATOR.
 ;
-; It is preserved as a test (it had to be changed to use the DONE ERROR! signal
+; It is preserved as a test (it had to be changed to use the DONE signal
 ; instead of NULL, because functions like FOR-EACH and MAP-EACH now treat
 ; null as an ordinary generated state, not the end of the generator.)
 

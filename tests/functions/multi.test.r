@@ -6,7 +6,7 @@
 [
     (10 = []: 10)
     (~('10 '20)~ = []: pack [10 20])
-    (error? []: fail "HI")
+    (failure? []: fail "HI")
 ]
 
 [
@@ -99,7 +99,7 @@
         rest = " def"
     }
 )(
-    error? [_]: panic "a"
+    failure? [_]: panic "a"
 )]
 
 ; The ^XXX! types can be used to ask for variables to be raised to a meta
@@ -189,7 +189,7 @@
     })
 ]
 
-; ELIDE (or multi-step evals) will not ignore packs containing ERROR!
+; ELIDE (or multi-step evals) will not ignore packs containing FAILURE!
 [
     (
         pack? pack [1 / 0]
@@ -207,7 +207,7 @@
         all {
             ignore [^e n]: pack [1 / 0, 1 + 0]
             n = 1
-            error? ^e
+            failure? ^e
             'zero-divide = (unanti ^e).id
         }
     )

@@ -200,7 +200,7 @@
 )(
     x: <before>
     all [  ; semi-nonsensical use of BETWEEN just because it takes 2 rules
-        error? parse "(abc}" [x: collect between "(" keep ")"]
+        failure? parse "(abc}" [x: collect between "(" keep ")"]
         x = <before>
     ]
 )(
@@ -315,7 +315,7 @@
 [
     (all [
         let x: <before>
-        error? parse [1 2] [x: collect [keep integer! keep text!]]
+        failure? parse [1 2] [x: collect [keep integer! keep text!]]
         x = <before>
     ])
 ]
@@ -536,7 +536,7 @@ https://github.com/metaeducation/ren-c/issues/939
     thing: ~
     foo: ~
     all [
-        error? parse "a" [thing: collect [foo: <here>, "a", keep seek (foo)]]
+        failure? parse "a" [thing: collect [foo: <here>, "a", keep seek (foo)]]
         foo = "a"
         thing = ["a"]
     ]

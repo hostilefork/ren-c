@@ -430,7 +430,7 @@ DECLARE_NATIVE(RANDOM_BETWEEN)
 //
 //      return: [
 //          element?
-//          error! "if collection was empty (use TRY RANDOM-PICK to get NULL)"
+//          failure! "if empty collection (use TRY RANDOM-PICK to get NULL)"
 //      ]
 //      collection [fundamental?]
 //      :secure "Old refinement from R3-Alpha: Review"

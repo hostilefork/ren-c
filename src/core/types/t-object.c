@@ -293,7 +293,7 @@ REBINT CT_Context(const Element* a, const Element* b, bool strict)
     assert(Any_Context_Type(a_heart));
     assert(Any_Context_Type(b_heart));
 
-    if (a_heart != b_heart)  // e.g. ERROR! won't equal OBJECT!
+    if (a_heart != b_heart)  // e.g. WARNING! won't equal OBJECT!
         return u_cast(Byte, a_heart) > u_cast(Byte, b_heart) ? 1 : 0;
 
     if (Cell_Context(a) == Cell_Context(b))
@@ -569,7 +569,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Object)
         if (threw)
             return BOUNCE_THROWN;
 
-        if (Is_Error(SPARE))  // e.g. `make object! [1 / 0]`
+        if (Is_Failure(SPARE))  // e.g. `make object! [1 / 0]`
             panic (Cell_Error(SPARE));
 
         return Init_Object(OUT, ctx);
@@ -1212,7 +1212,7 @@ IMPLEMENT_GENERIC(TO, Any_Context)
         return Init_Port(OUT, copy);
     }
 
-    if (to == heart) {  // can't TO FRAME! an ERROR!, etc.
+    if (to == heart) {  // can't TO FRAME! a WARNING!, etc.
         bool deep = false;
         return Copy_Any_Context(OUT, context, deep);
     }
@@ -1616,7 +1616,7 @@ DECLARE_NATIVE(RETURN_OF)
 //
 //  "Get a loose representation of a function's implementation"
 //
-//      return: [block! error!]
+//      return: [block! failure!]
 //      frame [<unrun> frame!]
 //  ]
 //
@@ -1649,7 +1649,7 @@ DECLARE_NATIVE(BODY_OF)  // !!! should this be SOURCE-OF ?
 //      return: [
 //          object! "if method (declared with <.> in spec)"
 //          <null>  "if method but uncoupled"
-//          error!  "if non-method"
+//          failure!  "if non-method"
 //      ]
 //      frame [<unrun> frame!]
 //  ]

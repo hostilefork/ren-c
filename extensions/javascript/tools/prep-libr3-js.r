@@ -805,7 +805,7 @@ e-cwrap/emit ---[
             /* If a JavaScript throw() happens in the body of a JS-AWAITER's
              * textual JS code, that throw's arg will wind up here.  The
              * likely "bubble up" policy will always make catch arguments a
-             * JavaScript Error(), even if it's wrapping a Value* ERROR! as
+             * JavaScript Error(), even if it's wrapping a Value* FAILURE! as
              * a data member.  It may-or-may-not make sense to prohibit raw
              * Rebol values here.
              */

@@ -44,7 +44,7 @@
     (
         res: 0
         all [
-            error? parse #{0A} [#{0B} (res: 1)]
+            failure? parse #{0A} [#{0B} (res: 1)]
             res = 0
         ]
     )
@@ -65,7 +65,7 @@
     (
         res: 0
         all [
-            error? parse #{0A} [[#{0B} (res: 1)]]
+            failure? parse #{0A} [[#{0B} (res: 1)]]
             res = 0
         ]
     )
@@ -81,7 +81,7 @@
     (
         res: 0
         all [
-            error? parse #{0A0B} [#{0A} (res: 1) [#{0C} (res: 2) | #{0D} (res: 3)]]
+            failure? parse #{0A0B} [#{0A} (res: 1) [#{0C} (res: 2) | #{0D} (res: 3)]]
             res = 1
         ]
     )
@@ -189,7 +189,7 @@
     (
         res: '~before~
         all [
-            error? parse #{0A0A} [res: repeat 3 #{0A}]
+            failure? parse #{0A0A} [res: repeat 3 #{0A}]
             res = '~before~
         ]
     )
@@ -234,7 +234,7 @@
     (
         res: '~before~
         all [
-            error? parse #{0A} [res: [#"^L" | #{0B}]]
+            failure? parse #{0A} [res: [#"^L" | #{0B}]]
             res = '~before~
         ]
     )

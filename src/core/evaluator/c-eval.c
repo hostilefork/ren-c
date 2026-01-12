@@ -204,9 +204,9 @@ Bounce Evaluator_Executor(Level* const L)
   //    quasiform or ^META variable fetch.
   //
   // 2. It may seem desirable to allow invisible evaluations to come after
-  //    an ERROR!, permitting things like:
+  //    a FAILURE!, permitting things like:
   //
-  //        >> error? (fail "some error" comment "invisible")
+  //        >> failure? (fail "some error" comment "invisible")
   //        == \~okay~\  ; anti
   //
   //    But consider:
@@ -220,7 +220,7 @@ Bounce Evaluator_Executor(Level* const L)
   //        == [a]
   //
   //    You can't wait until you know if the next evaluation is invisible to
-  //    escalate ERROR! to panic.  Things don't stop running soon enough.
+  //    escalate FAILURE! to panic.  Things don't stop running soon enough.
 
     Level* step_level = Level_For_Stepping(L);
 
@@ -236,12 +236,12 @@ Bounce Evaluator_Executor(Level* const L)
     Set_Level_Flag(step_level, AFRAID_OF_GHOSTS);  // always unafraid now [B]
 
     if (Is_Level_At_End(step_level)) {
-        possibly(Is_Error(OUT));
+        possibly(Is_Failure(OUT));
         goto finished;
     }
 
     require (  // panic if error seen before final step [2]
-      Ensure_No_Errors_Including_In_Packs(OUT)
+      Ensure_No_Failures_Including_In_Packs(OUT)
     );
     Move_Value(PRIMED, OUT);  // make current result the preserved one
 

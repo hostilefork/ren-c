@@ -146,6 +146,8 @@ leaders: [
     tripwire?
     none?
     veto?
+    hot-potato?
+    dual?
 
     tweak*  ; REAL tweak* (overwrites bootstrap) uses NULL?, SPACE?
 

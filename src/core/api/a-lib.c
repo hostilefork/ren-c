@@ -99,7 +99,7 @@
 //
 // B. The API once limited RebolValue* to only Stable values, but it now can
 //    also represent unstable antiforms.  But it's biased to stability, e.g.
-//    `rebValue()` will decay its result (and panic if it's an ERROR!), so
+//    `rebValue()` will decay its result (and panic if it's an FAILURE!), so
 //    you have to use `rebUndecayed()` to specifically request unstable forms
 //    as output.
 //
@@ -1441,7 +1441,7 @@ void API_rebPushContinuation_internal(
 //  rebUndecayed: API
 //
 // By default rebValue() will decay unstable antiforms.  This will give you
-// back undecayed PACK! or GHOST! or ERROR! values.
+// back undecayed PACK! or GHOST! or FAILURE! values.
 //
 // If you get an unstable value back and want to use it with the API, then
 // it has to be spliced in using the `^` operator.  See [B].
@@ -1669,8 +1669,8 @@ RebolValue* API_rebQuote(
 // Variant of rebValue() which assumes you don't need the result.  This saves on
 // allocating an API handle, or the caller needing to manage its lifetime.
 //
-// 1. Same semantics as ELIDE for things it won't ignore (ERROR!, or PACK!
-//    with ERROR!s inside it...)
+// 1. Same semantics as ELIDE for things it won't ignore (FAILURE!, or PACK!
+//    with FAILURE!s inside it...)
 //
 void API_rebElide(
     RebolContext* binding,
@@ -1687,8 +1687,8 @@ void API_rebElide(
         panic (e);
     }
 
-    require (  // reuse semantics of ELIDE w.r.t. ERROR!s, packs
-      Ensure_No_Errors_Including_In_Packs(discarded)
+    require (  // reuse semantics of ELIDE w.r.t. FAILURE!s, packs
+      Ensure_No_Failures_Including_In_Packs(discarded)
     );
 }
 
@@ -1804,7 +1804,7 @@ bool API_rebNot(
 //
 //  rebDid: API
 //
-// Checks to see if something is not a ghost, light null, or error! antiform.
+// Checks to see if something is not a ghost, light null, or FAILURE! antiform.
 //
 // If you know the argument is either NULL or OKAY antiforms, then you can
 // use rebUnboxLogic() to get a runtime check of that.  This tests ANY-STABLE?
@@ -1824,7 +1824,7 @@ bool API_rebDid(
         panic (e);
     }
 
-    if (Is_Light_Null(eval) or Is_Ghost(eval) or Is_Error(eval))
+    if (Is_Light_Null(eval) or Is_Ghost(eval) or Is_Failure(eval))
         return false;
 
     return true;

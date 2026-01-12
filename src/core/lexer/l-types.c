@@ -32,8 +32,8 @@
 //
 //  "Give back the type of a value (all quoted values return QUOTED!)"
 //
-//      return: [datatype! error!]
-//      value "TYPE OF NULL gives an ERROR!, say TRY TYPE OF NULL if meant"
+//      return: [datatype! failure!]
+//      value "TYPE OF NULL gives an FAILURE!, say TRY TYPE OF NULL if meant"
 //          [<null> any-stable?]
 //  ]
 //

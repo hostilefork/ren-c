@@ -46,7 +46,7 @@ INLINE Error* Cell_Error(const Cell* c) {
 }
 
 
-// Common routine for initializing OBJECT, MODULE!, PORT!, and ERROR!
+// Common routine for initializing OBJECT, MODULE!, PORT!, and WARNING!
 //
 // A fully constructed context can reconstitute the ANY-CONTEXT? cell
 // that is its canon form from a single pointer...the cell sitting in

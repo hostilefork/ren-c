@@ -24,7 +24,7 @@
 // which can also be compiled as plain C using setjmp/longjmp().  It's for
 // trapping "abrupt panics", that trigger from the `panic` pseudo-"keyword"
 // in C code.  These happen at arbitrary moments and are not willing (or able)
-// to go through a normal `return` chain to pipe an ERROR! up the stack.
+// to go through a normal `return` chain to pipe a FAILURE! up the stack.
 //
 // The abstraction is done with macros, and looks similar to try/catch...
 // with a particularly clever trick in the C build using a for() loop to
@@ -365,7 +365,7 @@ struct JumpStruct {
 //   (This could be used by a strict build that wanted to get rid of all the
 //    hard-coded string panic()s, by triggering a compiler error on them.)
 //
-// 2. We don't accept unstable Value* pointers, because they might be ERROR!
+// 2. We don't accept unstable Value* pointers, because they might be FAILURE!
 //    or undecayable, and would create their own panic.  (Review if allowing
 //    that is a good idea, but it doesn't seem like it is.)
 //

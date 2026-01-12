@@ -102,7 +102,7 @@ static Result(None) Push_Keys_And_Params_For_Fence(
         }
 
         if (meta) {
-            if (Is_Error(OUT))  // don't want to quietly store errors
+            if (Is_Failure(OUT))  // don't want to quietly store errors
                 return fail (Cell_Error(OUT));
 
             Move_Value(PUSH(), SPARE);

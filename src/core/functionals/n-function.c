@@ -675,7 +675,7 @@ Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
     if (Not_Parameter_Checked_Or_Coerced(param))
         return true;  // skip all typechecking and coercion
 
-    if (Is_Error(v))
+    if (Is_Failure(v))
         return true;  // for now, all functions allow definitional errors
 
     trap (

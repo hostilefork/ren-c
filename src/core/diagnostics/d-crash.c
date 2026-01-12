@@ -337,7 +337,7 @@ ATTRIBUTE_NO_RETURN void Crash_Core(
       #if DEBUG_FANCY_CRASH
         const Cell* c = cast(Cell*, unwrap p);
         if (Heart_Of(c) == TYPE_WARNING) {
-            Printf_Stderr("...crash() on an ERROR! Cell, trying to PROBE...");
+            Printf_Stderr("...crash() on WARNING! Cell, trying to PROBE...");
             PROBE(c);
         }
         Crash_With_Cell_Debug(c);
@@ -439,9 +439,9 @@ DECLARE_NATIVE(CRASH)
 //
 //  fail*: native [
 //
-//  "Version of FAIL of definitional error that only takes ERROR!"
+//  "Version of FAIL of definitional error that only takes WARNING!"
 //
-//      return: [error!]
+//      return: [failure!]
 //      reason [warning!]
 //  ]
 //

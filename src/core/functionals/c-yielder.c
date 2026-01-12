@@ -202,7 +202,7 @@ Bounce Yielder_Dispatcher(Level* const L)
   // the value in OUT.
 
     if (Is_Nulled(plug)) {  // no plug, must be YIELD of a RAISED...
-        assert(Is_Lifted_Error(yielded_lifted));
+        assert(Is_Lifted_Failure(yielded_lifted));
 
         if (Is_Done_Dual(yielded_lifted)) {
             // don't elevate to a panic, just consider it finished
@@ -213,7 +213,7 @@ Bounce Yielder_Dispatcher(Level* const L)
         goto body_finished_or_threw;
     }
 
-    assert(not Is_Lifted_Error(yielded_lifted));
+    assert(not Is_Lifted_Failure(yielded_lifted));
     assert(Is_Handle(plug));
 
     Copy_Cell(OUT, yielded_lifted);  // keep yielded_lifted around for resume
@@ -340,7 +340,7 @@ Bounce Yielder_Dispatcher(Level* const L)
   //    doesn't want to destroy the evaluation stack.  It saves the stack as
   //    a "plug".  But if you use YIELD:FINAL, it does use throw, since if it
   //    saved the stack it would just have to throw it away.  It also doesn't
-  //    save the stack when you YIELD an ERROR!...only the DONE error is
+  //    save the stack when you YIELD an FAILURE!...only the DONE signal is
   //    considered a valid yield state, all other errors elevate to panics.
 
     Stable* body = Details_Element_At(details, IDX_YIELDER_BODY);
@@ -362,7 +362,7 @@ Bounce Yielder_Dispatcher(Level* const L)
         return THROWN;
     }
 
-    const Stable* label = VAL_THROWN_LABEL(L);  // YIELD:FINAL, YIELD ERROR! [4]
+    const Stable* label = VAL_THROWN_LABEL(L);  // YIELD:FINAL, or FAILURE! [4]
     if (
         Is_Frame(label)
         and Frame_Phase(label) == Frame_Phase(LIB(DEFINITIONAL_YIELD))
@@ -373,7 +373,7 @@ Bounce Yielder_Dispatcher(Level* const L)
             Init_Space(original_frame);
             goto invoke_completed_yielder;
         }
-        if (Is_Hot_Potato_Dual(OUT) or Is_Error(OUT)) {
+        if (Is_Hot_Potato_Dual(OUT) or Is_Failure(OUT)) {
             Init_Quasar(original_frame);
             Init_Thrown_Panic(L, Cell_Error(OUT));
             return THROWN;
@@ -595,7 +595,7 @@ DECLARE_NATIVE(DEFINITIONAL_YIELD)
   // yielder will elevate to an abrupt panic.
 
     if (
-        Is_Error(v)
+        Is_Failure(v)
         or Is_Hot_Potato_Dual(v)
         or ARG(FINAL)
     ){

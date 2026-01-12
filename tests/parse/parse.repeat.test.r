@@ -164,7 +164,7 @@
     (
         z: ~
         all [
-            error? parse [a] [z: across repeat 0 one]
+            failure? parse [a] [z: across repeat 0 one]
             z = []
         ]
     )
@@ -176,7 +176,7 @@
     (
         z: ~
         all [
-            error? parse "a" [z: across repeat 0 one]
+            failure? parse "a" [z: across repeat 0 one]
             z = ""
         ]
     )

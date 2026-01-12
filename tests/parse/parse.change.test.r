@@ -30,7 +30,7 @@
 (
     s: "a"
     all [
-        error? parse s [opt change "b" ("x")]
+        failure? parse s [opt change "b" ("x")]
         s = "a"
     ]
 )

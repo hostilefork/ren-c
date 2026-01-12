@@ -45,7 +45,7 @@
 
 // We want to allow (append.series) to give you back a PARAMETER!, this may
 // be applicable to other antiforms also (SPLICE!, maybe?)  But probably too
-// risky to let you do it with ERROR!, and misleading to do it with PACK!.
+// risky to let you do it with FAILURE!, and misleading to do it with PACK!.
 //
 static Option(Error*) Trap_Adjust_Lifted_Antiform_For_Tweak(Value* spare)
 {
@@ -351,7 +351,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 //    name of the function.)
 //
 Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
-    Level* level_,  // OUT may be ERROR! antiform, see [A]
+    Level* level_,  // OUT may be FAILURE! antiform, see [A]
     bool groups_ok
 ){
     assert(OUT != SCRATCH and OUT != SPARE);
@@ -764,7 +764,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
 } return_success: { //////////////////////////////////////////////////////////
 
-    possibly(Is_Error(OUT));  // success may be ERROR! antiform, see [A]
+    possibly(Is_Failure(OUT));  // success may be FAILURE! antiform, see [A]
 
     assert(not error);
 
@@ -791,7 +791,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 //  Trap_Tweak_Var_In_Scratch_With_Dual_Out: C
 //
 Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-    Level* level_,  // OUT may be ERROR! antiform, see [A]
+    Level* level_,  // OUT may be FAILURE! antiform, see [A]
     Option(Element*) steps_out  // no GROUP!s if nulled
 ){
     possibly(SPARE == steps_out or SCRATCH == steps_out);
@@ -833,7 +833,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //
 //      return: [
 //          <null> frame! word! quasiform! quoted! ^word! ^tuple!
-//          error!      "Passthru even if it skips the assign"
+//          failure!    "Passthru even if it skips the assign"
 //      ]
 //      target "Word or tuple, or calculated sequence steps (from GET)"
 //          [
@@ -892,8 +892,8 @@ DECLARE_NATIVE(TWEAK)
   // very useful that you can write (e: rescue [x: expression]) and in the case
   // of an error, have the assignment skipped and the error trapped.
   //
-  // Note that (set $ '^x fail "hi") will assign the error! to X, but will
-  // still pass through the ERROR! antiform as the overall expression result.
+  // Note that (set $ '^x fail "hi") will assign the failure! to X, but will
+  // still pass through the failure as the overall expression result.
 
     return OUT;
 }}

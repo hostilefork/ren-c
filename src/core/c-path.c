@@ -164,7 +164,7 @@ DECLARE_NATIVE(PICK)
 
     // Non-LIFTED?s are signals in dual protocol
 
-    if (Is_Error(OUT))
+    if (Is_Failure(OUT))
         return OUT;
 
     Stable* dual = As_Stable(OUT);
@@ -295,13 +295,13 @@ DECLARE_NATIVE(TWEAK_P_BEDROCK)
 //
 //  "Poke a tuple as in `(location).(picker): value`, but returns value"
 //
-//      return: [any-value? error!]
+//      return: [any-value? failure!]
 //      location "(modified)"
 //          [<cond> fundamental?]  ; can't poke a quoted/quasi
 //      picker "Index offset, symbol, or other value to use as index"
 //          [<cond> any-stable?]
-//      ^value "ERROR! will be piped through without doing the poke"
-//          [<void> any-stable? error!]
+//      ^value "FAILURE! will be piped through without doing the poke"
+//          [<void> any-stable? failure!]
 //      {store}
 //  ]
 //
@@ -329,7 +329,7 @@ DECLARE_NATIVE(POKE)
     if (Is_Keyword(picker) or Is_Trash(picker))
         panic ("PICK with keyword or trash picker never allowed");
 
-    if (Is_Error(v))
+    if (Is_Failure(v))
         return COPY(v);  // bypass and don't do the poke
 
     Set_Level_Flag(LEVEL, POKE_NOT_INITIAL_ENTRY);

@@ -79,7 +79,7 @@ INLINE Slot* Init_Blackhole_Slot(Init(Slot) out) {
 //
 // WORD! duals are specifically prohibited from being stored in variables
 // -or- decaying, leading them to be a lightweight way of making something
-// that is "ERROR!-like" which can only be taken as a ^META form.
+// that is "FAILURE!-like" which can only be taken as a ^META form.
 //
 // 1. VETO error antiforms signal a desire to cancel the operation that
 //    requested the evaluation.  Unlike GHOST which opts out of slots but keeps

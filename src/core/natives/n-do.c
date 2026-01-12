@@ -281,7 +281,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
 // 2. PANIC is the preferred operation for raising divergent errors, as it has
 //    a natural behavior for blocks passed to construct readable messages and
 //    (PANIC X) more clearly communicates a panic than (EVAL X).  But EVAL of
-//    an ERROR! would have to panic anyway, so it might as well use the one
+//    a FAILURE! would have to panic anyway, so it might as well use the one
 //    it is given.
 //
 // 3. It might seem that since EVAL [] has an answer (GHOST! or HEAVY VOID
@@ -506,7 +506,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
         Source* pack = Make_Source_Managed(2);
         Set_Flex_Len(pack, 2);
         Copy_Lifted_Cell(Array_At(pack, 0), source);  // pack wants META values
-        Move_Lifted_Atom(Array_At(pack, 1), OUT);  // may be ERROR!
+        Move_Lifted_Atom(Array_At(pack, 1), OUT);  // may be FAILURE!
 
         Init_Pack(OUT, pack);
     }

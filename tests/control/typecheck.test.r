@@ -10,16 +10,16 @@
 (typecheck:meta [ghost?] ^ghost)
 (not typecheck:meta [integer!] ^ghost)
 
-; ERROR! will be decayed by default, can't pass test
+; FAILURE! will be decayed by default, can't pass test
 ;
 ~zero-divide~ !! (typecheck [integer!] 1 / 0)
-~zero-divide~ !! (typecheck [error!] 1 / 0)
+~zero-divide~ !! (typecheck [failure!] 1 / 0)
 
-; With ^META ERROR! can be used with the test
+; With ^META FAILURE! can be used with the test
 ;
-(typecheck:meta [error!] 1 / 0)
+(typecheck:meta [failure!] 1 / 0)
 
-; But a ^META typecheck where ERROR! doesn't pass, passes it through
+; But a ^META typecheck where FAILURE! doesn't pass, passes it through
 ; (this is strictly more powerful than a :RELAX refinement would be, as TRY
 ; gives you the equivalent to what that would do)
 ;

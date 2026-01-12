@@ -116,17 +116,17 @@ export console!: make object! [
             [any-value?]
         <.>
     ][
-        ignore ^last-result: ^v  ; don't decay, suppress ERROR! propagation
+        ignore ^last-result: ^v  ; don't decay, suppress FAILURE! propagation
 
-        === HANDLE ERROR! FIRST ===
+        === HANDLE FAILURE! FIRST ===
 
         ; Typical type checks (e.g. INTEGER?, VOID? and such) will fail on
-        ; ERROR!, so test for these first.
+        ; FAILURE!, so test for these first.
         ;
         ; Note that this is a definitional error...not a panic/exception, so
         ; PRINT-ERROR is distinct from PRINT-PANIC.
 
-        if error? ^v [
+        if failure? ^v [
             print-error disarm ^v
             exit
         ]
@@ -290,10 +290,10 @@ export console!: make object! [
         comment [  ; MOLD is more informative, but messy
             v: unanti ^v
             print unspaced [
-                result _ "\" mold quasi v "\" _ _ ";" _ "antiform (error!)"
+                result _ "\" mold quasi v "\" _ _ ";" _ "antiform (failure!)"
             ]
         ]
-        print ["** Error:" form e]
+        print ["** Failure:" form e]
         if try e.id [
             print ["** Id:" mold e.id]
         ]
@@ -532,7 +532,7 @@ console*: func [
     result [
         quasiform!
         quoted!     "^META result from PRIOR eval"
-        warning!    "Plain form of ERROR! (if eval recovered from PANIC)"
+        warning!    "Plain form of FAILURE! (if eval recovered from PANIC)"
         integer!    "Exit code (indicating the eval ran the CONSOLE's QUIT)"
         <opt>       "no result for a previous request if first call"
     ]

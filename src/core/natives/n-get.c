@@ -30,7 +30,7 @@
 //
 //=//// NOTES /////////////////////////////////////////////////////////////=//
 //
-// A. The generalized GET of an arbitrary variable may return an ERROR!
+// A. The generalized GET of an arbitrary variable may return a FAILURE!
 //    antiform as the value in OUT (vs. returning an Option(Error*) for the
 //    Trap_XXX()).  This happens if you are doing an ordinary GET of a
 //    TUPLE! and the last "step" in the path is not in an object:
@@ -44,14 +44,14 @@
 //         == ~null~  ; antiform
 //
 //    However, the rules change with meta-representation, to where the only
-//    way to get an ERROR! back in that case is if the field exists and holds
-//    a lifted representation of an ERROR!.
+//    way to get an FAILURE! back in that case is if the field exists and
+//    holds a lifted representation of a FAILURE!.
 //
 //    (!!! It's not clear if the convenience of the raised error on a normal
 //    TUPLE!-type assignment is a good idea or not.  This depends on how
 //    often generalized variable fetching is performed where you don't know
 //    if the variable is meta-represented or not, and might have different
-//    meanings for unlifting an ERROR! vs. a missing field.  The convenience
+//    meanings for unlifting an FAILURE! vs. a missing field.  The convenience
 //    of allowing TRY existed before meta-representation unlifting, so this
 //    is an open question that arose.)
 //
@@ -98,7 +98,7 @@ void Restore_Level_Scratch_Spare(
 //  Get_Var_In_Scratch_To_Out: C
 //
 Result(None) Get_Var_In_Scratch_To_Out(
-    Level* level_,  // OUT may be ERROR! antiform, see [A]
+    Level* level_,  // OUT may be FAILURE! antiform, see [A]
     Option(Element*) steps_out  // no GROUP!s if nulled
 ){
     heeded (Init_Dual_Nulled_Pick_Signal(OUT));
@@ -110,7 +110,7 @@ Result(None) Get_Var_In_Scratch_To_Out(
     if (e)
         return fail (unwrap e);
 
-    if (Is_Error(OUT))  // !!! weird can't pick case
+    if (Is_Failure(OUT))  // !!! weird can't pick case
         return none;
 
     require (
@@ -469,7 +469,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
 
 } return_success: { //////////////////////////////////////////////////////////
 
-  // Currently there are no success modes that return ERROR! antiforms (as
+  // Currently there are no success modes that return FAILURE! antiforms (as
   // described by [A] at top of file.)  Would you ever TRY a PATH! and not
   // mean "try the result of the function invoked by the path"?  e.g. TRY
   // on a PATH! that ends in slash?
@@ -670,7 +670,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
 //      return: [
 //          any-value?             "will be decayed if not ^META input"
 //          ~(@block! any-value?)~ "Give :STEPS as well as the result value"
-//          error!                 "Passthru even it skips the assign"
+//          failure!               "Passthru even it skips the assign"
 //      ]
 //      target "Word or tuple or path, or calculated sequence steps (from GET)"
 //          [
@@ -752,7 +752,7 @@ DECLARE_NATIVE(GET)
     if (b)
         return unwrap b;  // keep bouncing while we couldn't get OUT as answer
 
-    if (Is_Error(OUT))
+    if (Is_Failure(OUT))
         return OUT;  // weird can't pick case, see [A]
 
     if (not Any_Lifted(OUT))
@@ -769,7 +769,7 @@ DECLARE_NATIVE(GET)
 //  Set_Var_In_Scratch_To_Out: C
 //
 Result(None) Set_Var_In_Scratch_To_Out(
-    Level* level_,  // OUT may be ERROR! antiform, see [A]
+    Level* level_,  // OUT may be FAILURE! antiform, see [A]
     Option(Element*) steps_out  // no GROUP!s if nulled
 ){
     Lift_Cell(OUT);  // must be lifted to be taken literally in dual protocol
@@ -816,6 +816,6 @@ DECLARE_NATIVE(DEFINED_Q)
         return LOGIC(false);
     }
 
-    possibly(Is_Error(OUT));  // (get meta $obj.field) can be defined as ERROR!
+    possibly(Is_Failure(OUT));  // (get meta $obj.field) can be FAILURE!
     return LOGIC(true);
 }

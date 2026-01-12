@@ -145,7 +145,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
         break;
 
       case TYPE_COMMA:  // GHOST!
-      case TYPE_WARNING:  // ERROR! (any special work here?)
+      case TYPE_WARNING:  // FAILURE! (any special work here?)
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
 
@@ -178,15 +178,15 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 //
 // Decay is the process of producing a stable value from an unstable one.  It
 // is not legal to decay an unstable antiform into another unstable antiform,
-// and it's too risky to let ERROR!s inside PACK!s be silently discarded...
+// and it's too risky to let FAILURE!s inside PACK!s be silently discarded...
 // so they have to be elevated to panics.
 //
 // "Elision" is more permissive than decay, because you're not actually trying
 // to extract a value if the antiform is a PACK! or GHOST! (or a PACK! with
 // a PACK! in the first slot, which must be unpacked vs. auto-decaying).  So
-// you only need to be concerned about sweeping any ERROR!s under the rug.
+// you only need to be concerned about sweeping any FAILURE!s under the rug.
 //
-// The concern about searching for embedded ERROR!s is shared between the
+// The concern about searching for embedded FAILURE!s is shared between the
 // decay and elide routines, so they are implemented using a common function.
 //
 // 1. We don't want to cast away the error state, but we don't want to give
@@ -204,7 +204,7 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 #define Decay_If_Unstable(v) \
     Decay_Or_Elide_Core(Possibly_Unstable(v), true)
 
-#define Ensure_No_Errors_Including_In_Packs(v) \
+#define Ensure_No_Failures_Including_In_Packs(v) \
     u_cast(Result(void*), /* Result(None) cast can't work in C [1] */ \
         Decay_Or_Elide_Core(m_cast(Value*, Possibly_Unstable(v)), false))
 
@@ -219,7 +219,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
         goto finished;
 
     if (not Is_Pack(v)) {
-        if (Is_Error(v))
+        if (Is_Failure(v))
             return fail (Cell_Error(v));
 
         if (not want_value)
@@ -257,7 +257,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
             return fail ("Non-lifted element in PACK!");
         }
 
-        if (Is_Lifted_Error(at))
+        if (Is_Lifted_Failure(at))
             return fail (Cell_Error(at));
 
         if (not Is_Lifted_Pack(at))
@@ -267,7 +267,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
         assume (
             Unlift_Cell_No_Decay(v)
         );
-        Ensure_No_Errors_Including_In_Packs(v) except (Error* e) {  // [1]
+        Ensure_No_Failures_Including_In_Packs(v) except (Error* e) {  // [1]
             return fail (e);
         }
     }
@@ -281,7 +281,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
     if (Is_Lifted_Ghost(first))
         return fail ("PACK! cannot decay GHOST! in first slot");
 
-    assert(not Is_Lifted_Error(first));  // we ruled these out already
+    assert(not Is_Lifted_Failure(first));  // we ruled these out already
 
     if (Is_Dual_Meta_Alias_Signal(first)) {
         trap (

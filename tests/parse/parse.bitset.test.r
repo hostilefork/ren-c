@@ -13,7 +13,7 @@
         if n = 1 [continue]
 
         let c
-        if error? parse (append copy "" make-char n - 1) [
+        if failure? parse (append copy "" make-char n - 1) [
             c: any-char <end>
         ][
             panic "Parse didn't work"

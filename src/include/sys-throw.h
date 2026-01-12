@@ -36,7 +36,7 @@
 //=//// NOTES /////////////////////////////////////////////////////////////=//
 //
 // * When an abrupt panic occurs, it is intercepted by the trampoline and
-//   converted into a throw state with an ERROR! as the label.  This state
+//   converted into a throw state with a WARNING! as the label.  This state
 //   is bubbled up the stack much like a throw, however it cannot be
 //   intercepted by CATCH or definitional-error handlers like TRY.  Only
 //   special routines like SYS.UTIL/RESCUE can catch abrupt panics, as

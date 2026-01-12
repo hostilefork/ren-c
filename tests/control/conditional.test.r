@@ -34,6 +34,6 @@
     ('~('10 '20)~ = lift cond* pack [10 20])
     (ghost? cond* pack [null 20])
 
-    (error? cond* fail "test")
+    (failure? cond* fail "test")
     ~zero-divide~ !! (cond* pack [10 1 / 0])
 ]

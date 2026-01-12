@@ -508,7 +508,7 @@ DECLARE_NATIVE(SORT)
 //      return: [
 //          none? "when input is NONE and skipping by 0"
 //          any-series? "when input is a series and skipping by a valid offset"
-//          error! "when skip would be out of bounds (and :UNBOUNDED not used)"
+//          failure! "skip would be out of bounds (and :UNBOUNDED not used)"
 //          port!  ; port meaning is different [1]
 //      ]
 //      series [<cond> none? any-series? port!]

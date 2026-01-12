@@ -65,7 +65,7 @@ make-http-error: lambda [
     make warning! compose [
         type: 'access
         id: 'protocol
-        arg1: (unspaced message)  ; ERROR! has a `message` field, must COMPOSE
+        arg1: (unspaced message)  ; WARNING! has a `message` field, must COMPOSE
     ]
 ]
 
@@ -187,7 +187,7 @@ parse-write-dialect: proc [
 ]
 
 check-response: func [
-    return: [trash! error!]
+    return: [trash! failure!]
     port [port!]
 ][
     let state: port.state

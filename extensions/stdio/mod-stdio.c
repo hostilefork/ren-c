@@ -148,7 +148,7 @@ static Value* Make_Non_Halt_Error(const char* name) {
 //      return: [
 //          blob!
 //          <null>  "no more input available"
-//          error!  "Cancellation (e.g. ESCAPE or Ctrl-C)"
+//          failure!  "Cancellation (e.g. ESCAPE or Ctrl-C)"
 //      ]
 //      size "Maximum size of input to read"
 //          [integer!]
@@ -212,7 +212,7 @@ DECLARE_NATIVE(READ_STDIN)
 //      return: [
 //          text!
 //          <null>  "no more input available"
-//          error!  "Cancellation (e.g. ESCAPE or Ctrl-C)"
+//          failure!  "Cancellation (e.g. ESCAPE or Ctrl-C)"
 //      ]
 //      source "Where to read from (stdin currently only place supported)"
 //          [~[#stdin]~]
@@ -374,7 +374,7 @@ DECLARE_NATIVE(READ_LINE)
 //          char?       "a Unicode codepoint was read"
 //          word!       "virtual key name"
 //          <null>      "end of file"
-//          error!      "ESCAPE pressed (if not :RAW) or timeout"
+//          failure!      "ESCAPE pressed (if not :RAW) or timeout"
 //      ]
 //      source "Where to read from (stdin currently only place supported)"
 //          [~[#stdin]~]

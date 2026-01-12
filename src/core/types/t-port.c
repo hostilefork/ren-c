@@ -159,7 +159,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Port)
         if (b)  // couldn't reduce to being something in OUT
             return b;
 
-        if (Is_Error(OUT))
+        if (Is_Failure(OUT))
             return OUT;
 
         goto post_process_output;

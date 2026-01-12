@@ -1267,7 +1267,7 @@ IMPLEMENT_GENERIC(SHUFFLE, Any_List)
 //
 //  "Get the file (or URL) that a value was loaded from, if possible"
 //
-//      return: [file! url! error!]
+//      return: [file! url! failure!]
 //      value "Typically only ANY-LIST? know their file"
 //          [<cond> element?]
 //  ]
@@ -1295,7 +1295,7 @@ IMPLEMENT_GENERIC(FILE_OF, Any_Element)  // generic fallthrough returns error
 //
 //  "Get the line number that a value was loaded from, if possible"
 //
-//      return: [integer! error!]
+//      return: [integer! failure!]
 //      value "Typically only ANY-LIST? know their file"
 //          [<cond> element?]
 //  ]

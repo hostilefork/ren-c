@@ -45,7 +45,7 @@ transcode-header: func [
             [<null> blob!] "rest"
             integer! "line"
         )~
-        error! "Missing `Rebol [...]` at start of data"
+        failure! "Missing `Rebol [...]` at start of data"
     ]
     data [blob!]
     :file [file! url!]
@@ -623,7 +623,8 @@ bind construct [
 
     importing-remotely: old-importing-remotely
 
-    return pack [mod 'executed ^product]  ; ERROR! antiform is legal product
+    possibly [failure? ^product]
+    return pack [mod 'executed ^product]
 ])
 
 

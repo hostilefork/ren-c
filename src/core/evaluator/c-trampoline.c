@@ -358,7 +358,7 @@ Bounce Trampoline_From_Top_Maybe_Root(void)
         goto bounce_on_trampoline;
     }
 
-    if (not bounce)  // was API value, fail ERROR!, etc.
+    if (not bounce)  // was API value, FAILURE!, etc.
         goto result_in_out;
 
     assert(!"executor(L) not OUT, BOUNCE_THROWN, or BOUNCE_CONTINUE");
@@ -368,7 +368,7 @@ Bounce Trampoline_From_Top_Maybe_Root(void)
 
   // A panic() can happen at any moment--even due to something like a memory
   // allocation requested by an executor itself.  These are "abrupt panics",
-  // and they can't be RESCUE'd, TRY'd, or EXCEPT'd like an ERROR! can be.
+  // and they can't be RESCUE'd, TRY'd, or EXCEPT'd like a FAILURE! can be.
   //
   // 1. We don't really know *what* panicked...all levels get a chance to
   //    clean up the state.

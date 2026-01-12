@@ -83,7 +83,7 @@ Result(Element*) Transcode_One(
 //          ~([text! blob!] element?)~  "(remainder element) if :NEXT"
 //          <null>                      "if :NEXT but no more elements"
 //          element?                    "if :ONE used"
-//          error!                      "scanner error if encountered"
+//          failure!                    "scanner error if encountered"
 //      ]
 //      source "If BINARY!, must be UTF-8 encoded"
 //          [any-utf8? blob!]
@@ -222,7 +222,7 @@ DECLARE_NATIVE(TRANSCODE)
         goto scan_to_stack_maybe_failed;
 
       case ST_TRANSCODE_ENSURE_NO_MORE:
-        if (not Is_Error(OUT)) {  // !!! return this error, or new one?
+        if (not Is_Failure(OUT)) {  // !!! return this error, or new one?
             if (TOP_INDEX == STACK_BASE + 1) {  // didn't scan anything else
                 Move_Cell(OUT, TOP_ELEMENT);
                 DROP();
@@ -251,13 +251,13 @@ DECLARE_NATIVE(TRANSCODE)
     //
     // Return a block of the results, so [1] and [[1]] in those cases.
 
-    if (Is_Error(OUT)) {
+    if (Is_Failure(OUT)) {
         assert(TOP_INDEX == STACK_BASE);
         Drop_Level(SUBLEVEL);
         return OUT;
     }
 
-    assert(Is_Tripwire(As_Stable(OUT)));  // TRASH! if it not an ERROR!
+    assert(Is_Tripwire(As_Stable(OUT)));  // TRASH! if it's not a FAILURE!
 
     if (ARG(ONE)) {  // want *exactly* one element
         if (TOP_INDEX == STACK_BASE)

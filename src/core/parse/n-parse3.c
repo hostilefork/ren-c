@@ -2504,7 +2504,7 @@ DECLARE_NATIVE(SUBPARSE)
 //      return: [
 //          any-value?  "synthesized rule product (only works for ACCEPT)"
 //          trash!      "non-ACCEPT 'success' result for PARSE3"
-//          error!      "parse failure"
+//          failure!    "parse failure"
 //          any-series? "if :MATCH used, original input if successful"
 //          <null>      "if :MATCH used and unsuccessful"
 //      ]
@@ -2675,7 +2675,7 @@ DECLARE_NATIVE(PARSE_REJECT)
 void Startup_Parse3(void)
 {
     known_nullptr(g_trash_parse3_success) = Protect_Cell(rebValue(
-        "~#[PARSE3 success, so no ERROR! (no other result unless ACCEPT)]#~"
+        "~#[PARSE3 success, so no FAILURE! (no other result unless ACCEPT)]#~"
     ));
 }
 

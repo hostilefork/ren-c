@@ -175,7 +175,7 @@ help-value: proc [
         action? ^value ['action]
         pack? ^value ['pack!]
         ghost? ^value ['ghost!]
-        error? ^value ['error!]
+        failure? ^value ['failure!]
 
         antiform? ^value [
             panic "Invalid Antiform Heart Found, Please Report:" @atom'

@@ -51,18 +51,18 @@
 ; Multi-returns which aren't writing to a variable should be willing to
 ; tolerate an arbitrary result coming out.
 [
-    (error? [{_}]: fail "hi")
+    (failure? [{_}]: fail "hi")
 ]
 
-; A ^META'd error! still does a lookahead step for infix, and if that step
+; A ^META'd FAILURE! still does a lookahead step for infix, and if that step
 ; does not need to lookahead it should respect the meta'd status and not
-; raise an error.
+; raise an failure.
 [
     (
         x': ~
         all [
-            (error? unlift [x']: lift fail "hi" ^ghost)
-            error? unlift x'
+            (faiure? unlift [x']: lift fail "hi" ^ghost)
+            failure? unlift x'
         ]
     )
 ]

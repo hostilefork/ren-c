@@ -32,6 +32,8 @@ assert: vanishable func [
     return ()
 ]
 
+possibly: comment/  ; documentation expressed as code
+
 steal: lambda [
     "Return a variable's value prior to an assignment, then do the assignment"
 
@@ -556,10 +558,10 @@ cause-error: func [
 
 
 fail: func [
-    "Return unstable ERROR! antiform state (RESCUE, EXCEPT, TRY can intercept)"
+    "Make unstable FAILURE! antiform state (RESCUE, EXCEPT, TRY can intercept)"
 
-    return: [error!]
-    reason "ERROR! value, ID, URL, message text, or failure spec"
+    return: [failure!]
+    reason "WARNING! value, ID, URL, message text, or failure spec"
         [
             <end>  ; non-specific failure
             warning!  ; already constructed error

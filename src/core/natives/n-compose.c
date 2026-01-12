@@ -383,7 +383,7 @@ Bounce Composer_Executor(Level* const L)
         goto handle_next_item;
     }
 
-    if (Is_Error(OUT))
+    if (Is_Failure(OUT))
         return OUT;  // !!! Good idea?  Bad idea?
 
     if (Is_Veto_Dual(OUT)) {
@@ -865,7 +865,7 @@ DECLARE_NATIVE(COMPOSE2)
   //    * the code that was scanned from inside the pattern
   //    * the offset right after the end character where the pattern matched
 
-    if (Is_Error(OUT))  // transcode had a problem
+    if (Is_Failure(OUT))  // transcode had a problem
         panic (Cell_Error(OUT));
 
     Element* handle = As_Element(SCRATCH);
@@ -946,7 +946,7 @@ DECLARE_NATIVE(COMPOSE2)
     if (Is_Veto_Dual(OUT))
         return VETOING_NULL;
 
-    if (Is_Error(OUT)) {
+    if (Is_Failure(OUT)) {
         Drop_Data_Stack_To(STACK_BASE);
         panic (Cell_Error(OUT));
     }

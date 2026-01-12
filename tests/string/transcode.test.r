@@ -90,7 +90,7 @@
 [
     ([abc def] = [_]: transcode "abc def")
     ('abc = [_ {_}]: transcode:next "abc def")
-    (error? [_ {_}]: transcode:next "3o4")
+    (failure? [_ {_}]: transcode:next "3o4")
     ('scan-invalid = pick rescue [[_ _]: transcode:next "3o4"] 'id)
 ]
 

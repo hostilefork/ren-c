@@ -111,7 +111,7 @@
 ; in that there are no "pure invisibles".  So saying that it's an <end> is
 ; questionable.  Review when there's enough time in priorities to think on it.
 ;
-;     (not error? rescue [reeval (lambda [x [<end>]] []) ||| 1 2 3])
+;     (not failure? rescue [reeval (lambda [x [<end>]] []) ||| 1 2 3])
 ;     (warning? rescue [reeval (lambda [x [null?]] []) ||| 1 2 3])
 
 (

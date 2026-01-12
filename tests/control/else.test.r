@@ -127,15 +127,23 @@
     (3 = (if ok [1 + 2] then (^ghost)))
 ]
 
-; THEN passes ERROR! through, ELSE will panic on error if not handled by
+; THEN passes FAILURE! through, ELSE will panic on failure if not handled by
 ; an action branch that is meta-paramterized
 [
-    (error? 1 / 0 then [~(unreachable)~])
-    ~zero-divide~ !! (assert [not error? (1 / 0 else [~(unreachable)~])])
-    ~zero-divide~ !! (assert [not error? (1 / 0 else 'unreachable)])
-    ~zero-divide~ !! (assert [not error? (1 / 0 else (e -> [~(unreachable)~]))])
-    ~zero-divide~ !! (assert [not error? (1 / 0 else (does [~(unreachable)~]))])
-    (error? (1 / 0 else (^e -> [^e])))
+    (failure? 1 / 0 then [~(unreachable)~])
+    ~zero-divide~ !! (
+        assert [not failure? (1 / 0 else [~(unreachable)~])]
+    )
+    ~zero-divide~ !! (
+        assert [not failure? (1 / 0 else 'unreachable)]
+    )
+    ~zero-divide~ !! (
+        assert [not failure? (1 / 0 else (e -> [~(unreachable)~]))]
+    )
+    ~zero-divide~ !! (
+        assert [not failure? (1 / 0 else (does [~(unreachable)~]))]
+    )
+    (failure? (1 / 0 else (^e -> [^e])))
 ]
 
 ; THENCE is prefix reversed THEN

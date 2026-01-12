@@ -775,9 +775,9 @@ Bounce Stepper_Executor(Level* L)
     // Consistent with GET-WORD!, a GET-TUPLE! won't allow nothing access on
     // the plain (unfriendly) forms.
     //
-    // 1. It's possible for (^obj.lifted-error) to give back an ERROR! due
+    // 1. It's possible for (^obj.lifted-error) to give back a FAILURE! due
     //    to the field being a lifted error, or (^obj.missing-field) to give
-    //    an ERROR! due to the field being absent.
+    //    a FAILURE! due to the field being absent.
 
     heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
@@ -786,9 +786,9 @@ Bounce Stepper_Executor(Level* L)
     require (
       Get_Var_In_Scratch_To_Out(L, GROUPS_OK)
     );
-    possibly(Is_Error(OUT));  // last step may be missing, or meta-error [1]
+    possibly(Is_Failure(OUT));  // last step maybe missing, or meta-failure [1]
 
-    goto lookahead;  // even ERROR! wants lookahead (e.g. for EXCEPT)
+    goto lookahead;  // even FAILURE! wants lookahead (e.g. for EXCEPT)
 
 
 } case TYPE_CHAIN: { //// META CHAIN! (^XXX: ^:XXX ...) //////////////////////
@@ -1007,10 +1007,10 @@ Bounce Stepper_Executor(Level* L)
       Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
     );
 
-    if (Is_Error(OUT))  // e.g. couldn't pick word as field from binding
+    if (Is_Failure(OUT))  // e.g. couldn't pick word as field from binding
         panic (Cell_Error(OUT));  // don't conflate with action result
 
-    assert(Is_Cell_Stable(OUT));  // plain WORD! pick, ERROR! is only unstable
+    assert(Is_Cell_Stable(OUT));  // plain WORD!, FAILURE! is only unstable
     Stable* out = cast(Stable*, OUT);
 
     if (Is_Action(out))  // check first [1]
@@ -1298,7 +1298,7 @@ Bounce Stepper_Executor(Level* L)
     // fetching nothing is what you actually intended.
     //
     // 1. Cases like (^obj.lifted-error) and (obj.missing-field) will return
-    //    an ERROR! antiform, and (^obj.lifted-pack) can return a PACK!, etc.
+    //    a FAILURE! antiform, and (^obj.lifted-pack) can return a PACK!, etc.
 
     Element* spare = Copy_Sequence_At(SPARE, CURRENT, 0);
     bool blank_at_head = Is_Space(spare);
@@ -1507,7 +1507,7 @@ Bounce Stepper_Executor(Level* L)
     if (Is_Space(CURRENT))  // e.g. `(void): ...`  !!! use space var!
         goto lookahead;  // pass through everything
 
-    if (Is_Error(OUT) and not Is_Metaform(CURRENT))
+    if (Is_Failure(OUT) and not Is_Metaform(CURRENT))
         goto lookahead;  // you can say (try var: fail "hi") without panicking
 
     heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));

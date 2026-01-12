@@ -331,7 +331,7 @@ DECLARE_NATIVE(PACK)
     if (Is_Nulled(OUT))  // VETO encountered
         return NULLED;
 
-    if (Is_Error(OUT))
+    if (Is_Failure(OUT))
         return OUT;  // definitional error (what choices would these be?)
 
     assert(Is_Possibly_Unstable_Value_Block(OUT));

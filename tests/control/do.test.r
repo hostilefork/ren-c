@@ -198,9 +198,9 @@
 (ghost? ^ eval [()])
 ('a = eval ['a])
 
-; !!! Currently, EVAL of an ERROR! is like FAIL; it is not definitional,
+; !!! Currently, EVAL of an WARNING! is like PANIC; it is not definitional,
 ; and can only be caught with SYS.UTIL/RESCUE.  Should it be?  Or should a
-; EVAL of an ERROR! just make it into a definitional warning?
+; EVAL of a WARNING! just make it into a definitional FAILURE?
 ;
 ~zero-divide~ !! (warning? rescue [eval rescue [1 / 0] 1])
 
@@ -294,7 +294,7 @@
         block: [1 + 2 1 / 0 10 + 20]
         [3 ~zero-divide~ 30] = collect [
             while [[block :^result']: eval:step block] [
-                if error? unlift result' [
+                if failure? unlift result' [
                     keep quasi (unquasi result').id
                 ] else [
                     keep unlift result'

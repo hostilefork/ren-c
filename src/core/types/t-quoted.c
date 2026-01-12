@@ -162,9 +162,9 @@ DECLARE_NATIVE(UNQUOTE)
 //
 //  quasi: native [
 //
-//  "Constructs quasiform of VALUE (if legal for type, otherwise error)"
+//  "Constructs quasiform of VALUE (if legal for type, otherwise failure)"
 //
-//      return: [quasiform! error!]
+//      return: [quasiform! failure!]
 //      value [fundamental? quasiform!]
 //      :pass "If input is already a quasiform, then pass it trhough"
 //  ]
@@ -239,7 +239,7 @@ DECLARE_NATIVE(LIFT)
 //
 //      return: [
 //          quoted! quasiform! "lifted forms"
-//          ghost! <null> error! "passed through"
+//          ghost! <null> failure! hot-potato? "passed through"
 //      ]
 //      ^value '[any-value?]
 //  ]
@@ -250,7 +250,7 @@ DECLARE_NATIVE(LIFT_P)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    if (Is_Error(v))
+    if (Is_Failure(v))
         return COPY(v);
 
     if (Is_Ghost(v))
@@ -585,10 +585,10 @@ DECLARE_NATIVE(UNRUN)
 //
 //  disarm: native [
 //
-//  "Give back a warning! for error! input"
+//  "Give back a warning! for FAILURE! input"
 //
 //      return: [warning!]
-//      ^error [<cond> error!]
+//      ^error [<cond> failure!]
 //  ]
 //
 DECLARE_NATIVE(DISARM)

@@ -29,10 +29,10 @@
 //
 //  try: native:intrinsic [
 //
-//  "Suppress escalation to PANIC from ERROR!s and 'hot potatoes', return NULL"
+//  "Suppress PANIC escalation from PANIC!s and 'hot potatoes', return NULL"
 //
 //      return: [<null> any-value?]
-//      ^value '[any-value? error! dual? void?]  ; TRY on pack returns pack
+//      ^value '[any-value? failure! hot-potato? void?]
 //  ]
 //
 DECLARE_NATIVE(TRY)
@@ -47,7 +47,7 @@ DECLARE_NATIVE(TRY)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    if (Is_Error(v) or Is_Hot_Potato_Dual(v))  // what about Any_Void()? [1]
+    if (Is_Failure(v) or Is_Hot_Potato_Dual(v))  // what about Any_Void()? [1]
         return NULLED;
 
     return COPY(v);  // !!! also tolerates other antiforms, should it?
@@ -57,7 +57,7 @@ DECLARE_NATIVE(TRY)
 //
 //  enrecover: native [
 //
-//  "Sandbox code to intercept failures; ERROR! -> WARNING! else lifted result"
+//  "Sandbox to intercept failures; FAILURE! -> WARNING! else lifted result"
 //
 //      return: [warning! quoted! quasiform!]
 //      code "Code to sandbox, intercept errors at any depth (including typos)"
@@ -107,14 +107,14 @@ DECLARE_NATIVE(ENRECOVER)
 } eval_result_in_out: {  /////////////////////////////////////////////////////
 
     if (not THROWING) {  // successful result
-        if (Is_Error(OUT)) {
+        if (Is_Failure(OUT)) {
             LIFT_BYTE(OUT) = NOQUOTE_3;  // turn it into normal error
             return OUT;
         }
         return Lift_Cell(OUT);
     }
 
-    if (not Is_Throwing_Panic(LEVEL)) {  // non-ERROR! throws
+    if (not Is_Throwing_Panic(LEVEL)) {  // non-WARNING! throws
         if (ARG(RELAX))
             return BOUNCE_THROWN;  // e.g. RETURN, THROW
         return Init_Warning(OUT, Error_No_Catch_For_Throw(LEVEL));
@@ -132,7 +132,7 @@ DECLARE_NATIVE(ENRECOVER)
 //
 //  enrescue: native [
 //
-//  "Catch top-level EVAL step errors, ERROR! -> WARNING! else lifted result"
+//  "Catch top-level EVAL step errors, FAILURE! -> WARNING! else lifted result"
 //
 //      return: [warning! quasiform! quoted!]
 //      code "Code to execute in steps, returning WARNING! if any ERROR occurs"
@@ -164,7 +164,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 
   initial_entry: {  /////////////////////////////////////////////////////////
 
-  // 1. We aren't catching throws or panics, only cooperative ERROR! results.
+  // 1. We aren't catching throws or panics, only cooperative FAILURE! results.
 
     Init_Ghost(OUT);  // default if all evaluations produce void
 
@@ -205,7 +205,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 
 } eval_result_in_spare: {  ///////////////////////////////////////////////////
 
-    if (Is_Error(SPARE)) {
+    if (Is_Failure(SPARE)) {
         Drop_Level(SUBLEVEL);
         Move_Value(OUT, SPARE);
         LIFT_BYTE(OUT) = NOQUOTE_3;  // change antiform error to plain
@@ -236,7 +236,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 //
 //  except: infix:defer native [
 //
-//  "If LEFT is ERROR! then run BRANCH and return the result, else return LEFT"
+//  "If LEFT is FAILURE! then return BRANCH evaluation, else return LEFT"
 //
 //      return: [any-value?]  ; [1]
 //      ^left [any-value?]
@@ -251,8 +251,8 @@ DECLARE_NATIVE(EXCEPT)
 //    not how that works... it acts as ^($e.id) not (^e).id - so basically
 //    we have to disarm before passing.
 //
-// 2. "Hot Potatoes" are light substitutes for ERROR!, so they pretty much
-//    need to be handled by EXCEPT.  But unlike ERROR!s they have little to
+// 2. "Hot Potatoes" are light substitutes for FAILURE!, so they pretty much
+//    need to be handled by EXCEPT.  But unlike FAILURE!s they have little to
 //    extract from them, and would become (confusingly) just WORD!s if they
 //    were to lose their wrapping PACK! antiform.  By leaving them in the
 //    dual state "as-is" this means that if a branch wants to accept a
@@ -264,7 +264,7 @@ DECLARE_NATIVE(EXCEPT)
     Value* left = Possibly_Unstable(ARG(LEFT));
     Element* branch = ARG(BRANCH);
 
-    if (Is_Error(left)) {
+    if (Is_Failure(left)) {
         LIFT_BYTE(left) = NOQUOTE_3;  // turn error to plain WARNING! [1]
     }
     else if (Is_Hot_Potato_Dual(left)) {
@@ -280,10 +280,10 @@ DECLARE_NATIVE(EXCEPT)
 //
 //  trap: native [  ; performs arbitrary evaluation, can't be :intrinsic ATM
 //
-//  "If passed an ERROR! antiform, tunnel it to RETURN in scope, else passthru"
+//  "If passed FAILURE! antiform, tunnel it to RETURN in scope, else passthru"
 //
 //      return: [any-value?]
-//      ^value [any-value? error!]
+//      ^value [any-value? failure!]
 //  ]
 //
 DECLARE_NATIVE(TRAP)
@@ -292,8 +292,8 @@ DECLARE_NATIVE(TRAP)
 
     Value* v = ARG(VALUE);
 
-    if (not Is_Error(v))
-        return COPY(v);  // pass thru any non-errors
+    if (not Is_Failure(v))
+        return COPY(v);  // pass thru any non-failures
 
     Element* return_word = Init_Word(SCRATCH, CANON(RETURN));
     Bind_Cell_If_Unbound(return_word, Feed_Binding(LEVEL->feed));
@@ -306,7 +306,7 @@ DECLARE_NATIVE(TRAP)
     );
 
     if (not Is_Possibly_Unstable_Value_Action(OUT))
-        panic ("TRAP can't find RETURN in scope to tunnel ERROR! to");
+        panic ("TRAP can't find RETURN in scope to tunnel FAILURE! to");
 
     Element* lifted_error = Lift_Cell(v);
 
@@ -317,10 +317,10 @@ DECLARE_NATIVE(TRAP)
 //
 //  require: native [
 //
-//  "If passed an ERROR! antiform, panic on it, otherwise passthru"
+//  "If passed a FAILURE! antiform, panic on it, otherwise passthru"
 //
 //      return: [any-value?]
-//      ^value [any-value? error!]
+//      ^value [any-value? failure! hot-potato?]
 //  ]
 //
 DECLARE_NATIVE(REQUIRE)
@@ -329,29 +329,32 @@ DECLARE_NATIVE(REQUIRE)
 
     Value* v = ARG(VALUE);
 
-    if (not Is_Error(v))
-        return COPY(v);  // pass thru any non-errors
+    if (Is_Failure(v) or Is_Dual(v)) {
+      require (
+        Decay_If_Unstable(v)
+      );
+    }
 
-    panic (Cell_Error(v));
+    return COPY(v);  // pass thru any non-errors
 }
 
 
 //
-//  error?: native:intrinsic [
+//  failure?: native:intrinsic [
 //
-//  "Tells you if argument is an ERROR! antiform, doesn't panic if it is"
+//  "Tells you if argument is an FAILURE! antiform, doesn't panic if it is"
 //
 //      return: [logic?]
 //      ^value '[any-value?]
 //  ]
 //
-DECLARE_NATIVE(ERROR_Q)
+DECLARE_NATIVE(FAILURE_Q)
 {
-    INCLUDE_PARAMS_OF_ERROR_Q;
+    INCLUDE_PARAMS_OF_FAILURE_Q;
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Error(v));
+    return LOGIC(Is_Failure(v));
 }
 
 
