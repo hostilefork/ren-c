@@ -18,7 +18,7 @@ import <bootstrap-shim.r>
 
 decode-lines: func [
     "Decode text encoded using a line prefix e.g. comments (modifies)"
-    text [<opt> text! warning!]  ; WARNING! in modern exe, not ERROR!
+    text [<opt> text! error!]
     line-prefix [text! block!] "matched using parse, usually ** or // -"
     indent [text! block!] -[Matched using parse, usually "  "]-
 ] [

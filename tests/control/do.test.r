@@ -127,7 +127,7 @@
     a-value: me@here.com
     same? a-value eval reduce [a-value]
 )
-(warning? eval [rescue [1 / 0]])
+(error? eval [rescue [1 / 0]])
 (
     a-value: %""
     same? a-value eval reduce [a-value]
@@ -198,11 +198,11 @@
 (ghost? ^ eval [()])
 ('a = eval ['a])
 
-; !!! Currently, EVAL of an WARNING! is like PANIC; it is not definitional,
+; !!! Currently, EVAL of an ERROR! is like PANIC; it is not definitional,
 ; and can only be caught with SYS.UTIL/RESCUE.  Should it be?  Or should a
-; EVAL of a WARNING! just make it into a definitional FAILURE?
+; EVAL of an ERROR! just make it into a definitional FAILURE?
 ;
-~zero-divide~ !! (warning? rescue [eval rescue [1 / 0] 1])
+~zero-divide~ !! (error? rescue [eval rescue [1 / 0] 1])
 
 (
     a-value: first [(2)]
@@ -265,7 +265,7 @@
 (
     [pos value]: evaluate:step [rescue [1 / 0]]
     all [
-        warning? value
+        error? value
         pos = []
     ]
 )
@@ -275,7 +275,7 @@
     (
         result': lift:except eval [1 + 2 1 / 0]
         all [
-            warning? result'
+            error? result'
             result'.id = 'zero-divide
         ]
     )
@@ -285,7 +285,7 @@
     (
         result': lift:except [pos {_}]: eval:step [1 / 0 1 + 2]
         all [
-            warning? result'
+            error? result'
             result'.id = 'zero-divide
             pos = [1 + 2]
         ]

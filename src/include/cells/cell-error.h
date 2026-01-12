@@ -65,24 +65,26 @@ INLINE void Force_Location_Of_Error(Error* error, Level* L) {
 }
 
 
-//=//// NON-ANTIFORM WARNING! STATE ///////////////////////////////////////=//
+//=//// NON-ANTIFORM ERROR! STATE /////////////////////////////////////////=//
 //
 // It may be that FAILURE! becomes simply an antiform of any generic OBJECT!
 // (a bit like "armed" errors vs. "disarmed" objects in Rebol2).
 //
-// However, the WARNING! type has historically been a specially formatted
-// subtype of OBJECT!.  Just to get things working for starters, there had to
-// be a name for this type of object when not an antiform...so it just got
-// called WARNING!.  It's not a terrible name, but we can see how it feels.
+// However, the ERROR! type has historically been a specially formatted
+// subtype of OBJECT!.
 //
 
-#define Init_Warning(v,c) \
-    Init_Context_Cell((v), TYPE_WARNING, (c))
-
-INLINE Value* Failify(Exact(Value*) v) {  // WARNING! => FAILURE!
-    assert(Heart_Of(v) == TYPE_WARNING and LIFT_BYTE(v) == NOQUOTE_3);
+INLINE Value* Failify_Cell(Exact(Value*) v) {  // ERROR! => FAILURE!
+    assert(Heart_Of(v) == TYPE_ERROR and LIFT_BYTE(v) == NOQUOTE_3);
     Force_Location_Of_Error(Cell_Error(v), TOP_LEVEL);  // ideally a noop
     Unstably_Antiformize_Unbound_Fundamental(v);
     assert(Is_Failure(v));
     return v;
+}
+
+INLINE Element* Disarm_Failure(Exact(Value*) v) {  // ERROR! => FAILURE!
+    assert(Heart_Of(v) == TYPE_ERROR and LIFT_BYTE(v) == UNSTABLE_ANTIFORM_1);
+    LIFT_BYTE(v) = NOQUOTE_3;
+    assert(Is_Possibly_Unstable_Value_Error(v));
+    return As_Element(v);
 }

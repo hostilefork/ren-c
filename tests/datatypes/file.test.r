@@ -30,5 +30,5 @@
 ;
 ;[#2378 (
 ;    some-file: %foo/baz/
-;    warning? rescue [some-file/bar/]
+;    error? rescue [some-file/bar/]
 ;)]

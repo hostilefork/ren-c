@@ -111,9 +111,9 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
         }
         Rollback_Level(L);  // not throwing, no trampoline rollback TOP_LEVEL
 
-        Init_Warning(L->out, g_failure);
+        Init_Context_Cell(L->out, TYPE_ERROR, g_failure);
         g_failure = nullptr;  // have to do before Force_Location_Of_Error()
-        Failify(L->out);  // forces location of error to level
+        Failify_Cell(L->out);  // forces location of error to level
 
       #if DEBUG_EXTANT_STACK_POINTERS  // want to use stack in location setting
         Count save_extant = g_ds.num_refs_extant;
@@ -466,7 +466,7 @@ Bounce Action_Executor(Level* L)
     //    so the user can do 0 or 1 TAKEs of it.
     //
     //    !!! It be evaluated when they TAKE (it if it's an evaluative arg),
-    //    but not if they don't.  Should failing to TAKE be seen as an warning?
+    //    but not if they don't.  Should failing to TAKE be seen as an error?
     //    Failing to take first gives out-of-order evaluation.
     //
     // 5. The idea behind quoting not getting binding isn't that it *removes*

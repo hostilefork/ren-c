@@ -1750,8 +1750,9 @@ DECLARE_NATIVE(REMOVE_EACH)
         }
         else {
             threw = true;
-            Element* spare = Init_Warning(
+            Element* spare = Init_Context_Cell(
                 SPARE,
+                TYPE_ERROR,
                 Error_User("Use [NULL OKAY VOID] with REMOVE-EACH")
             );
             Init_Thrown_With_Label(LEVEL, LIB(NULL), spare);

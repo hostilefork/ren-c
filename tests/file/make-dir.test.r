@@ -4,7 +4,7 @@
 ; #1711
 (
     any {
-        not warning? e: sys.util/recover [make-dir %/folder-to-save-test-files]
+        not error? e: sys.util/recover [make-dir %/folder-to-save-test-files]
         e.type = 'access
     }
 )

@@ -93,7 +93,7 @@ call: enclose (
     if result = 0 [
         return ~  ;  avoid `if 1 = call:shell "dir" [...]`, see [1]
     ]
-    return fail make warning! compose [
+    return fail make error! compose [
         message: ["Process returned non-zero exit code:" exit-code]
         exit-code: (result)
     ]

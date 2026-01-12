@@ -293,7 +293,7 @@ REBINT CT_Context(const Element* a, const Element* b, bool strict)
     assert(Any_Context_Type(a_heart));
     assert(Any_Context_Type(b_heart));
 
-    if (a_heart != b_heart)  // e.g. WARNING! won't equal OBJECT!
+    if (a_heart != b_heart)  // e.g. ERROR! won't equal OBJECT!
         return u_cast(Byte, a_heart) > u_cast(Byte, b_heart) ? 1 : 0;
 
     if (Cell_Context(a) == Cell_Context(b))
@@ -1212,7 +1212,7 @@ IMPLEMENT_GENERIC(TO, Any_Context)
         return Init_Port(OUT, copy);
     }
 
-    if (to == heart) {  // can't TO FRAME! a WARNING!, etc.
+    if (to == heart) {  // can't TO FRAME! an ERROR!, etc.
         bool deep = false;
         return Copy_Any_Context(OUT, context, deep);
     }

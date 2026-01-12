@@ -44,7 +44,7 @@ verify: vanishable func [
                 reaction != #ignore
             ]
         ] then [
-            panic:blame make warning! [
+            panic:blame make error! [
                 type: 'script
                 id: 'assertion-failure
                 arg1: compose [

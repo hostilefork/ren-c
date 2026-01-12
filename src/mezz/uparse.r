@@ -2502,7 +2502,7 @@ default-combinators: make map! [
                     ]
                 ] else [  ; no throw to reset position
                     if (not thru) or (tail? pos) [
-                        return fail* make warning! [
+                        return fail* make error! [
                             id: 'parse-mismatch
                             message:
                               "PARSE BLOCK! combinator did not match input"
@@ -2563,7 +2563,7 @@ default-combinators: make map! [
         '@reason [block! text!]
         {e}
     ][
-        e: make warning! [
+        e: make error! [
             type: 'User
             id: 'parse
             message: spaced reason
@@ -3054,7 +3054,7 @@ parse*: func [
     assert [empty? loops]
 
     if (not tail? remainder) and (not relax) [
-        return fail make warning! [
+        return fail make error! [
             id: 'parse-incomplete
             message:
               "PARSE partially matched the input, but didn't reach the tail"

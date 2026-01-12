@@ -258,7 +258,7 @@ export console!: make object! [
                 ; but if we didn't special case it here, the error would seem
                 ; to be in the console code itself.
                 ;
-                print-panic make warning! "Series data unavailable due to FREE"
+                print-panic make error! "Series data unavailable due to FREE"
             ]
 
             port? v [
@@ -286,7 +286,7 @@ export console!: make object! [
 
     print-warning: proc [s <.>] [print [warning reduce s]]
 
-    print-error: proc [e [warning!] <.>] [
+    print-error: proc [e [error!] <.>] [
         comment [  ; MOLD is more informative, but messy
             v: unanti ^v
             print unspaced [
@@ -299,7 +299,7 @@ export console!: make object! [
         ]
     ]
 
-    print-panic: proc [e [warning!] <.>] [
+    print-panic: proc [e [error!] <.>] [
         if e.file = 'tmp-boot.r [
             e.file: e.line: null  ; errors in console showed this, junk
         ]
@@ -531,8 +531,8 @@ console*: func [
         [<opt> block! group!]
     result [
         quasiform!
-        quoted!     "^META result from PRIOR eval"
-        warning!    "Plain form of FAILURE! (if eval recovered from PANIC)"
+        quoted!     "LIFT-ed result from PRIOR eval"
+        error!      "Plain form of FAILURE! (if eval recovered from PANIC)"
         integer!    "Exit code (indicating the eval ran the CONSOLE's QUIT)"
         <opt>       "no result for a previous request if first call"
     ]
@@ -690,7 +690,7 @@ console*: func [
     ; Note: Escape is handled during input gathering by a dedicated signal.
 
     all [
-        warning? result
+        error? result
         result.id = 'no-catch
         result.arg2 = unrun lib.halt/  ; throw's :NAME
     ] then [
@@ -730,13 +730,13 @@ console*: func [
 
     all [
         has lib 'resume
-        warning? result
+        error? result
         result.id = 'no-catch
         result.arg2 = unrun lib.resume/  ; throw's :NAME
     ] then [
         assert [match [^group! handle!] result.arg1]
         if no? resumable [
-            e: make warning! "Can't RESUME top-level CONSOLE (use QUIT to exit)"
+            e: make error! "Can't RESUME top-level CONSOLE (use QUIT to exit)"
             e.near: result.near
             e.where: result.where
             emit [system.console/print-panic (<*> e)]
@@ -745,7 +745,7 @@ console*: func [
         return result.arg1
     ]
 
-    if warning? result [  ; all other panics
+    if error? result [  ; all other panics
         ;
         ; Panics can occur during MAIN-STARTUP, before the system.CONSOLE has
         ; a chance to be initialized (it may *never* be initialized if the
@@ -946,7 +946,7 @@ console*: func [
 
 export why: proc [
     "Explain the last error in more detail."
-    '@err [<end> word! path! warning!] "Optional error value"
+    '@err [<end> word! path! error!] "Optional error value"
 ][
     let err: default [system.state.last-error]
 
@@ -954,7 +954,7 @@ export why: proc [
         err: get err
     ]
 
-    if warning? err [
+    if error? err [
         err: lowercase unspaced [err.type "-" err.id]
         let docroot: http://www.rebol.com/r3/docs/errors/
         browse join docroot [err ".html"]

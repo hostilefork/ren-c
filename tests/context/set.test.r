@@ -16,14 +16,14 @@
 (
     x: make object! [a: 1]
     all [
-        warning? sys.util/recover [set x reduce [()]]
+        error? sys.util/recover [set x reduce [()]]
         x.a = 1
     ]
 )
 (
     x: make object! [a: 1 b: 2]
     all [
-        warning? sys.util/recover [set x reduce [3 ()]]
+        error? sys.util/recover [set x reduce [3 ()]]
         x.a = 1
     ]
 )
@@ -68,7 +68,7 @@
     ^e: set $x fail 'test
     all [
         quasi? e
-        warning? e: unquasi e
+        error? e: unquasi e
         e.id = 'test
     ]
 )

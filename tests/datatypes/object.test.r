@@ -25,7 +25,7 @@
     ]
 )]
 ~zero-divide~ !! (
-    warning? rescue [  ; not an immediate call (underneath make), won't RESCUE
+    error? rescue [  ; not an immediate call (underneath make), won't RESCUE
         make object! [1 / 0]
         2
     ]

@@ -521,18 +521,18 @@ static void Init_System_Object(
   fix_standard_error: {
 
   // The "standard error" template was created as an OBJECT!, because the
-  // `make warning!` functionality is not ready when %sysobj.r runs.  Fix
-  // up its archetype so that it is an actual WARNING!.
+  // `make error!` functionality is not ready when %sysobj.r runs.  Fix
+  // up its archetype so that it is an actual ERROR!.
 
     Slot* std_error_slot = Get_System(SYS_STANDARD, STD_ERROR);
     assert(KIND_BYTE(std_error_slot) == TYPE_OBJECT);
     assert(LIFT_BYTE_RAW(std_error_slot) == NOQUOTE_3);
     VarList* varlist = Cell_Varlist(u_cast(Element*, std_error_slot));
-    KIND_BYTE(std_error_slot) = TYPE_WARNING;
+    KIND_BYTE(std_error_slot) = TYPE_ERROR;
 
     Stable* rootvar = Rootvar_Of_Varlist(varlist);
     assert(Get_Cell_Flag(rootvar, PROTECTED));
-    KIND_BYTE(rootvar) = TYPE_WARNING;
+    KIND_BYTE(rootvar) = TYPE_ERROR;
 }}
 
 

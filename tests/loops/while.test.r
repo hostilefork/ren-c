@@ -110,7 +110,7 @@
 (
     num: 0
     e: while [num < 10] [num: num + 1 rescue [1 / 0]]
-    all [warning? e num = 10]
+    all [error? e num = 10]
 )
 ; Recursion check
 (

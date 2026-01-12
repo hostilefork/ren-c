@@ -169,8 +169,6 @@ sys.util/recover [
 
 (  ; closed at end of file
 
-warning!: error!
-
 
 === "SHORT NAMES FOR LIB3/XXX, CATCH USES OF SHIMMED FUNCTIONS BEFORE SHIM" ===
 

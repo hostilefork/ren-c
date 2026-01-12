@@ -11,7 +11,7 @@
    x: ~
    all [
        #X = fail "hello" then [x: #T] else [x: #E] except (e -> [x: e, #X])
-       warning? x
+       error? x
    ]
 )
 (
@@ -26,7 +26,7 @@
 
 ; Hot potatoes are tricky; they're not FAILURE! but EXCEPT should probably be
 ; willing to handle them.  Though it violates the convention of assuming the
-; handler is passed a WARNING! non-antiform state.
+; handler is passed an ERROR! non-antiform state.
 ;
 ; Trying out the idea of passing the dual as-is; handler must be ^META.
 (

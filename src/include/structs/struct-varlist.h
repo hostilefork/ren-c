@@ -20,7 +20,7 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// A "VarList" is the abstraction behind OBJECT!, PORT!, FRAME!, WARNING!, etc.
+// A "VarList" is the abstraction behind OBJECT!, PORT!, FRAME!, ERROR!, etc.
 // It maps keys to values using two parallel Flexes, whose indices line up in
 // correspondence:
 //
@@ -192,7 +192,7 @@
 //
 // Several implementation functions (e.g. Trap_XXX()) will return an optional
 // error.  This isn't very clear as Option(VarList*), so although "Error" is
-// a word that conflates the Stub with the WARNING! cell, we go along with
+// a word that conflates the Stub with the ERROR! cell, we go along with
 // Option(Error*) as the pragmatically cleanest answer.
 //
 // 1. Every time a function returning Option(Error*) returned nullptr, I felt

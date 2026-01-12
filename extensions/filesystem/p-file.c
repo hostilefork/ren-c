@@ -257,8 +257,9 @@ DECLARE_NATIVE(FILE_ACTOR)
         //
         uint64_t file_size = File_Size_Cacheable_May_Panic(port);
         if (file->offset > file_size) {
-            result = Init_Warning(
+            result = Init_Context_Cell(
                 Alloc_Value(),
+                TYPE_ERROR,
                 Error_Out_Of_Range(rebStable(rebI(file->offset)))
             );
             goto cleanup_read;
@@ -280,7 +281,7 @@ DECLARE_NATIVE(FILE_ACTOR)
             int64_t limit = VAL_INT64(unwrap ARG(PART));
             if (limit < 0) {
                 result = rebStable(
-                    "make warning! {Negative :PART passed to READ of file}"
+                    "make error! {Negative :PART passed to READ of file}"
                 );
                 goto cleanup_read;
             }
@@ -294,13 +295,13 @@ DECLARE_NATIVE(FILE_ACTOR)
 
         if (opened_temporarily) {
             Stable* close_error = Close_File(port);
-            if (result and Is_Warning(result))
+            if (result and Is_Error(result))
                 panic (result);
             if (close_error)
                 panic (close_error);
         }
 
-        if (result and Is_Warning(result))
+        if (result and Is_Error(result))
             return fail (result);
 
         assert(result == nullptr or Is_Blob(result));
@@ -405,7 +406,7 @@ DECLARE_NATIVE(FILE_ACTOR)
                 int64_t seek = VAL_INT64(unwrap ARG(SEEK));
                 if (seek <= 0)
                     result = rebStable(
-                        "make warning! {Negative :PART passed to READ of file}"
+                        "make error! {Negative :PART passed to READ of file}"
                     );
                 file->offset = seek;
             }
@@ -414,8 +415,9 @@ DECLARE_NATIVE(FILE_ACTOR)
             // and might give people a wrong impression.  Let it error.
             //
             if (file->offset > file_size) {
-                result = Init_Warning(
+                result = Init_Context_Cell(
                     Alloc_Value(),
+                    TYPE_ERROR,
                     Error_Out_Of_Range(rebStable(rebI(file->offset)))
                 );
                 goto cleanup_write;
@@ -544,7 +546,7 @@ DECLARE_NATIVE(FILE_ACTOR)
         if (file->id == FILEHANDLE_NONE) {
             //
             // !!! R3-Alpha let you CLOSE an already CLOSE'd PORT!, is that
-            // a good idea or should it return an warning?
+            // a good idea or should it be an error?
         }
         else {
             Stable* error = Close_File(port);
@@ -657,7 +659,7 @@ DECLARE_NATIVE(FILE_ACTOR)
         INCLUDE_PARAMS_OF_QUERY;
 
         Stable* info = Query_File_Or_Directory(port);
-        if (Is_Warning(info)) {
+        if (Is_Error(info)) {
             rebRelease(info);  // !!! R3-Alpha just returned "none"
             return nullptr;
         }

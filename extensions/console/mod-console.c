@@ -241,7 +241,7 @@ DECLARE_NATIVE(CONSOLE)
 //    FAILURE! antiforms -and- we want to know if a PANIC was intercepted.  It
 //    would be possible to do this with a separate flag, but storing normal
 //    results (including "normal" FAILURE! antiform results) in lifted form
-//    means we can store the PANIC as a WARNING! in the unlifted form.
+//    means we can store the PANIC as an ERROR! in the unlifted form.
 //
 // !!! The idea behind the console is that it can be called with skinning;
 // so that if BREAKPOINT wants to spin up a console, it can...but with a
@@ -404,8 +404,8 @@ DECLARE_NATIVE(CONSOLE)
             "] then (caught -> [",  // QUIT wraps QUIT* to only throw integers
                 "result': caught",  // INTEGER! due to :CONSOLE, out of band
             "])",
-        "] then (warning -> [",
-            "result': warning",  // non-lifted WARNING! out of band
+        "] then (error -> [",
+            "result': error",  // non-lifted ERROR! out of band
         "])"
     );
 

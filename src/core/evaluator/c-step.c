@@ -1459,7 +1459,7 @@ Bounce Stepper_Executor(Level* L)
         panic ("Use `->-` to shove left infix operands into PATH!s");
     }
 
-    UNUSED(slash_at_head);  // !!! should e.g. enforce /1.2.3 as warning?
+    UNUSED(slash_at_head);  // !!! should e.g. enforce /1.2.3 as error?
     goto handle_action_in_out_with_refinements_pushed;
 
 }} handle_generic_set: { /////////////////////////////////////////////////////
@@ -1615,7 +1615,7 @@ Bounce Stepper_Executor(Level* L)
   case TYPE_VARARGS:
   case TYPE_OBJECT:
   case TYPE_MODULE:
-  case TYPE_WARNING:
+  case TYPE_ERROR:
   case TYPE_PORT:
   case TYPE_LET:
   case TYPE_INTEGER:

@@ -11,10 +11,10 @@
 ; catch results
 (ghost? catch [])
 (ghost? catch [()])
-(warning? catch [throw rescue [1 / 0]])
+(error? catch [throw rescue [1 / 0]])
 (1 = catch [throw 1])
 ((the '~[]~) = lift catch [throw eval ['~[]~]])
-(warning? first catch [throw reduce [rescue [1 / 0]]])
+(error? first catch [throw reduce [rescue [1 / 0]]])
 (1 = catch [throw 1])
 
 ; recursive cases
@@ -33,7 +33,7 @@
 (a: 1 catch [set $a throw 2] a = 1)
 (a: 1 catch [set $a throw 2] a = 1)
 [#1509 ; the "result" of throw should not be passable to functions
-    (a: 1 catch [a: warning? throw 2] a = 1)
+    (a: 1 catch [a: error? throw 2] a = 1)
 ]
 [#1535
     (space = catch [words of throw space])
@@ -41,7 +41,7 @@
 (space = catch [values of throw space])
 
 ; throw should not be caught by RESCUE
-(a: 1 catch [a: warning? rescue [throw 2]] a = 1)
+(a: 1 catch [a: error? rescue [throw 2]] a = 1)
 
 
 ; !!! CATCH/NAME is removed for now.  NAME is an argument to CATCH* for the
@@ -101,8 +101,8 @@
 ; (a: 1 catch/name [a: throw/name 2 'b] 'b a = 1)
 ; (a: 1 catch/name [set $a throw/name 2 'b] 'b a = 1)
 ; (a: 1 catch/name [set $a throw/name 2 'b] 'b a = 1)
-; (a: 1 catch/name [a: warning? throw/name 2 'b] 'b a = 1)
-; (a: 1 catch/name [a: warning? rescue [throw/name 2 'b]] 'b a = 1)
+; (a: 1 catch/name [a: error? throw/name 2 'b] 'b a = 1)
+; (a: 1 catch/name [a: error? rescue [throw/name 2 'b]] 'b a = 1)
 
 ; CATCH and RETURN
 (

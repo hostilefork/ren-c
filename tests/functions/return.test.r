@@ -17,8 +17,8 @@
     null? f1
 )
 (
-    f1: func [return: [warning!]] [return rescue [1 / 0]]
-    warning? f1
+    f1: func [return: [error!]] [return rescue [1 / 0]]
+    error? f1
 )
 
 [#1515 ; the "result" of return should not be assignable
@@ -29,7 +29,7 @@
 (a: 1 run func [return: [integer!]] [set $a return 2] a = 1)
 
 [#1509 ; the "result" of return should not be passable to functions
-    (a: 1 reeval reify func [return: [integer!]] [a: warning? return 2] a = 1)
+    (a: 1 reeval reify func [return: [integer!]] [a: error? return 2] a = 1)
 ]
 
 [#1535
@@ -40,7 +40,7 @@
 
 ; return should not be caught by RESCUE
 (
-    a: 1 reeval reify func [return: [integer!]] [a: warning? rescue [return 2]]
+    a: 1 reeval reify func [return: [integer!]] [a: error? rescue [return 2]]
     a = 1
 )
 
@@ -63,7 +63,7 @@
 (a: 1 reeval reify func [return: ~] [set $a return ~] a = 1)
 [#1509 (  ; the "result" of a return should not be passable to functions
     a: 1
-    run func [return: ~] [a: warning? return ~]
+    run func [return: ~] [a: error? return ~]
     a = 1
 )]
 [#1535

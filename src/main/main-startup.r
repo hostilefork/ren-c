@@ -297,9 +297,9 @@ main-startup: func [
         reason "Error message"
             [text! block!]
         :error "Error object, shown if --verbose option used"
-            [warning!]
+            [error!]
     ][
-        print "Startup encountered an warning!"
+        print "Startup encountered an error!"
         print ["**" if block? reason [spaced reason] else [reason]]
         if error [
             print either yes? o.verbose [

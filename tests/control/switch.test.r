@@ -17,7 +17,7 @@
 
 (
     cases: reduce [1 head of insert copy [] rescue [1 / 0]]
-    warning? switch 1 cases
+    error? switch 1 cases
 )
 
 [#2242 (

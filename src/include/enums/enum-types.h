@@ -397,7 +397,7 @@ INLINE bool Is_Stable_Antiform_Kind_Byte(KindByte kind_byte) {
     assert((kind_byte >> KIND_SIGIL_SHIFT) == 0);  // no antiform sigils
     return (
         kind_byte != cast(KindByte, TYPE_GROUP)  // Is_Pack()
-        and kind_byte != cast(KindByte, TYPE_WARNING)  // Is_Failure()
+        and kind_byte != cast(KindByte, TYPE_ERROR)  // Is_Failure()
         and kind_byte != cast(KindByte, TYPE_COMMA)  // Is_Ghost()
     );
 }

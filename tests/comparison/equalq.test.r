@@ -510,39 +510,39 @@
 ]
 
 
-; warning! reflexivity
-; Evaluates (rescue [1 / 0]) to get warning! value.
+; error! reflexivity
+; Evaluates (rescue [1 / 0]) to get error! value.
 (
     a-value: space
     set $a-value (rescue [1 / 0])
     lax-equal? a-value a-value
 )
-; warning! structural equivalence
-; Evaluates (rescue [1 / 0]) to get warning! value.
+; error! structural equivalence
+; Evaluates (rescue [1 / 0]) to get error! value.
 (lax-equal? (rescue [1 / 0]) (rescue [1 / 0]))
-; warning! structural equivalence
-(lax-equal? (make warning! "hello") (make warning! "hello"))
-; warning! difference in code
-(not lax-equal? (rescue [1 / 0]) (make warning! "hello"))
-; warning! difference in data
-(not lax-equal? (make warning! "hello") (make warning! "there"))
-; warning! basic comparison
+; error! structural equivalence
+(lax-equal? (make error! "hello") (make error! "hello"))
+; error! difference in code
+(not lax-equal? (rescue [1 / 0]) (make error! "hello"))
+; error! difference in data
+(not lax-equal? (make error! "hello") (make error! "there"))
+; error! basic comparison
 (not lax-equal? (rescue [1 / 0]) space)
-; warning! basic comparison
+; error! basic comparison
 (not lax-equal? space (rescue [1 / 0]))
-; warning! basic comparison symmetry
+; error! basic comparison symmetry
 (lax-equal? lax-equal? (rescue [1 / 0]) space lax-equal? space (rescue [1 / 0]))
-; warning! basic comparison with = op
+; error! basic comparison with = op
 (not ((rescue [1 / 0]) = space))
-; warning! basic comparison with != op
+; error! basic comparison with != op
 ((rescue [1 / 0]) != space)
-; warning! basic comparison with = op
+; error! basic comparison with = op
 (not (space = (rescue [1 / 0])))
-; warning! basic comparison with != op
+; error! basic comparison with != op
 (space != (rescue [1 / 0]))
-; warning! symmetry with = op
+; error! symmetry with = op
 (lax-equal? not ((rescue [1 / 0]) = space) not (space = (rescue [1 / 0])))
-; warning! symmetry with != op
+; error! symmetry with != op
 (lax-equal? (rescue [1 / 0]) != space space != (rescue [1 / 0]))
 ; port! reflexivity
 ; Error in R2 (could be fixed).

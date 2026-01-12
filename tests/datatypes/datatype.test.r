@@ -7,7 +7,7 @@
 (
     for-each 'typename [
         frame! blob! bitset! block! datatype! date! decimal!
-        email! warning! file! handle! integer!
+        email! error! file! handle! integer!
         rune! map! module! object! pair! group!
         path! percent! port! text! tag!
         time! tuple! parameter! url! word!

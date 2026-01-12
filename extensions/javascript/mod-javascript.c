@@ -493,7 +493,7 @@ void RunPromise(void)
     if (r == BOUNCE_THROWN) {
         assert(Is_Throwing(TOP_LEVEL));
         Error* error = Error_No_Catch_For_Throw(TOP_LEVEL);
-        metaresult = Init_Warning(TOP_LEVEL->out, error);
+        metaresult = Init_Context_Cell(TOP_LEVEL->out, TYPE_ERROR, error);
     }
     else
         metaresult = Lift_Cell(TOP_LEVEL->out);
@@ -507,7 +507,7 @@ void RunPromise(void)
     TRACE("RunPromise() finished Running Array");
 
     if (info->state == PROMISE_STATE_RUNNING) {
-        if (rebUnboxLogic("warning? @", metaresult)) {
+        if (rebUnboxLogic("error? @", metaresult)) {
             //
             // Note this could be an uncaught throw error, or a specific
             // panic() error.
@@ -518,7 +518,7 @@ void RunPromise(void)
             if (g_probe_panics)
                 PROBE(metaresult);
           #endif
-            Free_Value(metaresult);  // !!! report the warning?
+            Free_Value(metaresult);  // !!! report the error?
         }
         else {
             info->state = PROMISE_STATE_RESOLVED;
@@ -666,7 +666,7 @@ EXTERN_C void API_rebRejectNative_internal(
         Init_Nulled(OUT);
     }
     else {
-        assert(Is_Warning(error));
+        assert(Is_Error(error));
         Copy_Cell(OUT, error);
         rebRelease(error);
     }
@@ -719,7 +719,7 @@ EXTERN_C void API_rebRejectNative_internal(
 //     first place!)
 //
 // 3. The GetNativeError_internal() code calls libRebol to build the error,
-//    via `reb.Value("make warning!", ...)`.  But this means that if the
+//    via `reb.Value("make error!", ...)`.  But this means that if the
 //    evaluator has had a halt signaled, that would be the code that would
 //    convert it to a throw.  For now, the halt signal is communicated
 //    uniquely back to us as 0.
@@ -1169,7 +1169,7 @@ DECLARE_NATIVE(JS_EVAL_P)
         );
     }
     Stable* value = Value_From_Value_Id(addr);
-    if (not value or not Is_Warning(value))
+    if (not value or not Is_Error(value))
         return value;  // evaluator takes ownership of handle
 
   handle_error: {

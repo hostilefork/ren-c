@@ -284,7 +284,7 @@ int main(int argc, char *argv_ansi[])
     );
     rebRelease(main_startup);
 
-    if (rebUnboxLogic("warning?", enrecovered))  // error in MAIN-STARTUP itself
+    if (rebUnboxLogic("error?", enrecovered))  // error in MAIN-STARTUP itself
         rebJumps("crash", enrecovered);  // terminates
 
     Value* code = rebValue("unlift @", enrecovered);  // non-errors are ^META

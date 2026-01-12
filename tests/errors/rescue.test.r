@@ -26,7 +26,7 @@
 )
 #rescue (
     success: 'true
-    warning? rescue [
+    error? rescue [
         1 / 0
         success: 'false
     ]
@@ -38,29 +38,29 @@
         1 / 0
         success: 'false
     ]
-    warning? sys.util/recover [f1]
+    error? sys.util/recover [f1]
     true? success
 )
 [#822
     #rescue (
-        rescue [make warning! ""] then [<branch-not-run>] else [okay]
+        rescue [make error! ""] then [<branch-not-run>] else [okay]
     )
 ]
 #rescue (
-    sys.util/recover [panic make warning! ""] then [okay]
+    sys.util/recover [panic make error! ""] then [okay]
 )
 #rescue (
-    rescue [1 / 0] then (warning?/)
+    rescue [1 / 0] then (error?/)
 )
 #rescue (
-    rescue [1 / 0] then (e -> [warning? e])
+    rescue [1 / 0] then (e -> [error? e])
 )
 #rescue (
     rescue [] then (func [e] [return <handler-not-run>]) else [okay]
 )
 [#1514
     #rescue (
-        warning? sys.util/recover [rescue [1 / 0] then (:add)]
+        error? sys.util/recover [rescue [1 / 0] then (:add)]
     )
 ]
 
@@ -90,7 +90,7 @@
 #enrescue (
     f: make frame! lambda [] [fail 'test]
     all {
-        warning? e: enrescue f
+        error? e: enrescue f
         e.id = 'test
     }
 )
@@ -110,7 +110,7 @@
 #rescue (
     e: rescue [fail 'something]  ; trap before assign attempt
     all [
-        warning? e
+        error? e
         e.id = 'something
     ]
 )
@@ -119,7 +119,7 @@
     b: <b>
     e: rescue [[a b]: fail 'something]  ; trap after assign attempt
     all [
-        warning? e
+        error? e
         e.id = 'something
         a = <a>
         b = <b>

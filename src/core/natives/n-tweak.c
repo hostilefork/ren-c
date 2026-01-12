@@ -638,8 +638,8 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
                 Unprotect_Cell(OUT);
               #endif
 
-                Init_Warning(OUT, unwrap error);
-                Failify(OUT);  // signal bad pick distinct from panics
+                Init_Context_Cell(OUT, TYPE_ERROR, unwrap error);
+                Failify_Cell(OUT);  // signal bad pick distinct from panics
 
                 error = SUCCESS;
                 Drop_Level(sub);

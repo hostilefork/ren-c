@@ -33,7 +33,7 @@ script-pre-load-hook: ~
 
 enrecover: lib.enrecover/
 recover: enclose enrecover/ lambda [f] [
-    match warning! eval-free f
+    match error! eval-free f
 ]
 
 lib.enrecover: ~#[See SYS.UTIL/ENRECOVER and https://forum.rebol.info/t/1871]#~
@@ -88,7 +88,7 @@ make-quit: lambda [
             console [exit-code]  ; console gives code to shell, not to DO
             exit-code = 0 [~]  ; suppresses display when given back to DO
         ] else [
-            fail make warning! compose [  ; give definitional error back
+            fail make error! compose [  ; give definitional error back
                 message: [
                     "Script returned non-zero exit code:" exit-code
                 ]

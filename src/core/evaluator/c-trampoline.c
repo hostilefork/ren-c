@@ -384,7 +384,7 @@ Bounce Trampoline_From_Top_Maybe_Root(void)
     Level* L = TOP_LEVEL;  // may not be same as L whose executor() called [1]
 
     Assert_Varlist(e);
-    assert(CTX_TYPE(e) == TYPE_WARNING);
+    assert(CTX_TYPE(e) == TYPE_ERROR);
 
     Clear_Lingering_Out_Cell_Protect_If_Debug(L);  // abrupt skips cleanup [2]
     Init_Thrown_Panic(L, e);

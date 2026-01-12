@@ -103,7 +103,7 @@ DECLARE_NATIVE(BIND)
 
     if (Any_Context(spec)) {
         //
-        // Get target from an OBJECT!, WARNING!, PORT!, MODULE!, FRAME!
+        // Get target from an OBJECT!, ERROR!, PORT!, MODULE!, FRAME!
         //
         context = spec;
     }

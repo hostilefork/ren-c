@@ -13,8 +13,8 @@
 ('~(~null~)~ = lift either okay [null] [1])
 ('~(~null~)~ = lift either null [1] [null])
 
-(warning? either okay [rescue [1 / 0]] [])
-(warning? either null [] [rescue [1 / 0]])
+(error? either okay [rescue [1 / 0]] [])
+(error? either null [] [rescue [1 / 0]])
 
 ; RETURN stops the evaluation
 (

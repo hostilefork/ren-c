@@ -322,7 +322,7 @@
 (
     p: make port! http://
     any [
-        warning? rescue [equal? p p]
+        error? rescue [equal? p p]
         equal? p p
     ]
 )

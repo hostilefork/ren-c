@@ -20,7 +20,7 @@
 (
     num: 0
     e: count-up 'i 2 [num: i rescue [1 / 0]]
-    all [warning? e num = 2]
+    all [error? e num = 2]
 )
 
 ; "recursive safety", "locality" and "body constantness" test in one

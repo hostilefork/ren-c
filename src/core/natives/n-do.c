@@ -263,7 +263,7 @@ DECLARE_NATIVE(SHOVE)
 //          fence!  "WRAP semantics, produces BLOCK!, :STEP ok"
 //          group!  "must eval to end, only suppress voids after value seen"
 //          <unrun> frame!  "invoke the frame (no arguments, see RUN)"
-//          warning!  "panic on the error (prefer PANIC)"
+//          error!  "panic on the error (prefer PANIC)"
 //          varargs!  "simulates as if BLOCK! is being executed"
 //      ]
 //      :step "Do one step of evaluation (return null position if at tail)"
@@ -335,7 +335,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
         if (Is_Varargs(source))
             goto initial_entry_varargs;
 
-        assert(Is_Warning(source));
+        assert(Is_Error(source));
         panic (Cell_Error(source)); }  // would panic anyway [2]
 
       case ST_EVALUATE_SINGLE_STEPPING:

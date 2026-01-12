@@ -57,7 +57,7 @@
 )
 (
     f: does [rescue [1 / 0]]
-    warning? f
+    error? f
 )
 (
     a-value: %""
@@ -211,7 +211,7 @@
 )
 
 ~zero-divide~ !! (
-    warning? rescue [
+    error? rescue [
         let f: does [1 / 0 2]  ; "error out" of a function
         f
         2
@@ -251,7 +251,7 @@
 (
     f: lambda [x] [
         either x = 1 [
-            warning? rescue [f 2]
+            error? rescue [f 2]
             x = 1
         ] [1 / 0]
     ]
@@ -349,7 +349,7 @@
 
 [#27
     ~not-bound~ !! (
-        warning? rescue [(kind of) 1]
+        error? rescue [(kind of) 1]
     )
 ]
 

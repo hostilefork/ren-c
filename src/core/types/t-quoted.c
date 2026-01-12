@@ -585,9 +585,9 @@ DECLARE_NATIVE(UNRUN)
 //
 //  disarm: native [
 //
-//  "Give back a warning! for FAILURE! input"
+//  "Give back an ERROR! for FAILURE! input"
 //
-//      return: [warning!]
+//      return: [error!]
 //      ^error [<cond> failure!]
 //  ]
 //
@@ -595,10 +595,10 @@ DECLARE_NATIVE(DISARM)
 {
     INCLUDE_PARAMS_OF_DISARM;
 
-    Value* error = ARG(ERROR);
-    Copy_Cell(OUT, error);
-    LIFT_BYTE(OUT) = NOQUOTE_3;
-    return OUT;
+    Value* v = ARG(ERROR);
+
+    Copy_Cell(OUT, v);
+    return Disarm_Failure(OUT);
 }
 
 

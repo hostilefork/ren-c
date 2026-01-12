@@ -146,7 +146,7 @@
     (trash? do "Rebol [] quit 0")
     (do "Rebol [] quit 1" except (e -> [e.exit-code = 1]))
     (quasi? do "Rebol [] quit:value ^^ fail -[some error]-")  ; ^^ escapes ^
-    (failure? do "Rebol [] quit:value fail* make warning! -[some error]-")
+    (failure? do "Rebol [] quit:value fail* make error! -[some error]-")
 ]
 
 ; Antiforms make it easier to write generic routines that handle QUASI-WORD?
@@ -201,7 +201,7 @@
 )
 (
     a: ~
-    not warning? rescue [set $a '~okay~]
+    not error? rescue [set $a '~okay~]
 )
 
 

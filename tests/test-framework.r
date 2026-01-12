@@ -55,7 +55,7 @@ run-single-test: proc [
     let result: sys.util/enrecover code
 
     all [
-        warning? result
+        error? result
         expected-id
         (all [not result.id, expected-id = '???]) or (result.id = expected-id)
     ] then [
@@ -65,7 +65,7 @@ run-single-test: proc [
     ]
 
     case [
-        warning? result [
+        error? result [
             spaced ["error" any [
                 to text! cond result.id
                 mold result.message   ; errors with no ID may have BLOCK!

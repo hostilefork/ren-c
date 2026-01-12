@@ -32,7 +32,7 @@
 // This is the polymorphic code behind panic(), FAIL(), and FAIL():
 //
 //    panic ("UTF-8 string");  // delivers error with that text
-//    panic (api_value);       // ensure it's a WARNING!, release and use as-is
+//    panic (api_value);       // ensure it's ERROR!, release and use as-is
 //    panic (error_context);   // use the Error* as-is
 //    panic (PARAM(NAME));     // impliciate parameter as having a bad value
 //    panic (other_cell);      // just report as a generic "bad value"
@@ -65,7 +65,7 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
         Flex* f = m_cast(Flex*, cast(Flex*, p));  // don't mutate
         if (not Is_Stub_Varlist(f))
             crash (f);  // only kind of Flex allowed are Error* varlists
-        if (CTX_TYPE(cast(VarList*, f)) != TYPE_WARNING)
+        if (CTX_TYPE(cast(VarList*, f)) != TYPE_ERROR)
             crash (f);
         return cast(Error*, f); }
 
@@ -74,11 +74,11 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
 
         if (Is_Base_Root_Bit_Set(v)) {  // API handles must be errors [2]
             Error* error;
-            if (Is_Warning(v)) {
+            if (Is_Error(v)) {
                 error = Cell_Error(v);
             }
             else {
-                assert(!"panic() given API handle that is not a WARNING!");
+                assert(!"panic() given API handle that is not an ERROR!");
                 error = Error_Bad_Value(v);
             }
             rebRelease(m_cast(Stable*, v));  // released even if we didn't
@@ -116,7 +116,7 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
 // to bubble up a thrown value through OUT (used to implement BREAK,
 // CONTINUE, RETURN, LEAVE, HALT...)
 //
-// The function will auto-detect if the pointer it is given is a WARNING!'s
+// The function will auto-detect if the pointer it is given is an ERROR!'s
 // VarList* or a UTF-8 char *.  If it's UTF-8, an error will be created from
 // it automatically (but with no ID...the string becomes the "ID")
 //
@@ -137,7 +137,7 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
 Error* Panic_Abruptly_Helper(Error* error)
 {
     Assert_Varlist(error);
-    assert(CTX_TYPE(error) == TYPE_WARNING);
+    assert(CTX_TYPE(error) == TYPE_ERROR);
 
     // You can't abruptly panic during the handling of an abrupt panic.
     //
@@ -415,11 +415,11 @@ void Set_Location_Of_Error(
 // existing landscape so that if it is to be changed then it can be seen
 // exactly what is changing.
 //
-IMPLEMENT_GENERIC(MAKE, Is_Warning)
+IMPLEMENT_GENERIC(MAKE, Is_Error)
 {
     INCLUDE_PARAMS_OF_MAKE;
 
-    assert(Datatype_Type(ARG(TYPE)) == TYPE_WARNING);
+    assert(Datatype_Type(ARG(TYPE)) == TYPE_ERROR);
     UNUSED(ARG(TYPE));
 
     Element* arg = Element_ARG(DEF);
@@ -437,7 +437,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Warning)
 
         varlist = Make_Varlist_Detect_Managed(
             COLLECT_ONLY_SET_WORDS,
-            TYPE_WARNING, // type
+            TYPE_ERROR, // type
             head, // values to scan for toplevel set-words
             tail,
             root_error // parent
@@ -446,7 +446,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Warning)
         require (
           Use* use = Alloc_Use_Inherits(List_Binding(arg))
         );
-        Init_Warning(Stub_Cell(use), varlist);
+        Init_Context_Cell(Stub_Cell(use), TYPE_ERROR, varlist);
 
         Tweak_Cell_Binding(arg, use);  // arg is GC protected, so Use is too
         Remember_Cell_Is_Lifeguard(Stub_Cell(use));  // protects Error in eval
@@ -460,7 +460,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Warning)
     }
     else if (Is_Text(arg)) {
         //
-        // String argument to MAKE WARNING! makes a custom warning from user:
+        // String argument to MAKE ERROR! makes a custom error from user:
         //
         //     code: null  ; default is null
         //     type: null
@@ -545,7 +545,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Warning)
                 // it expected the following to be an illegal error because
                 // the `script` category had no `set-self` error ID.
                 //
-                //     make warning! [type: 'script id: 'set-self]
+                //     make error! [type: 'script id: 'set-self]
 
                 return fail (
                     Error_Invalid_Error_Raw(Varlist_Archetype(varlist))
@@ -579,7 +579,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Warning)
         }
     }
 
-    return Init_Warning(OUT, varlist);
+    return Init_Context_Cell(OUT, TYPE_ERROR, varlist);
 }
 
 
@@ -677,9 +677,9 @@ Error* Make_Error_From_Vaptr_Managed(
         assert(Is_Text(message));
 
     // !!! Should things like NEAR and WHERE be in the ADJUNCT and not in the
-    // object for the WARNING! itself, so the warning could have arguments with
+    // object for the ERROR! itself, so the error could have arguments with
     // any name?  (e.g. NEAR and WHERE?)  In that case, we would be copying
-    // the "standard format" warning as an adjunct object instead.
+    // the "standard format" error as an adjunct object instead.
     //
     bool deeply = false;
     VarList* varlist = Copy_Varlist_Extra_Managed(
@@ -733,7 +733,7 @@ Error* Make_Error_From_Vaptr_Managed(
 
     assert(Varlist_Len(varlist) == Varlist_Len(root_varlist) + expected_args);
 
-    KIND_BYTE(Rootvar_Of_Varlist(varlist)) = TYPE_WARNING;
+    KIND_BYTE(Rootvar_Of_Varlist(varlist)) = TYPE_ERROR;
 
     // C struct mirroring fixed portion of error fields
     //
@@ -792,7 +792,7 @@ Error* Make_Error_Managed_Raw(
 //  Error_User: C
 //
 // Simple error constructor from a string (historically this was called a
-// "user error" since MAKE WARNING! of a STRING! would produce them in usermode
+// "user error" since MAKE ERROR! of a STRING! would produce them in usermode
 // without any error template in %errors.r)
 //
 Error* Error_User(const char *utf8) {
@@ -979,7 +979,7 @@ Error* Error_No_Catch_For_Throw(Level* level_)
     DECLARE_VALUE (arg);
     CATCH_THROWN(arg, level_);
 
-    if (Is_Warning(label)) {  // what would have been panic()
+    if (Is_Error(label)) {  // what would have been panic()
         assert(Is_Light_Null(arg));
         return Cell_Error(label);
     }
@@ -1299,16 +1299,18 @@ VarList* Startup_Errors(const Element* boot_errors)
 //
 void Startup_Stackoverflow(void)
 {
-    known_nullptr(g_error_stack_overflow) = Init_Warning(
+    known_nullptr(g_error_stack_overflow) = Init_Context_Cell(
         Alloc_Value(),
+        TYPE_ERROR,
         Error_Stack_Overflow_Raw()
     );
 
     DECLARE_ELEMENT (temp);
     Init_Integer(temp, 1020);  // !!! arbitrary [1]
 
-    known_nullptr(g_error_no_memory) = Init_Warning(
+    known_nullptr(g_error_no_memory) = Init_Context_Cell(
         Alloc_Value(),
+        TYPE_ERROR,
         Error_No_Memory_Raw(temp)
     );
 }
@@ -1337,28 +1339,34 @@ void Shutdown_Stackoverflow(void)
 //
 void Startup_Utf8_Errors(void)
 {
-    known_nullptr(g_error_utf8_too_short) = Init_Warning(
+    known_nullptr(g_error_utf8_too_short) = Init_Context_Cell(
         Alloc_Value(),
+        TYPE_ERROR,
         Error_Utf8_Too_Short_Raw()
     );
-    known_nullptr(g_error_utf8_trail_bad_bit) = Init_Warning(
+    known_nullptr(g_error_utf8_trail_bad_bit) = Init_Context_Cell(
         Alloc_Value(),
+        TYPE_ERROR,
         Error_Utf8_Trail_Bad_Bit_Raw()
     );
-    known_nullptr(g_error_overlong_utf8) = Init_Warning(
+    known_nullptr(g_error_overlong_utf8) = Init_Context_Cell(
         Alloc_Value(),
+        TYPE_ERROR,
         Error_Overlong_Utf8_Raw()
     );
-    known_nullptr(g_error_codepoint_too_high) = Init_Warning(
+    known_nullptr(g_error_codepoint_too_high) = Init_Context_Cell(
         Alloc_Value(),
+        TYPE_ERROR,
         Error_Codepoint_Too_High_Raw()
     );
-    known_nullptr(g_error_no_utf8_surrogates) = Init_Warning(
+    known_nullptr(g_error_no_utf8_surrogates) = Init_Context_Cell(
         Alloc_Value(),
+        TYPE_ERROR,
         Error_No_Utf8_Surrogates_Raw()
     );
-    known_nullptr(g_error_illegal_zero_byte) = Init_Warning(
+    known_nullptr(g_error_illegal_zero_byte) = Init_Context_Cell(
         Alloc_Value(),
+        TYPE_ERROR,
         Error_Illegal_Zero_Byte_Raw()
     );
 }
@@ -1378,13 +1386,13 @@ void Shutdown_Utf8_Errors(void)
 }
 
 
-// Historical FORM of an WARNING! was very verbose and included formatting
+// Historical FORM of an ERROR! was very verbose and included formatting
 // aspects, such as the inclusion of `**` in the message, and multiple lines
 // with the WHERE and NEAR information, etc.  The FORM has been reduced to
 // just handling the message portion, with the rest done in usermode by
 // the console (PRINT-PANIC, PRINT-ERROR)
 //
-IMPLEMENT_GENERIC(MOLDIFY, Is_Warning)
+IMPLEMENT_GENERIC(MOLDIFY, Is_Error)
 {
     INCLUDE_PARAMS_OF_MOLDIFY;
 

@@ -223,7 +223,7 @@ INLINE Count Noquotify(Element* elem) {
         uintptr_t mask = v->header.bits & CELL_MASK_HEART_AND_SIGIL_AND_LIFT;
         assert(stable == (
             mask != (  // FAILURE!
-                FLAG_HEART(TYPE_WARNING) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
+                FLAG_HEART(TYPE_ERROR) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
             )
             and mask != (  // GHOST!
                 FLAG_HEART(TYPE_COMMA) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
@@ -260,7 +260,7 @@ INLINE bool Is_Lifted_Unstable_Antiform(const Value* v) {  // costs more [3]
 
     uintptr_t mask = v->header.bits & CELL_MASK_HEART_AND_SIGIL_AND_LIFT;
     return (
-        mask == (FLAG_HEART(TYPE_WARNING) | FLAG_LIFT_BYTE(QUASIFORM_4))
+        mask == (FLAG_HEART(TYPE_ERROR) | FLAG_LIFT_BYTE(QUASIFORM_4))
         or mask == (FLAG_HEART(TYPE_COMMA) | FLAG_LIFT_BYTE(QUASIFORM_4))
         or mask == (FLAG_HEART(TYPE_GROUP) | FLAG_LIFT_BYTE(QUASIFORM_4))
     );

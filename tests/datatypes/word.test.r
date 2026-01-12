@@ -39,7 +39,7 @@
     same? ^a-value a-value
 )
 (
-    warning? a-value: rescue [1 / 0]
+    error? a-value: rescue [1 / 0]
     same? ^a-value a-value
 )
 (

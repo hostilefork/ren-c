@@ -36,7 +36,7 @@
 //=//// NOTES /////////////////////////////////////////////////////////////=//
 //
 // * When an abrupt panic occurs, it is intercepted by the trampoline and
-//   converted into a throw state with a WARNING! as the label.  This state
+//   converted into a throw state with an ERROR! as the label.  This state
 //   is bubbled up the stack much like a throw, however it cannot be
 //   intercepted by CATCH or definitional-error handlers like TRY.  Only
 //   special routines like SYS.UTIL/RESCUE can catch abrupt panics, as
@@ -70,7 +70,7 @@ INLINE const Stable* VAL_THROWN_LABEL(Level* level_) {
 }
 
 #define Is_Throwing_Panic(level_) \
-    Is_Warning(VAL_THROWN_LABEL(level_))  // non-definitional errors [1]
+    Is_Error(VAL_THROWN_LABEL(level_))  // non-definitional errors [1]
 
 
 INLINE void Init_Thrown_With_Label(  // assumes `arg` in g_ts.thrown_arg

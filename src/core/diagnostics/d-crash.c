@@ -321,7 +321,7 @@ ATTRIBUTE_NO_RETURN void Crash_Core(
         Printf_Stderr("Stub detected...\n");
         if (Stub_Flavor(s) == FLAVOR_VARLIST) {
             Printf_Stderr("...and it's a varlist...\n");
-            if (CTX_TYPE(cast(VarList*, m_cast(Stub*, s))) == TYPE_WARNING) {
+            if (CTX_TYPE(cast(VarList*, m_cast(Stub*, s))) == TYPE_ERROR) {
                 Printf_Stderr("...and it's an Error, trying to PROBE...\n");
                 PROBE(s);  // this may crash recursively if it's corrupt
             }
@@ -336,8 +336,8 @@ ATTRIBUTE_NO_RETURN void Crash_Core(
       case DETECTED_AS_END: {
       #if DEBUG_FANCY_CRASH
         const Cell* c = cast(Cell*, unwrap p);
-        if (Heart_Of(c) == TYPE_WARNING) {
-            Printf_Stderr("...crash() on WARNING! Cell, trying to PROBE...");
+        if (Heart_Of(c) == TYPE_ERROR) {
+            Printf_Stderr("...crash() on ERROR! Cell, trying to PROBE...");
             PROBE(c);
         }
         Crash_With_Cell_Debug(c);
@@ -386,7 +386,7 @@ ATTRIBUTE_NO_RETURN void Crash_Core(
 //
 //      return: []
 //      @info "If you want to implicate a value, use (crash $value)"
-//          [<end> warning! text! $word!]
+//          [<end> error! text! $word!]
 //  ]
 //
 DECLARE_NATIVE(CRASH)
@@ -421,11 +421,11 @@ DECLARE_NATIVE(CRASH)
         if (Is_Text(info)) {
             p = cast(char*, Cell_Utf8_At(info));
         }
-        else if (Is_Warning(info)) {
+        else if (Is_Error(info)) {
             p = Cell_Varlist(info);
         }
         else {
-            assert(!"Called CRASH on non-TEXT!, non-WARNING!, non @WORD!");
+            assert(!"Called CRASH on non-TEXT!, non-ERROR!, non @WORD!");
             p = info;
         }
     }
@@ -439,10 +439,10 @@ DECLARE_NATIVE(CRASH)
 //
 //  fail*: native [
 //
-//  "Version of FAIL of definitional error that only takes WARNING!"
+//  "Version of FAIL of definitional error that only takes ERROR!"
 //
 //      return: [failure!]
-//      reason [warning!]
+//      reason [error!]
 //  ]
 //
 DECLARE_NATIVE(FAIL_P)
@@ -452,7 +452,7 @@ DECLARE_NATIVE(FAIL_P)
     Stable* v = ARG(REASON);
 
     Copy_Cell(OUT, v);
-    return Failify(OUT);
+    return Failify_Cell(OUT);
 }
 
 

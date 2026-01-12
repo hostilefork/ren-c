@@ -274,7 +274,7 @@ uint32_t Hash_Cell(const Cell* cell)
         break;
 
       hash_object:
-      case TYPE_WARNING:
+      case TYPE_ERROR:
       case TYPE_PORT:
       case TYPE_OBJECT:
         //

@@ -859,7 +859,7 @@ Result(const Byte*) Scan_Utf8_Item_Into_Mold(
             if (threw) {
                 DECLARE_STABLE (label);
                 Copy_Cell(label, VAL_THROWN_LABEL(TOP_LEVEL));
-                assert(Is_Warning(label));
+                assert(Is_Error(label));
 
                 DECLARE_VALUE (arg);
                 CATCH_THROWN(arg, TOP_LEVEL);

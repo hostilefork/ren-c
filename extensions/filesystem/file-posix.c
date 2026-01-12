@@ -78,7 +78,7 @@
 // but they're all new error numbers.  Do strings for now.
 //
 Stable* rebError_UV(int err) {
-     return rebStable("make warning!", rebT(uv_strerror(err)));
+     return rebStable("make error!", rebT(uv_strerror(err)));
 }
 
 
@@ -114,7 +114,7 @@ Stable* Get_File_Size_Cacheable(uint64_t *size, const Stable* port)
 //
 // This function will read a file directory, one file entry at a time, then
 // close when no more files are found.  The value returned is an API handle
-// of a FILE!, nullptr if there's no more left, or a WARNING!.
+// of a FILE!, nullptr if there's no more left, or an ERROR!.
 //
 // !!! R3-Alpha comment said: "The dir->path can contain wildcards * and ?.
 // The processing of these can be done in the OS (if supported) or by a
@@ -265,7 +265,7 @@ Stable* Open_File(const Stable* port, int flags)
     FileReq* file = unwrap Filereq_Of_Port(port);
 
     if (file->id != FILEHANDLE_NONE)
-        return rebStable("make warning! {File is already open}");
+        return rebStable("make error! {File is already open}");
 
     // "Posix file names should be compatible with REBOL file paths"
 
@@ -430,7 +430,7 @@ Stable* Write_File(const Stable* port, const Stable* value, REBLEN limit)
     }
     else {
         if (not Is_Blob(value))
-            return rebStable("make warning! -[[RUNE! TEXT! BLOB!] for WRITE]-");
+            return rebStable("make error! -[[RUNE! TEXT! BLOB!] for WRITE]-");
 
         data = Blob_At(value);
         size = limit;
@@ -782,7 +782,7 @@ Stable* Query_File_Or_Directory(const Stable* port)
 
     bool is_dir = S_ISDIR(req.statbuf.st_mode);
     if (is_dir != file->is_dir)
-        return rebStable("make warning! --[Directory/File flag mismatch]--");
+        return rebStable("make error! --[Directory/File flag mismatch]--");
 
     // !!! R3-Alpha would do this "to be consistent on all systems".  But it
     // seems better to just make the size null, unless there is some info

@@ -319,14 +319,14 @@ static Stable* Trap_Connect_Socket_Else_Close(
         }
         else {
             // Connection failed (expected case when close beats connect)
-            assert(Is_Warning(rebreq->result));
+            assert(Is_Error(rebreq->result));
             rebRelease(rebreq->result);  // ignore the error, we're timing out
         }
 
         sock->stream = nullptr;
         sock->modes = 0;
 
-        result = rebStable("make warning! -[Connection timeout]-");
+        result = rebStable("make error! -[Connection timeout]-");
     }
 
     rebFree(rebreq);
@@ -458,7 +458,7 @@ Stable* Trap_Open_And_Connect_Socket_For_Hostname(  // synchronous [1]
 
     // All IPs failed, return a generic connection failure message
     return As_Stable(
-        rebValue("make warning! -[Connection failed to all IP addresses]-")
+        rebValue("make error! -[Connection failed to all IP addresses]-")
     );
 }
 

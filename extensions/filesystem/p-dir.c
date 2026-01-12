@@ -157,7 +157,7 @@ DECLARE_NATIVE(DIR_ACTOR)
             // Put together the filename and the error (vs. a generic "cannot
             // find the file specified" message that doesn't say the name)
             //
-            if (Is_Warning(result))
+            if (Is_Error(result))
                 panic (Error_Cannot_Open_Raw(dir_path, result));
 
             assert(Is_File(result));
@@ -270,7 +270,7 @@ DECLARE_NATIVE(DIR_ACTOR)
 
       case SYM_QUERY: {
         Stable* info = Query_File_Or_Directory(port);
-        if (Is_Warning(info)) {
+        if (Is_Error(info)) {
             rebRelease(info);  // !!! R3-Alpha threw out error, returns null
             return nullptr;
         }

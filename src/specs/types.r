@@ -176,10 +176,10 @@ parameter!  "function parameter description"
                 (payload1)
                 [any-inert?]
 
-    warning!    "context with id, arguments, and stack origin"
-    ~failure!~:U  "error state that is escalated to a panic if not triaged"
-                (payload1 payload2)
-                [any-inert?]
+    error!          "context with id, arguments, and stack origin"
+    ~failure!~:U    "failure state that is escalated to a panic if not triaged"
+                    (payload1 payload2)
+                    [any-inert?]
 
     port!       "external series, an I/O channel"
                 (payload1 payload2)

@@ -19,7 +19,7 @@ INLINE VarList* Cell_Varlist(const Cell* c) {
     Base* base = CELL_PAYLOAD_1(c);  // ParamList or Details
     if (Not_Base_Readable(base)) {
         if (heart == TYPE_FRAME)
-            panic (Error_Expired_Frame_Raw());  // !!! different warning?
+            panic (Error_Expired_Frame_Raw());  // !!! different error?
         panic (Error_Series_Data_Freed_Raw());
     }
 
@@ -41,12 +41,12 @@ INLINE SeaOfVars* Cell_Module_Sea(const Cell* c) {
 
 
 INLINE Error* Cell_Error(const Cell* c) {
-    assert(Heart_Of(c) == TYPE_WARNING);
+    assert(Heart_Of(c) == TYPE_ERROR);
     return cast(Error*, Cell_Varlist(c));
 }
 
 
-// Common routine for initializing OBJECT, MODULE!, PORT!, and WARNING!
+// Common routine for initializing OBJECT, MODULE!, PORT!, and ERROR!
 //
 // A fully constructed context can reconstitute the ANY-CONTEXT? cell
 // that is its canon form from a single pointer...the cell sitting in

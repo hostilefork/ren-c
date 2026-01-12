@@ -41,7 +41,7 @@
         if num = 10 [e: rescue [1 / 0] break]
         rescue [1 / 0]
     ]
-    all [warning? e, num = 10]
+    all [error? e, num = 10]
 )
 
 ; Recursion check

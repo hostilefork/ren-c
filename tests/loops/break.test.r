@@ -20,7 +20,7 @@
 
 ; the "result" of break should not be passable to functions
 [#1509
-    (a: 1, repeat 1 [a: warning? break], a = 1)
+    (a: 1, repeat 1 [a: error? break], a = 1)
 ]
 [#1509
     (a: 1, repeat 1 [a: type of break], a = 1)
@@ -61,4 +61,4 @@
 ]
 
 ; the "result" of break should not be caught by try
-(a: 1 repeat 1 [a: warning? rescue [break]] a = 1)
+(a: 1 repeat 1 [a: error? rescue [break]] a = 1)

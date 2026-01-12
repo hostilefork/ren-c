@@ -245,7 +245,7 @@ make-tls-error: lambda [
     message [text! block!]
 ][
     if block? message [message: unspaced message]
-    make warning! [
+    make error! [
         type: 'access
         id: 'protocol
         arg1: message

@@ -8,7 +8,7 @@
 )
 (
     a: 1
-    warning? rescue [use 'a [a: 2]]
+    error? rescue [use 'a [a: 2]]
     a = 1
 )
 
@@ -32,7 +32,7 @@
 )
 ; "error out" of USE
 (
-    warning? sys.util/recover [
+    error? sys.util/recover [
         use [a] [1 / 0]
         2
     ]

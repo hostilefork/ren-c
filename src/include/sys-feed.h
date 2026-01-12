@@ -845,7 +845,7 @@ INLINE Value* Undecayed_Antiformize_Unbound_Quasiform(Exact(Value*) v) {
 
       case TYPE_GROUP:
       case TYPE_COMMA:
-      case TYPE_WARNING:
+      case TYPE_ERROR:
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;
         break;
 

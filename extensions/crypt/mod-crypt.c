@@ -101,7 +101,7 @@ typedef RebolValue Value;
 // define one error (it's a good place to set a breakpoint).
 //
 INLINE Value* rebMbedtlsError(int mbedtls_ret) {
-    Value* result = rebValue("make warning! -[mbedTLS error]-");  // break here
+    Value* result = rebValue("make error! -[mbedTLS error]-");  // break here
     UNUSED(mbedtls_ret);  // corrupts mbedtls_ret in release build
     return result;
 }
@@ -366,7 +366,7 @@ DECLARE_NATIVE(CHECKSUM)
   //    return rebValue("encode [LE + 3]", crc24);
 
     if (0 == strcmp(method_utf8, "CRC24")) {  // prefer CRC32 (sunk cost) [2]
-        error = rebValue("make warning! [",
+        error = rebValue("make error! [",
             "-[CRC24 removed: speak up if CRC32 and ADLER32 won't suffice]-",
         "]");
         goto return_result_or_panic;
@@ -374,7 +374,7 @@ DECLARE_NATIVE(CHECKSUM)
 
 } no_builtin_checksum_found: {
 
-    error = rebValue("make warning! [-[Unknown CHECKSUM method:]- method]");
+    error = rebValue("make error! [-[Unknown CHECKSUM method:]- method]");
     goto return_result_or_panic;
 
 } return_result_or_panic: { //////////////////////////////////////////////////
@@ -747,7 +747,7 @@ DECLARE_NATIVE(RSA_ENCRYPT)
 
     if (padding == MBEDTLS_RSA_RAW_HACK) {
         if (plaintext_size != key_size) {
-            error = rebValue("make warning! ["
+            error = rebValue("make error! ["
                 "-[[raw] not padded,  plaintext size must equal key size]-"
             "]");
             goto cleanup;
@@ -1090,7 +1090,7 @@ DECLARE_NATIVE(DH_GENERATE_KEYPAIR)
     P_size = mbedtls_mpi_size(&P);  // can't declare here, goto jumps across
 
     if (mbedtls_mpi_cmp_mpi(&G, &P) >= 0) {  // pay cost to validate [1]
-        error = rebValue("make warning! ["
+        error = rebValue("make error! ["
             "-[Don't use base >= modulus in Diffie-Hellman.]-",
             "-[e.g. `2 mod 7` is the same as `9 mod 7` or `16 mod 7`]-"
         "]");
@@ -1144,7 +1144,7 @@ DECLARE_NATIVE(DH_GENERATE_KEYPAIR)
     if (ret == MBEDTLS_ERR_DHM_BAD_INPUT_DATA) {  // poor primes [1]
         if (mbedtls_mpi_cmp_int(&P, 0) == 0) {
             error = rebValue(
-                "make warning! -[Cannot use 0 as modulus for Diffie-Hellman]-"
+                "make error! -[Cannot use 0 as modulus for Diffie-Hellman]-"
             );
             goto cleanup;
         }
@@ -1153,7 +1153,7 @@ DECLARE_NATIVE(DH_GENERATE_KEYPAIR)
             goto try_again_even_if_poor_primes;  // for educational use only!
 
         error = rebValue(
-            "make warning! [",
+            "make error! [",
                 "-[Suspiciously poor base and modulus usage was detected.]-",
                 "-[Unwise to use arbitrary primes vs. constructed ones:]-",
                 "{https://www.cl.cam.ac.uk/~rja14/Papers/psandqs.pdf}",
@@ -1165,7 +1165,7 @@ DECLARE_NATIVE(DH_GENERATE_KEYPAIR)
     else if (ret == MBEDTLS_ERR_DHM_MAKE_PUBLIC_FAILED) {
         if (mbedtls_mpi_cmp_int(&P, 5) < 0) {
             error = rebValue(
-                "make warning! -[Modulus can't be < 5 for Diffie-Hellman]-"
+                "make error! -[Modulus can't be < 5 for Diffie-Hellman]-"
             );
             goto cleanup;
         }
@@ -1180,7 +1180,7 @@ DECLARE_NATIVE(DH_GENERATE_KEYPAIR)
         );
         if (test == MBEDTLS_ERR_MPI_NOT_ACCEPTABLE) {
             error = rebValue(
-                "make warning! [",
+                "make error! [",
                     "-[Couldn't use base and modulus to generate keys.]-",
                     "-[Probabilistic test hints modulus likely not prime?]-"
                 "]"
@@ -1189,7 +1189,7 @@ DECLARE_NATIVE(DH_GENERATE_KEYPAIR)
         }
 
         error = rebValue(
-            "make warning! [",
+            "make error! [",
                 "-[Couldn't use base and modulus to generate keys,]-",
                 "-[even though modulus does appear to be prime...]-",
             "]"
@@ -1353,7 +1353,7 @@ DECLARE_NATIVE(DH_COMPUTE_SECRET)
 
     if (ret == MBEDTLS_ERR_DHM_BAD_INPUT_DATA) {  // poor base and modulus [1]
         error = rebValue(
-            "make warning! [",
+            "make error! [",
                 "-[Suspiciously poor base and modulus usage was detected.]-",
                 "-[Unwise to use random primes vs. constructed ones.]-",
                 "-[https://www.cl.cam.ac.uk/~rja14/Papers/psandqs.pdf]-",
@@ -1461,7 +1461,7 @@ DECLARE_NATIVE(AES_KEY)
         const Byte* iv_bytes = rebLockBytes(&iv_size, "iv");
 
         if (iv_size != blocksize) {
-            error = rebValue("make warning! [",
+            error = rebValue("make error! [",
                 "-[Initialization vector block size not]-", rebI(blocksize),
             "]");
             goto cleanup;
@@ -1763,7 +1763,7 @@ DECLARE_NATIVE(ECDH_SHARED_SECRET)
     ));
 
     if (num_bytes != private_key_len) {
-        error = rebValue("make warning! ["
+        error = rebValue("make error! ["
             "-[Private key must be]-", rebI(num_bytes),
             "-[bytes for]- group]",
         "]");

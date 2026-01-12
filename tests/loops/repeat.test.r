@@ -45,7 +45,7 @@
 (
     num: 0
     e: repeat 2 [num: num + 1 rescue [1 / 0]]
-    all [warning? e num = 2]
+    all [error? e num = 2]
 )
 ; loop recursivity
 (

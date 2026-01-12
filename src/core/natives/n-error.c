@@ -57,9 +57,9 @@ DECLARE_NATIVE(TRY)
 //
 //  enrecover: native [
 //
-//  "Sandbox to intercept failures; FAILURE! -> WARNING! else lifted result"
+//  "Sandbox to intercept failures; FAILURE! -> ERROR! else lifted result"
 //
-//      return: [warning! quoted! quasiform!]
+//      return: [error! quoted! quasiform!]
 //      code "Code to sandbox, intercept errors at any depth (including typos)"
 //          [<unrun> frame! any-list?]
 //      :relax "Allow non-erroring premature exits (THROW, RETURN, etc.)"
@@ -114,10 +114,12 @@ DECLARE_NATIVE(ENRECOVER)
         return Lift_Cell(OUT);
     }
 
-    if (not Is_Throwing_Panic(LEVEL)) {  // non-WARNING! throws
+    if (not Is_Throwing_Panic(LEVEL)) {  // non-ERROR! throws
         if (ARG(RELAX))
             return BOUNCE_THROWN;  // e.g. RETURN, THROW
-        return Init_Warning(OUT, Error_No_Catch_For_Throw(LEVEL));
+        return Init_Context_Cell(
+            OUT, TYPE_ERROR, Error_No_Catch_For_Throw(LEVEL)
+        );
     }
 
     Copy_Cell(OUT, VAL_THROWN_LABEL(LEVEL));
@@ -132,10 +134,10 @@ DECLARE_NATIVE(ENRECOVER)
 //
 //  enrescue: native [
 //
-//  "Catch top-level EVAL step errors, FAILURE! -> WARNING! else lifted result"
+//  "Catch top-level EVAL step errors, FAILURE! -> ERROR! else lifted result"
 //
-//      return: [warning! quasiform! quoted!]
-//      code "Code to execute in steps, returning WARNING! if any ERROR occurs"
+//      return: [error! quasiform! quoted!]
+//      code "Code to execute in steps, returning ERROR! if step is FAILURE!"
 //          [block! frame!]
 //  ]
 //
@@ -265,7 +267,7 @@ DECLARE_NATIVE(EXCEPT)
     Element* branch = ARG(BRANCH);
 
     if (Is_Failure(left)) {
-        LIFT_BYTE(left) = NOQUOTE_3;  // turn error to plain WARNING! [1]
+        LIFT_BYTE(left) = NOQUOTE_3;  // turn FAILURE! to plain ERROR! [1]
     }
     else if (Is_Hot_Potato_Dual(left)) {
         // leave as-is [2]
@@ -364,7 +366,7 @@ DECLARE_NATIVE(FAILURE_Q)
 //  "Sets the WHERE, NEAR, FILE, and LINE fields of an error"
 //
 //      return: ~
-//      error [warning!]
+//      error [error!]
 //      location [frame! any-word?]
 //  ]
 //

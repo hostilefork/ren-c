@@ -251,7 +251,7 @@ so: infix:postpone func [
         [<end> any-stable? <variadic>]
 ][
     if not condition [
-        panic:blame make warning! [
+        panic:blame make error! [
             type: 'script
             id: 'assertion-failure
             arg1: [~null~ so]
@@ -267,7 +267,7 @@ was: infix:postpone redescribe [
 ](
     lambda [left [any-stable?] right [any-stable?]] [
         if ^left != ^right [
-            panic:blame make warning! [
+            panic:blame make error! [
                 type: 'script
                 id: 'assertion-failure
                 arg1: compose [(:left) is (:right)]
@@ -385,12 +385,12 @@ find-last: redescribe [
 attempt: specialize repeat/ [count: 1]
 
 rescue: func [
-    "If evaluation returns an antiform error, return as warning, else NULL"
+    "If evaluation returns an antiform error, return as error, else NULL"
 
-    return: [<null> warning!]
+    return: [<null> error!]
     code [block!]
 ][
-    return match warning! enrescue code
+    return match error! enrescue code
 ]
 
 reduce*: redescribe [
@@ -547,7 +547,7 @@ cause-error: func [
 ][
     args: blockify args  ; make sure it's a block
 
-    panic make warning! [
+    panic make error! [
         type: err-type
         id: err-id
         arg1: try first args
@@ -561,10 +561,10 @@ fail: func [
     "Make unstable FAILURE! antiform state (RESCUE, EXCEPT, TRY can intercept)"
 
     return: [failure!]
-    reason "WARNING! value, ID, URL, message text, or failure spec"
+    reason "ERROR! value, ID, URL, message text, or failure spec"
         [
             <end>  ; non-specific failure
-            warning!  ; already constructed error
+            error!  ; already constructed error
             @word!  ; invalid-arg error with variable name/value
             text!  ; textual error message
             trash!  ; same as text (but more attention grabbing at callsite)
@@ -577,7 +577,7 @@ fail: func [
     if trash? ^reason [
         reason: as text! unanti reason  ; antiform tag! ~#unreachable~
     ]
-    all [warning? reason, not blame] then [
+    all [error? reason, not blame] then [
         return fail* reason  ; fast shortcut
     ]
 
@@ -594,19 +594,19 @@ fail: func [
     ;     panic:with ["The key" :key-name "is invalid"] [key-name: key]
 
     let error: switch:type reason [
-        warning! [reason]
+        error! [reason]
         word?:pinned/ [
             blame: default [to word! reason]
-            make warning! [
+            make error! [
                 id: 'invalid-arg
                 arg1: label of binding of reason
                 arg2: to word! reason
                 arg3: get reason
             ]
         ]
-        text! [make warning! reason]
+        text! [make error! reason]
         word! [
-            make warning! [  ; no Type, so no message
+            make error! [  ; no Type, so no message
                 id: reason
             ]
         ]
@@ -615,20 +615,20 @@ fail: func [
                 2 = length of reason
                 'core = first reason
             ]
-            make warning! [  ; will look up message in core error table
+            make error! [  ; will look up message in core error table
                 type: 'script
                 id: last reason
             ]
         ]
-        url! [make warning! to text! reason]  ; should use URL! as ID
+        url! [make error! to text! reason]  ; should use URL! as ID
         block! [
-            make warning! (spaced reason else '[
+            make error! (spaced reason else '[
                 type: 'script
                 id: 'unknown-error
             ])
         ]
     ] else [
-        null? reason so make warning! [
+        null? reason so make error! [
             type: 'script
             id: 'unknown-error
         ]
@@ -651,12 +651,12 @@ fail: func [
 
     ; Initially this would call EVAL to force an exception to the nearest
     ; trap up the stack (if any).  However, Ren-C rethought errors as being
-    ; "definitional", which means you would say RETURN RAISE and it would be
+    ; "definitional", which means you would say RETURN FAIL and it would be
     ; a special kind of "error antiform" that was a unique return result.  Then
     ; you typically can only trap/catch errors that come from a function you
     ; directly called.
     ;
-    return fail* ensure warning! error
+    return fail* ensure error! error
 ]
 
 ; Immediately panic on an error--do not allow ^META interception/etc.

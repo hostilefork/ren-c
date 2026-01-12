@@ -225,7 +225,7 @@
         (make varargs! [var args])
         (make object! [obj: "ect"])
         (make frame! append/)
-        (make warning! "error")
+        (make error! "error")
         (port: open http://example.com)
         ~quasiword~
         10
