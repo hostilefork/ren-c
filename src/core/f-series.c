@@ -150,7 +150,7 @@ IMPLEMENT_GENERIC(OFFSET_OF, Any_Series)  // 0-based
 //  "Get the head of a series (or other type...? HEAD of a PORT?)"
 //
 //      return: [<null> fundamental?]
-//      value [<opt-out> fundamental?]
+//      value [<cond> fundamental?]
 //  ]
 //
 DECLARE_NATIVE(HEAD_OF)
@@ -167,7 +167,7 @@ DECLARE_NATIVE(HEAD_OF)
 //  "Get the tail of a series (or other type...? TAIL of a PORT?)"
 //
 //      return: [<null> fundamental?]
-//      value [<opt-out> fundamental?]
+//      value [<cond> fundamental?]
 //  ]
 //
 DECLARE_NATIVE(TAIL_OF)
@@ -184,7 +184,7 @@ DECLARE_NATIVE(TAIL_OF)
 //  "Test if something is at the head position"
 //
 //      return: [logic?]
-//      value [<opt-out> fundamental?]
+//      value [<cond> fundamental?]
 //  ]
 //
 DECLARE_NATIVE(HEAD_Q)

@@ -67,7 +67,7 @@ DECLARE_NATIVE(VETO_Q)
 //
 //      return: [<null> element?]
 //      value "Lists evaluate each item, single values evaluate"
-//          [<opt-out> element?]
+//          [<cond> element?]
 //      :predicate "Applied after evaluation, default is IDENTITY"
 //          [<unrun> frame!]
 //  ]
@@ -277,7 +277,7 @@ DECLARE_NATIVE(REDUCE)
 //
 //      return: [pack!]
 //      block "Reduce if plain BLOCK!, don't if @BLOCK!"
-//          [<opt-out> block! @block!]
+//          [<cond> block! @block!]
 //      {predicate}  ; for FRAME!-compatibility with REDUCE
 //  ]
 //

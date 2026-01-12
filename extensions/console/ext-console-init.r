@@ -204,7 +204,7 @@ export console!: make object! [
         ; functions that [return: ~] give back trash with their symbol, as
         ; a debugging aid for knowing where trashes came from).
 
-        if trash? opt ^v [
+        if trash? ^v [
             exit
         ]
 
@@ -430,18 +430,18 @@ bind construct [
     ; %console-skin.r if in system.options.resources
 
     let skin-file: case [
-        file? opt skin [skin]
-        object? opt skin [null]
+        file? cond skin [skin]
+        object? cond skin [null]
     ] else [%console-skin.r]
 
     loud-print "Starting console..."
     loud-print newline
-    let proto-skin: (match object! opt skin) else [make console! []]
+    let proto-skin: (match object! cond skin) else [make console! []]
     let skin-error: null
 
     all [
         skin-file
-        not find opt o.suppress skin-file
+        not find cond o.suppress skin-file
         o.resources
         exists? skin-file: join o.resources skin-file
     ] then [
@@ -902,7 +902,7 @@ console*: func [
 
     === HANDLE CODE THAT HAS BEEN SUCCESSFULLY LOADED ===
 
-    if let shortcut: select system.console.shortcuts ?? code.1 [
+    if let shortcut: select system.console.shortcuts cond try code.1 [
         ;
         ; Shortcuts like `q => [quit 0]`, `d => [dump]`
         ;

@@ -43,7 +43,7 @@
 (
     num-runs: 0
 
-    add-period: func [x [<opt-out> text!]] [
+    add-period: func [x [<cond> text!]] [
         num-runs: me + 1
         return append x "."
     ]
@@ -55,3 +55,12 @@
         num-runs = 1
     ]
 )
+
+(ghost? ~,~)
+(ghost? ^ghost)
+(heavy-void? eval [^ghost])
+(void? eval $(^ghost))
+(heavy-void? (eval [^ghost]))
+(heavy-void? eval [~,~])
+(heavy-void? eval [, ~,~,])
+(heavy-void? eval [1 + 2, ^ghost])

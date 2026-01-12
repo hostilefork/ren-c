@@ -172,7 +172,7 @@ export cscape: func [
 
             let any-upper: did find:case expr charset [#"A" - #"Z"]
             let any-lower: did find:case expr charset [#"a" - #"z"]
-            keep opt pattern
+            keep cond pattern
 
             ; With binding being case-sensitive, we lowercase the expression.
             ; Since we do the lowercasing before the load, embedded string
@@ -232,7 +232,7 @@ export cscape: func [
                     ]
                 ]
                 #delimit [
-                    delimit (unspaced [opt suffix newline]) sub else [
+                    delimit (unspaced [cond suffix newline]) sub else [
                         panic [
                             "No vaporizing blocks in CSCAPE $() or $[]" newline
                             mold:limit template 200
@@ -256,7 +256,7 @@ export cscape: func [
             ; If the substitution started at a certain column, make any line
             ; breaks continue at the same column.
             ;
-            let indent: unspaced [newline opt prefix]
+            let indent: unspaced [newline cond prefix]
             replace sub newline indent
 
             keep sub

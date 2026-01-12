@@ -40,7 +40,7 @@ info?: func [
 exists?: func [
     "Returns the type of a file or URL if it exists, otherwise null"
     return: [<null> ~[file dir]~]  ; should return logic, FILETYPE OF separate
-    target [<opt-out> file! url!]
+    target [<cond> file! url!]
 ][
     if space? target [return null]  ; https://forum.rebol.info/t/954
 
@@ -48,7 +48,7 @@ exists?: func [
         return info?:only target
     ]
 
-    return select opt query target 'type
+    return select cond query target 'type
 ]
 
 ; !!! size-of used to be defined here, but it's a generic and so it has to

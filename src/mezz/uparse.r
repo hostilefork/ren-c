@@ -386,7 +386,7 @@ default-combinators: make map! [
         return ^result  ; return successful parser result
     ]
 
-    'optional combinator [
+    'conditional combinator [
         "If parser fails, succeed and return GHOST; don't advance input"
         return: [any-value?]
         input [any-series?]
@@ -395,6 +395,20 @@ default-combinators: make map! [
     ][
         [^result remainder]: parser input except (e -> [
             return ()  ; succeed w/void on parse fail, don't advance input
+        ])
+        input: remainder  ; advance input
+        return ^result  ; return successful parser result
+    ]
+
+    'optional combinator [
+        "If parser fails, succeed and return NONE; don't advance input"
+        return: [any-value?]
+        input [any-series?]
+        parser [action!]
+        {^result remainder}
+    ][
+        [^result remainder]: parser input except (e -> [
+            return none  ; succeed w/none on parse fail, don't advance input
         ])
         input: remainder  ; advance input
         return ^result  ; return successful parser result
@@ -2309,8 +2323,8 @@ default-combinators: make map! [
             if not tail? input [
                 for-each 'item block [
                     if input.1 = any [
-                        when any-string? input [to rune! item]
-                        when blob? input [to blob! item]
+                        if any-string? input [to rune! item]
+                        if blob? input [to blob! item]
                         item
                     ][
                         input: next input
@@ -2569,6 +2583,8 @@ default-combinators.(tuple!): default-combinators.(word!)
 === ABBREVIATIONS ===
 
 default-combinators.opt: default-combinators.optional
+default-combinators.cond: default-combinators.conditional
+
 default-combinators.lit: default-combinators.literal
 default-combinators.(just @): default-combinators.one
 
@@ -2981,7 +2997,7 @@ parse*: func [
         error! "error if no match"
     ]
     input "Input data"
-        [<opt-out> any-series? url! any-sequence?]
+        [<cond> any-series? url! any-sequence?]
     rules "Block of parse rules"
         [<const> block!]
     :combinators "List of keyword and datatype handlers used for this parse"
@@ -3159,7 +3175,7 @@ parse-furthest: adapt augment parse/ [
 ;
 using: func [
     return: ~  ; should it return a value?  (e.g. the object?)
-    obj [<opt-out> object!]
+    obj [<cond> object!]
 ][
     add-use-object (binding of $obj) obj
     return ~

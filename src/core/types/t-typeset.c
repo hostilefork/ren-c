@@ -252,7 +252,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
   // 1. TAG! parameter modifiers can't be abstracted.  So you can't say:
   //
-  //        modifier: either condition [<end>] [<opt-out>]
+  //        modifier: either condition [<end>] [<cond>]
   //        foo: func [arg [modifier integer!]] [...]
   //
   // 2. !!! The actual final notation for variadics is not decided on; it
@@ -269,8 +269,8 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
         else if (0 == CT_Utf8(item, g_tag_end, strict)) {
             flags |= PARAMETER_FLAG_ENDABLE;
         }
-        else if (0 == CT_Utf8(item, g_tag_opt_out, strict)) {
-            flags |= PARAMETER_FLAG_OPT_OUT;
+        else if (0 == CT_Utf8(item, g_tag_cond, strict)) {
+            flags |= PARAMETER_FLAG_CONDITIONAL;
         }
         else if (0 == CT_Utf8(item, g_tag_opt, strict)) {
             flags |= PARAMETER_FLAG_UNDO_OPT;
@@ -738,7 +738,7 @@ Result(None) Decorate_Element(const Element* decoration, Element* element)
 //          parameter! "apply parameter decoration rules as in spec dialect"
 //          error! "if decoration is invalid for the value"
 //      ]
-//      value [<opt-out> plain?]
+//      value [<cond> plain?]
 //  ]
 //
 DECLARE_NATIVE(DECORATE)
@@ -777,7 +777,7 @@ DECLARE_NATIVE(DECORATE)
 //          parameter! "apply parameter decoration rules as in spec dialect"
 //          error! "if decoration is invalid for the value"
 //      ]
-//      value [<opt-out> element?]
+//      value [<cond> element?]
 //  ]
 //
 DECLARE_NATIVE(REDECORATE)
@@ -811,7 +811,7 @@ DECLARE_NATIVE(REDECORATE)
 //          quoted! "quotes are in decoration, like [' '' ''' '@ ''^ ''$] etc."
 //          <null> "if none of the above decorations are present"
 //      ]
-//      value [<opt-out> element?]
+//      value [<cond> element?]
 //  ]
 //
 DECLARE_NATIVE(DECORATION_OF)
@@ -864,7 +864,7 @@ DECLARE_NATIVE(DECORATION_OF)
 //  "Remove decorations (Sigils, Quotes, leading-space sequences) from VALUE"
 //
 //      return: [<null> plain?]
-//      value [<opt-out> element?]
+//      value [<cond> element?]
 //  ]
 //
 DECLARE_NATIVE(UNDECORATE)

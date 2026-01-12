@@ -148,7 +148,7 @@ bind construct [
         return fail "bad-header"
     ]
 
-    if find opt hdr.options 'content [
+    if find cond hdr.options 'content [
         append hdr spread compose [content (data)]  ; as of start of header
     ]
 
@@ -176,7 +176,7 @@ bind construct [
         ; decompress garbage (likely asking for a very big memory allocation
         ; and panicking), and rescued it to see if it panicked.
         ;
-        if find opt hdr.options 'compress [
+        if find cond hdr.options 'compress [
             any [
                 not warning? sys.util/recover [
                     ; Raw bits.  whitespace *could* be tolerated; if
@@ -204,7 +204,7 @@ bind construct [
         data: transcode data  ; decode embedded script
         rest: skip data 2  ; !!! what is this skipping ("hdr.length" ??)
 
-        if find opt hdr.options 'compress [  ; script encoded only
+        if find cond hdr.options 'compress [  ; script encoded only
             rest: trap gunzip first rest
         ]
     ]
@@ -246,7 +246,7 @@ load: func [
         <null>
     ]
     source "Source of the information being loaded"
-        [<opt-out> file! url! tag! @word! text! blob!]
+        [<cond> file! url! tag! @word! text! blob!]
     :type "E.g. rebol, text, markup, jpeg... (by default, auto-detected)"
         [word!]
 
@@ -324,7 +324,7 @@ load: func [
 
 adjust-url-for-raw: func [
     return: [<null> url!]
-    url [<opt-out> url!]
+    url [<cond> url!]
 ][
     let text: to text! url  ; URL! is immutable, must copy to mutate in parse
 
@@ -460,7 +460,7 @@ bind construct [
 
     ; If URL is decorated source (syntax highlighting, etc.) get raw form.
     ;
-    (adjust-url-for-raw opt match url! source) then (adjusted -> [
+    (adjust-url-for-raw cond match url! source) then (adjusted -> [
         source: adjusted  ; !!! https://forum.rebol.info/t/1582/6
     ])
 
@@ -530,7 +530,7 @@ bind construct [
         panic ["IMPORT and DO require a header on:" (any [file, "<source>"])]
     ]
 
-    let name: select opt hdr 'name
+    let name: select cond hdr 'name
     (select system.modules opt name) then (cached -> [
         return pack [cached 'cached]
     ])
@@ -550,7 +550,7 @@ bind construct [
     let original-script: system.script
 
     system.script: make system.standard.script compose [
-        title: select opt hdr 'title
+        title: select cond hdr 'title
         header: hdr
         parent: original-script
         path: dir
@@ -680,7 +680,7 @@ export*: func [
         ; !!! notation for exporting antiforms?
         items: next items
 
-        (types: match block! ?? items.1) then [
+        (types: match block! cond try items.1) then [
             (match types ^val) else [
                 panic [
                     "EXPORT expected" word "to be in" @types

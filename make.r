@@ -683,7 +683,7 @@ gen-obj: func [
 
     ; Now add the flags for the project overall.
     ;
-    append flags opt spread F
+    append flags spread opt F
 
     ; Ren-C uses labels stylistically to denote sections of code which may
     ; or may not be jumped to.  This is purposeful, and deemed to be more
@@ -765,7 +765,7 @@ gen-obj: func [
     ; to build the requested object file.
     ;
     return make rebmake.object-file-class compose [
-        source: to file! unspaced [opt dir, file]
+        source: to file! unspaced [cond dir, file]
         output: to-obj-path file
         cflags: either empty? flags [_] [flags]
         definitions: D
@@ -1389,11 +1389,11 @@ append app-config.definitions spread reduce [
 
 ; Add user settings (can be null)
 ;
-append app-config.definitions opt spread user-config.definitions
-append app-config.includes opt spread user-config.includes
-append app-config.cflags opt spread user-config.cflags
-append app-config.libraries opt spread user-config.libraries
-append app-config.ldflags opt spread user-config.ldflags
+append app-config.definitions spread opt user-config.definitions
+append app-config.includes spread opt user-config.includes
+append app-config.cflags spread opt user-config.cflags
+append app-config.libraries spread opt user-config.libraries
+append app-config.ldflags spread opt user-config.ldflags
 
 libr3-core: make rebmake.object-library-class [
     name: 'libr3-core
@@ -1683,7 +1683,7 @@ for-each 'ext extensions [
             (panic [type of name "can't be a dependency of a module"])
         ]]]
 
-        libraries: map-each 'lib opt ext.libraries [
+        libraries: map-each 'lib ext.libraries [
             case [
                 file? lib [
                     make rebmake.ext-dynamic-class [
@@ -1700,7 +1700,7 @@ for-each 'ext extensions [
         ]
 
         includes: collect [
-            for-each 'inc opt ext.includes [
+            for-each 'inc cond ext.includes [
                 ensure file! inc
                 if inc.1 = #"/" [  ; absolute path
                     keep inc
@@ -1769,9 +1769,9 @@ for-each 'ext extensions [
         ; ldflag, but this then has to be platform specific.  But generally you
         ; already need platform-specific code to know where to look.
         ;
-        append app-config.libraries opt spread ext-objlib.libraries
-        append app-config.ldflags opt spread ext.ldflags
-        append app-config.searches opt spread ext.searches
+        append app-config.libraries spread opt ext-objlib.libraries
+        append app-config.ldflags spread opt ext.ldflags
+        append app-config.searches spread opt ext.searches
     ]
     else [
         append dynamic-ext-objlibs ext-objlib
@@ -1791,13 +1791,13 @@ for-each 'ext extensions [
                 ; r3.lib is generated and isn't needed (though only librebol
                 ; extensions can be loaded dynamically, not core API ones)
                 ;
-                (opt spread app-config.libraries)
-                (opt spread ext-objlib.libraries)
+                (spread opt app-config.libraries)
+                (spread opt ext-objlib.libraries)
             ]
 
             ldflags: compose [
-                (opt spread ext.ldflags)
-                (opt spread app-config.ldflags)
+                (spread opt ext.ldflags)
+                (spread opt app-config.ldflags)
 
                 ; GCC has this but Clang does not, and currently Clang is
                 ; being called through a gcc alias.  Review.

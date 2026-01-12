@@ -257,7 +257,7 @@ do: func [
     return: [any-value?]
     source "Files interpreted based on extension, dialects based on 'kind'"
         [
-            <opt-out>  ; opts out of the DO, returns null
+            <cond>  ; opts out of the DO, returns null
             text!  ; source code with header
             blob!  ; treated as UTF-8, same interpretation as text
             url!  ; load code from URL via protocol
@@ -268,5 +268,5 @@ do: func [
     :args "Args passed as system.script.args to a script (normally a string)"
         [element?]
 ][
-    return [_ _ {^}]: import*:args ^ghost source args
+    return [_ _ {^}]: import*:args none source args
 ]

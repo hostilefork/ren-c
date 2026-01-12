@@ -137,7 +137,7 @@
 ;
 ([3 '3 ''3] = compose [(1 + 2) '(1 + 2) ''(1 + 2)])
 ([' '' '''] = compose ['(comment "it") ''(comment "is") '''(comment "legal")])
-(['''''''] = compose ['''''''(when null [<a>])])
+(['''''''] = compose ['''''''(if null [<a>])])
 ([''''] = compose [''(the '')])
 
 ; Quoting should be preserved by deep composition

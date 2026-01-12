@@ -110,7 +110,7 @@ DECLARE_NATIVE(JUST)
 //          element?    "if depth = 0, may give a non-quoted result"
 //          <null>      "if input is void"
 //      ]
-//      value [<opt-out> element?]
+//      value [<cond> element?]
 //      :depth "Number of quoting levels to apply (default 1)"
 //          [integer!]
 //  ]
@@ -569,7 +569,7 @@ DECLARE_NATIVE(RUNS)
 //  "Give back a frame! for action! input"
 //
 //      return: [frame!]
-//      action [<opt-out> <unrun> frame!]
+//      action [<cond> <unrun> frame!]
 //  ]
 //
 DECLARE_NATIVE(UNRUN)
@@ -588,7 +588,7 @@ DECLARE_NATIVE(UNRUN)
 //  "Give back a warning! for error! input"
 //
 //      return: [warning!]
-//      ^error [<opt-out> error!]
+//      ^error [<cond> error!]
 //  ]
 //
 DECLARE_NATIVE(DISARM)
@@ -608,7 +608,7 @@ DECLARE_NATIVE(DISARM)
 //  "Give back a block! for splice! input"
 //
 //      return: [block!]  ; BLOCK! seems more generically desired than GROUP!
-//      splice [<opt-out> splice!]
+//      splice [<cond> splice!]
 //  ]
 //
 DECLARE_NATIVE(UNSPLICE)
@@ -623,78 +623,12 @@ DECLARE_NATIVE(UNSPLICE)
 
 
 //
-//  optional: native:intrinsic [
-//
-//  "If argument is NULL, make it GHOST!, else passthru"
-//
-//      return: [any-stable? ghost!]
-//      value '[any-stable?]
-//  ]
-//
-DECLARE_NATIVE(OPTIONAL)  // usually used via its aliases of OPT or ?
-{
-    INCLUDE_PARAMS_OF_OPTIONAL;
-
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
-
-    if (Is_Nulled(v))
-        return GHOST;
-
-    return COPY(v);
-}
-
-
-//
-//  optional-veto: native:intrinsic [
-//
-//  "If argument is null make it VETO, else passthru"
-//
-//      return: [any-stable? error!]
-//      value '[any-stable?]
-//  ]
-//
-DECLARE_NATIVE(OPTIONAL_VETO)  // usually used via its alias of ?!
-{
-    INCLUDE_PARAMS_OF_OPTIONAL_VETO;
-
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
-
-    if (Is_Nulled(v))
-        return Copy_Cell(OUT, LIB(VETO));
-
-    return COPY(v);
-}
-
-
-//
-//  opt-in: native:intrinsic [
-//
-//  "If argument is NULL, make it an empty SPLICE! antiform (NONE)"
-//
-//      return: [any-value?]
-//      value '[any-stable?]
-//  ]
-//
-DECLARE_NATIVE(OPT_IN)
-{
-    INCLUDE_PARAMS_OF_OPT_IN;
-
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
-
-    if (Is_Nulled(v))
-        return Init_None(OUT);
-
-    return COPY(v);
-}
-
-
-//
 //  noquote: native:intrinsic [
 //
 //  "Removes all levels of quoting from a (potentially) quoted element"
 //
 //      return: [fundamental?]
-//      value '[<opt-out> element?]
+//      value '[<cond> element?]
 //  ]
 //
 DECLARE_NATIVE(NOQUOTE)

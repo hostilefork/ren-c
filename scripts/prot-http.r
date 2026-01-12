@@ -789,8 +789,8 @@ make-curl-command: lambda [spec [object!] "comes from port.spec"] [
             -[--write-out '\n{\"status\":%{http_code}}']-  ; metadata in JSON
         ]
 
-        when spec.method [spaced ["-X" spec.method]]
-        when spec.headers [
+        if spec.method [spaced ["-X" spec.method]]
+        if spec.headers [
             spread collect [
                 for-each [k v] spec.headers [
                     keep "-H" keep unspaced ["'" k ":" _ v "'"]

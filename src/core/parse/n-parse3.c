@@ -2508,8 +2508,8 @@ DECLARE_NATIVE(SUBPARSE)
 //          any-series? "if :MATCH used, original input if successful"
 //          <null>      "if :MATCH used and unsuccessful"
 //      ]
-//      input [<opt-out> any-series? any-sequence? any-utf8?]
-//      rules [<opt-out> block!]
+//      input [<cond> any-series? any-sequence? any-utf8?]
+//      rules [<cond> block!]
 //      :case "Uses case-sensitive comparison"
 //      :match "Return PARSE input instead of synthesized result"
 //      :relax "Don't require reaching the tail of the input for success"

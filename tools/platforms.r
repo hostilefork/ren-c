@@ -598,8 +598,8 @@ export configure-platform: func [
     hint "Version ID (null means guess)"
         [<opt> text! tuple!]
 ][
-    if null? hint [  ; Try same version as this r3-make was built with
-        hint: join tuple! [0 system.version.4 system.version.5]
+    hint: default [  ; Try same version as this r3-make was built with
+        join tuple! [0 system.version.4 system.version.5]
     ]
 
     let version: switch type of hint [  ; no switch:type in bootstrap

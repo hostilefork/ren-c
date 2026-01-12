@@ -109,7 +109,7 @@ DECLARE_NATIVE(LATIN1_Q)
 //
 //      return: [<null> any-utf8? any-list? any-sequence? blob!]
 //      base "If no base element and no material in rest to join, gives NULL"
-//          [<opt-out> datatype! any-utf8? any-list? any-sequence? blob!]
+//          [<cond> datatype! any-utf8? any-list? any-sequence? blob!]
 //      rest "Plain [...] blocks reduced, @[...] block items used as is"
 //          [<opt> block! @block! any-utf8? blob! integer!]
 //      :with [element? splice!]
@@ -861,7 +861,7 @@ DECLARE_NATIVE(ENBASE)
 //          any-string? "See http://en.wikipedia.org/wiki/Percent-encoding"
 //      ]
 //      string "String to encode, all non-ASCII or illegal URL bytes encoded"
-//          [<opt-out> any-string?]
+//          [<cond> any-string?]
 //  ]
 //
 DECLARE_NATIVE(ENHEX)

@@ -674,7 +674,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
 //      ]
 //      target "Word or tuple or path, or calculated sequence steps (from GET)"
 //          [
-//              <opt-out>
+//              <cond>
 //              word! tuple!   "Unstable fetches error"
 //              ^word! ^tuple! "Do not decay unstable antiform results"
 //              quoted! quasiform!  "Get unlifted version of item"

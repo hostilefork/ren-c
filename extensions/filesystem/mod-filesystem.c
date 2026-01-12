@@ -463,7 +463,7 @@ Strand* To_Local_Path(const Stable* file, Flags flags) {
 //
 //      return: [file!]
 //      path "Path to convert (by default, only TEXT! for type safety)"
-//          [<opt-out> text! file!]
+//          [<cond> text! file!]
 //      :pass "Convert TEXT!, but pass thru FILE!, assuming it's canonized"
 //      :dir "Ensure input path is treated as a directory"
 //  ]
@@ -497,7 +497,7 @@ DECLARE_NATIVE(LOCAL_TO_FILE)
 //
 //      return: [text!]
 //      path "Path to convert (by default, only FILE! for type safety)"
-//          [<opt-out> file! text!]
+//          [<cond> file! text!]
 //      :pass "Convert FILE!s, but pass thru TEXT!, assuming it's local"
 //      :full "For relative paths, prepends current dir for full path"
 //      :no-tail-slash "do not add a slash or backslash to directory tail"
@@ -569,7 +569,7 @@ DECLARE_NATIVE(WHAT_DIR)
         panic (current_path);  // lousy error [2]
 
     return rebValue( // "caller mutates"
-        CANON(TRY), CANON(COPY), CANON(OPT), rebQ(rebR(current_path))
+        CANON(TRY), CANON(COPY), CANON(COND), rebQ(rebR(current_path))
     );
 }
 
@@ -580,7 +580,7 @@ DECLARE_NATIVE(WHAT_DIR)
 //  "Changes the current path (where scripts with relative paths will be run)"
 //
 //      return: [<null> file! url!]
-//      path [<opt-out> file! url!]
+//      path [<cond> file! url!]
 //  ]
 //
 DECLARE_NATIVE(CHANGE_DIR)

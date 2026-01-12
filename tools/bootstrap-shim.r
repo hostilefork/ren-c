@@ -213,6 +213,7 @@ for-each [alias] [
     head3:                      ; use HEAD OF instead
     tail3:                      ; use TAIL OF instead
     void3:                      ; use () instead
+    opt3:                       ; becomes COND
 
     issue3!:                    ; now it's rune!
     issue3?:                    ; ...
@@ -248,6 +249,8 @@ for-each [alias] [
 ]
 
 function3: ~#[FUNCTION slated for synonym of FUNC, so no FUNCTION3]#~
+
+cond: conditional: opt3/
 
 
 === "ISSUE! => RUNE!" ===
@@ -447,7 +450,7 @@ splice!: block!  ; best we can do
 
 splice3?: lambda3 [value [<opt> any-value!]] [
     all [
-        block? opt value
+        block? cond value
         #splice! = (first value)
     ]
 ]
@@ -471,12 +474,12 @@ spread: func3 [
 none: spread []
 assert [none? none]
 
-when: lambda3 [condition branch] [
-    either condition (branch) [none]
-]
-
-opt-in: lambda3 [value] [
-    either value [value] [none]
+opt: lambda3 [value [~null~ ~void~ any-value!]] [
+    case [
+        void? :value [none]
+        null? :value [none]
+        <else> [:value]
+    ]
 ]
 
 append: func3 [
@@ -611,9 +614,9 @@ find: func3 [
 ]
 
 replace: func3 [
-    target [<opt-out> any-series!]
-    pattern [<opt-out> any-element! splice!]
-    replacement [<opt-out> any-element! splice!]
+    target [<cond> any-series!]
+    pattern [<cond> any-element! splice!]
+    replacement [<cond> any-element! splice!]
 ][
     if none? pattern [
         return target
@@ -785,7 +788,8 @@ modernize-typespec: func3 [
 ][
     types: copy types
     for-each [current bootstrap] [
-        none?           block!  ; hack
+        none?           block!  ; splice! hack
+        <opt>           block!  ; also splice! hack
         any-value?      any-value!  ; in bootstrap, only unstable is void
         any-stable?     any-stable!
         any-string?     any-string!
@@ -889,6 +893,8 @@ modernize-action: func3 [
                     continue
                 ]
 
+                assert [not find spec.1 <opt>]  ; <opt> refines not supported
+
                 proxy: as word! unspaced [last-refine-word "-arg"]
                 keep3:only proxy
                 keep3:only modernize-typespec spec.1
@@ -948,15 +954,18 @@ modernize-action: func3 [
                 ]
 
                 if types: match block! spec.1 [
+                    if find types <opt> [
+                        append3 proxiers compose3:deep [  ; splices
+                            if none? (to-get-word w) [
+                                (to-set-word w) null
+                            ]
+                        ]
+                    ]
                     types: modernize-typespec types
                     keep3:only types
                     spec: my next
                     continue
                 ]
-            ]
-
-            if refinement? spec.1 [  ; new :REFINEMENT
-                continue
             ]
 
             if <.> = spec.1 [
@@ -1216,10 +1225,7 @@ decode: func3 [codec bin [blob!]] [
     panic ["Very limited DECODE abilities in bootstrap, no:" mold codec]
 ]
 
-blockify: func3 [x] [
-    if void? :x [
-        return null
-    ]
+blockify: func3 [x [<cond> any-value!]] [
     if null? x [
         panic:blame "BLOCKIFY can't take ~null~ antiform" $x
     ]

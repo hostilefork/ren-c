@@ -890,7 +890,7 @@ Bounce Action_Executor(Level* L)
 
         assert(LIFT_BYTE(ARG) != DUAL_0);  // not a tripwire
 
-        if (Get_Parameter_Flag(param, OPT_OUT)) {  // <opt-out> param
+        if (Get_Parameter_Flag(param, CONDITIONAL)) {  // <cond> param
             if (Any_Void(ARG)) {
                 Set_Action_Executor_Flag(L, TYPECHECK_ONLY);
                 Mark_Typechecked(u_cast(Param*, ARG));
@@ -899,10 +899,15 @@ Bounce Action_Executor(Level* L)
             }
         }
 
-        if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(ARG)) {
-            Init_Nulled(ARG);
-            Mark_Typechecked(u_cast(Param*, ARG));  // null generally rejected
-            continue;
+        if (Get_Parameter_Flag(param, UNDO_OPT)) {
+            require (
+                Stable* stable = Decay_If_Unstable(ARG)
+            );
+            if (Is_None(stable)) {
+                Init_Nulled(ARG);
+                Mark_Typechecked(u_cast(Param*, ARG));  // null rejected
+                continue;
+            }
         }
 
         if (Get_Parameter_Flag(param, VARIADIC)) {  // can't check now [2]
@@ -990,7 +995,7 @@ Bounce Action_Executor(Level* L)
 
     assert(Get_Action_Executor_Flag(L, IN_DISPATCH));
 
-    if (Get_Action_Executor_Flag(L, TYPECHECK_ONLY)) {  // <opt-out>
+    if (Get_Action_Executor_Flag(L, TYPECHECK_ONLY)) {  // <cond>
         assert(Is_Light_Null(OUT));
         goto skip_output_check;
     }
@@ -1087,7 +1092,7 @@ Bounce Action_Executor(Level* L)
 
 } skip_output_check: {  //////////////////////////////////////////////////////
 
-  // This is where things get jumped to if you pass a <opt-out> argument a
+  // This is where things get jumped to if you pass a <cond> argument a
   // VOID and it wants to jump past all the processing and return, or if
   // a level just wants argument fulfillment and no execution.
   //

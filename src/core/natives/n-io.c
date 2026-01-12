@@ -32,7 +32,7 @@
 //
 //      return: [<null> text!]
 //      value "The value to form (currently errors on antiforms)"
-//          [<opt-out> element?]
+//          [<cond> element?]
 //  ]
 //
 DECLARE_NATIVE(FORM)
@@ -95,7 +95,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Fundamental)  // catch-all for ExtraHeart*
 //
 //          <null> "when input is void"
 //      ]
-//      value [<opt-out> element? splice!]
+//      value [<cond> element? splice!]
 //      :flat "No indentation"
 //      :limit "Limit to a certain length"
 //          [integer!]
@@ -148,7 +148,7 @@ DECLARE_NATIVE(MOLD)
 //  "Boot-only implementation of WRITE-STDOUT (HIJACK'd by STDIO module)"
 //
 //      return: ~
-//      value [<opt-out> text! char? blob!]
+//      value [<cond> text! char? blob!]
 //          "Text to write, if a STRING! or CHAR! is converted to OS format"
 //  ]
 //

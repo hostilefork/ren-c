@@ -67,7 +67,7 @@ run-single-test: proc [
     case [
         warning? result [
             spaced ["error" any [
-                to text! opt result.id
+                to text! cond result.id
                 mold result.message   ; errors with no ID may have BLOCK!
                 "(unknown)"
             ]]
@@ -128,7 +128,7 @@ run-test-cluster: proc [
     ; could put service functions that tests could use there, e.g. such as
     ; specialized versions of assert.
     ;
-    let isolate: module ^ghost inside lib '[
+    let isolate: module none inside lib '[
         print: lambda [x] [
             panic:blame "Don't use PRINT in tests" $x
         ]

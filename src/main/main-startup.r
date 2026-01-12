@@ -315,7 +315,7 @@ main-startup: func [
         "Convert string path to absolute dir! path, null if not found"
 
         []: [<null> file!]
-        dir [<opt-out> text!]
+        dir [<cond> text!]
     ][
         all [
             not empty? dir
@@ -645,7 +645,7 @@ main-startup: func [
     ;
     all [
         o.bin
-        not find opt o.suppress %rebol.r
+        not find cond o.suppress %rebol.r
         elide (loud-print ["Checking for rebol.r file in" o.bin])
         exists? join o.bin %rebol.r
     ] then [
@@ -663,7 +663,7 @@ main-startup: func [
     ;
     all [
         o.resources
-        not find opt o.suppress %user.r
+        not find cond o.suppress %user.r
         elide (loud-print ["Checking for user.r file in" o.resources])
         exists? join o.resources %user.r
     ] then [

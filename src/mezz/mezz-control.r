@@ -15,13 +15,13 @@ launch: func [
     "Runs a script as a separate process; return immediately"
 
     script "The name of the script"
-        [<opt-out> file! text!]
+        [<cond> file! text!]
     :args "Arguments to the script"
         [text! block!]
     :wait "Wait for the process to terminate"
 ][
     if file? script [script: file-to-local clean-path script]
     let command: reduce [file-to-local system.options.boot script]
-    append command opt spread args
+    append command spread opt args
     return call* // [command wait: wait]
 ]

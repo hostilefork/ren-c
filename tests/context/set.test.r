@@ -60,7 +60,8 @@
 )
 
 
-(10 = set ^ghost 10)
+(null = set ^ghost 10)
+(10 = set none 10)
 (null = get ^ghost)
 
 (

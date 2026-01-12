@@ -163,9 +163,9 @@ static REBLEN Guess_Part_Len_For_Change_May_Coerce(
 //          integer!  "!!! INSERT returns INTEGER! in ODBC, review this"
 //      ]
 //      series "At position (modified)"
-//          [<opt-out> any-series? port! map! object! bitset! port!]
+//          [<cond> any-series? port! map! object! bitset! port!]
 //      value "What to insert (antiform groups will splice, e.g. SPREAD)"
-//          [<opt-out> element? splice!]
+//          [<cond> element? splice!]
 //      :part "Limits to a given length or position"
 //          [any-number? any-series? pair!]
 //      :dup "Duplicates the insert a specified number of times"
@@ -210,9 +210,9 @@ DECLARE_NATIVE(INSERT)  // Must be frame-compatible with CHANGE [A]
 //
 //      return: [any-series? port! map! object! module! bitset!]
 //      series "Any position (modified)"
-//          [<opt-out> any-series? port! map! object! module! bitset!]
+//          [<cond> any-series? port! map! object! module! bitset!]
 //      value "What to append (antiform groups will splice, e.g. SPREAD)"
-//          [<opt-out> element? splice!]
+//          [<cond> element? splice!]
 //      :part "Limits to a given length or position"
 //          [any-number? any-series? pair!]
 //      :dup "Duplicates the insert a specified number of times"
@@ -283,9 +283,9 @@ DECLARE_NATIVE(APPEND)
 //
 //      return: [any-series? port!]
 //      series "At position (modified)"
-//          [<opt-out> any-series? port!]
+//          [<cond> any-series? port!]
 //      value "The new value (antiform groups will splice, e.g. SPREAD)"
-//          [<opt-out> element? splice!]
+//          [<cond> element? splice!]
 //      :part "Limits the amount to change to a given length or position"
 //          [any-number? any-series? pair!]
 //      :dup "Duplicates the change a specified number of times"
@@ -341,7 +341,7 @@ DECLARE_NATIVE(CHANGE)  // Must be frame-compatible with APPEND, INSERT [A]
 //
 //      return: [any-stable?]  ; !!! Variadic TAKE may evaluate, rethink
 //      series "At position (modified)"
-//          [<opt-out> any-series? port! varargs!]
+//          [<cond> any-series? port! varargs!]
 //      :part "Specifies a length or end position"
 //          [any-number? any-series? pair!]
 //      :deep "Also copies series values within the block"
@@ -364,7 +364,7 @@ DECLARE_NATIVE(TAKE)
 //
 //      return: [any-series? map! port! bitset!]
 //      series "At position (modified)"
-//          [<opt-out> any-series? map! port! bitset!]
+//          [<cond> any-series? map! port! bitset!]
 //      :part "Removes multiple elements or to a given position"
 //          [any-number? any-series? pair! char?]
 //  ]
@@ -385,7 +385,7 @@ DECLARE_NATIVE(REMOVE)
 //
 //      return: [any-series? port! map! bitset!]
 //      series "At position (modified)"
-//          [<opt-out> any-series? port! map! bitset!]
+//          [<cond> any-series? port! map! bitset!]
 //  ]
 //
 DECLARE_NATIVE(CLEAR)
@@ -423,7 +423,7 @@ DECLARE_NATIVE(SWAP)
 //
 //      return: [any-series? any-sequence? pair!]
 //      series "At position (modified)"
-//          [<opt-out> any-series? any-sequence? pair!]
+//          [<cond> any-series? any-sequence? pair!]
 //      :part "Limits to a given length or position"
 //          [any-number? any-series?]
 //  ]
@@ -444,7 +444,7 @@ DECLARE_NATIVE(REVERSE)
 //
 //      return: [fundamental?]
 //      value "At position if series"
-//          [<opt-out> fundamental?]
+//          [<cond> fundamental?]
 //      :part "Limits to a given length or position"
 //          [any-number? any-series?]
 //  ]
@@ -478,7 +478,7 @@ DECLARE_NATIVE(REVERSE_OF)
 //  "Sorts a series; default sort order is ascending"
 //
 //      return: [any-series?]
-//      series "<opt-out> At position (modified)"
+//      series "<cond> At position (modified)"
 //          [any-series?]
 //      :case "Case sensitive sort"
 //      :skip "Treat the series as records of fixed size"
@@ -511,9 +511,9 @@ DECLARE_NATIVE(SORT)
 //          error! "when skip would be out of bounds (and :UNBOUNDED not used)"
 //          port!  ; port meaning is different [1]
 //      ]
-//      series [<opt-out> none? any-series? port!]
+//      series [<cond> none? any-series? port!]
 //      offset "Input skipped by offset"
-//          [<opt-out> none? okay? any-number? pair!]
+//          [<cond> none? okay? any-number? pair!]
 //      :unbounded "Return out of bounds series if before tail or after head"
 //  ]
 //
@@ -549,7 +549,7 @@ DECLARE_NATIVE(SKIP)
 //  "Returns the series at the specified index"
 //
 //      return: [<null> any-series? port!]
-//      series [<opt-out> any-series? port!]
+//      series [<cond> any-series? port!]
 //      index "Seeks to given index, not clipped to head/tail by default"
 //          [any-number? logic? pair!]
 //      :bounded "Return null if index is before tail or after head"
@@ -575,9 +575,9 @@ DECLARE_NATIVE(AT)
 //
 //          <null> "if not found"
 //      ]
-//      series [<opt-out> any-series?]
+//      series [<cond> any-series?]
 //      pattern "What to find, if an action call as a predicate on each item"
-//          [<opt-out> element? splice! action! datatype!]
+//          [<cond> element? splice! action! datatype!]
 //      :part "Limits the search to a given length or position"
 //          [any-number? any-series? pair!]
 //      :case "Characters are case-sensitive"
@@ -601,8 +601,8 @@ DECLARE_NATIVE(FIND)  // Must be frame-compatible with SELECT
 //  "Searches for a value; returns the value that follows, else null"
 //
 //      return: [any-stable?]
-//      series [<opt-out> any-series? any-context? map! bitset!]
-//      value [<opt-out> any-stable?]
+//      series [<cond> any-series? any-context? map! bitset!]
+//      value [<cond> any-stable?]
 //      :part "Limits the search to a given length or position"
 //          [any-number? any-series? pair!]
 //      :case "Characters are case-sensitive"

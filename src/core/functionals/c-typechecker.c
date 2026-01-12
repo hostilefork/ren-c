@@ -43,7 +43,7 @@
 //
 //      return: '[logic?]
 //      value "Value to test"
-//          '[<opt-out> any-stable?]
+//          '[<cond> any-stable?]
 //      :type "Test a concrete type, (integer?:type integer!) passes"
 //      :quoted
 //      :quasiform
@@ -351,7 +351,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
         and not SPORADICALLY(100)
     ){
         Param* param = Phase_Params_Head(details);
-        if (Get_Parameter_Flag(param, OPT_OUT) and Any_Void(SPARE))
+        if (Get_Parameter_Flag(param, CONDITIONAL) and Any_Void(SPARE))
             goto test_failed;
         if (Parameter_Class(param) != PARAMCLASS_META) {
           require (
@@ -982,7 +982,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
   // to have a lot of value.  It wasn't the const bit test they're seeking
   // to avoid paying for.
   //
-  // The <opt-out> mechanics are handled at a higher level than typechecking,
+  // The <cond> mechanics are handled at a higher level than typechecking,
   // as typechecking never gets called at all.
   //
   // 1. !!! Should explicit mutability override, so people can say things
@@ -992,7 +992,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     if (Get_Parameter_Flag(param, CONST))
         Set_Cell_Flag(v, CONST);  // mutability override? [1]
 
-    if (Get_Parameter_Flag(param, OPT_OUT)) {
+    if (Get_Parameter_Flag(param, CONDITIONAL)) {
         assert(not Any_Void(v));  // should have bypassed this check
         if (Is_Light_Null(v))
             return false;  // can never run an opt-out with nulled arg
@@ -1231,7 +1231,7 @@ DECLARE_NATIVE(TYPECHECK)
 //      return: [<null> any-stable?]
 //      test [block! datatype! parameter! action!]
 //      value "Won't pass thru NULL (use TYPECHECK for a LOGIC? answer)"
-//          [<opt-out> any-stable?]
+//          [<cond> any-stable?]
 //  ]
 //
 DECLARE_NATIVE(MATCH)
@@ -1245,7 +1245,7 @@ DECLARE_NATIVE(MATCH)
 
     Stable* test = ARG(TEST);
     Stable* v = ARG(VALUE);
-    assert(not Is_Nulled(v));  // <opt-out> args should prohibit NULL
+    assert(not Is_Nulled(v));  // <cond> args should prohibit NULL
 
     if (not Typecheck_Uses_Spare_And_Scratch(LEVEL, v, test, SPECIFIED))
         return nullptr;

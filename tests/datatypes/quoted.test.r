@@ -120,15 +120,6 @@
     foo
 )
 
-
-(ghost? ~,~)
-(ghost? ^ghost)
-(ghost? eval [^ghost])
-(ghost? (eval [^ghost]))
-(ghost? eval [~,~])
-(ghost? eval [, ~,~,])
-(ghost? eval [1 + 2, ^ghost])
-
 (
     [1 (2 + 3) [4 + 5] a/+/b c.+.d: :e.+.f]
     = reduce

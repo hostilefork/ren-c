@@ -133,7 +133,7 @@ export analyse: context [
             for-each 'source list/source-files [
                 if find whitelisted source [continue]
 
-                keep opt spread analyse/file source
+                keep spread opt analyse/file source
             ]
         ]
     ]

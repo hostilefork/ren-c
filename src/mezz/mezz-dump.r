@@ -42,7 +42,7 @@ bind construct [
             let trunc
             append (
                 [_ trunc]: mold:limit val system.options.dump-size
-            ) when trunc ["..."]
+            ) if trunc ["..."]
         ]
     ]
 
@@ -53,7 +53,7 @@ bind construct [
                 let trunc
                 print unspaced [
                     [_ trunc]: mold:limit item system.options.dump-size
-                    when trunc ["..."]
+                    if trunc ["..."]
                 ]
             ]
 
@@ -200,7 +200,7 @@ summarize-obj: func [
         val
     ]
 
-    let wild: did find opt (match text! opt pattern) "*"
+    let wild: did find cond (match text! cond pattern) "*"
 
     return collect [
         for-each [word ^val] obj [

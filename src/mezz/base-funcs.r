@@ -459,7 +459,7 @@ count-up: func [
     "Loop the body, setting a word from 1 up to the end value given"
     return: [any-value?]
     @(var) [_ word! 'word! $word! '$word!]
-    limit [<opt-out> integer! rune!]
+    limit [<cond> integer! rune!]
     @(body) [block! fence!]
     {start end ^result}
 ][
@@ -635,7 +635,7 @@ fail: func [
     ; !!! PATH! doesn't do BINDING OF, and in the general case it couldn't
     ; tell you where it resolved to without evaluating, just do WORD! for now.
     ;
-    let frame: match frame! opt binding of opt match word! opt blame
+    let frame: match frame! cond binding of cond match word! cond blame
 
     if not pick error 'where [
         ;

@@ -69,11 +69,14 @@
 
 (2 = length of trim first split -[х^/+й]- "+")
 
-; VOID has nothing to split by, return original input (but in a block, to
+; NONE has nothing to split by, return original input (but in a block, to
 ; match the other outputs).
 ;
-(["a,b,c"] = split "a,b,c" ^ghost)
-([[a, b, c]] = split [a, b, c] ^ghost)
+(null? split "a,b,c" ^ghost)
+(null? split [a, b, c] ^ghost)
+
+(["a,b,c"] = split "a,b,c" none)
+([[a, b, c]] = split [a, b, c] none)
 
 ; SPREAD support is TBD when SPLIT is based on UPARSE.
 ;

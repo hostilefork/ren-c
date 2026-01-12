@@ -195,9 +195,9 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
     FLAG_LEFT_BIT(12)
 
 
-//=//// PARAMETER_FLAG_OPT_OUT ////////////////////////////////////////////=//
+//=//// PARAMETER_FLAG_CONDITIONAL ////////////////////////////////////////=//
 //
-// If a parameter is marked with the `<opt-out>` annotation, then that means
+// If a parameter is marked with the `<cond>` annotation, then that means
 // if the argument is VOID or HEAVY VOID in invocation, the dispatcher for the
 // function won't be run at all; NULL will be returned by the call.
 //
@@ -205,14 +205,14 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
 // test for void, if this is the intent.  Beyond convenience, it doesn't speed
 // natives up all that much, as they could test `Any_Void(arg)` and then
 // `return Init_Nulled(OUT);`...which would be fairly fast.  But it speeds up
-// usermode code much more, considering that `if ghost? ^arg [return null]`
+// usermode code much more, considering that `if void? ^arg [return null]`
 // needs several frames and lookups to run.
 //
-// Plus the <opt-out> annotation helps convey the "void-in-null-out" contract
+// Plus the <cond> annotation helps convey the "void-in-null-out" contract
 // more clearly than just being willing to take VOID or HEAVY VOID and *able*
 // to return null, which doesn't connect the two states.
 //
-#define PARAMETER_FLAG_OPT_OUT \
+#define PARAMETER_FLAG_CONDITIONAL \
     FLAG_LEFT_BIT(13)
 
 
@@ -280,7 +280,7 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
 // This is set by the <opt> parameter flag.  It helps avoid the need to
 // make a function take ^META parameters just in order to test if something is
 // a void, so long as there's no need to distinguish it from null.  See also
-// the <opt-out> parameter flag, which can be used if the only processing
+// the <cond> parameter flag, which can be used if the only processing
 // for a void would be to return null as the overall function result with
 // no further side-effects.
 //

@@ -98,6 +98,7 @@
 %control/any.test.r
 %control/case.test.r
 %control/catch.test.r
+%control/conditional.test.r
 %control/compose.test.r
 %control/default.test.r
 %control/destructure.test.r

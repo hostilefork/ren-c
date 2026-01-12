@@ -582,7 +582,7 @@ pe-format: context [
             word [word!]
         ][
             any [
-                find (opt ignore) word
+                find (cond ignore) word
                 find def (setify word)
             ] else [
                 append def setify word

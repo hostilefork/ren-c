@@ -43,7 +43,7 @@ Rebol [
         }
 
      1. In order to have a PARAMETER! where the description can be put, the
-        parameter you get back from (return-of some-func/) is what is called
+        parameter you get back from (return of some-func/) is what is called
         the primary "DESCRIPTION" of the function.  This means you can't have
         a distinct description of the return parameter.  If you want to put
         in more details they can be put in the type spec itself, allowing you
@@ -145,6 +145,7 @@ leaders: [
     NUL?
     tripwire?
     none?
+    veto?
 
     tweak*  ; REAL tweak* (overwrites bootstrap) uses NULL?, SPACE?
 

@@ -598,7 +598,7 @@ Bounce Composer_Executor(Level* const L)
 //      pattern "Pass @ANY-LIST? (e.g. @{{}}) to use the pattern's binding"
 //          [any-list? @any-list?]
 //      template "The template to fill in (no-op if WORD!)"
-//          [<opt-out> any-list? any-sequence? any-word? any-utf8?]
+//          [<cond> any-list? any-sequence? any-word? any-utf8?]
 //      :deep "Compose deeply into nested lists and sequences"
 //      :conflate "Let illegal sequence compositions produce lookalike WORD!s"
 //      :predicate "Function to run on composed slots"

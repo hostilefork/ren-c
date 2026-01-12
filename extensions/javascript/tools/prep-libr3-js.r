@@ -452,14 +452,14 @@ for-each-api [
         continue
     ]
 
-    let prologue: when null [
+    let prologue: opt if null [
         ; It can be useful for debugging to see the API entry points;
         ; using console.error() adds a stack trace to it.
         ;
         unspaced [--[console.error("Entering ]-- name --[");^/]--]
     ]
 
-    let epilogue: when null [
+    let epilogue: opt if null [
         ; Similar to debugging on entry, it can be useful on exit to see
         ; when APIs return...code comes *before* the return statement.
         ;

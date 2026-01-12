@@ -37,10 +37,8 @@ lib: system.contexts.lib  ; alias for faster access
 ; Note: OPTIONAL-VETO is an optimized intrinsic of the same functionality
 ; as OPTIONAL:VETO
 ;
-?: opt: optional/  ; NULL -> VOID
-??: cascade* reduce [unrun try/ unrun optional/]  ; NULL + ERROR! -> VOID
-?!: optional-veto/  ; NULL -> VETO
-??!: cascade* reduce [unrun try/ unrun optional-veto/]  ; NULL + ERROR! -> VETO
+cond: conditional/
+opt: optional/  ; NULL -> VOID
 
 eval: evaluate/  ; shorthands should be synonyms, too confusing otherwise
 
@@ -242,12 +240,11 @@ empty?: lambda [
     "OKAY if none or void, if empty, or if index is at or beyond its tail"
     []: [logic?]
     container [
-        <opt> none? any-series? any-sequence? object! port! bitset! map!
+        <cond> <opt> any-series? any-sequence? object! port! bitset! map!
     ]
 ][
     any [
-        null? container  ; e.g. input was void
-        none? container
+        not container  ; e.g. input was none (empty splice)
         0 = length of container  ; sequences always have > 0 length, not empty
     ]
 ]
@@ -260,10 +257,10 @@ print: func [
 
     return: [
         trash! "result invisible in the console when there was output"
-        <null> "if the input was <opt-out>, e.g. void passed vs. empty string"
+        <null> "if the input was <cond>, e.g. void passed vs. empty string"
     ]
     line "Line of text or block, [] has NO output, CHAR! newline allowed"
-        [<opt-out> char? text! block! @any-element?]
+        [<cond> char? text! block! @any-element?]
 ][
     if char? line [
         if line <> newline [
@@ -297,7 +294,7 @@ echo: proc [
         [element? <variadic>]
     {line}
 ][
-    line: when block? first args [take args] else [
+    line: if block? first args [take args] else [
         collect [
             cycle [
                 case [

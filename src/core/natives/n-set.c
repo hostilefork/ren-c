@@ -473,12 +473,13 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 //
 //      return: [
 //          any-value?   "Same value as input (not decayed)"
-//          <null>       "If VALUE is NULL, or if <opt-out> of target "
+//          <null>       "If VALUE is NULL, or if <cond> of target "
 //          error!       "Passed thru from input if not a meta-assign"
 //      ]
 //      target "Word or tuple, or calculated sequence steps (from GET)"
 //          [
-//              <opt-out>
+//              <cond> "return NULL if target is VOID"
+//              <opt> "return VALUE if target is NONE"
 //              _ word! tuple! "Decayed assignment"
 //              ^ ^word! ^tuple! "Undecayed assignment"
 //              group! "If :GROUPS, retrigger SET based on evaluated value"
@@ -499,9 +500,12 @@ DECLARE_NATIVE(SET)
 {
     INCLUDE_PARAMS_OF_SET;  // !!! must have compatible frame with TWEAK
 
-    Element* target = Element_ARG(TARGET);
-
     Value* v = ARG(VALUE);  // not a dual yet (we have to lift it...)
+
+    if (not ARG(TARGET))
+        return COPY(v);
+
+    Element* target = As_Element(unwrap ARG(TARGET));
 
     USED(ARG(STEPS));  // TWEAK heeds this
     USED(ARG(GROUPS));  // TWEAK heeds this too (but so do we)

@@ -54,7 +54,7 @@ target-platform: null
 
 map-files-to-local: func [
     return: [block!]
-    files [<opt-out> file! block!]
+    files [<cond> file! block!]
 ][
     if not block? files [files: reduce [files]]
     return map-each 'f files [
@@ -1011,9 +1011,9 @@ object-file-class: make object! [
             .output
             .source
 
-            I: compose [(opt spread .includes) (opt spread I)]
-            D: compose [(opt spread .definitions) (opt spread D)]
-            F: compose [(opt spread F) (opt spread .cflags)]
+            I: compose [(spread opt .includes) (spread opt I)]
+            D: compose [(spread opt .definitions) (spread opt D)]
+            F: compose [(spread opt F) (spread opt .cflags)]
                                                 ; ^-- reverses priority, why?
 
             ; "current setting overwrites :refinement"
@@ -1333,7 +1333,7 @@ makefile: make generator-class [
                         ]
                         panic ["Unknown entry.target type" entry.target]
                     ]
-                    for-each 'w (opt entry.depends) [
+                    for-each 'w (cond entry.depends) [
                         switch select (match object! w else [[]]) 'class [
                             #variable [
                                 keep unspaced ["$(" w.name ")"]
@@ -1410,8 +1410,8 @@ makefile: make generator-class [
                                 if ddep.class <> #object-library [ddep]
                             ]
                         )
-                        commands: append reduce [dep/command] opt-in (
-                            spread dep.post-build-commands
+                        commands: append reduce [dep/command] (
+                            spread opt dep.post-build-commands
                         )
                     ]
                     emit buf dep

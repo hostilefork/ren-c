@@ -29,7 +29,7 @@
                 [to crlf | accept (null)] opt some [
                     ["^M" not ahead "^/"]
                     to crlf
-                ] {{when not keep ['remove]}} ["^/" | "^M^/"]
+                ] {{if not keep ['remove]}} ["^/" | "^M^/"]
                 accept pos: <here>
             ]
         ]
@@ -57,7 +57,7 @@
                 append buffer data
             ]
             if all [true? eof, empty? buffer] [return done]
-            return (opt spread if not binary '[as text!]) take:part buffer pos
+            return (if not binary [~[as text!]~]) take:part buffer pos
         ])
     ]
 

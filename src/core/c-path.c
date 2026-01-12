@@ -112,9 +112,9 @@ Result(Element*) Init_Any_Sequence_At_Listlike(
 //  "Perform a path picking operation; same code as `(location).(picker)`"
 //
 //      return: [<null> any-stable?]
-//      location [<opt-out> <unrun> none? plain?]  ; can't pick sigil'd/quoted
+//      location [<cond> <unrun> plain?]  ; can't pick sigil'd/quoted
 //      picker "Index offset, symbol, or other value to use as index"
-//          [<opt-out> any-stable?]
+//          [<cond> any-stable?]
 //      {dual}  ; slot in position of DUAL for TWEAK*
 //  ]
 //
@@ -137,7 +137,7 @@ DECLARE_NATIVE(PICK)
 
     Stable* picker = ARG(PICKER);
 
-    if (Is_None(ARG(LOCATION)))  // (try first none) same as (try first [])
+    if (not ARG(LOCATION))  // (try first none) same as (try first [])
         return fail (Error_Bad_Pick_Raw(picker));
 
     Set_Level_Flag(LEVEL, PICK_NOT_INITIAL_ENTRY);
@@ -201,8 +201,8 @@ DECLARE_NATIVE(PICK)
 //          <null> "no writeback needed"
 //          word! frame! quoted! quasiform! ^word! ^tuple!
 //      ]
-//      location [<opt-out> fundamental?]  ; can't poke a quoted/quasi
-//      picker [<opt-out> element?]
+//      location [<cond> fundamental?]  ; can't poke a quoted/quasi
+//      picker [<cond> element?]
 //      dual "DUAL PROTOCOL: action is accessor, lifted action is action"
 //          [<null> word! frame! quoted! quasiform!]
 //  ]
@@ -297,9 +297,9 @@ DECLARE_NATIVE(TWEAK_P_BEDROCK)
 //
 //      return: [any-value? error!]
 //      location "(modified)"
-//          [<opt-out> fundamental?]  ; can't poke a quoted/quasi
+//          [<cond> fundamental?]  ; can't poke a quoted/quasi
 //      picker "Index offset, symbol, or other value to use as index"
-//          [<opt-out> any-stable?]
+//          [<cond> any-stable?]
 //      ^value "ERROR! will be piped through without doing the poke"
 //          [<void> any-stable? error!]
 //      {store}

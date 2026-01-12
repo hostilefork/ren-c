@@ -1269,7 +1269,7 @@ IMPLEMENT_GENERIC(SHUFFLE, Any_List)
 //
 //      return: [file! url! error!]
 //      value "Typically only ANY-LIST? know their file"
-//          [<opt-out> element?]
+//          [<cond> element?]
 //  ]
 //
 DECLARE_NATIVE(FILE_OF)
@@ -1297,7 +1297,7 @@ IMPLEMENT_GENERIC(FILE_OF, Any_Element)  // generic fallthrough returns error
 //
 //      return: [integer! error!]
 //      value "Typically only ANY-LIST? know their file"
-//          [<opt-out> element?]
+//          [<cond> element?]
 //  ]
 //
 DECLARE_NATIVE(LINE_OF)
@@ -1460,16 +1460,14 @@ IMPLEMENT_GENERIC(SORT, Any_List)
 //  "If a value isn't already a BLOCK!, enclose it in a block, else return it"
 //
 //      return: [<null> block!]
-//      value [<opt-out> none? element?]
+//      value [<cond> <opt> element?]
 //  ]
 //
 DECLARE_NATIVE(BLOCKIFY)
 {
     INCLUDE_PARAMS_OF_BLOCKIFY;
 
-    Option(const Element*) v = Is_None(ARG(VALUE))
-        ? nullptr
-        : Element_ARG(VALUE);
+    Option(const Element*) v = ARG(VALUE);
 
     if (v and Is_Block(unwrap v))
         return COPY(unwrap v);
@@ -1492,16 +1490,14 @@ DECLARE_NATIVE(BLOCKIFY)
 //  "If a value isn't already a GROUP!, enclose it in a group, else return it"
 //
 //      return: [group!]
-//      value [<opt-out> none? element?]
+//      value [<cond> <opt> element?]
 //  ]
 //
 DECLARE_NATIVE(GROUPIFY)
 {
     INCLUDE_PARAMS_OF_GROUPIFY;
 
-    Option(const Element*) v = Is_None(ARG(VALUE))
-        ? nullptr
-        : Element_ARG(VALUE);
+    Option(const Element*) v = ARG(VALUE);
 
     if (v and Is_Group(unwrap v))
         return COPY(unwrap v);
@@ -1526,7 +1522,7 @@ DECLARE_NATIVE(GROUPIFY)
 //      return: [<null> any-list?]
 //      example "Example's binding (or lack of) will be used"
 //          [datatype! any-list?]
-//      content [<opt-out> element? splice!]
+//      content [<cond> element? splice!]
 //  ]
 //
 DECLARE_NATIVE(ENVELOP)

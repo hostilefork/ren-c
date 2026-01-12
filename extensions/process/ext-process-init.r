@@ -161,7 +161,7 @@ argv-block-to-command*: func [
 browse: proc [
     "Open web browser to a URL or local file."
 
-    location [<opt-out> url! file!]
+    location [<cond> url! file!]
 ][
     print "Opening web browser..."
 

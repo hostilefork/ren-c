@@ -247,7 +247,7 @@ export emit-include-params-macro: func [
     let processing-locals: null
     let items: collect [
         let iter: paramlist
-        while [not tail? iter] [
+        while [iter and (not tail? iter)] [
             if iter.1 = <{> [
                 assert [not processing-locals]
                 processing-locals: okay
@@ -301,15 +301,15 @@ export emit-include-params-macro: func [
             ]
             iter: next iter
 
-            while [text? opt try iter.1] [  ; allow TEXT! before spec
+            while [text? opt try pick cond iter 1] [  ; allow TEXT! before spec
                 iter: next iter
             ]
 
-            if (try iter.1) = <'> [  ; quote on spec block
+            if (try pick cond iter 1) = <'> [  ; quote on spec block
                 param.unchecked: okay
                 iter: next iter
             ]
-            if spec: match block! opt try iter.1 [
+            if spec: match block! cond try pick cond iter 1 [
                 iter: next iter
             ]
             else [
@@ -318,7 +318,7 @@ export emit-include-params-macro: func [
                 ]
             ]
 
-            while [text? opt try iter.1] [  ; allow TEXT! after spec
+            while [text? opt try pick cond iter 1] [  ; allow TEXT! after spec
                 iter: next iter
             ]
 
@@ -333,8 +333,9 @@ export emit-include-params-macro: func [
                     find [  ; !!! bad way of doing this...think of better
                         [<unrun> frame!]
                         [element?]
-                        [<opt-out> <unrun> <const> block! frame!]
-                    ] opt spec
+                        [<cond> <unrun> <const> block! frame!]
+                        [<cond> <opt> element?]
+                    ] cond spec
                 ]
                 then [
                     ctype: 'Element
@@ -344,7 +345,7 @@ export emit-include-params-macro: func [
                 ]
 
                 case [
-                    param.refinement or (find opt spec <opt>) [
+                    param.refinement or (find cond spec <opt>) [
                         copt: 'true
                     ]
                     param.class = 'local [

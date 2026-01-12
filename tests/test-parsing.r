@@ -164,7 +164,7 @@ export collect-tests: func [
             ; %core-tests.r is the only one that accepts subfiles.
             ;
             [let referenced-file: file! (
-                change-dir opt split-path file
+                change-dir cond split-path file
                 collect-tests:into referenced-file into
                 change-dir current-dir
             )]

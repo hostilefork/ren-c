@@ -591,7 +591,7 @@ static Bounce Loop_Number_Common(
 //      start [any-series? any-number?]
 //      end [any-series? any-number?]
 //      bump [any-number?]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(CFOR)
@@ -669,17 +669,17 @@ DECLARE_NATIVE(CFOR)
 //      ]
 //      @(word) "Word to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word!]
-//      series [<opt> none? any-series?]
-//      skip [<opt-out> integer!]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      series [<cond> <opt> any-series?]
+//      skip [<cond> integer!]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(FOR_SKIP)
 {
     INCLUDE_PARAMS_OF_FOR_SKIP;
 
-    if (not ARG(SERIES) or Is_None(unwrap ARG(SERIES)))
-        return GHOST;
+    if (not ARG(SERIES))
+        return Init_Heavy_Void(OUT);
 
     Element* word = Element_ARG(WORD);
     Element* series = Element_ARG(SERIES);
@@ -844,7 +844,7 @@ void Add_Definitional_Stop(
 //  "Evaluate branch endlessly until BREAK gives NULL or a STOP gives a result"
 //
 //      return: [<null> any-stable?]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(CYCLE)
@@ -1303,9 +1303,9 @@ void Shutdown_Loop_Each(Stable* iterator)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      data "The series to traverse"
-//          [<opt> none? any-series? any-context? map! any-sequence?
+//          [<cond> <opt> any-series? any-context? map! any-sequence?
 //           action! quoted!]  ; action support experimental, e.g. generators
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -1336,8 +1336,8 @@ DECLARE_NATIVE(FOR_EACH)
     //    even in the code of this dispatcher, we need to clean up the
     //    iterator state.
 
-    if (not data or Is_None(unwrap data))  // same response as to empty series
-        return GHOST;
+    if (not data)  // same response as to empty series
+        return Init_Heavy_Void(OUT);
 
     require (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, vars)
@@ -1440,8 +1440,8 @@ DECLARE_NATIVE(FOR_EACH)
 //      ]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
-//      data [<opt> none? any-series? any-context? map! action!]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      data [<cond> <opt> any-series? any-context? map! action!]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -1466,8 +1466,8 @@ DECLARE_NATIVE(EVERY)
 
   initial_entry: {
 
-    if (not data or Is_None(unwrap data))  // same response as to empty series
-        return GHOST;
+    if (not data)  // same response as to empty series
+        return Init_Heavy_Void(OUT);
 
     require (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, vars)
@@ -1586,8 +1586,8 @@ DECLARE_NATIVE(EVERY)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      data "The series to traverse (modified)"
-//          [<opt> none? any-series?]  ; !!! can't do QUOTED!
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//          [<cond> <opt> any-series?]  ; !!! can't do QUOTED!
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(REMOVE_EACH)
@@ -1606,7 +1606,7 @@ DECLARE_NATIVE(REMOVE_EACH)
 
     Count removals = 0;
 
-    if (not ARG(DATA) or Is_None(unwrap ARG(DATA))) {
+    if (not ARG(DATA)) {
         Init_None(OUT);
         goto return_pack;
     }
@@ -1947,12 +1947,13 @@ DECLARE_NATIVE(REMOVE_EACH)
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      data "The series to traverse"
 //          [
-//              <opt-out> none?
+//              <cond>
+//              <opt>
 //              quoted!
 //              any-series? any-sequence? any-context?
 //              action!
 //          ]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -1969,11 +1970,12 @@ DECLARE_NATIVE(MAP_EACH)
 {
     INCLUDE_PARAMS_OF_MAP_EACH;
 
-    if (Is_None(ARG(DATA)) or Is_Nulled(ARG(DATA)))  // same as empty list
+    if (not ARG(DATA))  // same as empty list
         return Init_Block(OUT, Make_Source_Managed(0));
 
-    if (not Is_Action(ARG(DATA)))
-        Quote_Cell(Element_ARG(DATA));  // dialect, in theory [1]
+    Stable* data = unwrap ARG(DATA);
+    if (not Is_Action(data))
+        Quote_Cell(As_Element(data));  // dialect, in theory [1]
 
     const Stable* map_action = LIB(MAP);
     Details* details = Ensure_Frame_Details(map_action);
@@ -1995,8 +1997,8 @@ DECLARE_NATIVE(MAP_EACH)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      data "The series to traverse (only QUOTED? BLOCK! at the moment...)"
-//          [<opt> none? quoted! action!]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//          [<cond> <opt> quoted! action!]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -2023,7 +2025,7 @@ DECLARE_NATIVE(MAP)
 
     assert(Is_Cell_Erased(OUT));  // output only written in MAP if BREAK hit
 
-    if (not data_arg or Is_None(unwrap data_arg))  // same response as empty
+    if (not data_arg)  // same response as empty
         return Init_Block(OUT, Make_Source(0));
 
     Add_Definitional_Break_Again_Continue(body, level_);
@@ -2181,7 +2183,7 @@ DECLARE_NATIVE(MAP)
 //      ]
 //      count "Repetitions (true loops infinitely, false doesn't run)"
 //          [<opt> any-number? logic?]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(REPEAT)
@@ -2284,8 +2286,8 @@ DECLARE_NATIVE(REPEAT)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      value "Maximum number or series to traverse"
-//          [<opt-out> any-number? any-sequence? quoted! block! action!]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//          [<cond> any-number? any-sequence? quoted! block! action!]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(FOR)
@@ -2409,7 +2411,7 @@ DECLARE_NATIVE(FOR)
 //  "Evaluates the body until it produces a non-NULL (and non-VOID) value"
 //
 //      return: [<null> any-stable?]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(INSIST)
@@ -2607,7 +2609,7 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 //
 //      return: [<null> any-stable?]
 //      condition [<unrun> <const> block! frame!]  ; literals not allowed, [1]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(WHILE)
@@ -2631,7 +2633,7 @@ DECLARE_NATIVE(WHILE)
 //
 //      return: [<null> any-stable?]
 //      condition [<unrun> <const> block! frame!]  ; literals not allowed, [1]
-//      body [<opt-out> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(UNTIL)

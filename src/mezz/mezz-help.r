@@ -25,7 +25,7 @@ description-of: lambda [
     "One-line summary of a value's purpose"
 
     []: [<null> text!]
-    v [<opt-out> any-stable?]
+    v [<cond> any-stable?]
 ][
     switch:type ^v [
         any-list?/ [
@@ -37,7 +37,7 @@ description-of: lambda [
         action!
         frame! [
             if let adjunct: adjunct of ^v [
-                copy opt adjunct.description
+                copy cond adjunct.description
             ]
         ]
         object! [mold words of v]
@@ -470,7 +470,7 @@ what: func [
     let size: 0
 
     ; copy to get around error: "temporary hold for iteration"
-    let ctx: (copy opt select system.modules opt name) else [lib]
+    let ctx: (copy cond select system.modules cond name) else [lib]
 
     for-each [word ^val] ctx [
         ; word val

@@ -30,16 +30,16 @@
     (data: [1 1.2 10:20 "test" user@example.com [sub block]]
     ok)
 
-    ((save ^ghost []) = #{
+    ((save none []) = #{
         0A
     })
 
-    ((save ^ghost data) = #{
+    ((save none data) = #{
         3120312E322031303A3230202274657374222075736572406578616D706C652E
         636F6D205B73756220626C6F636B5D0A
     })
 
-    ((save:header ^ghost data [Title: "my code"]) = #{
+    ((save:header none data [Title: "my code"]) = #{
         5245424F4C205B0A202020205469746C653A20226D7920636F6465220A5D0A31
         20312E322031303A3230202274657374222075736572406578616D706C652E63
         6F6D205B73756220626C6F636B5D0A
@@ -54,14 +54,14 @@
     ; So do not test for exact matches of BLOB! products of compression.
     ; Decompression should be consistent, however.
 
-    ([] = load (save:compress ^ghost [] 'raw))
+    ([] = load (save:compress none [] 'raw))
 
     ([] = load #{
         5245424F4C205B0A202020204F7074696F6E733A205B636F6D70726573735D0A
         5D0A1F8B080000000000000AE302009306D73201000000
     })
 
-    (data = load (save:compress ^ghost data 'raw))
+    (data = load (save:compress none data 'raw))
 
     (data = load #{
         5245424F4C205B0A202020204F7074696F6E733A205B636F6D70726573735D0A
@@ -70,7 +70,7 @@
         8CB030000000
     })
 
-    (data = load (save:compress ^ghost data 'base64))
+    (data = load (save:compress none data 'base64))
 
     (
         data = load #{
@@ -84,7 +84,7 @@
 
     (
         [loaded header]: load (
-            save:header:compress ^ghost data [Title: "my code"] 'raw
+            save:header:compress none data [Title: "my code"] 'raw
         )
         all [
             header.title = "my code"
@@ -109,7 +109,7 @@
 
     (
         [loaded header]: load (
-            save:header:compress ^ghost data [Title: "my code"] 'base64
+            save:header:compress none data [Title: "my code"] 'base64
         )
         all [
             header.title = "my code"
@@ -135,7 +135,7 @@
 
     (
         [loaded header]: load (
-            save:header ^ghost data [Title: "my code" Options: [compress]]
+            save:header none data [Title: "my code" Options: [compress]]
         )
         all [
             header.title = "my code"

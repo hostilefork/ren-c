@@ -58,6 +58,112 @@
 #include "sys-core.h"
 
 
+// Shared helper for CONDITIONAL, OPTIONAL, and WHEN.
+//
+// 1. We want things like (opt if ...) or (opt switch ...) to work, with the
+//    idea that you effectively adapt the GHOST!-returning control structure
+//    to be a NONE-returning control structure (without needing to come up
+//    with a different name).  It's worth the slight impurity of "reacting
+//    to GHOST! conditionally".  If OPT does it, they all might as well.
+
+// !!! Because this decays it means COND, OPT, and WHEN can't be intrinsics.
+// It's probably worth it to figure out how to make them intrinsics by adding
+// special support for their needs.
+//
+static Result(bool) Return_Out_For_Conditional_Optional_Or_When(Level* level_)
+{
+    INCLUDE_PARAMS_OF_CONDITIONAL;  // WHEN and OPTIONAL must be compatible
+
+    Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
+
+    if (Is_Error(v))
+        return fail (Cell_Error(v));
+
+    if (Is_Ghost(v))  // [1]
+        return false;  // makes GHOST! if COND, NONE if OPT, VETO if WHEN
+
+    Copy_Cell(OUT, v);  // save (in case pack!, we want to return the pack)
+
+    require (
+      Stable* stable = Decay_If_Unstable(v)
+    );
+
+    require (
+      bool logic = Test_Conditional(stable)
+    );
+    return logic;  // false makes GHOST! if COND, NONE if OPT, VETO if WHEN
+}
+
+
+//
+//  conditional: native [  ; cant be intrinsic (we need to decay
+//
+//  "If argument is NULL, make it GHOST!, else passthru"
+//
+//      return: [any-value? ghost!]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(CONDITIONAL)  // usually used via its alias of COND
+{
+    INCLUDE_PARAMS_OF_CONDITIONAL;
+
+    trap (
+      bool return_out = Return_Out_For_Conditional_Optional_Or_When(LEVEL)
+    );
+    if (return_out)
+        return OUT;
+
+    return GHOST;
+}
+
+
+//
+//  optional: native [  ; can't be intrinsic, needs to decay :-( [1]
+//
+//  "If VALUE is NULL (or GHOST!), make it an empty SPLICE! antiform (NONE)"
+//
+//      return: [any-value? none?]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(OPTIONAL)
+{
+    INCLUDE_PARAMS_OF_OPTIONAL;
+
+    trap (
+      bool return_out = Return_Out_For_Conditional_Optional_Or_When(LEVEL)
+    );
+    if (return_out)
+        return OUT;
+
+    return Init_None(OUT);
+}
+
+
+//
+//  when: native [  ; decays, can't be intrinsic!
+//
+//  "If argument is null make it VETO, else passthru"
+//
+//      return: [any-value? veto?]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(WHEN)
+{
+    INCLUDE_PARAMS_OF_WHEN;
+
+    trap (
+      bool return_out = Return_Out_For_Conditional_Optional_Or_When(LEVEL)
+    );
+    if (return_out)
+        return OUT;
+
+    return Copy_Cell(OUT, Lib_Value(SYM_VETO));
+}
+
+
 //
 //  Group_Branch_Executor: C
 //
@@ -194,33 +300,6 @@ DECLARE_NATIVE(IF)
     );
     if (not cond)
         return GHOST;  // "light" void (triggers ELSE)
-
-    return DELEGATE_BRANCH(OUT, branch, condition);  // branch semantics [A]
-}
-
-
-//
-//  when: native [
-//
-//  "When CONDITION is not NULL, execute BRANCH, otherwise return NONE"
-//
-//      return: [any-value? none?]
-//      condition [any-stable?]
-//      @branch [any-branch?]
-//  ]
-//
-DECLARE_NATIVE(WHEN)
-{
-    INCLUDE_PARAMS_OF_WHEN;
-
-    Stable* condition = ARG(CONDITION);
-    Element* branch = ARG(BRANCH);
-
-    require (
-      bool cond = Test_Conditional(condition)
-    );
-    if (not cond)
-        return Init_None(OUT);  // empty splice (triggers THEN)
 
     return DELEGATE_BRANCH(OUT, branch, condition);  // branch semantics [A]
 }

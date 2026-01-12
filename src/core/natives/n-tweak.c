@@ -837,7 +837,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //      ]
 //      target "Word or tuple, or calculated sequence steps (from GET)"
 //          [
-//              <opt-out>
+//              <cond>
 //              word! tuple!
 //              ^word! ^tuple!
 //              @block!

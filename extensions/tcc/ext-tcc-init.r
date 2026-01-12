@@ -158,7 +158,7 @@ compile: proc [
     ; which is a standard setting.
 
     config.runtime-path: default [any [
-        local-to-file opt get-env "CONFIG_TCCDIR"  ; (backslashes on windows)
+        local-to-file cond get-env "CONFIG_TCCDIR"  ; (backslashes on windows)
 
         ; !!! Guessing is probably a good idea in the long term, but in the
         ; short term it just creates unpredictability.  Avoid for now.
@@ -583,7 +583,7 @@ c99: func [
             let trunc: ~
             panic [
                 "Could not parse C99 command line at:"
-                append [_ trunc]: (mold:limit last-pos 40) when trunc ["..."]
+                append [_ trunc]: (mold:limit last-pos 40) if trunc ["..."]
             ]
         ]
     ]

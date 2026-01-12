@@ -1,7 +1,7 @@
 ; functions/series/select.r
 
 [#473 (
-    null? select opt null 1
+    null? select cond null 1
 )]
 
 [#1936 (

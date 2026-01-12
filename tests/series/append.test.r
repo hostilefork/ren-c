@@ -184,10 +184,10 @@
 ]
 
 [
-    ('~,~ = lift when ok [])
-    (null? if null [<a>])
-    (null = append [a b c] when ok [])
-    (null = append [a b c] opt if null [<a>])
+    ('~()~ = lift if ok [])
+    (ghost? if null [<a>])
+    (null = append [a b c] if null [])
+    ([a b c] = append [a b c] opt if null [<a>])
 ]
 
 ; BLANK acts like an empty block when passed to SPREAD

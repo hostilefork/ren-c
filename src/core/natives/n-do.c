@@ -258,7 +258,7 @@ DECLARE_NATIVE(SHOVE)
 //          ~(block! any-value?)~   "[position product] pack if :STEP"  ; [1]
 //      ]
 //      source [
-//          <opt-out>  "useful for `evaluate opt ...` scenarios"
+//          <cond>  "useful for `evaluate opt ...` scenarios"
 //          block!  "always 'void suppression' semantics, :STEP ok"
 //          fence!  "WRAP semantics, produces BLOCK!, :STEP ok"
 //          group!  "must eval to end, only suppress voids after value seen"
@@ -971,7 +971,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 //  "Invoke an action with all required arguments specified"
 //
 //      return: [any-value?]
-//      operation [<opt-out> <unrun> frame!]
+//      operation [<cond> <unrun> frame!]
 //      args "Arguments and Refinements, e.g. [arg1 arg2 ref: refine1]"
 //          [block!]
 //      :relax "Don't worry about too many arguments to the APPLY"

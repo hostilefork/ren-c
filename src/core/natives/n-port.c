@@ -209,7 +209,7 @@ DECLARE_NATIVE(QUERY)
 //
 //      return: [logic?]
 //      target [port! file!]
-//      field [<opt-out> word!]
+//      field [<cond> word!]
 //      value
 //  ]
 //

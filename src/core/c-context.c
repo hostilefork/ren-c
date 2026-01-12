@@ -558,7 +558,7 @@ Result(None) Wrap_Extend_Core(
 //
 //      return: ~
 //      context [any-context?]
-//      list [<opt-out> any-list?]
+//      list [<cond> any-list?]
 //  ]
 //
 DECLARE_NATIVE(WRAP_P)
@@ -595,7 +595,7 @@ DECLARE_NATIVE(WRAP_P)
 //      return: [
 //          ~(any-list? object!)~ "List with new binding, and created context"
 //      ]
-//      list [<opt-out> any-list?]
+//      list [<cond> any-list?]
 //      :deep "Look for assigning constructs deeply"
 //      :set "Use semantics for WRAP of a SET-BLOCK for list argument"
 //  ]
@@ -641,7 +641,7 @@ DECLARE_NATIVE(WRAP)
 //  "Bind code in context and return it as a BLOCK! (default FENCE! behavior)"
 //
 //      return: [block!]
-//      list [<opt-out> any-list?]
+//      list [<cond> any-list?]
 //  ]
 //
 DECLARE_NATIVE(AS_BLOCK_WRAP)

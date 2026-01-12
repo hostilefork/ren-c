@@ -246,7 +246,7 @@ Bounce Stepper_Executor(Level* L)
         Details* details = Ensure_Frame_Details(CURRENT);
 
         Param* param = Phase_Params_Head(details);
-        if (Get_Parameter_Flag(param, OPT_OUT) and Any_Void(SPARE)) {
+        if (Get_Parameter_Flag(param, CONDITIONAL) and Any_Void(SPARE)) {
             Init_Nulled(OUT);
             goto lookahead;
         }

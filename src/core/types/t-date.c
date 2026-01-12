@@ -1217,8 +1217,8 @@ IMPLEMENT_GENERIC(DIFFERENCE, Is_Date)
 //          [integer!]
 //      seconds "3600 for each hour, 60 for each minute"
 //          [integer!]
-//      nano [none? integer!]
-//      zone [none? integer!]
+//      nano [<opt> integer!]
+//      zone [<opt> integer!]
 //  ]
 //
 DECLARE_NATIVE(MAKE_DATE_YMDSNZ)
@@ -1236,12 +1236,12 @@ DECLARE_NATIVE(MAKE_DATE_YMDSNZ)
     VAL_MONTH(OUT) = VAL_INT32(ARG(MONTH));
     VAL_DAY(OUT) = VAL_INT32(ARG(DAY));
 
-    if (Is_None(ARG(ZONE)))
+    if (not ARG(ZONE))
         VAL_ZONE(OUT) = NO_DATE_ZONE;
     else
-        VAL_ZONE(OUT) = VAL_INT32(ARG(ZONE)) / ZONE_MINS;
+        VAL_ZONE(OUT) = VAL_INT32(unwrap ARG(ZONE)) / ZONE_MINS;
 
-    REBI64 nano = Is_None(ARG(NANO)) ? 0 : VAL_INT64(ARG(NANO));
+    REBI64 nano = not ARG(NANO) ? 0 : VAL_INT64(unwrap ARG(NANO));
     Tweak_Cell_Nanoseconds(OUT, SECS_TO_NANO(VAL_INT64(ARG(SECONDS))) + nano);
 
     assert(Does_Date_Have_Time(OUT));
@@ -1258,7 +1258,7 @@ DECLARE_NATIVE(MAKE_DATE_YMDSNZ)
 //      seconds "3600 for each hour, 60 for each minute"
 //          [integer!]
 //      nano "Nanoseconds"
-//          [none? integer!]
+//          [<opt> integer!]
 //  ]
 //
 DECLARE_NATIVE(MAKE_TIME_SN)
@@ -1277,7 +1277,7 @@ DECLARE_NATIVE(MAKE_TIME_SN)
 
     Reset_Cell_Header_Noquote(TRACK(OUT), CELL_MASK_TIME);
 
-    REBI64 nano = Is_None(ARG(NANO)) ? 0 : VAL_INT64(ARG(NANO));
+    REBI64 nano = not ARG(NANO) ? 0 : VAL_INT64(unwrap ARG(NANO));
     Tweak_Cell_Nanoseconds(OUT, SECS_TO_NANO(VAL_INT64(ARG(SECONDS))) + nano);
 
     return OUT;

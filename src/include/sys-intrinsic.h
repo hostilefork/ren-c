@@ -49,14 +49,13 @@
 //
 // ** WHEN RUN AS AN INTRINSIC, THE ARG IN THE SPARE CELL CONTAINS A FULLY NON
 // TYPECHECKED META REPRESENTATION, AND THE NATIVE IS RESPONSIBLE FOR ALL
-// ARGUMENT PROCESSING (INCLUDING <opt> or <opt-out>).**
+// ARGUMENT PROCESSING (WITH THE EXCEPTION OF <cond>).**
 //
 // Not only that, but the special case of typechecking intrinsics (that
 // return LOGIC?) is that they can't write to L->out...because if you were
 // typechecking the argument in the output cell, checking would overwrite it.
 // Instead they have to communicate their result with BOUNCE_OKAY or nullptr
-// as the native return result.  Plus, they can't modify the arg in SPARE,
-// since type checks are applied multiple times to the same value!  :-/
+// as the native return result (use LOGIC(true), LOGIC(false) to be clear).
 //
 // The goal is making intrinsic dispatch cheap.  And quite simply, it won't
 // be cheap if you turn around and have to do typechecking on the argument,
@@ -64,10 +63,6 @@
 // could not use the intrinsic trick...because the SPARE and SCRATCH are
 // already committed to the intrinsic that's running.  It would undermine
 // the whole point of intrinsics to typecheck their argument.
-//
-// !!! Since the intrinsic has to do all the work of writing a type check for
-// the first argument, the case where dispatch is being done with a frame
-// should use that same fast check code.  This will be viable once all the
 //
 // These helpers are used to perform the argument processing.
 //
@@ -107,33 +102,15 @@ INLINE Option(const Symbol*) Level_Intrinsic_Label(Level* L) {
 }
 
 
-
-//=//// INTRINSIC FUNCTION ARGUMENT PROCESSING HELPERS ////////////////////=//
+// Typechecking for [element?] intrinsic arguments.
 //
-// If an intrinsic function is dispatched as an intrinsic, then it has to take
-// on its own typechecking for its argument.  This includes handling the
-// <opt-out> convention.
-//
-// 1. We can't return an Option(Bounce) here, because the nullptr signal has
-//    to be used in typechecking to return a falsey result without overwriting
-//    the OUT cell.  Any bounce value that doesn't ovewrite OUT and isn't
-//    returned by the checker could be used here...and since the only bounce
-//    value it does return at the moment is `nullptr` we use BOUNCE_OKAY.
-//
-// 2. There's an unusual situation arising due to the fact that we're doing
+// 1. There's an unusual situation arising due to the fact that we're doing
 //    the typecheck "inside the function call": we *might* or *might not* want
 //    to execute a panic() if the typecheck fails.  The case where we do not
 //    is when we've dispatched an intrinsic to do a typecheck, and it's
 //    enough to just return nullptr as if the typecheck didn't succeed.
 //
-
-#define BOUNCE_GOOD_INTRINSIC_ARG  BOUNCE_OKAY  // doesn't write OUT [1]
-
-
-// Handling for intrinsic args that are [<opt-out> element?], since they do
-// not necessarily do typechecking themselves.
-//
-// If it returns nullptr, then the caller should return nullptr.
+// 2. If this returns nullptr, then the caller should return nullptr.
 //
 INLINE Result(Option(Element*)) Typecheck_Element_Intrinsic_Arg(
     Level* L
@@ -141,7 +118,7 @@ INLINE Result(Option(Element*)) Typecheck_Element_Intrinsic_Arg(
     Value* arg = Unchecked_Intrinsic_Arg(L);
 
     if (Is_Antiform(arg)) {
-        if (Get_Level_Flag(L, RUNNING_TYPECHECK))
+        if (Get_Level_Flag(L, RUNNING_TYPECHECK))  // [1]
             return nullptr;  // [2]
         return fail (Error_Bad_Intrinsic_Arg_1(L));
     }
@@ -154,7 +131,7 @@ INLINE Result(Option(Element*)) Typecheck_Element_Intrinsic_Arg(
 // want frameless natives on the stack above an evaluation (which might want
 // to introspect the stack and isn't prepared to see an intrinsic there).
 //
-// If the parameter is <opt-out> that is handled prior to this as well.
+// If the parameter is <cond> that is handled prior to this as well.
 //
 INLINE Stable* Stable_Decayed_Intrinsic_Arg(
     Level* L

@@ -15,28 +15,28 @@ Rebol [
 (sys.util/register-codec
     'BE
     []
-    ^ghost
+    none
     decode-integer/
     encode-integer/)
 
 (sys.util/register-codec
     'LE
     []
-    ^ghost
+    none
     decode-integer:LE/
     encode-integer:LE/)
 
 (sys.util/register-codec
     'UTF-8
     []
-    ^ghost
+    none
     decode-UTF-8/
     encode-UTF-8/)
 
 (sys.util/register-codec
     'IEEE-754
     []
-    ^ghost
+    none
     decode-IEEE-754/
     encode-IEEE-754/)
 
@@ -54,7 +54,7 @@ array: func [
 
     return: [<null> block!]
     size "Size or block of sizes for each dimension"
-        [<opt-out> integer! block!]
+        [<cond> integer! block!]
     :initial "Initial value (will be called each time if action)"
         [element? action!]
     {rest block}  ; rest: null
@@ -99,18 +99,18 @@ replace: func [
 
     return: [<null> any-series?]
     target "Series to replace within (modified)"
-        [<opt-out> any-series?]
+        [<cond> any-series?]
     pattern "Value to be replaced (converted if necessary)"
-        [<opt-out> element? splice!]
+        [<cond> <opt> element? splice!]
     replacement "Value to replace with (called each time if action)"
-        [<opt-out> <unrun> element? splice! frame!]
+        [<cond> <unrun> element? splice! frame!]
 
     :one "Replace one (or zero) occurrences"
     :case "Case-sensitive replacement"  ; !!! Note this aliases CASE native!
 
     {^value pos tail}  ; !!! Aliases TAIL native (should use TAIL OF)
 ][
-    if none? pattern [return target]  ; FIND would always find NONE
+    if not pattern [return target]  ; FIND would always find NONE
 
     let case_REPLACE: case
     case: lib.case/
@@ -136,12 +136,12 @@ replace: func [
             value: replacement
         ]
 
-        if void? ^value [  ; treat returning void as "opt out of this replace"
+        if void? ^value [  ; treat returning void as "skip this replace"
             pos: tail
             continue
         ]
 
-        pos: change:part pos value tail
+        pos: change:part pos ^value tail  ; value may be PACK!, FAILURE!, etc.
 
         if one [break]
     ]
@@ -392,7 +392,7 @@ collect*: lambda [
         block!
         <null> "if no KEEPs, prevent nulls with (keep ~[]~)"
     ]
-    body [<opt-out> block!]
+    body [<cond> block!]
     {out}
 ][
     let keep: specialize (  ; SPECIALIZE to hide series argument
@@ -498,9 +498,10 @@ split: func [
 
     return: [<null> block!]
     series "The series to split"
-        [<opt-out> any-series?]
+        [<cond> any-series?]
     dlm "Split size, delimiter(s) (if all integer block), or block rule(s)"
         [
+            <cond>  ; don't split, return null
             <opt>  ; just return input
             block!  ; parse rule
             @block!  ; list of integers for piece lengths

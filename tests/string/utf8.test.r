@@ -25,7 +25,7 @@
 
     (
         tcopy: copy t
-        replace tcopy braille ^ghost
+        replace tcopy braille none
         (length of tcopy) = (tlen - length of braille)
     )
 
