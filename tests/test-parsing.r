@@ -250,7 +250,7 @@ export collect-logs: proc [
                     |
                 (panic "collect-logs - log file parsing problem")
             ]
-            position: <here>, cond (true? guard), break  ; Break on error
+            position: <here>, when (true? guard), break  ; Break on error
                 |
             seek position
         ]

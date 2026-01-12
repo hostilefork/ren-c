@@ -257,7 +257,7 @@ check-response: func [
                 ]
                 |
                 "3" [
-                    cond (spec.follow = 'ok) ('ok)
+                    when (spec.follow = 'ok) ('ok)
                     |
                     "02" (spec.follow)
                     |

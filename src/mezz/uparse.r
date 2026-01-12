@@ -339,9 +339,9 @@ default-combinators: make map! [
         return [{^} input]: trap parser:negated input
     ]
 
-    === CONDITIONAL COMBINATOR ===
+    === WHEN COMBINATOR ===
 
-    'conditional combinator [
+    'when combinator [
         "If parser's synthesized result is null, skip to next alternate"
         return: [any-stable?]
         input [any-series?]
@@ -351,12 +351,12 @@ default-combinators: make map! [
         [^result input]: trap parser input  ; non-matching parser, no match
 
         if void? ^result [
-            panic "CONDITIONAL combinator received VOID antiform result"
+            panic "WHEN combinator received VOID antiform result"
         ]
         if null? ^result [
-            return fail "CONDITIONAL combinator received NULL antiform result"
+            return fail "WHEN combinator received NULL antiform result"
         ]
-        return ^result  ; can say e.g. [x: cond (next var)] if you like
+        return ^result  ; can say e.g. [x: when (next var)] if you like
     ]
 
     === VETO COMBINATOR ===
@@ -2570,7 +2570,6 @@ default-combinators.(tuple!): default-combinators.(word!)
 
 default-combinators.opt: default-combinators.optional
 default-combinators.lit: default-combinators.literal
-default-combinators.cond: default-combinators.conditional
 default-combinators.(just @): default-combinators.one
 
 

@@ -178,10 +178,11 @@ enum parse_flags {
     PF_CHANGE = 1 << 11,
     PF_LOOPING = 1 << 12,
     PF_FURTHER = 1 << 13,  // must advance parse input to count as a match
-    PF_OPTIONAL = 1 << 14,  // want VOID (not no-op) if no matches
-    PF_TRY = 1 << 15,  // want NULL (not no-op) if no matches
+    PF_OPTIONAL = 1 << 14,  // want NONE (not no-op) if no matches
+    PF_CONDITIONAL = 1 << 15,  // want GHOST! (not no-op) if no matches
+    PF_TRY = 1 << 16,  // want NULL (not no-op) if no matches
 
-    PF_ONE_RULE = 1 << 16,  // signal to only run one step of the parse
+    PF_ONE_RULE = 1 << 17,  // signal to only run one step of the parse
 
     PF_MAX = PF_ONE_RULE
 };
@@ -1151,7 +1152,7 @@ static Result(REBIXO) To_Thru_Non_Block_Rule(
 //
 static Result(None) Handle_Mark_Rule(
     Level* level_,
-    const Element* quoted_set_or_copy_word  // bound
+    const Element* set_or_copy_word  // bound
 ){
     INCLUDE_PARAMS_OF_SUBPARSE;
 
@@ -1162,15 +1163,27 @@ static Result(None) Handle_Mark_Rule(
 
     Quotify_Depth(Element_ARG(POSITION), P_NUM_QUOTES);
 
-    // !!! Assume we might not be able to corrupt SPARE (rule may be
-    // in SPARE?)
-    //
-    if (rebRunThrows(
-        OUT,  // <-- output cell
-        CANON(SET), quoted_set_or_copy_word, ARG(POSITION)
-    )){
-        panic (Error_No_Catch_For_Throw(LEVEL));
-    }
+    // !!! Assume we might not be able to corrupt SPARE or SCRATCH (rule may
+    // be in SPARE?)  Review.
+
+    Blit_Cell(PUSH(), SPARE);
+    Blit_Cell(PUSH(), SCRATCH);
+
+    heeded (Copy_Cell(SCRATCH, set_or_copy_word));
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+    STATE = 1;
+
+    Copy_Cell(OUT, ARG(POSITION));
+
+    require (
+        Set_Var_In_Scratch_To_Out(level_, NO_STEPS)
+    );
+
+    Force_Blit_Cell(SCRATCH, TOP);
+    DROP();
+    Force_Blit_Cell(SPARE, TOP);
+    DROP();
+
     Erase_Cell(OUT);
 
     Noquotify(Element_ARG(POSITION));  // go back to 0 quote level
@@ -1331,7 +1344,7 @@ DECLARE_NATIVE(SUBPARSE)
     //
     assert((P_FLAGS & PF_STATE_MASK) == 0);
 
-    Element* quoted_set_or_copy_word = nullptr;
+    Element* set_or_copy_word = nullptr;
 
     REBINT mincount = 1;  // min pattern count
     REBINT maxcount = 1;  // max pattern count
@@ -1478,6 +1491,13 @@ DECLARE_NATIVE(SUBPARSE)
                 FETCH_NEXT_RULE(L);
                 goto pre_rule;
 
+              case SYM_COND:
+              case SYM_CONDITIONAL:
+                P_FLAGS |= PF_CONDITIONAL;
+                mincount = 0;
+                FETCH_NEXT_RULE(L);
+                goto pre_rule;
+
               case SYM_TRY:
                 P_FLAGS |= PF_TRY;
                 mincount = 0;
@@ -1567,15 +1587,14 @@ DECLARE_NATIVE(SUBPARSE)
                     goto handle_set;
                 }
 
-                quoted_set_or_copy_word = Copy_Cell_May_Bind(
+                set_or_copy_word = Copy_Cell_May_Bind(
                     LOCAL(LOOKBACK), P_RULE, P_RULE_BINDING
                 );
-                if (Is_Chain(quoted_set_or_copy_word)) {
+                if (Is_Chain(set_or_copy_word)) {
                     assume (
-                        Unsingleheart_Sequence(quoted_set_or_copy_word)
+                        Unsingleheart_Sequence(set_or_copy_word)
                     );
                 }
-                Quote_Cell(quoted_set_or_copy_word);
 
                 FETCH_NEXT_RULE(L);
                 goto pre_rule;
@@ -1657,7 +1676,7 @@ DECLARE_NATIVE(SUBPARSE)
 
                 goto reparse_rule; }
 
-              case SYM_COND: {
+              case SYM_WHEN: {
                 FETCH_NEXT_RULE(L);
                 if (P_AT_END)
                     panic (Error_Parse3_End());
@@ -1852,13 +1871,12 @@ DECLARE_NATIVE(SUBPARSE)
     }
     else if (Is_Set_Tuple(rule)) {
       handle_set:
-        quoted_set_or_copy_word = Copy_Cell_May_Bind(
+        set_or_copy_word = Copy_Cell_May_Bind(
             LOCAL(LOOKBACK), rule, P_RULE_BINDING
         );
         assume (
-            Unsingleheart_Sequence(quoted_set_or_copy_word)
+            Unsingleheart_Sequence(set_or_copy_word)
         );
-        Quote_Cell(quoted_set_or_copy_word);
         FETCH_NEXT_RULE(L);
 
         if (Is_Word(P_RULE) and Word_Id(P_RULE) == SYM_ACROSS) {
@@ -1877,7 +1895,7 @@ DECLARE_NATIVE(SUBPARSE)
                 panic ("SET-WORD! works with <HERE> tag in PARSE3");
 
             require (
-              Handle_Mark_Rule(L, quoted_set_or_copy_word)
+              Handle_Mark_Rule(L, set_or_copy_word)
             );
             goto pre_rule;
         }
@@ -2286,7 +2304,13 @@ DECLARE_NATIVE(SUBPARSE)
                 // sense to carry forward the quoting on the input.  It is not
                 // obvious what marking a position should do.
 
-                rebElide(CANON(SET), quoted_set_or_copy_word, Lift_Cell(OUT));
+                heeded (Copy_Cell(SCRATCH, set_or_copy_word));
+                heeded (Corrupt_Cell_If_Needful(SPARE));
+                STATE = 1;
+
+                require (
+                    Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+                );
                 Erase_Cell(OUT);
             }
             else if (P_FLAGS & PF_SET) {
@@ -2308,7 +2332,9 @@ DECLARE_NATIVE(SUBPARSE)
                     if (P_FLAGS & PF_TRY)  // don't just leave alone
                         Init_Nulled(OUT);
                     else if (P_FLAGS & PF_OPTIONAL)
-                        panic ("Cannot assign OPT VOID to variable in PARSE3");
+                        Init_None(OUT);
+                    else if (P_FLAGS & PF_CONDITIONAL)
+                        Init_Ghost_For_Unset(OUT);
                 }
                 else if (Stub_Holds_Cells(P_INPUT)) {
                     assert(count == 1);  // check for > 1 would have errored
@@ -2327,7 +2353,13 @@ DECLARE_NATIVE(SUBPARSE)
                         );
                 }
 
-                rebElide(CANON(SET), quoted_set_or_copy_word, Lift_Cell(OUT));
+                heeded (Copy_Cell(SCRATCH, set_or_copy_word));
+                heeded (Corrupt_Cell_If_Needful(SPARE));
+                STATE = 1;
+
+                require (
+                  Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+                );
                 Erase_Cell(OUT);
             }
 
@@ -2423,7 +2455,7 @@ DECLARE_NATIVE(SUBPARSE)
         }
 
         P_FLAGS &= ~PF_STATE_MASK;  // reset any state-oriented flags
-        quoted_set_or_copy_word = nullptr;
+        set_or_copy_word = nullptr;
     }
 
     if (Is_Nulled(ARG(POSITION))) {

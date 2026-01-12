@@ -138,13 +138,13 @@ elf-format: context [
         repeat 2 one  ; e_machine
         repeat 4 one  ; e_version
         [
-            cond (bits = 32) [
+            when (bits = 32) [
                 repeat 4 one ; e_entry
                 begin: <here>, repeat 4 one (handler e_phoff 4)
                 begin: <here>, repeat 4 one (handler e_shoff 4)
             ]
         |
-            cond (bits = 64) [
+            when (bits = 64) [
                 repeat 8 one ; e_entry
                 begin: <here>, repeat 8 one (handler e_phoff 8)
                 begin: <here>, repeat 8 one (handler e_shoff 8)
@@ -164,7 +164,7 @@ elf-format: context [
     program-header-rule: [
         begin: <here>, repeat 4 one (handler p_type 4)
         [
-            cond (bits = 32) [
+            when (bits = 32) [
                 begin: <here>, repeat 4 one (handler p_offset 4)
                 repeat 4 one  ; p_vaddr
                 repeat 4 one  ; p_paddr
@@ -172,7 +172,7 @@ elf-format: context [
                 repeat 4 one  ; p_memsz
             ]
         |
-            cond (bits = 64) [
+            when (bits = 64) [
                 repeat 4 one  ; p_flags, different position in 64-bit
                 begin: <here>, repeat 8 one (handler p_offset 8)
                 repeat 8 one  ; p_vaddr
@@ -182,12 +182,12 @@ elf-format: context [
             ]
         ]
         [
-            cond (bits = 32) [
+            when (bits = 32) [
                 repeat 4 one  ; p_flags, different position in 32-bit
                 repeat 4 one  ; p_align
             ]
         |
-            cond (bits = 64) [
+            when (bits = 64) [
                 repeat 8 one  ; p_align
             ]
         ]
@@ -199,14 +199,14 @@ elf-format: context [
         begin: <here>, repeat 4 one (handler sh_name 4)
         begin: <here>, repeat 4 one (handler sh_type 4)
         [
-            cond (bits = 32) [
+            when (bits = 32) [
                 begin: <here>, repeat 4 one (handler sh_flags 4)
                 begin: <here>, repeat 4 one (handler sh_addr 4)
                 begin: <here>, repeat 4 one (handler sh_offset 4)
                 begin: <here>, repeat 4 one (handler sh_size 4)
             ]
         |
-            cond (bits = 64) [
+            when (bits = 64) [
                 begin: <here>, repeat 8 one (handler sh_flags 8)
                 begin: <here>, repeat 8 one (handler sh_addr 8)
                 begin: <here>, repeat 8 one (handler sh_offset 8)
@@ -216,12 +216,12 @@ elf-format: context [
         begin: <here>, repeat 4 one (handler sh_link 4)
         begin: <here>, repeat 4 one (handler sh_info 4)
         [
-            cond (bits = 32) [
+            when (bits = 32) [
                 begin: <here>, repeat 4 one (handler sh_addralign 4)
                 begin: <here>, repeat 4 one (handler sh_entsize 4)
             ]
         |
-            cond (bits = 64) [
+            when (bits = 64) [
                 begin: <here>, repeat 8 one (handler sh_addralign 8)
                 begin: <here>, repeat 8 one (handler sh_entsize 8)
             ]

@@ -46,6 +46,9 @@ Rebol [
     some
     opt
     optional
+    cond
+    conditional
+    when
     try
     repeat
     further  ; https://forum.rebol.info/t/1593
@@ -55,13 +58,11 @@ Rebol [
     remove
     insert
     change
-    when
     accept
     break
     reject
     veto
     inline
-    cond
     seek  ; Ren-C addition
     ;
     ; DEPRECATED PARSE PRE-MATCH WORDS (still have case statements for errors,

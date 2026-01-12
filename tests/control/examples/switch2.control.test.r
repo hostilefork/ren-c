@@ -13,7 +13,7 @@ switch2: lambda [
     {more (okay) found (null) ^result condition branch}
 ][
     parse cases [cycle [
-        while cond (more) [
+        while when (more) [
             ; Find next condition clause, or break loop if we hit => or end
             ;
             condition: between <here> any [
@@ -26,7 +26,7 @@ switch2: lambda [
                 ; If we've already found a condition that matched, skip any
                 ; following alternates.
                 ;
-                [cond (found) (log ["Skipping condition:" mold condition])]
+                [when (found) (log ["Skipping condition:" mold condition])]
 
                 ; Otherwise, try building a frame for the condition.  If the
                 ; frame is incomplete, slip switch value into antiform ~ slot
@@ -63,7 +63,7 @@ switch2: lambda [
         any [
             ; If we didn't find a matching condition, skip over this branch.
             ;
-            [cond (not found) (log ["Skipping branch:" mold branch])]
+            [when (not found) (log ["Skipping branch:" mold branch])]
 
             ; Otherwise, run the branch.  Keep going if we are using :MULTI,
             ; else return whatever that branch gives back.

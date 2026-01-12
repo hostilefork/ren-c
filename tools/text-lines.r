@@ -164,7 +164,7 @@ text-line-of: func [
         opt some [
             to newline cursor: <here>
 
-            cond (lesser? index of cursor idx)
+            when (lesser? index of cursor idx)
 
             advance-rule
         ]
@@ -200,10 +200,7 @@ text-location-of: func [
         opt some [
             to newline cursor: <here>
 
-            ; !!! IF is deprecated in PARSE, but this code is expected to work
-            ; in bootstrap.
-            ;
-            cond (lesser? index of cursor idx)
+            when (lesser? index of cursor idx)
 
             advance-rule
         ]

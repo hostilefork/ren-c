@@ -66,23 +66,23 @@
 ] ok)]
 
 [https://github.com/red/red/issues/562
-    ~parse-incomplete~ !! (parse [+] [opt some ['+ cond (null)]])
-    ~parse-incomplete~ !! (parse "+" [opt some [#+ cond (null)]])
+    ~parse-incomplete~ !! (parse [+] [opt some ['+ when (null)]])
+    ~parse-incomplete~ !! (parse "+" [opt some [#+ when (null)]])
 ]
 
 
 [
     (
         x: ~
-        6 = parse [2 4 6] [some [x: integer! elide cond (even? x)]]
+        6 = parse [2 4 6] [some [x: integer! elide when (even? x)]]
     )
     ~parse-mismatch~ !! (
         x: ~
-        parse [1] [x: integer! elide cond (even? x)]
+        parse [1] [x: integer! elide when (even? x)]
     )
     ~parse-mismatch~ !! (
         x: ~
-        parse [1 5] [some [x: integer! elide cond (even? x)]]
+        parse [1 5] [some [x: integer! elide when (even? x)]]
     )
 ]
 
@@ -92,7 +92,7 @@
         res: ~
         f563: lambda [t [text!]] [did try parse t [opt some r]]
 
-        r: [#+, cond (f563 "-")]
+        r: [#+, when (f563 "-")]
 
         all [
             not f563 "-"
@@ -118,7 +118,7 @@
                 x: across repeat (l) one
                 [
                     #","
-                    | #"]" cond (f x)
+                    | #"]" when (f x)
                 ]
             ]
             return not error? parse s [opt some r <end>]
