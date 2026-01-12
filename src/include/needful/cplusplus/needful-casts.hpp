@@ -405,12 +405,9 @@ Hookable_Cast_Helper(FromRef&& from)
     );
 
   #if NEEDFUL_CAST_CALLS_HOOKS
-        using HookFrom = conditional_t<  // validate beneath thin wrapper [5]
-            HasWrappedType<From>::value,
-            needful_unwrapped_type(From),
-            From
-        >;
-        using ConstFrom = needful_constify_t(HookFrom);
+        using ConstFrom = needful_constify_t(  // validate beneath wrapper [5]
+            needful_unwrapped_if_wrapped_type(From)
+        );
         CastHook<ConstFrom, ConstTo>::Validate_Bits(static_cast<ConstFrom>(from));
   #endif
 
@@ -673,4 +670,3 @@ struct FunctionPointerCastHelper {
     (reinterpret_cast< \
         needful::FunctionPointerCastHelper<decltype(expr),T>::type \
     >(expr))
-

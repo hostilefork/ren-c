@@ -123,6 +123,18 @@ struct UnwrappedType<T, true>
 #define needful_unwrapped_type(T) \
     typename needful::UnwrappedType<T>::type
 
+template<typename T>
+struct UnwrappedIfWrappedType {
+    using type = conditional_t<
+        HasWrappedType<T>::value,
+        needful_unwrapped_type(T),
+        T
+    >;
+};
+
+#define needful_unwrapped_if_wrapped_type(T) \
+    typename needful::UnwrappedIfWrappedType<T>::type
+
 
 //=//// REWRAP AN INNER TYPE WITH THE SAME TEMPLATE ///////////////////////=//
 //
