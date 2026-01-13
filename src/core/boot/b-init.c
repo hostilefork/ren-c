@@ -351,14 +351,6 @@ static void Init_Root_Vars(void)
 
     Tweak_Non_Frame_Varlist_Rootvar(a, TYPE_OBJECT);
 
-    g_empty_varlist = cast(VarList*, a);
-
-    known_nullptr(g_empty_object) = Init_Object(
-        Alloc_Value(),
-        g_empty_varlist  // holds empty varlist alive
-    );
-    Force_Value_Frozen_Deep(g_empty_object);
-
 } make_heavy_null: {
 
   // keep array alive via stable API handle (META PACK, not PACK)
@@ -421,8 +413,6 @@ static void Shutdown_Root_Vars(void)
     Erase_Bounce_Wild(g_bounce_suspend);
 
     rebReleaseAndNull(&g_empty_text);
-    rebReleaseAndNull(&g_empty_object);
-    g_empty_varlist = nullptr;
     rebReleaseAndNull(&g_lifted_heavy_null);
     g_1_quasi_null_array = nullptr;
     rebReleaseAndNull(&Root_Feed_Null_Substitute);
