@@ -775,10 +775,19 @@ void Startup_Core(void)
         "evaluate inside", g_lib_module, rebQ(&boot->constants)
     );
 
-    Protect_LIB(NULL);
-    Protect_LIB(SPACE);
-    Protect_LIB(QUASAR);
-    Protect_LIB(NUL);
+    for (
+        SymId16 sym = MIN_SYM_BASE_CONSTANTS;
+        sym <= MAX_SYM_BASE_CONSTANTS;
+        ++sym
+    ){
+        Value* v = Possibly_Unstable(Mutable_Lib_Value(cast(SymId, sym)));
+        if (Not_Cell_Stable(v))
+            continue;  // no locking needed for unstable antifomrs
+        Flex* locker = nullptr;
+        bool deep = false;
+        Force_Value_Frozen_Core(As_Stable(v), deep, locker);
+        Protect_Cell(v);
+    }
 
 } startup_errors: {
 

@@ -29,21 +29,21 @@ zero: 0
 ; Char constants
 
 space:     _  ; extremely popular single-character literal (rune!)
-sp: SP:    space
+SP:        space
 backspace: #"^(BACK)"
-bs: BS:    backspace
+BS:        backspace
 tab:       #"^-"
 newline:   #"^/"
 newpage:   #"^l"
 slash:     #"/"
 backslash: #"\"
 escape:    #"^(ESC)"
-cr: CR:    #"^M"
-lf: LF:    newline
+CR:        #"^M"
+LF:        newline
 
 ; Binary constants
 
-nul: NUL:  #{00}  ; ^(NULL) no longer legal internal to strings
+NUL:       #{00}  ; ^(NULL) no longer legal internal to strings
 
 empty-block: '[]
 none: spread empty-block

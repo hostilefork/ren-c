@@ -235,13 +235,21 @@ for-each 'term load3 %lib-words.r [
 ; Eventually everything in LIB should be pre-created, so that are the module
 ; stubs and symbols are pre-created.  But stripload's gathering would need
 ; to be smarter.
+;
+; 1. We automatically protect the cells in the base constant range so the
+;    constants in LIB (which the system relies upon) don't get modified.
+;    So we have to make sure the constants are all in that contiguous range,
+;    which they wouldn't be if they'd been added already.
+
+add-sym:placeholder <MIN_SYM_BASE_CONSTANTS>
 
 base-constants: []
 stripload:gather %../mezz/base-constants.r $base-constants
-probe base-constants
 for-each 'name base-constants [
-    add-sym:relax name
+    add-sym name  ; no :RELAX [1]
 ]
+
+add-sym:placeholder </MAX_SYM_BASE_CONSTANTS>
 
 
 === "ESTABLISH SYM_XXX VALUES FOR EACH NATIVE" ===
