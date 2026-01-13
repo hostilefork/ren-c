@@ -121,7 +121,7 @@ PVAR Source* g_1_quasi_null_array;  // used by heavy nulls ~(~null~)~
 
 PVAR Stable* g_lifted_heavy_null;  // keeps g_1_quasi_null_array alive
 
-PVAR Element* Root_Feed_Null_Substitute;  // flagged with FEED_HINT_ANTIFORM
+PVAR Element* g_feed_null_substitute;  // flagged with FEED_HINT_ANTIFORM
 
 PVAR Stub PG_Inaccessible_Stub;  // GC canonizes all inaccessible stubs to this
 

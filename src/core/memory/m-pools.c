@@ -1280,18 +1280,15 @@ void Assert_Pointer_Detection_Working(void)
     assert(Detect_Rebol_Pointer("") == DETECTED_AS_UTF8);
     assert(Detect_Rebol_Pointer("asdf") == DETECTED_AS_UTF8);
 
-    assert(Detect_Rebol_Pointer(Cell_Strand(g_tag_opt)) == DETECTED_AS_STUB);
-    assert(Detect_Rebol_Pointer(g_quasi_null) == DETECTED_AS_CELL);
+    Cell* cell = g_feed_null_substitute;
+    assert(Detect_Rebol_Pointer(cell) == DETECTED_AS_CELL);
+    UNUSED(cell);
 
-    DECLARE_ELEMENT (unreadable);
-    Init_Unreadable(unreadable);
-    Assert_Cell_Writable(unreadable);
-    assert(Detect_Rebol_Pointer(unreadable) == DETECTED_AS_CELL);
+    const Stub* stub = Word_Symbol(g_feed_null_substitute);
+    assert(Detect_Rebol_Pointer(stub) == DETECTED_AS_STUB);
+    UNUSED(stub);
 
     assert(Detect_Rebol_Pointer(rebEND) == DETECTED_AS_END);
-
-    const Binary* b = Cell_Binary(g_empty_blob);
-    assert(Detect_Rebol_Pointer(b) == DETECTED_AS_STUB);
 }
 
 

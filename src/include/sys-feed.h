@@ -357,7 +357,7 @@ INLINE void Force_Variadic_Feed_At_Cell_Or_End_May_Panic(Feed* feed)
 
     if (not feed->p) {  // libRebol's NULL (prohibited as an Is_Nulled() CELL)
 
-        feed->p = Root_Feed_Null_Substitute;
+        feed->p = g_feed_null_substitute;
 
     } else switch (Detect_Rebol_Pointer(feed->p)) {
 

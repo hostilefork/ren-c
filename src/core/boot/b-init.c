@@ -364,9 +364,9 @@ static void Init_Root_Vars(void)
 
 } make_other_things: {
 
-    known_nullptr(Root_Feed_Null_Substitute) = Init_Quasi_Null(Alloc_Value());
-    Set_Cell_Flag(Root_Feed_Null_Substitute, FEED_HINT_ANTIFORM);
-    Protect_Cell(Root_Feed_Null_Substitute);
+    known_nullptr(g_feed_null_substitute) = Init_Quasi_Null(Alloc_Value());
+    Set_Cell_Flag(g_feed_null_substitute, FEED_HINT_ANTIFORM);
+    Protect_Cell(g_feed_null_substitute);
 
     require (
       Strand* nulled_uni = Make_Strand(1)  // rebText() can't run yet, review
@@ -415,7 +415,7 @@ static void Shutdown_Root_Vars(void)
     rebReleaseAndNull(&g_empty_text);
     rebReleaseAndNull(&g_lifted_heavy_null);
     g_1_quasi_null_array = nullptr;
-    rebReleaseAndNull(&Root_Feed_Null_Substitute);
+    rebReleaseAndNull(&g_feed_null_substitute);
     rebReleaseAndNull(&g_empty_blob);
     rebReleaseAndNull(&g_quasi_null);
     rebReleaseAndNull(&g_tripwire);
