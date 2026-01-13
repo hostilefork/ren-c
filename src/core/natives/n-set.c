@@ -503,7 +503,7 @@ DECLARE_NATIVE(SET)
     Value* v = ARG(VALUE);  // not a dual yet (we have to lift it...)
 
     if (not ARG(TARGET))
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
     Element* target = As_Element(unwrap ARG(TARGET));
 
@@ -518,11 +518,11 @@ DECLARE_NATIVE(SET)
           bool vanished = Recalculate_Group_Arg_Vanishes(LEVEL, SYM_SET)
         );
         if (vanished)
-            return NULLED;
+            return NULL_OUT;
     }
 
     if (Is_Failure(v) and not Is_Metaform(target))
-        return COPY(v);  // error passthru [B]
+        return COPY_TO_OUT(v);  // error passthru [B]
 
     if (Is_Block(target)) {
         Copy_Cell(SCRATCH, target);
@@ -546,11 +546,11 @@ DECLARE_NATIVE(SET)
         require (
             Decay_If_Unstable(v)
         );
-        return COPY(v);
+        return COPY_TO_OUT(v);
     }
 
     if (Is_Metaform_Space(target))
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
   delegate_to_tweak: {
 
@@ -581,5 +581,5 @@ DECLARE_NATIVE(SET)
     Element* lifted = As_Element(dual);
     assert(Any_Lifted(lifted));
 
-    return UNLIFT(lifted);  // unlift TWEAK dual result to normal [2]
+    return UNLIFT_TO_OUT(lifted);  // unlift TWEAK dual result to normal [2]
 }}

@@ -815,7 +815,7 @@ INLINE Bounce Native_Panic_Result(Level* L, Error* e) {;
 
 // Dispatchers like Lambda_Dispatcher() etc. have their own knowledge of
 // whether they are `return: ~` or not, based on where they keep the return
-// information.  So they can't use the `return TRASH;` idiom.
+// information.  So they can't use the `return TRASH_OUT;` idiom.
 //
 INLINE Stable* Init_Trash_Named_From_Level(Sink(Stable) out, Level* level_) {
     Option(const Symbol*) label = Level_Label(level_);
@@ -829,11 +829,11 @@ INLINE Stable* Init_Trash_Named_From_Level(Sink(Stable) out, Level* level_) {
 
 // Functions that `return: ~` actually make a TRASH! with the label of the
 // level that produced it.  This is usually done in typechecking, but natives
-// don't run typechecks in the release build...so the `return TRASH;` has to
+// don't run typechecks in the release build...so the `return TRASH_OUT;` has to
 // do it.
 //
 // 1. If you say `return: [trash!]` then type checking doesn't distort the
-//    contents of the trash, so we don't want natives using `return TRASH;`
+//    contents of the trash, so we don't want natives using `return TRASH_OUT;`
 //    to have the behavior on accident.
 //
 INLINE Value* Native_Trash_Result_Untracked(
@@ -854,9 +854,9 @@ INLINE Bounce Native_Unlift_Result(Level* level_, const Element* v) {
     assert(not THROWING);
     Copy_Cell(level_->out, v);
     require (
-      Value* atom = Unlift_Cell_No_Decay(level_->out)
+      Value* undecayed = Unlift_Cell_No_Decay(level_->out)
     );
-    return atom;
+    return undecayed;
 }
 
 
@@ -877,7 +877,7 @@ INLINE Bounce Native_Unlift_Result(Level* level_, const Element* v) {
 //    all you were returning.)
 //
 // Hence you're only allowed to return API Cells, and they are freed upon
-// the return.  Core natives must `return COPY(v);` for any non-API cells.
+// the return.  Core natives must `return COPY_TO_OUT(v);` for non-API cells.
 //
 INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
     assert(not Is_Api_Value(v));  // too easy to not release()
@@ -885,6 +885,8 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
 }
 
 
+//=//// LEVEL SHORTHAND MACROS ////////////////////////////////////////////
+//
 // Quick access functions from natives (or compatible functions that name a
 // Level* pointer `level_`) to get some of the common public fields.
 //
@@ -893,44 +895,75 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
 // to #undef the Windows versions and would rather pick their own shorthands,
 // (if any).
 //
-// 1. Once it was relatively trivial to say `return nullptr;` vs to say
+// 1. Once these names were shorter, e.g. just COPY() vs. COPY_TO_OUT(), or
+//    GHOST vs. GHOST_OUT.  But these more complex names help clarify what's
+//    going on: that it's an active process, not a Cell*.  Or one might think
+//    GHOST was LIB(GHOST), but it's actively illegal to `return LIB(GHOST);`
+//    from a native.  See Native_Copy_Result_Untracked() for why.
+//
+// 2. The idea of NULL_OUT or GHOST_OUT etc. is that there's an operation done
+//    on the output cell (Init_Nulled(OUT), Init_Ghost(OUT)).  BRANCHED_OUT
+//    might imply something simliar, like (Init_Branched(OUT)), but we break
+//    the pattern to help cue that what you're returning is OUT, asserting
+//    that it was branched.  That's the idea, anyway.
+//
+// 3. Once it was relatively trivial to say `return nullptr;` vs to say
 //    `return Init_Nulled(OUT);`, so it wasn't considered to be any big
 //    savings to not return the output cell pointer directly.  That was
 //    before Result(T), where more complex discernment is needed on the 0
 //    bounce state to decide if it's an error or not.  It's now worth it to
-//    `return NULLED;` to avoid the extra checking.
+//    `return NULL_OUT;` to avoid the extra checking.
+//
+// 4. Intrinsic typecheckers must return BOUNCE_OKAY or nullptr, so that they
+//    do not overwrite OUT.  This means that trying to make LOGIC(b) "more
+//    efficient by doing Init_Okay(OUT) or Init_Nulled(OUT) will break things.
+//
+// 5. `panic (UNHANDLED);` is a shorthand for something that's written often
+//    enough in IMPLEMENT_GENERIC() handlers that it seems worthwhile.
+//
+//    !!! Once it was customized based on the "verb" of a generic, but that
+//    mechanism has been removed.  Review what generic dispatch might do to
+//    make this better (distinct BOUNCE_UNHANDLED that only the generic
+//    dispatch mechanism understands, and slipstream verb into the generic
+//    somehow?)
 //
 #if REBOL_LEVEL_SHORTHAND_MACROS
-    //
-    // To make it clearer why you are defining the `level_` alias, use this
-    // macro...so you don't have to comment every time.  The const constraint
-    // helps check you're not expecting it to change when updating L.  (If
-    // we weren't worried about building with C we could use a C++ reference
-    // and it could update... but... we still build as C.)
-    //
-  #if CPLUSPLUS_11
-    #define USE_LEVEL_SHORTHANDS(L) \
-        static_assert(std::is_const<decltype(L)>::value, "L must be const"); \
-        Level* const level_ = L
-  #else
-    #define USE_LEVEL_SHORTHANDS(L) \
-        Level* const level_ = L
-  #endif
-
-    #define LEVEL   level_
-    #define OUT     level_->out         // GC-safe slot for output value
-    #define SPARE   Level_Spare(level_)       // scratch GC-safe cell
-    #define SCRATCH Level_Scratch(level_)
-    #define STATE   LEVEL_STATE_BYTE(level_)
+    #define LEVEL           level_
+    #define STATE           LEVEL_STATE_BYTE(level_)
+    #define BASELINE        (&level_->baseline)
+    #define STACK_BASE      (level_->baseline.stack_base)
 
     #define SUBLEVEL    (assert(TOP_LEVEL->prior == level_), TOP_LEVEL)
 
-    #define GHOST       x_cast(Bounce, Init_Ghost(OUT))
-    #define NULLED      x_cast(Bounce, Init_Nulled(OUT))  // nontrivial [1]
+    #define SPARE       Level_Spare(level_)
+    #define SCRATCH     Level_Scratch(level_)
 
-    #define TRASH       TRACK(Native_Trash_Result_Untracked(level_))
-    #define THROWN      Native_Thrown_Result(level_)
-    #define UNLIFT(v)   Native_Unlift_Result(level_, (v))
+    #define OUT  level_->out
+
+    #define COPY_TO_OUT(v) /* not COPY(v)...verbosity is intentional [1] */ \
+        (Native_Copy_Result_Untracked(level_, (v)), x_cast(Bounce, TRACK(OUT)))
+
+    #define OUT_BRANCHED /* OUT_BRANCHED vs. BRANCHED_OUT for a reason [2] */ \
+        (assert(not Is_Light_Null(OUT) and not Is_Ghost(OUT)), \
+            x_cast(Bounce, OUT))
+
+    #define GHOST_OUT             x_cast(Bounce, Init_Ghost(OUT))
+    #define GHOST_OUT_UNBRANCHED  x_cast(Bounce, Init_Ghost(OUT))
+
+    #define NULL_OUT /* `return NULL_OUT` is better than `return nullptr` */ \
+        x_cast(Bounce, Init_Nulled(OUT))  // ...see [3] for why it's better!
+
+    #define NULL_OUT_BREAKING /* separate macro for VETOING not worth it */ \
+        x_cast(Bounce, Init_Nulled(OUT))  // [3]
+
+    #define LOGIC_OUT(b) \
+        ((b) == true ? BOUNCE_OKAY : nullptr)  // no Init_Okay/Nulled()! [4]
+
+    #define TRASH_OUT  TRACK(Native_Trash_Result_Untracked(level_))
+
+    #define UNLIFT_TO_OUT(v)  Native_Unlift_Result(level_, (v))
+
+    #define THROWN  Native_Thrown_Result(level_)
 
     #define PANIC(p) \
         return Native_Panic_Result(level_, Derive_Error_From_Pointer(p))
@@ -943,38 +976,30 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
             return PANIC(Needful_Test_And_Clear_Failure()); \
         } NEEDFUL_NOOP  /* force require semicolon at callsite */
 
-    #define COPY(v) \
-        (Native_Copy_Result_Untracked(level_, (v)), x_cast(Bounce, TRACK(OUT)))
-
-    #define OUT_BRANCHED \
-        (assert(not Is_Light_Null(OUT) and not Is_Ghost(OUT)), \
-        x_cast(Bounce, OUT))
-
-    #define VETOING_NULL  x_cast(Bounce, nullptr)
-
-    #define BREAKING_NULL  VETOING_NULL  // does break it need to be distinct?
-
-    // Note: For efficiency, intrinsic typecheckers must return BOUNCE_OKAY
-    // or nullptr.  This means that trying to make LOGIC(b) "more efficient"
-    // by doing Init_Okay(OUT) or Init_Nulled(OUT) will break things.
-    //
-    #define OKAY        BOUNCE_OKAY
-    #define LOGIC(b)    ((b) == true ? BOUNCE_OKAY : nullptr)
-
-    // `panic (UNHANDLED);` is a shorthand for something that's written often
-    // enough in IMPLEMENT_GENERIC() handlers that it seems worthwhile.
-    //
-    // !!! Once it was customized based on the "verb" of a generic, but that
-    // mechanism has been removed.  Review what generic dispatch might do
-    // to make this better (distinct BOUNCE_UNHANDLED that only the generic
-    // dispatch mechanism understands, and slipstream verb into the generic
-    // somehow?)
-    //
     #define UNHANDLED \
-        Error_Unhandled(level_)
+        Error_Unhandled(level_)  // !!! REVIEW [5]
+#endif
 
-    #define BASELINE   (&level_->baseline)
-    #define STACK_BASE (level_->baseline.stack_base)
+
+//=//// USE_LEVEL_SHORTHANDS() MACRO //////////////////////////////////////=//
+//
+// In many functions that take a Level* parameter, it's convenient to have
+// that under a simple name (like `L`) but still want to use the shorthand
+// macros like SPARE to refer to (&L->spare).  This macro simply defines the
+// level_ alias for you...but makes it clearer why you're defining it.
+//
+// 1. The const constraint helps check you're not expecting it to change when
+//    updating L (references are possible in C++, but not in C).
+//
+#if REBOL_LEVEL_SHORTHAND_MACROS
+  #if CPLUSPLUS_11  // can add constraint you defined as `Level* const L` [1]
+    #define USE_LEVEL_SHORTHANDS(L) \
+        static_assert(std::is_const<decltype(L)>::value, "L must be const"); \
+        Level* const level_ = L
+  #else
+    #define USE_LEVEL_SHORTHANDS(L) \
+        Level* const level_ = L
+  #endif
 #endif
 
 

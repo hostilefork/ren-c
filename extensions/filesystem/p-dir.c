@@ -133,7 +133,7 @@ DECLARE_NATIVE(DIR_ACTOR)
         // all of it).
         //
       case SYM_OPEN_Q:
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     //=//// READ ///////////////////////////////////////////////////////////=//
 
@@ -185,7 +185,7 @@ DECLARE_NATIVE(DIR_ACTOR)
             panic (Error_No_Create_Raw(dir_path));  // higher level error
         }
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// RENAME /////////////////////////////////////////////////////////=//
 
@@ -205,7 +205,7 @@ DECLARE_NATIVE(DIR_ACTOR)
 
         Copy_Cell(dir_path, ARG(TO));  // !!! this needs to mutate the spec!
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// DELETE /////////////////////////////////////////////////////////=//
 
@@ -220,7 +220,7 @@ DECLARE_NATIVE(DIR_ACTOR)
             rebRelease(error);  // !!! throws away details
             panic (Error_No_Delete_Raw(dir_path));  // higher level error
         }
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// OPEN ///////////////////////////////////////////////////////////=//
     //
@@ -252,13 +252,13 @@ DECLARE_NATIVE(DIR_ACTOR)
             }
         }
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// CLOSE //////////////////////////////////////////////////////////=//
 
       case SYM_CLOSE:
         Init_Nulled(Slot_Init_Hack(state_slot));
-        return COPY(port);
+        return COPY_TO_OUT(port);
 
     //=//// QUERY //////////////////////////////////////////////////////////=//
     //

@@ -63,7 +63,7 @@ DECLARE_NATIVE(ASCII_Q)
 {
     INCLUDE_PARAMS_OF_ASCII_Q;
 
-    return LOGIC(Check_Char_Range(ARG(VALUE), 0x7f));
+    return LOGIC_OUT(Check_Char_Range(ARG(VALUE), 0x7f));
 }
 
 
@@ -80,7 +80,7 @@ DECLARE_NATIVE(LATIN1_Q)
 {
     INCLUDE_PARAMS_OF_LATIN1_Q;
 
-    return LOGIC(Check_Char_Range(ARG(VALUE), 0xff));
+    return LOGIC_OUT(Check_Char_Range(ARG(VALUE), 0xff));
 }
 
 
@@ -185,7 +185,7 @@ DECLARE_NATIVE(JOIN)
 
     if (not rest) {  // simple base case: nullptr or COPY
         if (joining_datatype)
-            return NULLED;
+            return NULL_OUT;
         return rebValue(CANON(COPY), unwrap base);
     }
     if (joining_datatype and Any_Utf8(unwrap rest))
@@ -548,7 +548,7 @@ DECLARE_NATIVE(JOIN)
     if (TOP_INDEX == VAL_INT32(original_index)) {  // nothing pushed
         Drop_Data_Stack_To(STACK_BASE);
         if (joining_datatype)
-            return NULLED;
+            return NULL_OUT;
         return rebValue(CANON(COPY), rebQ(unwrap base));
     }
 
@@ -766,7 +766,7 @@ DECLARE_NATIVE(JOIN)
     Drop_Data_Stack_To(STACK_BASE);
     Drop_Level(SUBLEVEL);
 
-    return VETOING_NULL;
+    return NULL_OUT_BREAKING;
 }}
 
 
@@ -1166,7 +1166,7 @@ DECLARE_NATIVE(ENLINE)
     }
 
     if (delta == 0)
-        return COPY(ARG(STRING)); // nothing to do
+        return COPY_TO_OUT(ARG(STRING)); // nothing to do
 
     REBLEN old_len = Misc_Num_Codepoints(s);
     require (  // setting `used` will corrupt misc.num_codepoints
@@ -1204,7 +1204,7 @@ DECLARE_NATIVE(ENLINE)
         --size;
     }
 
-    return COPY(string);
+    return COPY_TO_OUT(string);
 }
 
 
@@ -1493,5 +1493,5 @@ DECLARE_NATIVE(INVALID_UTF8_Q)
         }
     }
 
-    return NULLED;  // no invalid byte found
+    return NULL_OUT;  // no invalid byte found
 }

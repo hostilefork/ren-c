@@ -56,7 +56,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Bitset)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Bitset(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Bitset(v1, v2, strict) == 0);
 }
 
 
@@ -67,7 +67,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Is_Bitset)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Bitset(v1, v2, true) == -1);
+    return LOGIC_OUT(CT_Bitset(v1, v2, true) == -1);
 }
 
 
@@ -117,7 +117,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Bitset)
 
     End_Non_Lexical_Mold(mo);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -585,15 +585,15 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Bitset)
             panic (Error_Bad_Refines_Raw());
 
         if (not Check_Bits(VAL_BITSET(v), ARG(VALUE), did ARG(CASE)))
-            return LOGIC(false);
-        return LOGIC(true); }
+            return LOGIC_OUT(false);
+        return LOGIC_OUT(true); }
 
       case SYM_APPEND:  // Accepts: #"a" "abc" [1 - 10] [#"a" - #"z"] etc.
       case SYM_INSERT: {
         INCLUDE_PARAMS_OF_APPEND;
 
         if (not ARG(VALUE))
-            return COPY(v);  // don't panic on read only if it would be a no-op
+            return COPY_TO_OUT(v);  // don't panic on read only for noops
         if (Is_Antiform(unwrap ARG(VALUE)))
             panic (PARAM(VALUE));
         const Element* arg = Element_ARG(VALUE);
@@ -611,7 +611,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Bitset)
 
         if (not Set_Bits(bset, arg, diff))
             panic (arg);
-        return COPY(v); }
+        return COPY_TO_OUT(v); }
 
       case SYM_REMOVE: {
         INCLUDE_PARAMS_OF_REMOVE;
@@ -624,13 +624,13 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Bitset)
         if (not Set_Bits(bset, Element_ARG(PART), false))
             panic (PARAM(PART));
 
-        return COPY(v); }
+        return COPY_TO_OUT(v); }
 
       case SYM_CLEAR: {
         Binary* bset = VAL_BITSET_Ensure_Mutable(v);
         INIT_BITS_NOT(bset, false);
         Clear_Flex(bset);
-        return COPY(v); }
+        return COPY_TO_OUT(v); }
 
       default:
         break;
@@ -724,7 +724,7 @@ IMPLEMENT_GENERIC(TAIL_Q, Is_Bitset)
     INCLUDE_PARAMS_OF_TAIL_Q;
 
     Element* bset = Element_ARG(VALUE);
-    return LOGIC(Binary_Len(VAL_BITSET(bset)) == 0);
+    return LOGIC_OUT(Binary_Len(VAL_BITSET(bset)) == 0);
 }
 
 

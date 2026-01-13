@@ -391,7 +391,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Any_Context)
     Element* value1 = Element_ARG(VALUE1);
     Element* value2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Context(value1, value2, strict) == 0);
+    return LOGIC_OUT(CT_Context(value1, value2, strict) == 0);
 }
 
 
@@ -402,7 +402,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_Context)
     Element* value1 = Element_ARG(VALUE1);
     Element* value2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Context(value1, value2, true) == -1);
+    return LOGIC_OUT(CT_Context(value1, value2, true) == -1);
 }
 
 
@@ -627,9 +627,9 @@ DECLARE_NATIVE(ADJUNCT_OF)
     }
 
     if (not adjunct)
-        return NULLED;
+        return NULL_OUT;
 
-    return COPY(Varlist_Archetype(unwrap adjunct));
+    return COPY_TO_OUT(Varlist_Archetype(unwrap adjunct));
 }
 
 
@@ -677,7 +677,7 @@ DECLARE_NATIVE(SET_ADJUNCT)
     else
         Tweak_Misc_Varlist_Adjunct(Cell_Varlist(v), ctx);
 
-    return COPY(LOCAL(ADJUNCT));
+    return COPY_TO_OUT(LOCAL(ADJUNCT));
 }}
 
 
@@ -856,7 +856,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
             Append_Codepoint(s, ']');
             End_Non_Lexical_Mold(mo);
         }
-        return TRASH;
+        return TRASH_OUT;
     }
     Push_Pointer_To_Flex(g_mold.stack, c);
 
@@ -895,7 +895,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
             Trim_Tail(mo, '\n');
 
         Drop_Pointer_From_Flex(g_mold.stack, c);
-        return TRASH;
+        return TRASH_OUT;
     }
 
     // Otherwise we are molding
@@ -957,7 +957,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
 
     Drop_Pointer_From_Flex(g_mold.stack, c);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -987,7 +987,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Let)
             Append_Codepoint(s, ']');
             End_Non_Lexical_Mold(mo);
         }
-        return TRASH;
+        return TRASH_OUT;
     }
     Push_Pointer_To_Flex(g_mold.stack, let);
 
@@ -1005,7 +1005,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Let)
         Mold_Element(mo, As_Element(var));
 
         Drop_Pointer_From_Flex(g_mold.stack, let);
-        return TRASH;
+        return TRASH_OUT;
     }
 
     // Otherwise we are molding
@@ -1042,7 +1042,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Let)
 
     Drop_Pointer_From_Flex(g_mold.stack, let);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -1116,10 +1116,10 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_Context)
                     Tweak_Cell_Binding(def, cast(SeaOfVars*, c));
                 else
                     Tweak_Cell_Binding(def, c);
-                return COPY(def);
+                return COPY_TO_OUT(def);
             }
             Init_Ghost_For_Unset(Append_Context_Bind_Word(c, def));
-            return COPY(def);
+            return COPY_TO_OUT(def);
         }
 
         assert(Is_Block(def));
@@ -1142,7 +1142,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_Context)
         if (threw)
             return BOUNCE_THROWN;
 
-        return COPY(context); }
+        return COPY_TO_OUT(context); }
 
       case SYM_SELECT: {
         INCLUDE_PARAMS_OF_SELECT;
@@ -1156,7 +1156,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_Context)
             panic (pattern);
 
         if (not Is_Word(pattern))
-            return NULLED;
+            return NULL_OUT;
 
         Option(Ordinal) n = Find_Symbol_In_Context(
             context,
@@ -1164,7 +1164,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_Context)
             did ARG(CASE)
         );
         if (not n)
-            return NULLED;
+            return NULL_OUT;
 
         if (Is_Stub_Sea(c))
             panic ("SeaOfVars SELECT not implemented yet");
@@ -1520,7 +1520,7 @@ IMPLEMENT_GENERIC(TAIL_Q, Any_Context)
 
     if (Is_Stub_Sea(c))
         panic ("SeaOfVars TAIL? not implemented");
-    return LOGIC(Varlist_Len(cast(VarList*, c)) == 0);
+    return LOGIC_OUT(Varlist_Len(cast(VarList*, c)) == 0);
 }
 
 
@@ -1667,9 +1667,9 @@ DECLARE_NATIVE(COUPLING_OF)
     Option(VarList*) coupling = Frame_Coupling(frame);
 
     if (not coupling)  // UNCOUPLED
-        return NULLED;
+        return NULL_OUT;
 
-    return COPY(Varlist_Archetype(unwrap coupling));
+    return COPY_TO_OUT(Varlist_Archetype(unwrap coupling));
 }
 
 
@@ -1697,7 +1697,7 @@ DECLARE_NATIVE(LABEL_OF)
         return Init_Word(OUT, unwrap label);
 
     if (Is_Frame_Details(frame))
-        return NULLED;  // not handled by Level lookup
+        return NULL_OUT;  // not handled by Level lookup
 
     Phase* phase = Frame_Phase(frame);
     if (Is_Stub_Details(phase))
@@ -1709,7 +1709,7 @@ DECLARE_NATIVE(LABEL_OF)
     if (label)
         return Init_Word(OUT, unwrap label);
 
-    return NULLED;
+    return NULL_OUT;
 }
 
 
@@ -1852,9 +1852,9 @@ DECLARE_NATIVE(PARENT_OF)
             continue;
 
         VarList* v_parent = Varlist_Of_Level_Force_Managed(parent);
-        return COPY(Varlist_Archetype(v_parent));
+        return COPY_TO_OUT(Varlist_Archetype(v_parent));
     }
-    return NULLED;
+    return NULL_OUT;
 }
 
 
@@ -1894,7 +1894,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Frame)
     Element* value1 = Element_ARG(VALUE1);
     Element* value2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Frame(value1, value2, strict) == 0);
+    return LOGIC_OUT(CT_Frame(value1, value2, strict) == 0);
 }
 
 
@@ -1905,7 +1905,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Is_Frame)
     Element* value1 = Element_ARG(VALUE1);
     Element* value2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Frame(value1, value2, true) == 0);
+    return LOGIC_OUT(CT_Frame(value1, value2, true) == 0);
 }
 
 
@@ -1948,7 +1948,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Frame)
     Append_Codepoint(mo->strand, ']');
     End_Non_Lexical_Mold(mo);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 

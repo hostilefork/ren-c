@@ -69,7 +69,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Pair)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Pair(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Pair(v1, v2, strict) == 0);
 }
 
 
@@ -146,7 +146,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Pair)
 
     Mold_Or_Form_Element(mo, Cell_Pair_Second(v), form);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 

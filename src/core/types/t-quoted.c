@@ -96,7 +96,7 @@ DECLARE_NATIVE(JUST)
 
     Element* v = ARG(VALUE);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -126,7 +126,7 @@ DECLARE_NATIVE(QUOTE)
         panic (PARAM(DEPTH));
 
     Quotify_Depth(e, depth);
-    return COPY(e);
+    return COPY_TO_OUT(e);
 }
 
 
@@ -182,7 +182,7 @@ DECLARE_NATIVE(QUASI)
 
     if (Is_Quasiform(elem)) {
         if (ARG(PASS))
-            return COPY(elem);
+            return COPY_TO_OUT(elem);
         panic ("Use QUASI:PASS if QUASI argument is already a quasiform");
     }
 
@@ -209,7 +209,7 @@ DECLARE_NATIVE(UNQUASI)
     INCLUDE_PARAMS_OF_UNQUASI;
 
     Element* quasi = Element_ARG(QUASIFORM);
-    return COPY(Unquasify(quasi));
+    return COPY_TO_OUT(Unquasify(quasi));
 }
 
 
@@ -251,13 +251,13 @@ DECLARE_NATIVE(LIFT_P)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Is_Failure(v))
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
     if (Is_Ghost(v))
-        return GHOST;
+        return GHOST_OUT;
 
     if (Is_Light_Null(v))
-        return NULLED;
+        return Init_Nulled(OUT);
 
     return Copy_Lifted_Cell(OUT, v);
 }
@@ -281,7 +281,7 @@ DECLARE_NATIVE(UNLIFT)
     if (not Any_Lifted(v))
         panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
 
-    return UNLIFT(As_Element(v));  // quoted or quasi
+    return UNLIFT_TO_OUT(As_Element(v));  // quoted or quasi
 }
 
 
@@ -304,10 +304,10 @@ DECLARE_NATIVE(UNLIFT_P)
     Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
     if (Is_Ghost(v))
-        return GHOST;
+        return GHOST_OUT;
 
     if (Is_Light_Null(v))
-        return NULLED;
+        return Init_Nulled(OUT);
 
     return Apply_Cfunc(NATIVE_CFUNC(UNLIFT), LEVEL);
 }
@@ -334,10 +334,10 @@ DECLARE_NATIVE(ANTIFORM_Q)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Get_Level_Flag(LEVEL, DISPATCHING_INTRINSIC))  // intrinsic shortcut
-        return LOGIC(Is_Antiform(v));
+        return LOGIC_OUT(Is_Antiform(v));
 
     if (not ARG(TYPE))
-        return LOGIC(Is_Antiform(v));
+        return LOGIC_OUT(Is_Antiform(v));
 
     require (
       Stable* datatype = Decay_If_Unstable(v)
@@ -349,9 +349,9 @@ DECLARE_NATIVE(ANTIFORM_Q)
     Option(Type) type = Datatype_Type(datatype);
 
     if (u_cast(TypeByte, type) > MAX_TYPEBYTE_ELEMENT)
-        return LOGIC(true);
+        return LOGIC_OUT(true);
 
-    return LOGIC(false);
+    return LOGIC_OUT(false);
 }
 
 
@@ -395,7 +395,7 @@ DECLARE_NATIVE(UNANTI)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
     LIFT_BYTE(v) = NOQUOTE_3;  // turn to plain form
 
-    return COPY(As_Element(v));
+    return COPY_TO_OUT(As_Element(v));
 }
 
 
@@ -433,18 +433,18 @@ DECLARE_NATIVE(SPREAD)
     INCLUDE_PARAMS_OF_SPREAD;
 
     if (Any_Void(ARG(VALUE)))
-        return GHOST;  // void is a no-op, so just pass it through
+        return GHOST_OUT;  // void is a no-op, so just pass it through
 
     Stable* v = As_Stable(ARG(VALUE));
 
     if (Is_Nulled(v))
-        return NULLED;
+        return Init_Nulled(OUT);
 
     if (Any_List(v))  // most common case
-        return COPY(Splicify(v));
+        return COPY_TO_OUT(Splicify(v));
 
     if (Is_None(v))
-        return GHOST;  // immutable empty array makes problems for GLOM [3]
+        return GHOST_OUT;  // immutable empty array makes problems for GLOM [3]
 
     if (Is_Nulled(v) or Is_Quasi_Null(v))  // quasi ok [2]
         return Init_Nulled(OUT);  // pass through [1]
@@ -468,7 +468,7 @@ DECLARE_NATIVE(PACK_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Pack(v));
+    return LOGIC_OUT(Is_Pack(v));
 }
 
 
@@ -487,7 +487,7 @@ DECLARE_NATIVE(DUAL_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Dual(v));
+    return LOGIC_OUT(Is_Dual(v));
 }
 
 
@@ -506,7 +506,7 @@ DECLARE_NATIVE(HOT_POTATO_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Hot_Potato_Dual(v));
+    return LOGIC_OUT(Is_Hot_Potato_Dual(v));
 }
 
 
@@ -578,7 +578,7 @@ DECLARE_NATIVE(UNRUN)
 
     Stable* action = ARG(ACTION);  // may or may not be antiform
     LIFT_BYTE(action) = NOQUOTE_3;  // now it's known to not be antiform
-    return COPY(action);
+    return COPY_TO_OUT(action);
 }
 
 
@@ -618,7 +618,7 @@ DECLARE_NATIVE(UNSPLICE)
     Stable* splice = ARG(SPLICE);
     LIFT_BYTE(splice) = NOQUOTE_3;
     KIND_BYTE(splice) = TYPE_BLOCK;
-    return COPY(splice);
+    return COPY_TO_OUT(splice);
 }
 
 
@@ -639,7 +639,7 @@ DECLARE_NATIVE(NOQUOTE)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
     Copy_Cell(OUT, v);
     LIFT_BYTE(OUT) = NOQUOTE_3;

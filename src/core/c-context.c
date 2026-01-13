@@ -580,10 +580,10 @@ DECLARE_NATIVE(WRAP_P)
     );
     /*
         Tweak_Cell_Binding(list, use);  // what should do what here?
-        return COPY(list);  // should this return a list?
+        return COPY_TO_OUT(list);  // should this return a list?
     */
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -665,7 +665,7 @@ DECLARE_NATIVE(AS_BLOCK_WRAP)
     Tweak_Cell_Binding(list, varlist);
     KIND_BYTE(list) = TYPE_BLOCK;
 
-    return COPY(list);
+    return COPY_TO_OUT(list);
 }
 
 

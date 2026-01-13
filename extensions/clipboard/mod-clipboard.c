@@ -56,7 +56,7 @@ DECLARE_NATIVE(CLIPBOARD_ACTOR)
 
     switch (opt Symbol_Id(verb)) {
       case SYM_OPEN_Q:
-        return LOGIC(true); // !!! need "port state"?  :-/
+        return LOGIC_OUT(true); // !!! need "port state"?  :-/
 
       case SYM_READ: {
         INCLUDE_PARAMS_OF_READ;
@@ -160,7 +160,7 @@ DECLARE_NATIVE(CLIPBOARD_ACTOR)
 
         assert(h_check == h);
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
       case SYM_OPEN: {
         INCLUDE_PARAMS_OF_OPEN;
@@ -170,13 +170,13 @@ DECLARE_NATIVE(CLIPBOARD_ACTOR)
 
         // !!! Currently just ignore (it didn't do anything)
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
       case SYM_CLOSE: {
 
         // !!! Currently just ignore (it didn't do anything)
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
       default:
         break;

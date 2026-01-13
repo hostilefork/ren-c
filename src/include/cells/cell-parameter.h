@@ -329,8 +329,8 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
 // debugging.  This flag guides that behavior in the various dispatchers.
 //
 // (Since natives are their own dispatchers, the only way to get them to run
-// common code is through macros, so `return TRASH;` does the embedding of the
-// name through code in the TRASH macro.)
+// common code is through macros, so `return TRASH_OUT;` does the embedding of
+// the name through code in the TRASH_OUT macro.)
 //
 #define PARAMETER_FLAG_AUTO_TRASH \
     FLAG_LEFT_BIT(23)

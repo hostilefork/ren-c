@@ -495,7 +495,7 @@ DECLARE_NATIVE(FUNCTION)
 //
 //  procedure: native [
 //
-//  "Variation of FUNCTION that will always return TRASH!"
+//  "Variation of FUNCTION that will always return TRASH"
 //
 //      return: [~(action!)~]
 //      spec [block! datatype!]

@@ -159,7 +159,7 @@ DECLARE_NATIVE(IDENTIFY_TEXT_Q)
 
     UNUSED(ARG(DATA)); // see notes on decode-text
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
@@ -275,7 +275,7 @@ DECLARE_NATIVE(IDENTIFY_UTF16LE_Q)
     //
     UNUSED(ARG(DATA));
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
@@ -365,7 +365,7 @@ DECLARE_NATIVE(IDENTIFY_UTF16BE_Q)
     //
     UNUSED(ARG(DATA));
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 

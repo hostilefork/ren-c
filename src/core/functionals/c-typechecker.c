@@ -100,7 +100,7 @@ Bounce Typechecker_Dispatcher(Level* const L)
         else {
             if (ARG(QUOTED)) {
                 if (Is_Antiform(v) or Quotes_Of(cast(Element*, v)) == 0)
-                    return LOGIC(false);
+                    return LOGIC_OUT(false);
                 Noquotify(cast(Element*, v));
             }
 
@@ -108,7 +108,7 @@ Bounce Typechecker_Dispatcher(Level* const L)
 
             if (ARG(QUASIFORM)) {
                 if (type != TYPE_QUASIFORM)
-                    return LOGIC(false);
+                    return LOGIC_OUT(false);
 
                 Unquasify(cast(Element*, v));
                 type = Type_Of(v);
@@ -119,7 +119,7 @@ Bounce Typechecker_Dispatcher(Level* const L)
                     return fail (Error_Bad_Refines_Raw());
 
                 if (type != TYPE_TIED)
-                    return LOGIC(false);
+                    return LOGIC_OUT(false);
 
                 type = Heart_Of(v);
             }
@@ -128,13 +128,13 @@ Bounce Typechecker_Dispatcher(Level* const L)
                     return fail (Error_Bad_Refines_Raw());
 
                 if (type != TYPE_PINNED)
-                    return LOGIC(false);
+                    return LOGIC_OUT(false);
 
                 type = Heart_Of(v);
             }
             else if (ARG(METAFORM)) {
                 if (type != TYPE_METAFORM)
-                    return LOGIC(false);
+                    return LOGIC_OUT(false);
 
                 type = Heart_Of(v);
             }
@@ -160,9 +160,9 @@ Bounce Typechecker_Dispatcher(Level* const L)
     }
 
     if (not type)  // not a built-in type, no typechecks apply
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
-    return LOGIC(Builtin_Typeset_Check(typeset_byte, unwrap type));
+    return LOGIC_OUT(Builtin_Typeset_Check(typeset_byte, unwrap type));
 }
 
 
@@ -1212,14 +1212,14 @@ DECLARE_NATIVE(TYPECHECK)
     }
 
     if (Typecheck_Uses_Spare_And_Scratch(LEVEL, v, test, SPECIFIED))
-        return LOGIC(true);
+        return LOGIC_OUT(true);
 
     if (Is_Failure(v)) {
         assert(ARG(META));  // otherwise would have pre-decay'd, PANIC
-        return COPY(v);  // panic would require a :RELAX option [1]
+        return COPY_TO_OUT(v);  // panic would require a :RELAX option [1]
     }
 
-    return LOGIC(false);
+    return LOGIC_OUT(false);
 }
 
 
@@ -1250,7 +1250,7 @@ DECLARE_NATIVE(MATCH)
     if (not Typecheck_Uses_Spare_And_Scratch(LEVEL, v, test, SPECIFIED))
         return nullptr;
 
-    return COPY(v);  // test matched, return input value
+    return COPY_TO_OUT(v);  // test matched, return input value
 }
 
 

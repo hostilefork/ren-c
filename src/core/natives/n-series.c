@@ -188,7 +188,7 @@ DECLARE_NATIVE(INSERT)  // Must be frame-compatible with CHANGE [A]
     Count dups = not ARG(DUP) ? 1 : VAL_UINT32(unwrap ARG(DUP));
 
     if (limit_zero or dups == 0 or Is_None(ARG(VALUE)))
-        return COPY(series);  // don't panic on read only if would be a no-op
+        return COPY_TO_OUT(series);  // don't panic on read only for noops
 
     Copy_Cell(LOCAL(LIMIT), LOCAL(PART));  // :PART acts as CHANGE's LIMIT
     Init_Nulled(LOCAL(PART));
@@ -310,7 +310,7 @@ DECLARE_NATIVE(CHANGE)  // Must be frame-compatible with APPEND, INSERT [A]
 
     Count dups = not ARG(DUP) ? 1 : VAL_UINT32(unwrap ARG(DUP));
     if (dups == 0)
-        return COPY(series);  // Treat CHANGE as no-op if zero dups [1]
+        return COPY_TO_OUT(series);  // Treat CHANGE as no-op if zero dups [1]
 
     Stable* v = ARG(VALUE);  // CHANGE to NONE isn't a no-op (erases data)
 
@@ -526,7 +526,7 @@ DECLARE_NATIVE(SKIP)
     INCLUDE_PARAMS_OF_SKIP;
 
     if (Is_None(ARG(OFFSET)))
-        return COPY(ARG(SERIES));  // series may or may not be NONE
+        return COPY_TO_OUT(ARG(SERIES));  // series may or may not be NONE
 
     if (Is_None(ARG(SERIES))) {
         Element* offset = Element_ARG(OFFSET);

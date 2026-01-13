@@ -288,7 +288,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Decimal)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Decimal(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Decimal(v1, v2, strict) == 0);
 }
 
 
@@ -299,7 +299,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Is_Decimal)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Decimal(v1, v2, true) == -1);
+    return LOGIC_OUT(CT_Decimal(v1, v2, true) == -1);
 }
 
 
@@ -343,7 +343,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Float)
         );
     }
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -573,7 +573,7 @@ IMPLEMENT_GENERIC(RANDOMIZE, Any_Float)
     assert(sizeof(d) == sizeof(i));
     memcpy(&i, &d, sizeof(d));  // use IEEE bits (is there a better way?)
     Set_Random(i);
-    return TRASH;
+    return TRASH_OUT;
 }
 
 

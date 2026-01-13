@@ -70,7 +70,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Blob)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Blob(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Blob(v1, v2, strict) == 0);
 }
 
 
@@ -81,7 +81,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Is_Blob)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Blob(v1, v2, true) == -1);
+    return LOGIC_OUT(CT_Blob(v1, v2, true) == -1);
 }
 
 
@@ -287,7 +287,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Blob)
     if (NOT_MOLD_FLAG(mo, MOLD_FLAG_WAS_TRUNCATED))
         Append_Codepoint(mo->strand, '}');
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -358,7 +358,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Blob)
         );
 
         if (ret == NOT_FOUND)
-            return NULLED;
+            return NULL_OUT;
 
         if (id == SYM_FIND) {
             Source* pack = Make_Source_Managed(2);
@@ -377,7 +377,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Blob)
 
         ret++;
         if (ret >= tail)
-            return NULLED;
+            return NULL_OUT;
 
         return Init_Integer(OUT, *Binary_At(Cell_Binary(v), ret)); }
 
@@ -388,7 +388,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Blob)
         Index index = Series_Index(v);
 
         if (index >= tail)
-            return COPY(v); // clearing after available data has no effect
+            return COPY_TO_OUT(v); // clearing after available data has no effect
 
         // !!! R3-Alpha would take this opportunity to make it so that if the
         // series is now empty, it reclaims the "bias" (unused capacity at
@@ -398,7 +398,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Blob)
             Unbias_Flex(b, false);
 
         Term_Binary_Len(b, index);  // may have string alias
-        return COPY(v); }
+        return COPY_TO_OUT(v); }
 
     //-- Bitwise:
 
@@ -492,7 +492,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Blob)
             *v_at = *arg_at;
             *arg_at = temp;
         }
-        return COPY(v); }
+        return COPY_TO_OUT(v); }
 
       default:
         break;
@@ -789,7 +789,7 @@ IMPLEMENT_GENERIC(REVERSE, Is_Blob)
             bp[m] = b;
         }
     }
-    return COPY(blob);
+    return COPY_TO_OUT(blob);
 }
 
 
@@ -808,7 +808,7 @@ IMPLEMENT_GENERIC(RANDOMIZE, Is_Blob)
     Size size;
     const Byte* data = Blob_Size_At(&size, blob);
     Set_Random(crc32_z(0L, data, size));
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -851,7 +851,7 @@ IMPLEMENT_GENERIC(SHUFFLE, Is_Blob)
         *Binary_At(bin, k) = *Binary_At(bin, n + index);
         *Binary_At(bin, n + index) = swap;
     }
-    return COPY(blob);
+    return COPY_TO_OUT(blob);
 }
 
 
@@ -1254,7 +1254,7 @@ DECLARE_NATIVE(ADD_TO_BINARY)
     REBINT delta = VAL_INT32(ARG(DELTA));
 
     if (delta == 0)  // adding or subtracting 0 works, even #{} + 0
-        return COPY(blob);
+        return COPY_TO_OUT(blob);
 
     if (Series_Len_At(blob) == 0) // add/subtract to #{} otherwise
         return fail (Error_Overflow_Raw());
@@ -1291,5 +1291,5 @@ DECLARE_NATIVE(ADD_TO_BINARY)
             }
         }
     }
-    return COPY(blob);
+    return COPY_TO_OUT(blob);
 }

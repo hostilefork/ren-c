@@ -120,7 +120,7 @@ DECLARE_NATIVE(COPY)
         UNUSED(ARG(DEEP));  // historically we ignore it
 
         LIFT_BYTE(elem) = lift_byte;  // restore
-        return COPY(elem);
+        return COPY_TO_OUT(elem);
     }
 
     if (lift_byte == NOQUOTE_3)  // don't have to requote/etc.
@@ -376,7 +376,7 @@ DECLARE_NATIVE(TO)
             panic ("Only [INTEGER! WORD! space-RUNE!] convert TO Sigil ATM");
         }
         Add_Cell_Sigil(value, Sigil_For_Sigiled_Type(unwrap to));
-        return COPY(value);
+        return COPY_TO_OUT(value);
     }
 
 } handle_non_sigil_cases: {

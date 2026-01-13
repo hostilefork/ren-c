@@ -94,7 +94,7 @@ DECLARE_NATIVE(RECYCLE)
 
     if (ARG(OFF)) {
         g_gc.disabled = true;
-        return TRASH;
+        return TRASH_OUT;
     }
 
     if (ARG(ON)) {
@@ -113,7 +113,7 @@ DECLARE_NATIVE(RECYCLE)
     }
 
     if (g_gc.disabled)
-        return TRASH;  // don't give misleading "0", since no recycle ran
+        return TRASH_OUT;  // don't give misleading "0", since no recycle ran
 
     REBLEN count;
 
@@ -189,7 +189,7 @@ DECLARE_NATIVE(LIMIT_USAGE)
     else
         panic (PARAM(FIELD));
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -229,7 +229,7 @@ DECLARE_NATIVE(CHECK)  // !!! Review the necessity of this (hasn't been used)
         Assert_Varlist(Cell_Varlist(value));
     }
 
-    return COPY(value);
+    return COPY_TO_OUT(value);
   #else
     UNUSED(ARG(VALUE));
     panic (Error_Checked_Build_Only_Raw());
@@ -281,7 +281,7 @@ DECLARE_NATIVE(C_DEBUG_TICK)
   #if TRAMPOLINE_COUNTS_TICKS
     return Init_Integer(OUT, g_tick);
   #else
-    return NULLED;
+    return NULL_OUT;
   #endif
 }
 
@@ -314,7 +314,7 @@ DECLARE_NATIVE(C_DEBUG_BREAK)
       #if RUNTIME_CHECKS
         debug_break();  // usually we break in the evaluator, not here [1]
       #endif
-        return GHOST;  // Note: [1] does (10 + c-debug-break 20), not this [2]
+        return GHOST_OUT;  // [1] does (10 + c-debug-break 20), see [2]
   #else
       panic (Error_Checked_Build_Only_Raw());
   #endif

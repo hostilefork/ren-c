@@ -42,7 +42,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Any_List)
     Index b_index = Series_Index(b);
 
     if (a_array == b_array)
-        return LOGIC(a_index == b_index);
+        return LOGIC_OUT(a_index == b_index);
 
     const Element* a_tail = Array_Tail(a_array);
     const Element* b_tail = Array_Tail(b_array);
@@ -52,18 +52,18 @@ IMPLEMENT_GENERIC(EQUAL_Q, Any_List)
     Length b_len = b_tail - b_item;
 
     if (a_len != b_len)
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     for (; a_item != a_tail; ++a_item, ++b_item) {
         require (
           bool equal = Equal_Values(a_item, b_item, strict)
         );
         if (not equal)
-            return LOGIC(false);
+            return LOGIC_OUT(false);
     }
 
     assert(b_item == b_tail);  // they were the same length
-    return LOGIC(true);  // got to the end
+    return LOGIC_OUT(true);  // got to the end
 }
 
 
@@ -103,12 +103,12 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_List)
     Length b_len = b_tail - b_item;
 
     if (a_len != b_len)
-        return LOGIC(false);  // different lengths not considered equal
+        return LOGIC_OUT(false);  // different lengths not considered equal
 
     for (; a_item != a_tail; ++a_item, ++b_item) {
         bool lesser;
         if (Try_Lesser_Value(&lesser, a_item, b_item))
-            return LOGIC(lesser);  // LESSER? result was meaningful
+            return LOGIC_OUT(lesser);  // LESSER? result was meaningful
 
         bool strict = true;
         require (
@@ -121,7 +121,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_List)
     }
 
     assert(b_item == b_tail);  // they were the same length
-    return LOGIC(true);  // got to the end
+    return LOGIC_OUT(true);  // got to the end
 }
 
 
@@ -528,7 +528,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_List)
             }
         }
 
-        return TRASH;
+        return TRASH_OUT;
     }
 
     const char *sep;
@@ -548,7 +548,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_List)
 
     Mold_Array_At(mo, Cell_Array(v), Series_Index(v), sep);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -617,7 +617,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_List)
         );
 
         if (find == NOT_FOUND)
-            return NULLED;
+            return NULL_OUT;
 
         REBLEN ret = find;
         assert(ret <= limit);
@@ -640,7 +640,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_List)
 
         ret += len;
         if (ret >= limit)
-            return NULLED;
+            return NULL_OUT;
 
         Element* out = Copy_Cell_May_Bind(OUT, Array_At(arr, ret), binding);
         return Inherit_Const(out, list); }
@@ -655,7 +655,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_List)
             else
                 Set_Flex_Len(arr, index);
         }
-        return COPY(list);
+        return COPY_TO_OUT(list);
     }
 
     //-- Special actions:
@@ -684,7 +684,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_List)
             Copy_Cell(a, b);
             Copy_Cell(b, &temp);
         }
-        return COPY(list); }
+        return COPY_TO_OUT(list); }
 
     // !!! The ability to transform some BLOCK!s into PORT!s for some actions
     // was hardcoded in a fairly ad-hoc way in R3-Alpha, which was based on
@@ -848,7 +848,7 @@ IMPLEMENT_GENERIC(TO, Any_List)
         const Element* at = List_Len_At(&len, list);
         if (len != 1 or not Is_Integer(at))
             return fail ("TO INTEGER! works on 1-element integer lists");
-        return COPY(at);
+        return COPY_TO_OUT(at);
     }
 
     if (to == TYPE_MAP) {  // to map! [key1 val1 key2 val2 key3 val3]
@@ -1168,7 +1168,7 @@ IMPLEMENT_GENERIC(REVERSE, Any_List)
 
     REBLEN len = Part_Len_May_Modify_Index(list, ARG(PART));
     if (len == 0)
-        return COPY(list); // !!! do 1-element reversals update newlines?
+        return COPY_TO_OUT(list); // !!! 1-element reversals update newlines?
 
     Element* front = Array_At(arr, index);
     Element* back = front + len - 1;
@@ -1222,7 +1222,7 @@ IMPLEMENT_GENERIC(REVERSE, Any_List)
         else
             Clear_Cell_Flag(back, NEWLINE_BEFORE);
     }
-    return COPY(list);
+    return COPY_TO_OUT(list);
 }
 
 
@@ -1245,7 +1245,7 @@ IMPLEMENT_GENERIC(RANDOM_PICK, Any_List)
     );
 
     if (not Try_Pick_Block(OUT, list, spare))
-        return NULLED;
+        return NULL_OUT;
     return Inherit_Const(OUT, list);
 }
 
@@ -1258,7 +1258,7 @@ IMPLEMENT_GENERIC(SHUFFLE, Any_List)
 
     Array* arr = Cell_Array_Ensure_Mutable(list);
     Shuffle_Array(arr, Series_Index(list), did ARG(SECURE));
-    return COPY(list);
+    return COPY_TO_OUT(list);
 }
 
 
@@ -1470,7 +1470,7 @@ DECLARE_NATIVE(BLOCKIFY)
     Option(const Element*) v = ARG(VALUE);
 
     if (v and Is_Block(unwrap v))
-        return COPY(unwrap v);
+        return COPY_TO_OUT(unwrap v);
 
     Source* a = Make_Source_Managed(1);
 
@@ -1500,7 +1500,7 @@ DECLARE_NATIVE(GROUPIFY)
     Option(const Element*) v = ARG(VALUE);
 
     if (v and Is_Group(unwrap v))
-        return COPY(unwrap v);
+        return COPY_TO_OUT(unwrap v);
 
     Source* a = Make_Source_Managed(1);
 

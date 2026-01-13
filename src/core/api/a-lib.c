@@ -619,7 +619,7 @@ RebolValue* API_rebVoid(void)  // unstable antiform [B]
 // you could just use `return "~";` and it would be as good or better (there
 // is an optimization to take care of this when returning from functions).
 //
-// (Natives using the core API can use `return TRASH;` for slightly more
+// (Natives using the core API can use `return TRASH_OUT;` for slightly more
 // efficiency, as it directly initializes the OUT cell with a tripwire.)
 //
 RebolValue* API_rebTripwire(void)

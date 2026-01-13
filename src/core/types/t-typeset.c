@@ -523,7 +523,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Parameter)
         End_Non_Lexical_Mold(mo);
     }
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -748,7 +748,7 @@ DECLARE_NATIVE(DECORATE)
     Element* v = Element_ARG(VALUE);
 
     if (not ARG(DECORATION))
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
     Element* decoration = Element_ARG(DECORATION);
 
@@ -756,7 +756,7 @@ DECLARE_NATIVE(DECORATE)
       Decorate_Element(decoration, v)
     );
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -787,7 +787,7 @@ DECLARE_NATIVE(REDECORATE)
     Element* v = Element_ARG(VALUE);
 
     if (not ARG(DECORATION))
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
     Element* decoration = Element_ARG(DECORATION);
 
@@ -796,7 +796,7 @@ DECLARE_NATIVE(REDECORATE)
       Decorate_Element(decoration, v)
     );
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -875,7 +875,7 @@ DECLARE_NATIVE(UNDECORATE)
 
     Undecorate_Element(e);
 
-    return COPY(e);
+    return COPY_TO_OUT(e);
 }
 
 

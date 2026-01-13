@@ -40,7 +40,7 @@ DECLARE_NATIVE(VETO_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Veto_Dual(v));
+    return LOGIC_OUT(Is_Veto_Dual(v));
 }
 
 
@@ -109,7 +109,7 @@ DECLARE_NATIVE(REDUCE)
   // (R3-Alpha, would return the input, e.g. `reduce ':foo` => :foo)
 
     if (Any_Inert(v))
-        return COPY(v);  // save time if it's something like a TEXT!
+        return COPY_TO_OUT(v);  // save time if it's something like a TEXT!
 
     require (
       Level* sub = Make_End_Level(
@@ -266,7 +266,7 @@ DECLARE_NATIVE(REDUCE)
 
     Drop_Data_Stack_To(STACK_BASE);
     Drop_Level(SUBLEVEL);
-    return NULLED;
+    return NULL_OUT_BREAKING;
 }}
 
 
@@ -329,7 +329,7 @@ DECLARE_NATIVE(PACK)
         return bounce;
 
     if (Is_Nulled(OUT))  // VETO encountered
-        return NULLED;
+        return NULL_OUT_BREAKING;
 
     if (Is_Failure(OUT))
         return OUT;  // definitional error (what choices would these be?)
@@ -488,10 +488,10 @@ DECLARE_NATIVE(REDUCE_EACH)
         return THROWN;
 
     if (Is_Cell_Erased(OUT))  // body never ran
-        return GHOST;
+        return GHOST_OUT_UNBRANCHED;
 
     if (breaking)
-        return BREAKING_NULL;
+        return NULL_OUT_BREAKING;
 
     return OUT_BRANCHED;
 }}

@@ -42,7 +42,7 @@ DECLARE_NATIVE(NIHIL)
 {
     INCLUDE_PARAMS_OF_NIHIL;
 
-    return GHOST;
+    return GHOST_OUT;
 }
 
 
@@ -63,7 +63,7 @@ DECLARE_NATIVE(GHOST_Q)
 
     // !!! what about FAILURE!?  Should this panic?
 
-    return LOGIC(Is_Ghost(v));
+    return LOGIC_OUT(Is_Ghost(v));
 }
 
 
@@ -84,7 +84,7 @@ DECLARE_NATIVE(VOID_Q)
 
     // !!! what about FAILURE!?  Should this panic?
 
-    return LOGIC(Any_Void(v));
+    return LOGIC_OUT(Any_Void(v));
 }
 
 
@@ -105,7 +105,7 @@ DECLARE_NATIVE(HEAVY_VOID_Q)
 
     // !!! what about FAILURE!?  Should this panic?
 
-    return LOGIC(Is_Heavy_Void(v));
+    return LOGIC_OUT(Is_Heavy_Void(v));
 }
 
 
@@ -128,7 +128,7 @@ DECLARE_NATIVE(COMMENT)
     if (not (Any_List(v) or Any_Utf8(v) or Is_Blob(v) or Any_Scalar(v)))
        panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
 
-    return GHOST;
+    return GHOST_OUT;
 }
 
 
@@ -151,7 +151,7 @@ DECLARE_NATIVE(ELIDE)
       Ensure_No_Failures_Including_In_Packs(v)
     );
 
-    return GHOST;
+    return GHOST_OUT;
 }
 
 
@@ -171,9 +171,9 @@ DECLARE_NATIVE(ELIDE_IF_VOID)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Any_Void(v))
-        return GHOST;
+        return GHOST_OUT;
 
-    return COPY(v);  // trust that a piped FAILURE! etc. behaves appropriately
+    return COPY_TO_OUT(v);  // trust piped FAILURE! etc. behaves appropriately
 }
 
 
@@ -190,7 +190,7 @@ DECLARE_NATIVE(IGNORE)
 {
     INCLUDE_PARAMS_OF_IGNORE;  // no ARG(DISCARDED), parameter is intrinsic
 
-    return GHOST;
+    return GHOST_OUT;
 }
 
 
@@ -215,5 +215,5 @@ DECLARE_NATIVE(UNVOID)
     if (Is_Ghost(v))
         return Init_Heavy_Void(OUT);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }

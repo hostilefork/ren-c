@@ -232,7 +232,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Any_Utf8)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Utf8(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Utf8(v1, v2, strict) == 0);
 }
 
 
@@ -243,7 +243,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_Utf8)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Utf8(v1, v2, true) == -1);
+    return LOGIC_OUT(CT_Utf8(v1, v2, true) == -1);
 }
 
 
@@ -336,7 +336,7 @@ DECLARE_NATIVE(MAKE_CHAR)  // Note: currently synonym for (NUL + codepoint)
     uint32_t c = VAL_UINT32(ARG(CODEPOINT));
 
     if (c == 0)
-        return COPY(LIB(NUL));
+        return COPY_TO_OUT(LIB(NUL));
 
     trap (
       Init_Single_Codepoint_Rune(OUT, c)
@@ -386,14 +386,14 @@ DECLARE_NATIVE(TO_CHAR)
         return OUT;
     }
     if (Is_Rune_And_Is_Char(e))
-        return COPY(e);
+        return COPY_TO_OUT(e);
 
     Size size;
     const Byte* at = Cell_Bytes_At(&size, e);
     if (size == 1) {
         if (*at == 0) {
             assert(Is_Blob(e));
-            return COPY(LIB(NUL));
+            return COPY_TO_OUT(LIB(NUL));
         }
     }
 
@@ -431,7 +431,7 @@ DECLARE_NATIVE(NUL_Q)
     INCLUDE_PARAMS_OF_NUL_Q;
 
     Element* e = Element_ARG(VALUE);
-    return LOGIC(Is_Blob_And_Is_Zero(e));
+    return LOGIC_OUT(Is_Blob_And_Is_Zero(e));
 }
 
 
@@ -466,7 +466,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Rune)
 
     if (form) {
         Append_Any_Utf8_Limit(mo->strand, v, UNLIMITED);
-        return TRASH;
+        return TRASH_OUT;
     }
 
     Length len;
@@ -561,7 +561,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Rune)
 
 } finished: { ///////////////////////////////////////////////////////////////
 
-    return TRASH;  // MOLDIFY should return TRASH
+    return TRASH_OUT;  // MOLDIFY should return TRASH_OUT
 }}
 
 
@@ -992,7 +992,7 @@ IMPLEMENT_GENERIC(RANDOMIZE, Any_Utf8)
     Size utf8_size;
     Utf8(const*) utf8 = Cell_Utf8_Size_At(&utf8_size, any_utf8);
     Set_Random(crc32_z(0L, utf8, utf8_size));
-    return TRASH;
+    return TRASH_OUT;
 }
 
 

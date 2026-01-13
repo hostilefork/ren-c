@@ -182,25 +182,25 @@ DECLARE_NATIVE(FILE_ACTOR)
 
       case SYM_HEAD_OF:
         file->offset = 0;
-        return COPY(port);
+        return COPY_TO_OUT(port);
 
       case SYM_TAIL_OF:
         file->offset = File_Size_Cacheable_May_Panic(port);
-        return COPY(port);
+        return COPY_TO_OUT(port);
 
       case SYM_HEAD_Q:
-        return LOGIC(file->offset == 0);
+        return LOGIC_OUT(file->offset == 0);
 
       case SYM_TAIL_Q: {
         uint64_t size = File_Size_Cacheable_May_Panic(port);
-        return LOGIC(file->offset >= size); }
+        return LOGIC_OUT(file->offset >= size); }
 
       case SYM_PAST_Q: {
         uint64_t size = File_Size_Cacheable_May_Panic(port);
-        return LOGIC(file->offset > size); }
+        return LOGIC_OUT(file->offset > size); }
 
       case SYM_OPEN_Q:
-        return LOGIC(did (file->id != FILEHANDLE_NONE));
+        return LOGIC_OUT(did (file->id != FILEHANDLE_NONE));
 
     //=//// READ ///////////////////////////////////////////////////////////=//
 
@@ -466,7 +466,7 @@ DECLARE_NATIVE(FILE_ACTOR)
         if (result)
             panic (result);
 
-        return COPY(port);
+        return COPY_TO_OUT(port);
     }}
 
     //=//// OPEN ///////////////////////////////////////////////////////////=//
@@ -516,7 +516,7 @@ DECLARE_NATIVE(FILE_ACTOR)
         if (error != nullptr)
             panic (Error_Cannot_Open_Raw(file_path, error));
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// COPY ///////////////////////////////////////////////////////////=//
     //
@@ -554,7 +554,7 @@ DECLARE_NATIVE(FILE_ACTOR)
             if (error)
                 panic (error);
         }
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// DELETE /////////////////////////////////////////////////////////=//
     //
@@ -574,7 +574,7 @@ DECLARE_NATIVE(FILE_ACTOR)
         if (error)
             panic (error);
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// RENAME /////////////////////////////////////////////////////////=//
     //
@@ -630,7 +630,7 @@ DECLARE_NATIVE(FILE_ACTOR)
 
         Copy_Cell(file_path, ARG(TO));  // !!! this needs to mutate the spec!
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// CREATE /////////////////////////////////////////////////////////=//
     //
@@ -698,7 +698,7 @@ DECLARE_NATIVE(FILE_ACTOR)
         }
 
         file->offset += offset;
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
     //=//// CLEAR //////////////////////////////////////////////////////////=//
     //
@@ -729,7 +729,7 @@ DECLARE_NATIVE(FILE_ACTOR)
         if (truncate_error)
             panic (truncate_error);
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
       default:
         break;

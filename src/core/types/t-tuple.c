@@ -464,7 +464,7 @@ IMPLEMENT_GENERIC(COPY, Any_Sequence)
     if (not deep or Is_Cell_Wordlike(seq)) {  // wordlike is /A or :B etc
         if (ARG(PART))
             panic (PARAM(PART));
-        return COPY(seq);
+        return COPY_TO_OUT(seq);
     }
 
     bool trivial_copy = true;
@@ -481,7 +481,7 @@ IMPLEMENT_GENERIC(COPY, Any_Sequence)
     }
 
     if (not ARG(PART) and trivial_copy)  // something like a/1/foo
-        return COPY(seq);
+        return COPY_TO_OUT(seq);
 
     Stable* datatype = Copy_Cell(SPARE, Datatype_Of(seq));
 
@@ -584,8 +584,8 @@ IMPLEMENT_GENERIC(RANDOM_PICK, Any_Sequence)
         assert(Is_Cell_Listlike(seq));  // all pairlikes are also listlike
         REBI64 one_or_two = Random_Range(2, did ARG(SECURE));
         if (one_or_two == 1)
-            return COPY(Cell_Pair_First(seq));
-        return COPY(Cell_Pair_Second(seq));
+            return COPY_TO_OUT(Cell_Pair_First(seq));
+        return COPY_TO_OUT(Cell_Pair_Second(seq));
     }
 
     if (Is_Cell_Listlike(seq)) {  // alias as BLOCK! and dispatch to list pick
@@ -716,5 +716,5 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Sequence)
         }
     }
 
-    return TRASH;
+    return TRASH_OUT;
 }

@@ -110,7 +110,7 @@ DECLARE_NATIVE(SHOVE)
     Element* left = Element_ARG(LEFT);
 
     if (Is_Level_At_End(L))  // shouldn't be for WORD!/PATH! unless APPLY
-        return COPY(ARG(LEFT));  // ...because evaluator wants `help <-` to work
+        return COPY_TO_OUT(ARG(LEFT));  // evaluator wants `help <-` to work
 
   //=//// RESOLVE ACTION ON RIGHT (LOOKUP VAR, EVAL GROUP...) /////////////=//
   //
@@ -404,7 +404,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
 
     if (Is_Level_At_End(sub)) {
         Drop_Level(sub);
-        return NULLED;
+        return NULL_OUT;
     }
 
     STATE = ST_EVALUATE_SINGLE_STEPPING;
@@ -469,7 +469,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
         crash (source); // Frame is the only other type
 
     if (Is_Level_At_End(L))
-        return GHOST;
+        return GHOST_OUT;
 
     require (
       Level* sub = Make_Level(  // need evaluation in a sublevel [3]

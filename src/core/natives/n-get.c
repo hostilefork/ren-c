@@ -717,11 +717,11 @@ DECLARE_NATIVE(GET)
           bool vanished = Recalculate_Group_Arg_Vanishes(LEVEL, SYM_GET)
         );
         if (vanished)
-            return NULLED;
+            return NULL_OUT;
     }
 
     if (Any_Lifted(target))
-        return UNLIFT(target);
+        return UNLIFT_TO_OUT(target);
 
     if (Is_Block(target)) {
         Source* a = Make_Source(Series_Len_At(target));
@@ -813,9 +813,9 @@ DECLARE_NATIVE(DEFINED_Q)
         LEVEL, NO_STEPS
     ) except (Error* e) {
         UNUSED(e);
-        return LOGIC(false);
+        return LOGIC_OUT(false);
     }
 
     possibly(Is_Failure(OUT));  // (get meta $obj.field) can be FAILURE!
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }

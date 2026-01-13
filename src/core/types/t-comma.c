@@ -48,7 +48,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Comma)
     else
         Append_Codepoint(mo->strand, ',');
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -76,5 +76,5 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Comma)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Comma(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Comma(v1, v2, strict) == 0);
 }

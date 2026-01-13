@@ -75,7 +75,7 @@ DECLARE_NATIVE(STATS)
     if (ARG(POOL)) {
         Stable* pool_id = unwrap ARG(POOL);
         Dump_All_Flex_In_Pool(VAL_INT32(pool_id));
-        return NULLED;
+        return NULL_OUT;
     }
 
     if (ARG(SHOW))
@@ -138,7 +138,7 @@ DECLARE_NATIVE(CALLGRIND)
       default:
         panic ("Currently CALLGRIND only supports ON and OFF");
     }
-    return TRASH;
+    return TRASH_OUT;
   #else
     panic ("Executable wasn't compiled with INCLUDE_CALLGRIND_NATIVE");
   #endif

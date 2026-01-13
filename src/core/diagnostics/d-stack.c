@@ -192,9 +192,9 @@ DECLARE_NATIVE(RUNNING_Q)
     Level* L = Level_Of_Varlist_May_Panic(frame_ctx);
 
     if (Is_Level_Fulfilling_Or_Typechecking(L))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
@@ -216,7 +216,7 @@ DECLARE_NATIVE(PENDING_Q)
     Level* L = Level_Of_Varlist_May_Panic(frame_ctx);
 
     if (Is_Level_Fulfilling_Or_Typechecking(L))
-        return LOGIC(true);
+        return LOGIC_OUT(true);
 
-    return LOGIC(false);
+    return LOGIC_OUT(false);
 }

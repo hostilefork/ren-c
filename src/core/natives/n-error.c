@@ -48,9 +48,9 @@ DECLARE_NATIVE(TRY)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Is_Failure(v) or Is_Hot_Potato_Dual(v))  // what about Any_Void()? [1]
-        return NULLED;
+        return NULL_OUT;
 
-    return COPY(v);  // !!! also tolerates other antiforms, should it?
+    return COPY_TO_OUT(v);  // !!! also tolerates other antiforms, should it?
 }
 
 
@@ -168,7 +168,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 
   // 1. We aren't catching throws or panics, only cooperative FAILURE! results.
 
-    Init_Ghost(OUT);  // default if all evaluations produce void
+    Init_Ghost(OUT);  // default if all evaluations produce ghost
 
     Flags flags = LEVEL_FLAG_TRAMPOLINE_KEEPALIVE;  // reused for each step
 
@@ -273,7 +273,7 @@ DECLARE_NATIVE(EXCEPT)
         // leave as-is [2]
     }
     else
-        return COPY(left);  // pass through non-error/non-hot-potato
+        return COPY_TO_OUT(left);  // pass through non-error/non-hot-potato
 
     return DELEGATE_BRANCH(OUT, branch, left);
 }
@@ -295,7 +295,7 @@ DECLARE_NATIVE(TRAP)
     Value* v = ARG(VALUE);
 
     if (not Is_Failure(v))
-        return COPY(v);  // pass thru any non-failures
+        return COPY_TO_OUT(v);  // pass thru any non-failures
 
     Element* return_word = Init_Word(SCRATCH, CANON(RETURN));
     Bind_Cell_If_Unbound(return_word, Feed_Binding(LEVEL->feed));
@@ -337,7 +337,7 @@ DECLARE_NATIVE(REQUIRE)
       );
     }
 
-    return COPY(v);  // pass thru any non-errors
+    return COPY_TO_OUT(v);  // pass thru any non-errors
 }
 
 
@@ -356,7 +356,7 @@ DECLARE_NATIVE(FAILURE_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Failure(v));
+    return LOGIC_OUT(Is_Failure(v));
 }
 
 
@@ -397,5 +397,5 @@ DECLARE_NATIVE(SET_LOCATION_OF_ERROR)
     Error* error = Cell_Error(ARG(ERROR));
     Set_Location_Of_Error(error, where);
 
-    return TRASH;
+    return TRASH_OUT;
 }

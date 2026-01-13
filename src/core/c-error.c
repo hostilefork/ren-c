@@ -1414,12 +1414,12 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Error)
 
     if (Is_Text(message)) {
         Form_Element(mo, cast(Element*, message));
-        return TRASH;
+        return TRASH_OUT;
     }
 
     if (not Is_Block(message)) {
         require (Append_Ascii(mo->strand, "(improperly formatted error)"));
-        return TRASH;
+        return TRASH_OUT;
     }
 
     const Source* array = Cell_Array(message);
@@ -1467,5 +1467,5 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Error)
         }
     }
 
-    return TRASH;
+    return TRASH_OUT;
 }

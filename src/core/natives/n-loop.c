@@ -327,7 +327,7 @@ static Bounce Loop_Series_Common(
 
                 switch (unwrap interrupt) {
                   case LOOP_INTERRUPT_BREAK:
-                    return BREAKING_NULL;
+                    return NULL_OUT_BREAKING;
 
                   case LOOP_INTERRUPT_AGAIN:
                     break;  // will keep calling Eval_Branch_Throws()
@@ -346,7 +346,7 @@ static Bounce Loop_Series_Common(
     //
     const bool counting_up = (s < end); // equal checked above
     if ((counting_up and bump <= 0) or (not counting_up and bump >= 0))
-        return GHOST;  // avoid infinite loops
+        return GHOST_OUT_UNBRANCHED;  // avoid infinite loops
 
     while (
         counting_up
@@ -360,7 +360,7 @@ static Bounce Loop_Series_Common(
 
             switch (unwrap interrupt) {
               case LOOP_INTERRUPT_BREAK:
-                return BREAKING_NULL;
+                return NULL_OUT_BREAKING;
 
               case LOOP_INTERRUPT_AGAIN:
                 continue;
@@ -388,7 +388,7 @@ static Bounce Loop_Series_Common(
     }
 
     if (Is_Cell_Erased(OUT))
-        return GHOST;
+        return GHOST_OUT_UNBRANCHED;
 
     return OUT_BRANCHED;
 }
@@ -424,7 +424,7 @@ static Bounce Loop_Integer_Common(
 
                 switch (unwrap interrupt) {
                   case LOOP_INTERRUPT_BREAK:
-                    return BREAKING_NULL;
+                    return NULL_OUT_BREAKING;
 
                   case LOOP_INTERRUPT_AGAIN:
                     break;  // will keep calling Eval_Branch_Throws()
@@ -444,7 +444,7 @@ static Bounce Loop_Integer_Common(
     //
     const bool counting_up = (start < end);  // equal checked above
     if ((counting_up and bump <= 0) or (not counting_up and bump >= 0))
-        return BREAKING_NULL;  // avoid infinite loops !!! void, or null?
+        return GHOST_OUT_UNBRANCHED;  // avoid infinite loops !!!
 
     while (counting_up ? *state <= end : *state >= end) {
         Option(LoopInterrupt) interrupt = none;
@@ -455,7 +455,7 @@ static Bounce Loop_Integer_Common(
 
                 switch (unwrap interrupt) {
                   case LOOP_INTERRUPT_BREAK:
-                    return BREAKING_NULL;
+                    return NULL_OUT_BREAKING;
 
                   case LOOP_INTERRUPT_AGAIN:
                     break;  // will keep calling Eval_Branch_Throws()
@@ -530,7 +530,7 @@ static Bounce Loop_Number_Common(
 
                 switch (unwrap interrupt) {
                   case LOOP_INTERRUPT_BREAK:
-                    return BREAKING_NULL;
+                    return NULL_OUT_BREAKING;
 
                   case LOOP_INTERRUPT_AGAIN:
                     break;  // will keep calling Eval_Branch_Throws()
@@ -548,7 +548,7 @@ static Bounce Loop_Number_Common(
     //
     const bool counting_up = (s < e); // equal checked above
     if ((counting_up and b <= 0) or (not counting_up and b >= 0))
-        return GHOST;  // avoid inf. loop, means never ran
+        return GHOST_OUT_UNBRANCHED;  // avoid inf. loop
 
     while (counting_up ? *state <= e : *state >= e) {
         if (Eval_Branch_Throws(OUT, body)) {
@@ -558,7 +558,7 @@ static Bounce Loop_Number_Common(
 
             switch (unwrap interrupt) {
               case LOOP_INTERRUPT_BREAK:
-                return BREAKING_NULL;
+                return NULL_OUT_BREAKING;
 
               case LOOP_INTERRUPT_AGAIN:
                 continue;
@@ -575,7 +575,7 @@ static Bounce Loop_Number_Common(
     }
 
     if (Is_Cell_Erased(OUT))
-        return GHOST;
+        return GHOST_OUT_UNBRANCHED;
 
     return OUT_BRANCHED;
 }
@@ -686,8 +686,8 @@ DECLARE_NATIVE(FOR_SKIP)
     Element* body = Element_ARG(BODY);
 
     REBINT skip = Int32(ARG(SKIP));
-    if (skip == 0)
-        return GHOST;  // https://forum.rebol.info/t/infinite-loop-vs-error/936
+    if (skip == 0)  // https://forum.rebol.info/t/infinite-loop-vs-error/936
+        return GHOST_OUT_UNBRANCHED;
 
     require (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, word)
@@ -736,7 +736,7 @@ DECLARE_NATIVE(FOR_SKIP)
 
                 switch (unwrap interrupt) {
                   case LOOP_INTERRUPT_BREAK:
-                    return BREAKING_NULL;
+                    return NULL_OUT_BREAKING;
 
                   case LOOP_INTERRUPT_AGAIN:
                     break;
@@ -764,7 +764,7 @@ DECLARE_NATIVE(FOR_SKIP)
     }
 
     if (Is_Cell_Erased(OUT))
-        return GHOST;
+        return GHOST_OUT_UNBRANCHED;
 
     return OUT_BRANCHED;
 }
@@ -900,7 +900,7 @@ DECLARE_NATIVE(CYCLE)
     if (Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt)) {
         switch (unwrap interrupt) {
           case LOOP_INTERRUPT_BREAK:
-            return BREAKING_NULL;
+            return NULL_OUT_BREAKING;
 
           case LOOP_INTERRUPT_AGAIN:
             break;  // plain again
@@ -1418,10 +1418,10 @@ DECLARE_NATIVE(FOR_EACH)
         return THROWN;
 
     if (breaking)
-        return BREAKING_NULL;
+        return NULL_OUT_BREAKING;
 
     if (Is_Cell_Erased(OUT))
-        return GHOST;
+        return GHOST_OUT_UNBRANCHED;
 
     return OUT_BRANCHED;
 }}
@@ -1571,7 +1571,7 @@ DECLARE_NATIVE(EVERY)
         return THROWN;
 
     if (Is_Cell_Erased(OUT))
-        return GHOST;
+        return GHOST_OUT_UNBRANCHED;
 
     return OUT;
 }}
@@ -1628,7 +1628,7 @@ DECLARE_NATIVE(REMOVE_EACH)
     Flex* flex = Cell_Flex_Ensure_Mutable(data);  // check even if empty
 
     if (Series_Index(data) >= Series_Len_At(data))  // past series end
-        return NULLED;
+        return GHOST_OUT_UNBRANCHED;
 
     require (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, vars)
@@ -1922,7 +1922,7 @@ DECLARE_NATIVE(REMOVE_EACH)
         return THROWN;
 
     if (breaking)
-        return BREAKING_NULL;
+        return NULL_OUT_BREAKING;
 
     assert(Type_Of(As_Stable(OUT)) == Type_Of(data));
 
@@ -2161,7 +2161,7 @@ DECLARE_NATIVE(MAP)
     if (Not_Cell_Erased(OUT)) {  // only modifies on break or veto
         assert(Is_Light_Null(OUT));  // BREAK or VETO, so *must* return null
         Drop_Data_Stack_To(STACK_BASE);
-        return NULLED;
+        return NULL_OUT_BREAKING;
     }
 
     return Init_Block(  // always returns block unless break [1]
@@ -2215,16 +2215,15 @@ DECLARE_NATIVE(REPEAT)
   initial_entry: {  //////////////////////////////////////////////////////////
 
     if (not count)
-        return GHOST;  // treat <opt> void input as "don't run"
+        return GHOST_OUT_UNBRANCHED;  // treat <opt> void input as "don't run"
 
     if (Is_Logic(count)) {
         if (Cell_Logic(count) == false)
-            return GHOST;  // treat false as "don't run"
-
+            return GHOST_OUT_UNBRANCHED;  // treat false as "don't run"
         Init_True(index);
     }
     else if (VAL_INT64(count) <= 0)
-        return GHOST;  // negative means "don't run" (vs. error)
+        return GHOST_OUT_UNBRANCHED;  // negative means "don't run" (vs. error)
     else {
         assert(Any_Number(count));
         Init_Integer(index, 1);
@@ -2245,7 +2244,7 @@ DECLARE_NATIVE(REPEAT)
 
         switch (unwrap interrupt) {
           case LOOP_INTERRUPT_BREAK:
-            return BREAKING_NULL;
+            return NULL_OUT_BREAKING;
 
           case LOOP_INTERRUPT_AGAIN:
             goto invoke_loop_body;
@@ -2338,7 +2337,7 @@ DECLARE_NATIVE(FOR)
 
     REBI64 n = VAL_INT64(value);
     if (n < 1)  // Loop_Integer from 1 to 0 with bump of 1 is infinite
-        return GHOST;
+        return GHOST_OUT_UNBRANCHED;
 
     Add_Definitional_Break_Again_Continue(body, level_);
 
@@ -2368,7 +2367,7 @@ DECLARE_NATIVE(FOR)
 
         switch (unwrap interrupt) {
           case LOOP_INTERRUPT_BREAK:
-            return BREAKING_NULL;
+            return NULL_OUT_BREAKING;
 
           case LOOP_INTERRUPT_AGAIN:
             goto invoke_loop_body;
@@ -2450,7 +2449,7 @@ DECLARE_NATIVE(INSIST)
 
   // 1. When CONTINUE has an argument, it acts like the loop body evaluated
   //    to that argument.  But INSIST's condition and body are the same, so
-  //    CONTINUE:WITH OKAY will stop the INSIST and return OKAY, while
+  //    CONTINUE:WITH OKAY will stop the INSIST and return okay, while
   //    CONTINUE:WITH 10 will stop and return 10, etc.
   //
   // 2. Due to body_result_in_out:[1], we want CONTINUE (or CONTINUE:WITH ())
@@ -2470,7 +2469,7 @@ DECLARE_NATIVE(INSIST)
 
         switch (unwrap interrupt) {
           case LOOP_INTERRUPT_BREAK:
-            return BREAKING_NULL;
+            return NULL_OUT_BREAKING;
 
           case LOOP_INTERRUPT_AGAIN:
             goto loop_again;
@@ -2581,7 +2580,7 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 
         switch (unwrap interrupt) {
           case LOOP_INTERRUPT_BREAK:
-            return BREAKING_NULL;
+            return NULL_OUT_BREAKING;
 
           case LOOP_INTERRUPT_AGAIN:
             goto invoke_loop_body;
@@ -2596,8 +2595,8 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 
 } return_out: {  /////////////////////////////////////////////////////////////
 
-    if (Is_Cell_Erased(OUT))
-        return GHOST;  // body never ran, so no result to return!
+    if (Is_Cell_Erased(OUT))  // body never ran
+        return GHOST_OUT_UNBRANCHED;  // no result to return!
 
     return OUT_BRANCHED;
 }}

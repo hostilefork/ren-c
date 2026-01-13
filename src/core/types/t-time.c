@@ -224,7 +224,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Time)
         Trim_Tail(mo, '0');
     }
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -254,7 +254,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Time)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Time(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Time(v1, v2, strict) == 0);
 }
 
 
@@ -265,7 +265,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Is_Time)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Time(v1, v2, true) == -1);
+    return LOGIC_OUT(CT_Time(v1, v2, true) == -1);
 }
 
 
@@ -665,7 +665,7 @@ IMPLEMENT_GENERIC(EVEN_Q, Is_Time)
 
     REBI64 secs = VAL_NANO(Element_ARG(VALUE));
 
-    return LOGIC((SECS_FROM_NANO(secs) & 1) == 0);
+    return LOGIC_OUT((SECS_FROM_NANO(secs) & 1) == 0);
 }
 
 
@@ -677,7 +677,7 @@ IMPLEMENT_GENERIC(RANDOMIZE, Is_Time)
     REBI64 secs = VAL_NANO(time);
 
     Set_Random(secs);
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -743,12 +743,12 @@ IMPLEMENT_GENERIC(ROUND, Is_Time)
             Dec64(to) * SEC_SEC
         );
         VAL_DECIMAL(to) /= SEC_SEC;
-        return COPY(to);
+        return COPY_TO_OUT(to);
     }
     else if (Is_Integer(to)) {
         mutable_VAL_INT64(to)
             = Round_Int(secs, level_, Int32(to) * SEC_SEC) / SEC_SEC;
-        return COPY(to);
+        return COPY_TO_OUT(to);
     }
 
     panic (PARAM(TO));

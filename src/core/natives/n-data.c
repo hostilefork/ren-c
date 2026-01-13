@@ -96,7 +96,7 @@ DECLARE_NATIVE(BIND)
             Tweak_Cell_Binding(v, use);
         }
 
-        return COPY(v);
+        return COPY_TO_OUT(v);
     }
 
     const Element* context;
@@ -123,7 +123,7 @@ DECLARE_NATIVE(BIND)
 
         Tweak_Cell_Binding(v, use);
 
-        return COPY(v);
+        return COPY_TO_OUT(v);
     }
 
     if (Is_Cell_Wordlike(v)) {
@@ -131,7 +131,7 @@ DECLARE_NATIVE(BIND)
         // Bind a single word (also works on refinements, `/a` ...or `a.`, etc.
 
         if (Try_Bind_Word(context, v))
-            return COPY(v);
+            return COPY_TO_OUT(v);
 
         panic (Error_Not_In_Context_Raw(v));
     }
@@ -145,7 +145,7 @@ DECLARE_NATIVE(BIND)
     Copy_Cell(Stub_Cell(use), context);
     Tweak_Cell_Binding(v, use);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -166,7 +166,7 @@ DECLARE_NATIVE(BINDABLE_Q)
     if (Is_Antiform(v))
         return fail ("ANTIFORM! values are not bindable");  // caller can TRY
 
-    return LOGIC(Is_Cell_Bindable(As_Element(v)));
+    return LOGIC_OUT(Is_Cell_Bindable(As_Element(v)));
 }
 
 
@@ -253,7 +253,7 @@ DECLARE_NATIVE(OVERBIND)
 
     Tweak_Cell_Binding(v, use);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -281,7 +281,7 @@ DECLARE_NATIVE(HAS)
     const bool strict = true;
     Option(Ordinal) n = Find_Symbol_In_Context(context, symbol, strict);
     if (not n)
-        return NULLED;
+        return NULL_OUT;
 
     if (not Is_Module(context)) {
         VarList* varlist = Cell_Varlist(context);
@@ -329,7 +329,7 @@ DECLARE_NATIVE(WITHOUT)
             Element_ARG(CONTEXT), symbol, strict
         );
         if (not n)
-            return NULLED;
+            return NULL_OUT;
         Init_Word_Bound(
             OUT,
             symbol,  // !!! incoming case...consider impact of strict if false?
@@ -347,7 +347,7 @@ DECLARE_NATIVE(WITHOUT)
 
     Tweak_Cell_Binding(v, use);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -407,9 +407,9 @@ DECLARE_NATIVE(REFINEMENT_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Get_Word(v));
+    return LOGIC_OUT(Is_Get_Word(v));
 }
 
 
@@ -430,9 +430,9 @@ DECLARE_NATIVE(SET_WORD_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Set_Word(v));
+    return LOGIC_OUT(Is_Set_Word(v));
 }
 
 
@@ -453,9 +453,9 @@ DECLARE_NATIVE(SET_RUN_WORD_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Set_Run_Word(v));
+    return LOGIC_OUT(Is_Set_Run_Word(v));
 }
 
 
@@ -476,13 +476,13 @@ DECLARE_NATIVE(RUN_WORD_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
     if (not Is_Path(v))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     Option(SingleHeart) single = Try_Get_Sequence_Singleheart(v);
-    return LOGIC(single == LEADING_SPACE_AND(WORD));
+    return LOGIC_OUT(single == LEADING_SPACE_AND(WORD));
 }
 
 
@@ -503,9 +503,9 @@ DECLARE_NATIVE(GET_WORD_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Get_Word(v));
+    return LOGIC_OUT(Is_Get_Word(v));
 }
 
 
@@ -526,9 +526,9 @@ DECLARE_NATIVE(SET_TUPLE_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Set_Tuple(v));
+    return LOGIC_OUT(Is_Set_Tuple(v));
 }
 
 
@@ -549,9 +549,9 @@ DECLARE_NATIVE(GET_TUPLE_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Get_Tuple(v));
+    return LOGIC_OUT(Is_Get_Tuple(v));
 }
 
 
@@ -572,9 +572,9 @@ DECLARE_NATIVE(SET_GROUP_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Set_Group(v));
+    return LOGIC_OUT(Is_Set_Group(v));
 }
 
 
@@ -595,9 +595,9 @@ DECLARE_NATIVE(GET_GROUP_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Get_Group(v));
+    return LOGIC_OUT(Is_Get_Group(v));
 }
 
 
@@ -618,9 +618,9 @@ DECLARE_NATIVE(SET_BLOCK_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Set_Block(v));
+    return LOGIC_OUT(Is_Set_Block(v));
 }
 
 
@@ -641,9 +641,9 @@ DECLARE_NATIVE(GET_BLOCK_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Get_Block(v));
+    return LOGIC_OUT(Is_Get_Block(v));
 }
 
 
@@ -664,9 +664,9 @@ DECLARE_NATIVE(ANY_SET_VALUE_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Any_Set_Value(v));
+    return LOGIC_OUT(Any_Set_Value(v));
 }
 
 
@@ -687,9 +687,9 @@ DECLARE_NATIVE(ANY_GET_VALUE_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Any_Get_Value(v));
+    return LOGIC_OUT(Any_Get_Value(v));
 }
 
 
@@ -710,9 +710,9 @@ DECLARE_NATIVE(QUASI_WORD_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Quasiform(v) and Heart_Of(v) == TYPE_WORD);
+    return LOGIC_OUT(Is_Quasiform(v) and Heart_Of(v) == TYPE_WORD);
 }
 
 
@@ -733,9 +733,9 @@ DECLARE_NATIVE(CHAR_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
-    return LOGIC(Is_Rune_And_Is_Char(v));
+    return LOGIC_OUT(Is_Rune_And_Is_Char(v));
 }
 
 
@@ -756,9 +756,9 @@ DECLARE_NATIVE(LIT_WORD_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(
+    return LOGIC_OUT(
         LIFT_BYTE(v) == ONEQUOTE_NONQUASI_5 and Heart_Of(v) == TYPE_WORD
     );
 }
@@ -781,9 +781,9 @@ DECLARE_NATIVE(LIT_PATH_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Heart_Of(v) == TYPE_PATH and Quotes_Of(v) == 1);
+    return LOGIC_OUT(Heart_Of(v) == TYPE_PATH and Quotes_Of(v) == 1);
 }
 
 
@@ -802,7 +802,7 @@ DECLARE_NATIVE(ANY_INERT_Q)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Not_Antiform(v) and Any_Inert(v));
+    return LOGIC_OUT(Not_Antiform(v) and Any_Inert(v));
 }
 
 
@@ -840,7 +840,7 @@ DECLARE_NATIVE(UNBIND)
     }
     */
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -867,7 +867,7 @@ DECLARE_NATIVE(BINDABLE)
         Tweak_Cell_Binding(v, UNBOUND);
     }
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -888,12 +888,12 @@ DECLARE_NATIVE(RESOLVE)
 
     if (Any_Word(source)) {
         KIND_BYTE(source) = TYPE_WORD;
-        return COPY(source);
+        return COPY_TO_OUT(source);
     }
 
     if (Is_Tuple(source)) {
         KIND_BYTE(source) = TYPE_TUPLE;
-        return COPY(source);
+        return COPY_TO_OUT(source);
     }
 
     if (Is_Path(source)) {  // !!! For now: (resolve '/a:) -> a
@@ -910,7 +910,7 @@ DECLARE_NATIVE(RESOLVE)
             assume (
               Unsingleheart_Sequence(source)
             );
-            return COPY(source);
+            return COPY_TO_OUT(source);
         }
         if (
             single == LEADING_SPACE_AND(CHAIN)  // /a: or /a:b:c or /:a
@@ -938,7 +938,7 @@ DECLARE_NATIVE(RESOLVE)
         assume (
           Unsingleheart_Sequence(source)
         );
-        return COPY(source);
+        return COPY_TO_OUT(source);
     }
 
     panic (source);
@@ -1016,7 +1016,7 @@ DECLARE_NATIVE(PROXY_EXPORTS)
         }
     }
 
-    return COPY(ARG(WHERE));
+    return COPY_TO_OUT(ARG(WHERE));
 }
 
 
@@ -1034,7 +1034,7 @@ DECLARE_NATIVE(INFIX_Q)
     INCLUDE_PARAMS_OF_INFIX_Q;
 
     Element* frame = Element_ARG(FRAME);
-    return LOGIC(Is_Frame_Infix(frame));
+    return LOGIC_OUT(Is_Frame_Infix(frame));
 }
 
 
@@ -1120,7 +1120,7 @@ DECLARE_NATIVE(VANISHABLE_Q)
 {
     INCLUDE_PARAMS_OF_VANISHABLE_Q;
 
-    return LOGIC(Get_Cell_Flag(ARG(ACTION), WEIRD_VANISHABLE));
+    return LOGIC_OUT(Get_Cell_Flag(ARG(ACTION), WEIRD_VANISHABLE));
 }
 
 
@@ -1145,7 +1145,7 @@ DECLARE_NATIVE(IDENTITY)  // sample uses: https://stackoverflow.com/q/3136338
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -1172,7 +1172,7 @@ DECLARE_NATIVE(FREE)
 
     Flex* f = Cell_Flex_Ensure_Mutable(v);
     Diminish_Stub(f);
-    return TRASH; // !!! Could return freed value
+    return TRASH_OUT; // !!! Could return freed value
 }
 
 
@@ -1201,19 +1201,19 @@ DECLARE_NATIVE(FREE_Q)
     Stable* v = ARG(VALUE);
 
     if (Is_Nulled(v))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     if (not Cell_Payload_1_Needs_Mark(v))  // freeable values have Flex in payload payload1
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     Base* b = CELL_PAYLOAD_1(v);
     if (b == nullptr or not Is_Base_A_Stub(b))
-        return LOGIC(false);  // no decayed pairing form at this time [1]
+        return LOGIC_OUT(false);  // no decayed pairing form at this time [1]
 
     if (Is_Stub_Diminished(cast(Stub*, b)))
-        return LOGIC(true);  // decayed is as "free" as outstanding refs get
+        return LOGIC_OUT(true);  // decayed is as "free" as outstanding refs get
 
-    return LOGIC(false);
+    return LOGIC_OUT(false);
 }
 
 
@@ -1231,7 +1231,7 @@ DECLARE_NATIVE(ALIASES_Q)
 {
     INCLUDE_PARAMS_OF_ALIASES_Q;
 
-    return LOGIC(Cell_Flex(ARG(VALUE1)) == Cell_Flex(ARG(VALUE2)));
+    return LOGIC_OUT(Cell_Flex(ARG(VALUE1)) == Cell_Flex(ARG(VALUE2)));
 }
 
 
@@ -1255,7 +1255,7 @@ DECLARE_NATIVE(ANY_STABLE_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Cell_Stable(v));
+    return LOGIC_OUT(Is_Cell_Stable(v));
 }
 
 
@@ -1279,7 +1279,7 @@ DECLARE_NATIVE(ANY_VALUE_Q)  // synonym for internal concept of ANY_ATOM
 {
     INCLUDE_PARAMS_OF_ANY_VALUE_Q;
 
-    return OKAY;
+    return BOUNCE_OKAY;
 }
 
 
@@ -1300,7 +1300,7 @@ DECLARE_NATIVE(ANY_WORD_Q)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Any_Word(v));
+    return LOGIC_OUT(Any_Word(v));
 }
 
 
@@ -1319,7 +1319,7 @@ DECLARE_NATIVE(NONE_Q)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_None(v));
+    return LOGIC_OUT(Is_None(v));
 }
 
 
@@ -1338,7 +1338,7 @@ DECLARE_NATIVE(TRIPWIRE_Q)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Tripwire(v));
+    return LOGIC_OUT(Is_Tripwire(v));
 }
 
 
@@ -1359,7 +1359,7 @@ DECLARE_NATIVE(NOOP)  // lack of a hyphen common, e.g. jQuery.noop
 {
     INCLUDE_PARAMS_OF_NOOP;
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -1380,9 +1380,9 @@ DECLARE_NATIVE(QUASAR_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Quasar(v));
+    return LOGIC_OUT(Is_Quasar(v));
 }
 
 
@@ -1403,9 +1403,9 @@ DECLARE_NATIVE(SPACE_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Space(v));
+    return LOGIC_OUT(Is_Space(v));
 }
 
 
@@ -1426,21 +1426,21 @@ DECLARE_NATIVE(BLANK_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
     if (not Is_Rune(v))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     const Utf8Byte* utf8 = Cell_Utf8_At(v);
     if (*utf8 == '\0')
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     for (; *utf8 != '\0'; ++utf8) {
         if (*utf8 != ' ')
-            return LOGIC(false);
+            return LOGIC_OUT(false);
     }
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
@@ -1465,7 +1465,7 @@ DECLARE_NATIVE(HEAVY)
     if (Is_Ghost(v))
         return Init_Heavy_Void(OUT);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -1484,7 +1484,7 @@ DECLARE_NATIVE(HEAVY_NULL_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Heavy_Null(v));
+    return LOGIC_OUT(Is_Heavy_Null(v));
 }
 
 
@@ -1504,18 +1504,18 @@ DECLARE_NATIVE(LIGHT)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (not Is_Pack(v))
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
     Length len;
     const Element* first = List_Len_At(&len, v);
 
     if (len != 1)
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
     if (Is_Lifted_Null(first))  // only case we care about, pack of one null
-        return NULLED;  // return the null, no longer in a pack
+        return NULL_OUT;  // return the null, no longer in a pack
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -1534,7 +1534,7 @@ DECLARE_NATIVE(DECAY)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -1555,10 +1555,10 @@ DECLARE_NATIVE(DECAYABLE_Q)
 
     Ensure_No_Failures_Including_In_Packs(v) except (Error* e) {
         UNUSED(e);
-        return LOGIC(false);
+        return LOGIC_OUT(false);
     }
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
@@ -1609,7 +1609,7 @@ DECLARE_NATIVE(NOQUASI)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
     Copy_Cell(OUT, v);
     if (LIFT_BYTE(OUT) == QUASIFORM_4)
@@ -1633,7 +1633,7 @@ DECLARE_NATIVE(DEGRADE)
 
     Element* elem = Element_ARG(VALUE);
     if (not Is_Quasiform(elem))
-        return COPY(elem);
+        return COPY_TO_OUT(elem);
 
     Copy_Cell(OUT, elem);
 
@@ -1661,5 +1661,5 @@ DECLARE_NATIVE(NOANTIFORM)
 
     if (Is_Antiform(v))
         LIFT_BYTE(v) = NOQUOTE_3;
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }

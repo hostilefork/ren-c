@@ -165,13 +165,13 @@ DECLARE_NATIVE(DUMP)
         ) except (Error* e) {
             printf("!!! ERROR FETCHING WORD FOR DUMP !!!");
             PROBE(e);
-            return TRASH;
+            return TRASH_OUT;
         }
 
         PROBE(SPARE);
     }
 
-    return TRASH;
+    return TRASH_OUT;
   #else
     panic (Error_Checked_Build_Only_Raw());
   #endif

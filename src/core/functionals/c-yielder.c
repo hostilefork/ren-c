@@ -46,7 +46,7 @@ DECLARE_NATIVE(DONE_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Done_Dual(v));
+    return LOGIC_OUT(Is_Done_Dual(v));
 }
 
 

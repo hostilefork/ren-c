@@ -47,7 +47,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Integer)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Integer(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Integer(v1, v2, strict) == 0);
 }
 
 
@@ -58,7 +58,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Is_Integer)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Integer(v1, v2, true) == -1);
+    return LOGIC_OUT(CT_Integer(v1, v2, true) == -1);
 }
 
 
@@ -180,7 +180,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Integer)
       Append_Ascii_Len(mo->strand, s_cast(buf), len)
     );
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -354,7 +354,7 @@ IMPLEMENT_GENERIC(TO, Is_Integer)
 
 
     if (to == TYPE_INTEGER)
-        return COPY(val);
+        return COPY_TO_OUT(val);
 
     panic (UNHANDLED);
 }
@@ -391,8 +391,8 @@ IMPLEMENT_GENERIC(EVEN_Q, Is_Integer)
     REBI64 num = VAL_INT64(Element_ARG(VALUE));
 
     if (num & 1)
-        return LOGIC(false);
-    return LOGIC(true);
+        return LOGIC_OUT(false);
+    return LOGIC_OUT(true);
 }
 
 
@@ -403,7 +403,7 @@ IMPLEMENT_GENERIC(RANDOMIZE, Is_Integer)
     REBI64 num = VAL_INT64(Element_ARG(SEED));
 
     Set_Random(num);
-    return TRASH;
+    return TRASH_OUT;
 }
 
 

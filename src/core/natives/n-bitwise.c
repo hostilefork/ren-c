@@ -53,7 +53,7 @@ DECLARE_NATIVE(BITWISE_NOT)
 
     if (Is_Logic(v)) {
         bool b1 = Cell_Logic(v);
-        return LOGIC(not b1);
+        return LOGIC_OUT(not b1);
     }
 
     return Run_Generic_Dispatch(As_Element(v), LEVEL, CANON(BITWISE_NOT));
@@ -92,7 +92,7 @@ DECLARE_NATIVE(BITWISE_AND)
     if (Is_Logic(v1)) {
         bool b1 = Cell_Logic(v1);
         bool b2 = Math_Arg_For_Logic(v2);
-        return LOGIC(b1 and b2);
+        return LOGIC_OUT(b1 and b2);
     }
 
     return Run_Generic_Dispatch(As_Element(v1), LEVEL, CANON(BITWISE_AND));
@@ -119,7 +119,7 @@ DECLARE_NATIVE(BITWISE_OR)
     if (Is_Logic(v1)) {
         bool b1 = Cell_Logic(v1);
         bool b2 = Math_Arg_For_Logic(v2);
-        return LOGIC(b1 or b2);
+        return LOGIC_OUT(b1 or b2);
     }
 
     return Run_Generic_Dispatch(As_Element(v1), LEVEL, CANON(BITWISE_OR));
@@ -146,7 +146,7 @@ DECLARE_NATIVE(BITWISE_XOR)
     if (Is_Logic(v1)) {
         bool b1 = Cell_Logic(v1);
         bool b2 = Math_Arg_For_Logic(v2);
-        return LOGIC(b1 != b2);
+        return LOGIC_OUT(b1 != b2);
     }
 
     return Run_Generic_Dispatch(As_Element(v1), LEVEL, CANON(BITWISE_XOR));
@@ -173,7 +173,7 @@ DECLARE_NATIVE(BITWISE_AND_NOT)
     if (Is_Logic(v1)) {
         bool b1 = Cell_Logic(v1);
         bool b2 = Math_Arg_For_Logic(v2);
-        return LOGIC(b1 and not b2);
+        return LOGIC_OUT(b1 and not b2);
     }
 
     return Run_Generic_Dispatch(
@@ -258,7 +258,7 @@ DECLARE_NATIVE(SHIFT)
         }
     }
 
-    return COPY(ARG(VALUE));
+    return COPY_TO_OUT(ARG(VALUE));
 }
 
 

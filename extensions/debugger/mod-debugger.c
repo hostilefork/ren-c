@@ -131,7 +131,7 @@ DECLARE_NATIVE(BREAKPOINT_P)
     if (not Is_Quasi_Word(u_cast(Stable*, SPARE)))
         panic ("BREAKPOINT invisible, can't RESUME:WITH code (use PAUSE)");
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 

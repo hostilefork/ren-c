@@ -179,7 +179,7 @@ INLINE bool Is_Dual_Slot_Alias_Signal(Slot* slot) {
 
 
 #define DUAL_LIFTED(v)    Lift_Cell(v ? v : Init_Nulled(OUT))
-#define DUAL_SIGNAL_NULL_ABSENT  NULLED
+#define DUAL_SIGNAL_NULL_ABSENT  NULL_OUT
 #define Is_Dual_Nulled_Absent_Signal(dual)  Is_Nulled(dual)
 
 #define WRITEBACK(out)  DUAL_LIFTED(out)  // commentary

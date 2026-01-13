@@ -657,7 +657,7 @@ DECLARE_NATIVE(COMPOSE2)
     assert(Any_List(pattern));
 
     if (Any_Word(input))
-        return COPY(input);  // makes it easier to `set compose target`
+        return COPY_TO_OUT(input);  // makes it easier to `set compose target`
 
     if (Any_Utf8(input))
         goto string_initial_entry;
@@ -944,7 +944,7 @@ DECLARE_NATIVE(COMPOSE2)
 } string_eval_in_out: { //////////////////////////////////////////////////////
 
     if (Is_Veto_Dual(OUT))
-        return VETOING_NULL;
+        return NULL_OUT_BREAKING;
 
     if (Is_Failure(OUT)) {
         Drop_Data_Stack_To(STACK_BASE);

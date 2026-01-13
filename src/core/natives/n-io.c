@@ -80,7 +80,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Fundamental)  // catch-all for ExtraHeart*
     Mold_Or_Form_Cell_Ignore_Quotes(mo, LIB(EMPTY_BLOCK), false);
     End_Non_Lexical_Mold(mo);
 
-    return TRASH;  // no return value
+    return TRASH_OUT;  // no return value
 }
 
 
@@ -181,7 +181,7 @@ DECLARE_NATIVE(WRITE_STDOUT)
         assert(Is_Blob(v));
         PROBE(v);
     }
-    return TRASH;
+    return TRASH_OUT;
   #endif
 }
 
@@ -245,7 +245,7 @@ DECLARE_NATIVE(NEW_LINE)
             break;
     }
 
-    return COPY(pos);
+    return COPY_TO_OUT(pos);
 }
 
 
@@ -283,7 +283,7 @@ DECLARE_NATIVE(NEW_LINE_Q)
                 //    bool case_one = rebUnboxLogic("new-line?", "[\n]");
                 //    bool case_two = rebUnboxLogic(new_line_q, "[\n]");
                 //
-                return LOGIC(false);
+                return LOGIC_OUT(false);
             }
 
             arr = Level_Array(L);
@@ -310,9 +310,9 @@ DECLARE_NATIVE(NEW_LINE_Q)
     }
 
     if (item != tail)
-        return LOGIC(Get_Cell_Flag(item, NEWLINE_BEFORE));
+        return LOGIC_OUT(Get_Cell_Flag(item, NEWLINE_BEFORE));
 
-    return LOGIC(Get_Source_Flag(arr, NEWLINE_AT_TAIL));
+    return LOGIC_OUT(Get_Source_Flag(arr, NEWLINE_AT_TAIL));
 }
 
 
@@ -427,6 +427,6 @@ DECLARE_NATIVE(BASIC_WRITE)
     fwrite(data, size, 1, f);
     fclose(f);
 
-    return TRASH;
+    return TRASH_OUT;
   #endif
 }

@@ -41,7 +41,7 @@ DECLARE_NATIVE(CONST) {
     Element* e = Element_ARG(VALUE);
     Set_Cell_Flag(e, CONST);
 
-    return COPY(e);
+    return COPY_TO_OUT(e);
 }
 
 
@@ -65,7 +65,7 @@ DECLARE_NATIVE(CONST_Q)
     if (not Any_Series(ARG(VALUE)))
         return fail ("CONST? only works on SERIES?");
 
-    return LOGIC(Get_Cell_Flag(ARG(VALUE), CONST));
+    return LOGIC_OUT(Get_Cell_Flag(ARG(VALUE), CONST));
 }
 
 
@@ -86,7 +86,7 @@ DECLARE_NATIVE(MUTABLE)
     Element* e = Element_ARG(VALUE);
     Clear_Cell_Flag(e, CONST);
 
-    return COPY(e);
+    return COPY_TO_OUT(e);
 }
 
 
@@ -106,7 +106,7 @@ DECLARE_NATIVE(MUTABLE_Q) {
     // besides just if the value is *const*, specifically?  Knowing the flag
     // is helpful for debugging at least.
 
-    return LOGIC(Not_Cell_Flag(ARG(VALUE), CONST));
+    return LOGIC_OUT(Not_Cell_Flag(ARG(VALUE), CONST));
 }
 
 
@@ -251,7 +251,7 @@ static Bounce Protect_Unprotect_Core(Level* level_, Flags flags)
                 if (flags & PROT_DEEP)
                     Uncolor(m_cast(Stable*, slot));
             }
-            return COPY(ARG(VALUE));
+            return COPY_TO_OUT(ARG(VALUE));
         }
     }
 
@@ -263,7 +263,7 @@ static Bounce Protect_Unprotect_Core(Level* level_, Flags flags)
     if (flags & PROT_DEEP)
         Uncolor(value);
 
-    return COPY(ARG(VALUE));
+    return COPY_TO_OUT(ARG(VALUE));
 }
 
 
@@ -313,7 +313,7 @@ DECLARE_NATIVE(PROTECT)
         if (e)
             panic (unwrap e);
 
-        return COPY(v);
+        return COPY_TO_OUT(v);
     }
 
     // Core routine handles these via LEVEL
@@ -381,7 +381,7 @@ DECLARE_NATIVE(UNPROTECT)
         if (e)
             panic (unwrap e);
 
-        return COPY(v);
+        return COPY_TO_OUT(v);
     }
 
     return Protect_Unprotect_Core(level_, PROT_WORD);
@@ -424,7 +424,7 @@ DECLARE_NATIVE(LOCKED_Q)
 {
     INCLUDE_PARAMS_OF_LOCKED_Q;
 
-    return LOGIC(Is_Value_Frozen_Deep(ARG(VALUE)));
+    return LOGIC_OUT(Is_Value_Frozen_Deep(ARG(VALUE)));
 }
 
 
@@ -529,5 +529,5 @@ DECLARE_NATIVE(FREEZE)
     Flex* locker = nullptr;
     Force_Value_Frozen_Core(ARG(VALUE), did ARG(DEEP), locker);
 
-    return COPY(ARG(VALUE));
+    return COPY_TO_OUT(ARG(VALUE));
 }

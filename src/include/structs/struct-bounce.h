@@ -59,7 +59,7 @@ typedef Byte WildTwo[2];
 //    unless you're using higher optimization levels.  Another is that the
 //    performance is best if the native itself copies the cell into the
 //    OUT slot, because when the action code calls the dispatcher it checks
-//    for equality to that pointer first.  Use `return COPY(cell)`.
+//    for equality to that pointer first.  Use `return COPY_TO_OUT(cell)`.
 //
 #if (! CPLUSPLUS_11)
     typedef RebolBounce Bounce;

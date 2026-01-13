@@ -672,7 +672,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Map)
         require (
           Append_Ascii(mo->strand, "...]")
         );
-        return TRASH;
+        return TRASH_OUT;
     }
 
     Push_Pointer_To_Flex(g_mold.stack, m);
@@ -721,7 +721,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Map)
 
     Drop_Pointer_From_Flex(g_mold.stack, m);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -748,7 +748,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Map)
         );
 
         if (not n)
-            return NULLED;
+            return NULL_OUT;
 
         const Value* val = Flex_At(
             Value,
@@ -756,7 +756,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Map)
             (((unwrap n) - 1) * 2) + 1
         );
         if (Is_Zombie(val))
-            return NULLED;
+            return NULL_OUT;
 
         return Copy_Cell(OUT, val); }
 
@@ -765,7 +765,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Map)
         INCLUDE_PARAMS_OF_INSERT;
 
         if (not ARG(VALUE))
-            return COPY(map);  // don't panic on read only if it would be no-op
+            return COPY_TO_OUT(map);  // don't panic on read only for noops
 
         if (not Is_Splice(unwrap ARG(VALUE)))
             panic (
@@ -967,5 +967,5 @@ IMPLEMENT_GENERIC(TAIL_Q, Is_Map)
     Element* map = Element_ARG(VALUE);
     const Map* m = VAL_MAP(map);
 
-    return LOGIC(Num_Map_Entries_Used(m) == 0);
+    return LOGIC_OUT(Num_Map_Entries_Used(m) == 0);
 }

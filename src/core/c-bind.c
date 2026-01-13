@@ -939,7 +939,7 @@ DECLARE_NATIVE(ADD_LET_BINDING)
         Tweak_Cell_Binding(env, let);
     }
 
-    return COPY(env);
+    return COPY_TO_OUT(env);
 }
 
 
@@ -971,7 +971,7 @@ DECLARE_NATIVE(ADD_USE_OBJECT) {
 
     Tweak_Cell_Binding(Feed_Data(L->feed), use);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 

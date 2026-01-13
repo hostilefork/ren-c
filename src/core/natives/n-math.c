@@ -840,7 +840,7 @@ DECLARE_NATIVE(VACANCY_Q)
 
     Stable* v = ARG(VALUE);
 
-    return LOGIC(Is_Trash(v) or Is_Nulled(v) or Is_None(v));
+    return LOGIC_OUT(Is_Trash(v) or Is_Nulled(v) or Is_None(v));
 }
 
 
@@ -889,12 +889,12 @@ DECLARE_NATIVE(EQUAL_Q)
     bool relax = did ARG(RELAX);
 
     if (Any_Void(ARG(VALUE1)))
-        return LOGIC(Heart_Of(ARG(VALUE1)) == Heart_Of(ARG(VALUE2)));
+        return LOGIC_OUT(Heart_Of(ARG(VALUE1)) == Heart_Of(ARG(VALUE2)));
     else if (Any_Void(ARG(VALUE2)))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     if (LIFT_BYTE(ARG(VALUE1)) != LIFT_BYTE(ARG(VALUE2)))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     LIFT_BYTE(ARG(VALUE1)) = NOQUOTE_3;
     LIFT_BYTE(ARG(VALUE2)) = NOQUOTE_3;
@@ -903,21 +903,21 @@ DECLARE_NATIVE(EQUAL_Q)
     Element* v2 = Element_ARG(VALUE2);
 
     if (Sigil_Of(v1) != Sigil_Of(v2))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     Clear_Cell_Sigil(v1);
     Clear_Cell_Sigil(v2);
 
     if (Type_Of(v1) != Type_Of(v2)) {  // !!! need generic "coercibility"
         if (not relax)
-            return LOGIC(false);
+            return LOGIC_OUT(false);
 
         if (Is_Integer(v1) and Is_Decimal(v2))
             Init_Decimal(v1, cast(REBDEC, VAL_INT64(v1)));
         else if (Is_Decimal(v1) and Is_Integer(v2))
             Init_Decimal(v2, cast(REBDEC, VAL_INT64(v2)));
         else
-            return LOGIC(false);
+            return LOGIC_OUT(false);
     }
 
     return Dispatch_Generic(EQUAL_Q, v1, LEVEL);
@@ -1010,12 +1010,12 @@ DECLARE_NATIVE(SAME_Q)
     INCLUDE_PARAMS_OF_SAME_Q;
 
     if (Any_Void(ARG(VALUE1)))
-        return LOGIC(Heart_Of(ARG(VALUE1)) == Heart_Of(ARG(VALUE2)));
+        return LOGIC_OUT(Heart_Of(ARG(VALUE1)) == Heart_Of(ARG(VALUE2)));
     else if (Any_Void(ARG(VALUE2)))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     if (LIFT_BYTE(ARG(VALUE1)) != LIFT_BYTE(ARG(VALUE2)))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     LIFT_BYTE(ARG(VALUE1)) = NOQUOTE_3;
     LIFT_BYTE(ARG(VALUE2)) = NOQUOTE_3;
@@ -1024,25 +1024,25 @@ DECLARE_NATIVE(SAME_Q)
     Element* v2 = Element_ARG(VALUE2);
 
     if (KIND_BYTE(v1) != KIND_BYTE(v2))
-        return LOGIC(false);  // not "same" value if not same heart
+        return LOGIC_OUT(false);  // not "same" value if not same heart
 
     if (Is_Bitset(v1))  // same if binaries are same
-        return LOGIC(VAL_BITSET(v1) == VAL_BITSET(v2));
+        return LOGIC_OUT(VAL_BITSET(v1) == VAL_BITSET(v2));
 
     if (Any_Series(v1))  // pointers -and- indices must match
-        return LOGIC(
+        return LOGIC_OUT(
             Cell_Flex(v1) == Cell_Flex(v2)  // v-- permissive w.r.t. index
             and SERIES_INDEX_UNBOUNDED(v1) == SERIES_INDEX_UNBOUNDED(v2)
         );
 
     if (Any_Context(v1))  // same if varlists match
-        return LOGIC(Cell_Varlist(v1) == Cell_Varlist(v2));
+        return LOGIC_OUT(Cell_Varlist(v1) == Cell_Varlist(v2));
 
     if (Is_Map(v1))  // same if map pointer matches
-        return LOGIC(VAL_MAP(v1) == VAL_MAP(v2));
+        return LOGIC_OUT(VAL_MAP(v1) == VAL_MAP(v2));
 
     if (Any_Word(v1))  // !!! "same" was spelling -and- binding in R3-Alpha
-        return LOGIC(
+        return LOGIC_OUT(
             Word_Symbol(v1) == Word_Symbol(v2)
             and Cell_Binding(v1) == Cell_Binding(v2)
         );
@@ -1052,7 +1052,7 @@ DECLARE_NATIVE(SAME_Q)
         // !!! R3-Alpha's STRICT-EQUAL? for DECIMAL! did not require *exactly*
         // the same bits, but SAME? did.  :-/
         //
-        return LOGIC(
+        return LOGIC_OUT(
             0 == memcmp(&VAL_DECIMAL(v1), &VAL_DECIMAL(v2), sizeof(REBDEC))
         );
     }

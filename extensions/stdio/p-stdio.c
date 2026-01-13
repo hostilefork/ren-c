@@ -310,7 +310,7 @@ DECLARE_NATIVE(STDIO_ACTOR)
 
     switch (opt Symbol_Id(verb)) {
       case SYM_OPEN_Q:
-        return LOGIC(true);  // stdio port always open
+        return LOGIC_OUT(true);  // stdio port always open
 
       case SYM_READ: {
         INCLUDE_PARAMS_OF_READ;
@@ -408,10 +408,10 @@ DECLARE_NATIVE(STDIO_ACTOR)
         return rebValue("copy", data, "elide clear", data); }
 
       case SYM_OPEN:
-        return COPY(port);
+        return COPY_TO_OUT(port);
 
       case SYM_CLOSE:
-        return COPY(port);
+        return COPY_TO_OUT(port);
 
       default:
         break;

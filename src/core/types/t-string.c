@@ -618,7 +618,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Url)
     UNUSED(form);
     Append_Any_Utf8(mo->strand, v);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -633,7 +633,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Email)
     UNUSED(form);
     Append_Any_Utf8(mo->strand, v);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -698,7 +698,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_String)
 
     if (form) {  // TAG! is not an exception--forms without delimiters [1]
         Append_Any_Utf8(buf, v);
-        return TRASH;
+        return TRASH_OUT;
     }
 
     switch (heart) {
@@ -724,7 +724,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_String)
         crash (v);
     }
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -788,7 +788,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
         REBLEN tail = Series_Len_Head(v);
 
         if (index >= tail or limit == 0)
-            return COPY(v);
+            return COPY_TO_OUT(v);
 
         Length len;
         Size size = String_Size_Limit_At(&len, v, &limit);
@@ -800,7 +800,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
         Free_Bookmarks_Maybe_Null(s);
         Term_Strand_Len_Size(s, tail - len, size_old - size);
 
-        return COPY(v); }
+        return COPY_TO_OUT(v); }
 
     //-- Search:
       case SYM_SELECT:
@@ -849,7 +849,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
         );
 
         if (find == NOT_FOUND)
-            return NULLED;
+            return NULL_OUT;
 
         REBLEN ret = find;
         assert(ret <= tail);
@@ -872,7 +872,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
 
         ++ret;
         if (ret == tail)
-            return NULLED;
+            return NULL_OUT;
 
         return Init_Char_Unchecked(
             OUT,
@@ -886,7 +886,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
         REBLEN tail = Series_Len_Head(v);
 
         if (index >= tail)
-            return COPY(v);  // clearing after available data has no effect
+            return COPY_TO_OUT(v);  // no effect clearing after available data
 
         // !!! R3-Alpha would take this opportunity to make it so that if the
         // series is now empty, it reclaims the "bias" (unused capacity at
@@ -900,7 +900,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
         Free_Bookmarks_Maybe_Null(s);
 
         Term_Strand_Len_Size(s, index, offset);
-        return COPY(v); }
+        return COPY_TO_OUT(v); }
 
     //-- Special actions:
 
@@ -927,7 +927,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
               Set_Char_At(arg_str, Series_Index(arg), v_c)
             );
         }
-        return COPY(v); }
+        return COPY_TO_OUT(v); }
 
       default:
         // Let the port system try the action, e.g. OPEN %foo.txt
@@ -1198,7 +1198,7 @@ IMPLEMENT_GENERIC(SHUFFLE, Any_String)
           Set_Char_At(s, n + index, swap)
         );
     }
-    return COPY(string);
+    return COPY_TO_OUT(string);
 }
 
 

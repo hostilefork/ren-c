@@ -386,5 +386,5 @@ DECLARE_NATIVE(UNLOAD_EXTENSION)
         OS_CLOSE_LIBRARY(Cell_Library_Fd(lib));
     */
 
-   return TRASH;
+   return TRASH_OUT;
 }}

@@ -112,9 +112,9 @@ DECLARE_NATIVE(CONDITIONAL)  // usually used via its alias of COND
       bool return_out = Return_Out_For_Conditional_Optional_Or_When(LEVEL)
     );
     if (return_out)
-        return OUT;
+        return OUT_BRANCHED;
 
-    return GHOST;
+    return GHOST_OUT_UNBRANCHED;
 }
 
 
@@ -299,7 +299,7 @@ DECLARE_NATIVE(IF)
       bool cond = Test_Conditional(condition)
     );
     if (not cond)
-        return GHOST;  // "light" void (triggers ELSE)
+        return GHOST_OUT_UNBRANCHED;  // ghost is "light" void (triggers ELSE)
 
     return DELEGATE_BRANCH(OUT, branch, condition);  // branch semantics [A]
 }
@@ -352,11 +352,11 @@ DECLARE_NATIVE(DID_1)
     Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
     if (Is_Light_Null(v) or Is_Ghost(v) or Is_Failure(v))
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     possibly(Is_Pack(v) and Is_Lifted_Failure(List_Item_At(v)));  // [1]
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
@@ -375,10 +375,10 @@ DECLARE_NATIVE(DIDNT)
 {
     Bounce b = Apply_Cfunc(NATIVE_CFUNC(DID_1), LEVEL);
     if (b == BOUNCE_OKAY)
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     assert(b == nullptr);
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
@@ -400,10 +400,10 @@ DECLARE_NATIVE(THEN)
     Element* branch = ARG(BRANCH);
 
     if (Is_Failure(left))
-        return COPY(left);
+        return COPY_TO_OUT(left);
 
     if (Is_Light_Null(left) or Is_Ghost(left))
-        return COPY(left);
+        return COPY_TO_OUT(left);
 
     return DELEGATE_BRANCH(OUT, branch, left);
 }
@@ -427,10 +427,10 @@ DECLARE_NATIVE(THENCE)
     Value* v = Possibly_Unstable(ARG(VALUE));
 
     if (Is_Failure(v))
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
     if (Is_Light_Null(v) or Is_Ghost(v))
-        return COPY(v);
+        return COPY_TO_OUT(v);
 
     return DELEGATE_BRANCH(OUT, branch, v);
 }
@@ -454,7 +454,7 @@ DECLARE_NATIVE(ELSE)
     Element* branch = ARG(BRANCH);
 
     if (not (Is_Light_Null(left) or Is_Ghost(left) or Is_Failure(left)))
-        return COPY(left);
+        return COPY_TO_OUT(left);
 
     possibly(Is_Failure(left));  // handler must take ^META arg, or will panic
 
@@ -497,10 +497,10 @@ DECLARE_NATIVE(ALSO)
   initial_entry: {  //////////////////////////////////////////////////////////
 
     if (Is_Failure(left))
-        return COPY(left);
+        return COPY_TO_OUT(left);
 
     if (Is_Light_Null(left) or Is_Ghost(left))
-        return COPY(left);
+        return COPY_TO_OUT(left);
 
     STATE = ST_ALSO_RUNNING_BRANCH;
     return CONTINUE_BRANCH(OUT, branch, left);
@@ -509,7 +509,7 @@ DECLARE_NATIVE(ALSO)
 
     dont(UNUSED(OUT));  // would corrupt the OUT pointer itself
 
-    return COPY(left);
+    return COPY_TO_OUT(left);
 }}
 
 
@@ -683,22 +683,22 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
   //
   //    !!! It's clearly the right answer for (all []) to return GHOST!, but
   //    while more flexibility is provided by (any []) returning it there may
-  //    be good reasons to return NULLED.  This is still under review.
+  //    be good reasons to return NULL_OUT.  This is still under review.
 
     Drop_Level(SUBLEVEL);
 
     if (Not_Level_Flag(LEVEL, SAW_NON_VOID))
-        return GHOST;  // light void if all evaluations vaporized [1]
+        return GHOST_OUT_UNBRANCHED;  // ghost if all evaluations vaporized [1]
 
     switch (which) {
       case NATIVE_IS_ANY:
-        return NULLED;  // non-vanishing expressions, but none of them passed
+        return NULL_OUT;  // non-vanishing expressions, but none of them passed
 
       case NATIVE_IS_ALL:  // successful ALL returns the last value
         return Force_Cell_Heavy(OUT);  // didn't CONTINUE_BRANCH(), saw ghosts
 
       case NATIVE_IS_NONE_OF:
-        return OKAY;  // successful NONE-OF has no value to return, use OKAY
+        return BOUNCE_OKAY;  // successful NONE-OF has no value to return
 
       default:  // some C compilers don't seem to know this is unreachable
         crash (nullptr);
@@ -713,7 +713,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 } return_null: { /////////////////////////////////////////////////////////////
 
     Drop_Level(SUBLEVEL);
-    return NULLED;
+    return NULL_OUT;
 }}
 
 
@@ -1316,7 +1316,7 @@ DECLARE_NATIVE(MAYBE)
     Value* v = ARG(VALUE);
 
     if (Is_Failure(v))
-        return COPY(v);  // pass through but don't assign anything
+        return COPY_TO_OUT(v);  // pass through but don't assign anything
 
     assume (
         Unsingleheart_Sequence(target)  // drop the colon off the end
@@ -1391,7 +1391,7 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
         require (
           Ensure_No_Failures_Including_In_Packs(OUT)
         );
-        return GHOST;  // no throw means just return ghost (pure, for ELSE)
+        return GHOST_OUT_UNBRANCHED;  // !!! Review: result should drop out
     }
 
     const Stable* label = VAL_THROWN_LABEL(LEVEL);

@@ -106,7 +106,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Date)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Date(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Date(v1, v2, strict) == 0);
 }
 
 
@@ -133,7 +133,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Is_Date)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Date(v1, v2, false) == -1);
+    return LOGIC_OUT(CT_Date(v1, v2, false) == -1);
 }
 
 
@@ -156,7 +156,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Date)
         require (
           Append_Ascii(mo->strand, "?date?")
         );
-        return TRASH;
+        return TRASH_OUT;
     }
 
     // Date bits are stored in canon UTC form.  But for rendering, the year
@@ -211,7 +211,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Date)
         }
     }
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -1133,7 +1133,7 @@ IMPLEMENT_GENERIC(RANDOMIZE, Is_Date)
         + (cast(REBI64, Julian_Date(date)) << 32)
         + nano
     );
-    return TRASH;
+    return TRASH_OUT;
 }
 
 

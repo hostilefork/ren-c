@@ -1011,7 +1011,7 @@ DECLARE_NATIVE(COUPLE)
         Tweak_Frame_Coupling(action_or_frame, Cell_Varlist(unwrap coupling));
     }
 
-    return COPY(action_or_frame);
+    return COPY_TO_OUT(action_or_frame);
 }
 
 

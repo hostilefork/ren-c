@@ -590,7 +590,7 @@ DECLARE_NATIVE(SETIFY)
       Element* e = Setify(Element_ARG(VALUE))
     );
 
-    return COPY(e);
+    return COPY_TO_OUT(e);
 }
 
 
@@ -613,7 +613,7 @@ DECLARE_NATIVE(GETIFY)
       Element* e = Getify(Element_ARG(VALUE))
     );
 
-    return COPY(e);
+    return COPY_TO_OUT(e);
 }
 
 
@@ -629,7 +629,7 @@ static Bounce Sigilize_Native_Core(Level* level_, Sigil sigil)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
     attempt {
         if (Any_Plain(v))
@@ -650,7 +650,7 @@ static Bounce Sigilize_Native_Core(Level* level_, Sigil sigil)
             return fail (Error_Bad_Sigil_Raw(v));
     }
 
-    return COPY(Add_Cell_Sigil(v, sigil));
+    return COPY_TO_OUT(Add_Cell_Sigil(v, sigil));
 }
 
 
@@ -714,12 +714,12 @@ static Bounce Unsigilize_Native_Core(Level* level_, Sigil sigil)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
     if (Sigil_Of(v) != sigil)
         return fail ("Trying to remove Sigil from value without that Sigil");
 
-    return COPY(Clear_Cell_Sigil(v));
+    return COPY_TO_OUT(Clear_Cell_Sigil(v));
 }
 
 
@@ -785,9 +785,9 @@ DECLARE_NATIVE(PLAIN)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return COPY(Clear_Cell_Sigil(v));
+    return COPY_TO_OUT(Clear_Cell_Sigil(v));
 }
 
 
@@ -808,7 +808,7 @@ DECLARE_NATIVE(UNCHAIN)
     trap (
       Unsingleheart_Sequence(elem)
     );
-    return COPY(elem);
+    return COPY_TO_OUT(elem);
 }
 
 
@@ -829,7 +829,7 @@ DECLARE_NATIVE(UNPATH)
     trap (
       Unsingleheart_Sequence(elem)
     );
-    return COPY(elem);
+    return COPY_TO_OUT(elem);
 }
 
 
@@ -850,5 +850,5 @@ DECLARE_NATIVE(UNTUPLE)
     trap (
       Unsingleheart_Sequence(elem)
     );
-    return COPY(elem);
+    return COPY_TO_OUT(elem);
 }

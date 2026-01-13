@@ -52,7 +52,7 @@
 // ARGUMENT PROCESSING (WITH THE EXCEPTION OF <cond>).**
 //
 // Not only that, but the special case of typechecking intrinsics (that
-// return LOGIC?) is that they can't write to L->out...because if you were
+// return LOGIC_OUT?) is that they can't write to L->out...because if you were
 // typechecking the argument in the output cell, checking would overwrite it.
 // Instead they have to communicate their result with BOUNCE_OKAY or nullptr
 // as the native return result (use LOGIC(true), LOGIC(false) to be clear).

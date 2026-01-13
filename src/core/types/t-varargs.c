@@ -577,7 +577,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Varargs)
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
 
-    return LOGIC(CT_Varargs(v1, v2, strict) == 0);
+    return LOGIC_OUT(CT_Varargs(v1, v2, strict) == 0);
 }
 
 
@@ -691,7 +691,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
 
     End_Non_Lexical_Mold(mo);
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -715,8 +715,8 @@ DECLARE_NATIVE(VARIADIC_Q)
     const Param* param = Phase_Params_Head(phase);
     for (; key != key_tail; ++param, ++key) {
         if (Get_Parameter_Flag(param, VARIADIC))
-            return LOGIC(true);
+            return LOGIC_OUT(true);
     }
 
-    return LOGIC(false);
+    return LOGIC_OUT(false);
 }

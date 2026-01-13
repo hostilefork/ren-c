@@ -174,7 +174,7 @@ INLINE Byte State_Byte_From_Flags(Flags flags)
 // order to deal with the fact that intrinsics are responsible for their own
 // argument typechecking...but if they themselves are being run as a typecheck
 // then they should not panic() when the types don't pass.  This means they
-// should return LOGIC(false) instead of panicing...but if called in a non
+// should return LOGIC_OUT(false) instead of panicing...but if called in a non
 // typecheck context they should do the panic.
 //
 #define LEVEL_FLAG_RUNNING_TYPECHECK \

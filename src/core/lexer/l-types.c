@@ -46,7 +46,7 @@ DECLARE_NATIVE(TYPE_OF)
     if (Is_Nulled(v))
         return fail (Error_Type_Of_Null_Raw());  // caller can TRY if meant
 
-    return COPY(Datatype_Of(v));
+    return COPY_TO_OUT(Datatype_Of(v));
 }
 
 
@@ -68,7 +68,7 @@ DECLARE_NATIVE(HEART_OF)
 
     Option(Heart) heart = Heart_Of(elem);
     if (heart)
-        return COPY(Datatype_From_Type(unwrap heart));
+        return COPY_TO_OUT(Datatype_From_Type(unwrap heart));
 
     panic ("HEART OF not supported for extension types...yet!");
 }
@@ -108,7 +108,7 @@ DECLARE_NATIVE(SIGIL_OF)
 
     Option(Sigil) sigil = Sigil_Of(elem);
     if (not sigil)
-        return NULLED;
+        return NULL_OUT;
     return Init_Sigiled_Space(OUT, unwrap sigil);
 }
 
@@ -130,9 +130,9 @@ DECLARE_NATIVE(SIGIL_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Any_Sigiled_Space(v));
+    return LOGIC_OUT(Any_Sigiled_Space(v));
 }
 
 
@@ -156,11 +156,11 @@ DECLARE_NATIVE(ANY_SIGILED_Q)  // !!! should %make-types.r produce this?
     if (Not_Level_Flag(LEVEL, DISPATCHING_INTRINSIC)) {
         if (ARG(TYPE)) {
             if (not Is_Datatype(v))
-                return LOGIC(false);
-            return LOGIC(Any_Sigiled_Type(Datatype_Type(v)));
+                return LOGIC_OUT(false);
+            return LOGIC_OUT(Any_Sigiled_Type(Datatype_Type(v)));
         }
     }
-    return LOGIC(Any_Sigiled_Type(Type_Of(v)));
+    return LOGIC_OUT(Any_Sigiled_Type(Type_Of(v)));
 }
 
 

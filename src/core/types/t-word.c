@@ -123,7 +123,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Word)
     }
     then {
         KIND_BYTE(arg) = heart;
-        return COPY(arg);
+        return COPY_TO_OUT(arg);
     }
 
     return fail (
@@ -144,7 +144,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Word)
 
     Append_Spelling(mo->strand, Word_Symbol(v));
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -233,7 +233,7 @@ IMPLEMENT_GENERIC(BINDING_OF, Is_Word)
     Element* any_word = Element_ARG(VALUE);
 
     if (not Try_Get_Binding_Of(OUT, any_word))
-        return NULLED;
+        return NULL_OUT;
 
     return OUT;
 }

@@ -251,7 +251,7 @@ DECLARE_NATIVE(SLEEP)
     usleep(msec * 1000);
   #endif
 
-    return TRASH;
+    return TRASH_OUT;
 }
 
 
@@ -319,7 +319,7 @@ DECLARE_NATIVE(TERMINATE)
 
     if (TerminateProcess(ph, 0)) {
         CloseHandle(ph);
-        return TRASH;
+        return TRASH_OUT;
     }
 
     err = GetLastError();

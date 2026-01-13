@@ -874,7 +874,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
                 if (listen_error)
                     panic (listen_error);
 
-                return COPY(port);
+                return COPY_TO_OUT(port);
             }
 
             // !!! R3-Alpha would open the socket using `socket()` call, and
@@ -915,10 +915,10 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
             else
                 panic (Error_On_Port(SYM_INVALID_SPEC, port, -10));
 
-            return COPY(port); }
+            return COPY_TO_OUT(port); }
 
           case SYM_CLOSE:
-            return COPY(port);
+            return COPY_TO_OUT(port);
 
           default:
             panic (Error_On_Port(SYM_NOT_OPEN, port, -12));
@@ -995,7 +995,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
 
         rebFree(rebreq);
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
       case SYM_WRITE: {
         INCLUDE_PARAMS_OF_WRITE;
@@ -1065,7 +1065,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
 
         rebFree(rebreq);
 
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
       case SYM_QUERY: {
         //
@@ -1108,7 +1108,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
             if (errval)
                 panic (errval);
         }
-        return COPY(port); }
+        return COPY_TO_OUT(port); }
 
       default:
         break;

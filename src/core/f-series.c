@@ -47,7 +47,7 @@ IMPLEMENT_GENERIC(SKIP, Any_Series)
     }
 
     SERIES_INDEX_UNBOUNDED(v) = i;
-    return COPY(Trust_Const(v));
+    return COPY_TO_OUT(Trust_Const(v));
 }
 
 
@@ -87,11 +87,11 @@ IMPLEMENT_GENERIC(AT, Any_Series)
 
     if (ARG(BOUNDED)) {
         if (i < 0 or i > cast(REBI64, Series_Len_Head(v)))
-            return NULLED;
+            return NULL_OUT;
     }
 
     SERIES_INDEX_UNBOUNDED(v) = i;
-    return COPY(Trust_Const(v));
+    return COPY_TO_OUT(Trust_Const(v));
 }
 
 
@@ -113,7 +113,7 @@ IMPLEMENT_GENERIC(REMOVE, Any_Series)
     if (index < Series_Len_Head(v) and len != 0)
         Remove_Any_Series_Len(v, index, len);
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -268,7 +268,7 @@ IMPLEMENT_GENERIC(HEAD_Q, Any_Series)
 
     Element* ser = Element_ARG(VALUE);
 
-    return LOGIC(SERIES_INDEX_UNBOUNDED(ser) == 0);
+    return LOGIC_OUT(SERIES_INDEX_UNBOUNDED(ser) == 0);
 }
 
 

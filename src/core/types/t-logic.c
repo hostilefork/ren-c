@@ -46,7 +46,7 @@ DECLARE_NATIVE(NULL_Q)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);  // we must decay!
 
     if (Is_Light_Null(v))
-        return LOGIC(true);
+        return LOGIC_OUT(true);
 
     if (Is_Heavy_Null(v))
         return fail (
@@ -55,11 +55,11 @@ DECLARE_NATIVE(NULL_Q)
 
     Ensure_No_Failures_Including_In_Packs(v) except (Error* e) {
         if (Get_Level_Flag(LEVEL, RUNNING_TYPECHECK))
-            return LOGIC(false);  // don't panic on undecayable in typecheck
+            return LOGIC_OUT(false);  // don't panic on undecayable in typecheck
         panic (e);
     }
 
-    return LOGIC(false);
+    return LOGIC_OUT(false);
 }
 
 
@@ -78,7 +78,7 @@ DECLARE_NATIVE(OKAY_Q)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Okay(v));
+    return LOGIC_OUT(Is_Okay(v));
 }
 
 
@@ -97,7 +97,7 @@ DECLARE_NATIVE(LOGIC_Q)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    return LOGIC(Is_Logic(v));
+    return LOGIC_OUT(Is_Logic(v));
 }
 
 
@@ -115,7 +115,7 @@ DECLARE_NATIVE(INT_TO_LOGIC)
     INCLUDE_PARAMS_OF_INT_TO_LOGIC;
 
     Element* v = Element_ARG(VALUE);
-    return LOGIC(VAL_INT64(v) != 0);
+    return LOGIC_OUT(VAL_INT64(v) != 0);
 }
 
 
@@ -136,9 +136,9 @@ DECLARE_NATIVE(BOOLEAN_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_Boolean(v));
+    return LOGIC_OUT(Is_Boolean(v));
 }
 
 
@@ -159,9 +159,9 @@ DECLARE_NATIVE(ONOFF_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_OnOff(v));
+    return LOGIC_OUT(Is_OnOff(v));
 }
 
 
@@ -182,9 +182,9 @@ DECLARE_NATIVE(YESNO_Q)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULLED;
+        return NULL_OUT;
 
-    return LOGIC(Is_YesNo(v));
+    return LOGIC_OUT(Is_YesNo(v));
 }
 
 
@@ -201,7 +201,7 @@ DECLARE_NATIVE(TRUE_Q)
 {
     INCLUDE_PARAMS_OF_TRUE_Q;
 
-    return LOGIC(Word_Id(ARG(WORD)) == SYM_TRUE);
+    return LOGIC_OUT(Word_Id(ARG(WORD)) == SYM_TRUE);
 }
 
 
@@ -218,7 +218,7 @@ DECLARE_NATIVE(FALSE_Q)
 {
     INCLUDE_PARAMS_OF_FALSE_Q;
 
-    return LOGIC(Word_Id(ARG(WORD)) == SYM_FALSE);
+    return LOGIC_OUT(Word_Id(ARG(WORD)) == SYM_FALSE);
 }
 
 
@@ -255,7 +255,7 @@ DECLARE_NATIVE(YES_Q)
 {
     INCLUDE_PARAMS_OF_YES_Q;
 
-    return LOGIC(Word_Id(ARG(WORD)) == SYM_YES);
+    return LOGIC_OUT(Word_Id(ARG(WORD)) == SYM_YES);
 }
 
 
@@ -272,7 +272,7 @@ DECLARE_NATIVE(NO_Q)
 {
     INCLUDE_PARAMS_OF_NO_Q;
 
-    return LOGIC(Word_Id(ARG(WORD)) == SYM_NO);
+    return LOGIC_OUT(Word_Id(ARG(WORD)) == SYM_NO);
 }
 
 
@@ -309,7 +309,7 @@ DECLARE_NATIVE(ON_Q)
 {
     INCLUDE_PARAMS_OF_ON_Q;
 
-    return LOGIC(Word_Id(ARG(WORD)) == SYM_ON);
+    return LOGIC_OUT(Word_Id(ARG(WORD)) == SYM_ON);
 }
 
 
@@ -326,7 +326,7 @@ DECLARE_NATIVE(OFF_Q)
 {
     INCLUDE_PARAMS_OF_NO_Q;
 
-    return LOGIC(Word_Id(ARG(WORD)) == SYM_OFF);
+    return LOGIC_OUT(Word_Id(ARG(WORD)) == SYM_OFF);
 }
 
 
@@ -372,9 +372,9 @@ DECLARE_NATIVE(AND_Q)
     );
 
     if (cond1 and cond2)
-        return LOGIC(true);
+        return LOGIC_OUT(true);
 
-    return LOGIC(false);
+    return LOGIC_OUT(false);
 }
 
 
@@ -400,9 +400,9 @@ DECLARE_NATIVE(OR_Q)
     );
 
     if (cond1 or cond2)
-        return LOGIC(true);
+        return LOGIC_OUT(true);
 
-    return LOGIC(false);
+    return LOGIC_OUT(false);
 }
 
 
@@ -419,7 +419,7 @@ DECLARE_NATIVE(NULL_IF_ZERO)
 {
     INCLUDE_PARAMS_OF_NULL_IF_ZERO;
 
-    return LOGIC(VAL_INT64(ARG(INTEGER)) != 0);
+    return LOGIC_OUT(VAL_INT64(ARG(INTEGER)) != 0);
 }
 
 
@@ -441,7 +441,7 @@ DECLARE_NATIVE(NOT_1)  // see TO-C-NAME
     require (
       bool cond = Test_Conditional(v)
     );
-    return LOGIC(not cond);
+    return LOGIC_OUT(not cond);
 }
 
 
@@ -463,7 +463,7 @@ DECLARE_NATIVE(TO_LOGIC)
     require (
       bool cond = Test_Conditional(v)
     );
-    return LOGIC(cond);
+    return LOGIC_OUT(cond);
 }
 
 
@@ -529,13 +529,13 @@ DECLARE_NATIVE(AND_1)  // see TO-C-NAME
       bool left = Test_Conditional(ARG(LEFT))
     );
     if (not left)
-        return LOGIC(false);  // if left is false, don't run right hand side
+        return LOGIC_OUT(false);  // if left is false, don't run right hand side
 
     require (
       bool right = Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(LEVEL)
     );
 
-    return LOGIC(right);
+    return LOGIC_OUT(right);
 }
 
 
@@ -558,13 +558,13 @@ DECLARE_NATIVE(OR_1)  // see TO-C-NAME
       bool left = Test_Conditional(ARG(LEFT))
     );
     if (left)
-        return LOGIC(true);  // if left is true, don't run right hand side
+        return LOGIC_OUT(true);  // if left is true, don't run right hand side
 
     require (
       bool right = Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(LEVEL)
     );
 
-    return LOGIC(right);
+    return LOGIC_OUT(right);
 }
 
 
@@ -591,9 +591,9 @@ DECLARE_NATIVE(XOR_1)  // see TO-C-NAME
       bool left = Test_Conditional(ARG(LEFT))
     );
     if (not left)
-        return LOGIC(right);
+        return LOGIC_OUT(right);
 
-    return LOGIC(not right);
+    return LOGIC_OUT(not right);
 }
 
 
@@ -624,7 +624,7 @@ DECLARE_NATIVE(UNLESS)
         panic ("UNLESS can't be used with VOID");
 
     if (Is_Light_Null(right) or Is_Heavy_Null(right))
-        return COPY(left);
+        return COPY_TO_OUT(left);
 
-    return COPY(right);  // preserve packs
+    return COPY_TO_OUT(right);  // preserve packs
 }

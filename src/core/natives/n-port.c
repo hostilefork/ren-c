@@ -169,7 +169,7 @@ DECLARE_NATIVE(WRITE)
                 Pinify_Cell(data);  // don't reduce
             Api(Stable*) delimited = rebStable("delimit:tail newline @", data);
             if (not delimited)  // e.g. [] input
-                return COPY(port);
+                return COPY_TO_OUT(port);
             Copy_Cell(data, As_Element(delimited));
             rebRelease(delimited);
         }

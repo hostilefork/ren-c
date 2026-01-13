@@ -380,12 +380,12 @@ DECLARE_NATIVE(TEXT_X_COMBINATOR)
         const Element* tail;
         const Element* at = List_At(&tail, input);
         if (at == tail)  // no item to match against
-            return NULLED;
+            return NULL_OUT;
         require (
           bool equal = Equal_Values(at, v, true)
         );
         if (not equal)  // not case-insensitive equal
-            return NULLED;
+            return NULL_OUT;
 
         ++SERIES_INDEX_UNBOUNDED(input);
         Copy_Cell(ARG(REMAINDER), input);
@@ -406,7 +406,7 @@ DECLARE_NATIVE(TEXT_X_COMBINATOR)
         1  // skip
     );
     if (index == NOT_FOUND)
-        return NULLED;
+        return NULL_OUT;
 
     assert(index == Series_Index(input));  // asked for AM_FIND_MATCH
     SERIES_INDEX_UNBOUNDED(input) += len;
@@ -415,7 +415,7 @@ DECLARE_NATIVE(TEXT_X_COMBINATOR)
     // If not a list, we have return the rule on match since there's
     // no isolated value to capture.
 
-    return COPY(v);
+    return COPY_TO_OUT(v);
 }
 
 
@@ -481,7 +481,7 @@ DECLARE_NATIVE(SOME_COMBINATOR)
 
     if (Is_Light_Null(OUT)) {  // didn't match even once, not enough, drop loop
         Remove_Flex_Units_And_Update_Used(loops, Array_Len(loops) - 1, 1);
-        return NULLED;
+        return NULL_OUT;
     }
 
 } call_parser_again: {  //////////////////////////////////////////////////////
@@ -550,12 +550,12 @@ DECLARE_NATIVE(FURTHER_COMBINATOR)
 } parser_result_in_out: {  ///////////////////////////////////////////////////
 
     if (Is_Light_Null(OUT))
-        return NULLED;  // the parse rule did not match
+        return NULL_OUT;  // the parse rule did not match
 
     Copy_Cell(SPARE, remainder);
 
     if (Series_Index(SPARE) <= Series_Index(input))
-        return NULLED;  // the rule matched but did not advance the input
+        return NULL_OUT;  // the rule matched but did not advance the input
 
     return OUT;
 }}

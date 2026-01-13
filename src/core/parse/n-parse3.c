@@ -2590,7 +2590,7 @@ DECLARE_NATIVE(PARSE3)
 
     if (Is_Light_Null(OUT)) {  // a match failed (but may be at end of input)
         if (ARG(MATCH))
-            return NULLED;
+            return NULL_OUT;
         return fail (Error_Parse3_Incomplete_Raw());
     }
 
@@ -2599,13 +2599,13 @@ DECLARE_NATIVE(PARSE3)
 
     if (index != Series_Len_Head(input)) {  // didn't reach end of input
         if (ARG(MATCH))
-            return NULLED;
+            return NULL_OUT;
         if (not ARG(RELAX))
             return fail (Error_Parse3_Incomplete_Raw());
     }
 
     if (ARG(MATCH))
-        return COPY(scratch_original_input);
+        return COPY_TO_OUT(scratch_original_input);
 
     Copy_Cell(OUT, g_trash_parse3_success);  // trash result unless ACCEPT
     return OUT;

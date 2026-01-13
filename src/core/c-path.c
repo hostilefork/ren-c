@@ -330,7 +330,7 @@ DECLARE_NATIVE(POKE)
         panic ("PICK with keyword or trash picker never allowed");
 
     if (Is_Failure(v))
-        return COPY(v);  // bypass and don't do the poke
+        return COPY_TO_OUT(v);  // bypass and don't do the poke
 
     Set_Level_Flag(LEVEL, POKE_NOT_INITIAL_ENTRY);
 
@@ -361,7 +361,7 @@ DECLARE_NATIVE(POKE)
             "Can't writeback to immediate in POKE (use TWEAK* if intentional)"
         );
 
-    return COPY(LOCAL(STORE));  // stored ^VALUE argument was meta
+    return COPY_TO_OUT(LOCAL(STORE));  // stored ^VALUE argument was meta
 }}
 
 
@@ -381,7 +381,7 @@ IMPLEMENT_GENERIC(EQUAL_Q, Any_Sequence)
     Length b_len = Sequence_Len(b);
 
     if (a_len != b_len)  // different lengths not considered EQUAL? [1]
-        return LOGIC(false);
+        return LOGIC_OUT(false);
 
     Sink(Element) a_item = SCRATCH;
     Sink(Element) b_item = SPARE;
@@ -395,10 +395,10 @@ IMPLEMENT_GENERIC(EQUAL_Q, Any_Sequence)
           bool equal = Equal_Values(a_item, b_item, strict)
         );
         if (not equal)
-            return LOGIC(false);
+            return LOGIC_OUT(false);
     }
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
@@ -425,7 +425,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_Sequence)
 
         bool lesser;
         if (Try_Lesser_Value(&lesser, a_item, b_item))
-            return LOGIC(lesser);  // LESSER? result was meaningful
+            return LOGIC_OUT(lesser);  // LESSER? result was meaningful
 
         bool strict = true;
         require (
@@ -437,7 +437,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_Sequence)
         return fail ("Couldn't compare values");  // fret
     }
 
-    return LOGIC(true);
+    return LOGIC_OUT(true);
 }
 
 
