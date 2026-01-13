@@ -216,7 +216,7 @@ INLINE Stable* Splicify(Exact(Stable*) v) {
     return v;
 }
 
-INLINE Stable* Init_Splice_Untracked(Init(Stable) out, Source* a) {
+INLINE Stable* Init_Splice_Untracked(Init(Stable) out, const Source* a) {
     Init_Block(out, a);
     Stably_Antiformize_Unbound_Fundamental(out);
     assert(Is_Splice(out));
@@ -235,4 +235,4 @@ INLINE bool Is_None(const Stable* v) {  // SPLICE with no elements [1]
 }
 
 #define Init_None(out) \
-    TRACK(Init_Splice_Untracked((out), g_empty_array))
+    TRACK(Init_Splice_Untracked((out), EMPTY_ARRAY))

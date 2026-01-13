@@ -68,7 +68,7 @@ Result(None) Prep_Action_Level(
             if (Get_Parameter_Flag(param, REFINEMENT))
                 Init_Nulled(arg);
             else
-                Init_Unspecialized_Void(arg);
+                Init_Unspecialized_Ghost(arg);
         }
     }
 

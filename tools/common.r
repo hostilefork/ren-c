@@ -378,7 +378,8 @@ export relative-to-path: func [
 ;    it hard to use new scanner constructs in the mezzanine.
 ;
 ;    Currently this is only used by the SYS context in order to generate top
-;    #define constants for easy access to the functions there.
+;    #define constants for easy access to the functions there, and the
+;    BASE constants.
 ;
 export stripload: func [
     "Get an equivalent to MOLD:FLAT (plus no comments) without using LOAD"
@@ -444,40 +445,38 @@ export stripload: func [
     ]
 
     if gather [  ; dodgy top-level detection [1]
-        append (ensure block! get gather) spread collect [
-            for-next 't text [
-                let newline-pos: find t newline else [tail of text]
-                if not let colon-pos: find:part t ":" newline-pos [
-                    t: newline-pos
-                    continue
-                ]
-                if let space-pos: find:part t space colon-pos [
-                    t: newline-pos
-                    continue
-                ]
-                let str: copy:part t colon-pos
-                if not parse3:match str [some "/"] [  ; symbols like ///:
-                    if str.1 = #"/" [str: next str]  ; /foo: -> foo as name
-                ]
-                all [
-                    not find str ";"
-                    not find str "{"
-                    not find str "}"
-                    not find str -["]-
-                    any [
-                        not find str "/"
-                        parse3:match str [some "/"]
-                    ]
-                    any [
-                        not find str "."
-                        parse3:match str [some "."]
-                    ]
-                ] then [
-                    keep to word! str  ; AS WORD! must be at head
-                ]
-                t: newline-pos
-            ]
+        let word-start-char: charset [
+            #"A" - #"Z"
+            #"a" - #"z"
+            #"-" #"+" #"|" #"-" #"*" #"!" #"=" #"?" #"_"
         ]
+        let word-rest-char: charset [
+            #"A" - #"Z"
+            #"a" - #"z"
+            #"-" #"+" #"|" #"-" #"*" #"!" #"=" #"?" #"_"
+            #"0" - #"9"
+            #"'"  ; e.g. DIDN'T
+        ]
+        let s
+        let e
+        set gather collect [parse3 contents [some [
+            s: <here> some "/"
+            e: <here> ": " (
+                keep to word! copy:part s e  ; `///` is WORD! in "///:"
+            )
+            |
+            s: <here> some "."
+            e: <here> ": " (
+                keep to word! copy:part s e  ; `...` is WORD! in "...:"
+            )
+            |
+            opt "^^" opt "/" s: <here> word-start-char opt some word-rest-char
+            e: <here> ": " (
+                keep to word! copy:part s e
+            )
+            |
+            thru newline
+        ]]]
     ]
 
     if header [

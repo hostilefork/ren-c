@@ -326,17 +326,6 @@ static void Init_Root_Vars(void)
     Init_Bounce_Wild(g_bounce_delegation, C_DELEGATION);
     Init_Bounce_Wild(g_bounce_suspend, C_SUSPEND);
 
-} make_empty_block: {
-
-    g_empty_array = Make_Source_Managed(0);
-    Freeze_Source_Deep(g_empty_array);
-
-    known_nullptr(g_empty_block) = Init_Block(
-        Alloc_Value(),
-        g_empty_array  // holds empty array alive
-    );
-    Force_Value_Frozen_Deep(g_empty_block);
-
 } make_empty_object: {
 
     Length len = 0;
@@ -432,8 +421,6 @@ static void Shutdown_Root_Vars(void)
     Erase_Bounce_Wild(g_bounce_suspend);
 
     rebReleaseAndNull(&g_empty_text);
-    rebReleaseAndNull(&g_empty_block);
-    g_empty_array = nullptr;
     rebReleaseAndNull(&g_empty_object);
     g_empty_varlist = nullptr;
     rebReleaseAndNull(&g_lifted_heavy_null);
@@ -812,7 +799,7 @@ void Startup_Core(void)
     PG_Boot_Phase = BOOT_ERRORS;
 
   #if defined(TEST_MID_BOOT_PANIC)
-    crash (g_empty_array);  // crashes should be able to give details by now
+    crash (EMPTY_ARRAY);  // crashes should be able to give details by now
   #elif defined(TEST_MID_BOOT_PANIC)
     panic ("mid boot panic");  // if RUNTIME_CHECKS assert, else crash
   #endif

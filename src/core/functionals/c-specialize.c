@@ -106,10 +106,10 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
                 if (Get_Parameter_Flag(param, REFINEMENT))
                     Init_Nulled(Slot_Init_Hack(arg));
                 else
-                    Init_Unspecialized_Void(Slot_Init_Hack(arg));
+                    Init_Unspecialized_Ghost(Slot_Init_Hack(arg));
             }
             else if (placeholder == g_quasi_null) {
-                Init_Unspecialized_Void(Slot_Init_Hack(arg));
+                Init_Unspecialized_Ghost(Slot_Init_Hack(arg));
             }
             else {
                 assert(placeholder == nullptr);
@@ -287,12 +287,12 @@ bool Specialize_Action_Throws(
         Value* arg = Slot_Hack(slot);
 
         if (Is_Specialized(param)) {  // was specialized in underlying phase
-            if (not Is_Unspecialized_Void(arg))  // v-- couldn't change
+            if (not Is_Unspecialized_Ghost(arg))  // v-- couldn't change
                 assert(not Is_Possibly_Unstable_Value_Parameter(arg));
             continue;
         }
 
-        if (Is_Unspecialized_Void(arg)) {  // no assignments in specialization
+        if (Is_Unspecialized_Ghost(arg)) {  // no assignments in specialization
           #if DEBUG_POISON_UNINITIALIZED_CELLS
             Poison_Cell(slot);
           #endif

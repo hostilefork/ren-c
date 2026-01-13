@@ -415,7 +415,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
             if (Get_Parameter_Flag(param, REFINEMENT))
                 Init_Nulled(arg);
             else
-                Init_Unspecialized_Void(arg);
+                Init_Unspecialized_Ghost(arg);
         }
     }
 
@@ -999,7 +999,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     }
 
     if (Not_Cell_Stable(v) and Parameter_Class(param) != PARAMCLASS_META) {
-        if (Is_Endlike_Void(v)) {  // non-^META endable parameters can be void
+        if (Is_Endlike_Ghost(v)) {  // non-^META endable parameters can be void
             if (Get_Parameter_Flag(param, ENDABLE))
                 goto return_true;
         }
@@ -1078,7 +1078,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     if ((result == true) and Not_Cell_Stable(v))
         assert(
             Parameter_Class(param) == PARAMCLASS_META
-            or (Get_Parameter_Flag(param, ENDABLE) and Is_Endlike_Void(v))
+            or (Get_Parameter_Flag(param, ENDABLE) and Is_Endlike_Ghost(v))
         );
   #endif
 

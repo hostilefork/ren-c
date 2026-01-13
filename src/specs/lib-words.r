@@ -89,28 +89,11 @@ Rebol [
     end
 </MAX_SYM_PARSE3>  ;  </> means prior symbol (SYM_END is MAX_SYM_PARSE3)
 
-ghost
-tripwire
-#veto  ; !!! VETO is a PARSE keyword and has to be in order
-done
-quasar
-null
-okay
-none
-NUL
-
 value?
 element?
 fundamental?
 plain?
 quasi?
-
-newline
-space
-
-stdout
-stdin
-stderr
 
 sys
 system

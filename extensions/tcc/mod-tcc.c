@@ -127,7 +127,7 @@ enum {
 // is given they could be batched up.
 //
 // 1. When `tcc_set_error_func()` is called, you can pass it a value that
-//    it will pass back.  We pass g_empty_block to test it (and explain it).
+//    it will pass back.  We pass EMPTY_ARRAY to test it (and explain it).
 //    Note that since the compilation can be delayed after MAKE-NATIVE exits,
 //    pointers to local variables should not be used here.
 //
@@ -141,7 +141,7 @@ static void Error_Reporting_Hook(
     void *opaque,
     const char *msg_utf8
 ){
-    assert(cast(Stable*, opaque) == g_empty_block);  // test callback arg [1]
+    assert(cast(Array*, opaque) == EMPTY_ARRAY);  // test callback arg [1]
     UNUSED(opaque);
 
     Value* message = rebText(msg_utf8);
@@ -453,7 +453,7 @@ DECLARE_NATIVE(COMPILE_P)
     );
     Push_Lifeguard(handle);
 
-    void* opaque = cast(void*, g_empty_block); // can parameterize the error...
+    void* opaque = m_cast(void*, EMPTY_ARRAY);  // can parameterize hook
     tcc_set_error_func(state, opaque, &Error_Reporting_Hook);
 
 
@@ -751,7 +751,7 @@ DECLARE_NATIVE(COMPILE_P)
         );
         Element* block = Init_Block(
             Details_At(details_api, IDX_API_ACTION_BINDING_BLOCK),
-            g_empty_array
+            EMPTY_ARRAY
         );
         Copy_Cell(
             Details_At(details_api, IDX_TCC_NATIVE_STATE),

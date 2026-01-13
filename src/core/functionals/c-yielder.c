@@ -504,7 +504,7 @@ DECLARE_NATIVE(GENERATOR)  // could also be made in LIB with SPECIALIZE
 
     assert(STATE == STATE_0);
 
-    Copy_Cell(LOCAL(SPEC), g_empty_block);
+    Copy_Cell(LOCAL(SPEC), LIB(EMPTY_BLOCK));
     return NATIVE_CFUNC(YIELDER)(LEVEL);
 }
 

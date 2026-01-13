@@ -45,7 +45,8 @@ lf: LF:    newline
 
 nul: NUL:  #{00}  ; ^(NULL) no longer legal internal to strings
 
-none: ~[]~
+empty-block: '[]
+none: spread empty-block
 quasar: '~
 
 null: ~null~

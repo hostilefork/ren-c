@@ -115,11 +115,9 @@ PVAR Element* g_tag_here;  // https://forum.rebol.info/t/1558/5
 
 PVAR Element* g_empty_text; // read-only ""
 PVAR Element* g_empty_blob; // read-only #{}
-PVAR Element* g_empty_block; // read-only []
 PVAR Element* g_empty_object;
 PVAR Element* g_quasi_null;  // ~null~ quasiform
 PVAR Stable* g_tripwire;  // ~ antiform (LIB(TRIPWIRE) is a function)
-PVAR Source* g_empty_array; // optimization of Cell_Array(g_empty_block)
 PVAR VarList* g_empty_varlist;
 PVAR Source* g_1_quasi_null_array;  // used by heavy nulls ~(~null~)~
 

@@ -194,7 +194,7 @@ INLINE bool Eval_Element_Core_Throws(
       Feed* feed = Prep_Array_Feed(
         Alloc_Feed(),
         value,  // first--in this case, the only value in the feed...
-        g_empty_array,  // ...because we're using the empty array after that
+        EMPTY_ARRAY,  // ...because we're using the empty array after that
         0,  // ...at index 0
         context,
         FEED_MASK_DEFAULT | (value->header.bits & FEED_FLAG_CONST)

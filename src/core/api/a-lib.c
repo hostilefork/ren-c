@@ -3431,7 +3431,7 @@ RebolValue* API_rebFunctionFlipped(
     DECLARE_ELEMENT (spec);
 
     if (Is_Feed_At_End(feed)) {  // act like `func [] [...]`
-        Init_Block(spec, g_empty_array);
+        Init_Block(spec, EMPTY_ARRAY);
     }
     else {
         Copy_Cell(spec, At_Feed(feed));
@@ -3475,7 +3475,7 @@ RebolValue* API_rebFunctionFlipped(
     );
     Element* holder = Init_Block(  // only care about binding GC safety
         Details_At(details, IDX_API_ACTION_BINDING_BLOCK),
-        g_empty_array
+        EMPTY_ARRAY
     );
     Tweak_Cell_Binding(holder, Cell_Binding(spec));
 

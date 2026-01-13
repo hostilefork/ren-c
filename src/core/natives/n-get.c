@@ -562,7 +562,7 @@ Result(Value*) Meta_Get_Var(
             Move_Cell(action, As_Stable(out));
             Deactivate_If_Action(action);
 
-            Option(Element*) def = nullptr;  // !!! g_empty_block doesn't work?
+            Option(Element*) def = nullptr;  // !!! why not LIB(EMPTY_BLOCK) ?
             bool threw = Specialize_Action_Throws(  // costly, try to avoid [1]
                 out, action, def, base
             );

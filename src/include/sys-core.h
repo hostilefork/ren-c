@@ -638,6 +638,8 @@ INLINE Error* Cell_Error(const Cell* c);
 
 #include "sys-datastack.h"
 
+#include "sys-lib.h"
+
 #include "cells/cell-integer.h"
 #include "cells/cell-decimal.h"
 #include "cells/cell-time.h"
@@ -686,8 +688,6 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "sys-isotope.h"
 
 //=//// EVALUATOR SERVICES ////////////////////////////////////////////////=//
-
-#include "sys-lib.h"
 
 #include "sys-bounce.h"
 #include "sys-throw.h"

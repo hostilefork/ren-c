@@ -77,7 +77,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Fundamental)  // catch-all for ExtraHeart*
     /*assert(Heart_Of_Is_0(custom));*/  // !!! currently does HANDLE!
 
     Begin_Non_Lexical_Mold(mo, custom);
-    Mold_Or_Form_Cell_Ignore_Quotes(mo, g_empty_block, false);
+    Mold_Or_Form_Cell_Ignore_Quotes(mo, LIB(EMPTY_BLOCK), false);
     End_Non_Lexical_Mold(mo);
 
     return TRASH;  // no return value

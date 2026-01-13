@@ -230,6 +230,20 @@ for-each 'term load3 %lib-words.r [
 ]
 
 
+=== "ESTABLISH SYM_XXX VALUES FOR BASE CONSTANTS" ===
+
+; Eventually everything in LIB should be pre-created, so that are the module
+; stubs and symbols are pre-created.  But stripload's gathering would need
+; to be smarter.
+
+base-constants: []
+stripload:gather %../mezz/base-constants.r $base-constants
+probe base-constants
+for-each 'name base-constants [
+    add-sym:relax name
+]
+
+
 === "ESTABLISH SYM_XXX VALUES FOR EACH NATIVE" ===
 
 ; It's desirable for the core to be able to get the Value* for a native

@@ -100,7 +100,7 @@ INLINE Element* Init_Varargs_Untyped_Infix(
 ){
     Stub* feed;
     if (not left)
-        feed = g_empty_array;
+        feed = m_cast(Stub*, EMPTY_ARRAY);  // !!! trust not mutating?
     else {
         Source* singular = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
         Copy_Cell(Stub_Cell(singular), unwrap left);

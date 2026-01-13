@@ -581,8 +581,8 @@ IMPLEMENT_GENERIC(MAKE, Is_Object)
         VarList* context = Make_Varlist_Detect_Managed(
             COLLECT_ONLY_SET_WORDS,
             TYPE_OBJECT,
-            Array_Head(g_empty_array),  // scan for toplevel set-words (empty)
-            Array_Tail(g_empty_array),
+            Array_Head(EMPTY_ARRAY),  // scan for toplevel set-words (empty)
+            Array_Tail(EMPTY_ARRAY),
             nullptr  // no parent
         );
 

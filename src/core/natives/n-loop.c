@@ -1010,7 +1010,7 @@ Element* Init_Loop_Each_May_Alias_Data(Sink(Element) iterator, Stable* data)
             les->u.eser.len = Series_Len_Head(data);  // has HOLD, won't change
         }
         else if (Is_Module(data)) {
-            les->flex = g_empty_array;  // !!! workaround, not a Flex
+            les->flex = EMPTY_ARRAY;  // !!! workaround, not a Flex
             Init_Evars(&les->u.evars, As_Element(data));
         }
         else if (Any_Context(data)) {

@@ -147,10 +147,10 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
 //
 
 #define Init_Ghost_For_End(out)  Init_Ghost(out)
-#define Is_Endlike_Void(v)  Is_Ghost(v)
+#define Is_Endlike_Ghost(v)  Is_Ghost(v)
 
 #define Init_Ghost_For_Unset(out)  Init_Ghost(out)
-#define Is_Unsetlike_Void(v)  Is_Ghost(v)
+#define Is_Unsetlike_Ghost(v)  Is_Ghost(v)
 
-#define Init_Unspecialized_Void(out)  Init_Ghost(out)
-#define Is_Unspecialized_Void(v)  Is_Ghost(v)
+#define Init_Unspecialized_Ghost(out)  Init_Ghost(out)
+#define Is_Unspecialized_Ghost(v)  Is_Ghost(v)

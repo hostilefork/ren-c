@@ -59,7 +59,7 @@ INLINE Value* Init_Pack_Untracked(Init(Value) out, const Source* a) {
 //=//// "HEAVY VOID" (EMPTY PACK! ANTIFORM) ///////////////////////////////=//
 
 #define Init_Heavy_Void_Untracked(out) \
-    Init_Pack_Untracked((out), g_empty_array)
+    Init_Pack_Untracked((out), EMPTY_ARRAY)  // Copy_Cell(LIB(HEAVY_VOID))?
 
 #define Init_Heavy_Void(out) \
     TRACK(Init_Heavy_Void_Untracked(out))
@@ -77,7 +77,7 @@ INLINE bool Is_Heavy_Void_Core(const Value* v) {
 
 INLINE Element* Init_Lifted_Heavy_Void_Untracked(Sink(Element) out) {
     Init_Any_List_At_Core_Untracked(
-        out, TYPE_GROUP, g_empty_array, 0, SPECIFIED
+        out, TYPE_GROUP, EMPTY_ARRAY, 0, SPECIFIED
     );
     Quasify_Isotopic_Fundamental(out);
     return out;
