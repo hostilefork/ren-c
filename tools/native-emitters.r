@@ -211,8 +211,8 @@ export emit-include-params-macro: func [
         ]
 
         if not any [
-            native-name = "native-bedrock"
-            native-name = "tweak*-bedrock"
+            native-name = "native-unchecked"
+            native-name = "tweak*-unchecked"
         ][
             if 'return <> spec.1 [panic-bad-return]
             spec: next spec

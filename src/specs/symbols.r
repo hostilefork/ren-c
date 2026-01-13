@@ -26,15 +26,10 @@ Rebol [
     ]--
 ]
 
-; === BEDROCK NATIVES ===
+; === UNCHECKED NATIVES ===
 
-native-bedrock
-tweak*-bedrock
-
-; === DUAL SIGNALS ===
-
-*unset*  ; "pure unset", (^var) can read TRASH!, but not pure unset
-*blackhole*  ; e.g. Slot that _ makes in (for_each [x _] [1 2 3 4] [...])
+native-unchecked
+tweak*-unchecked
 
 ; === WORD!-based LOGIC ===
 

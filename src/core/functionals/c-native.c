@@ -249,7 +249,7 @@ DECLARE_NATIVE(NATIVE)
 
 
 //
-//  native-bedrock: native [
+//  native-unchecked: native [
 //
 //  "(Bootstrap Variation) Version of NATIVE with no typechecking"
 //
@@ -259,16 +259,16 @@ DECLARE_NATIVE(NATIVE)
 //      :generic
 //  ]
 //
-DECLARE_NATIVE(NATIVE_BEDROCK)
+DECLARE_NATIVE(NATIVE_UNCHECKED)
 //
 // This variation of NATIVE has no typechecking.  During bootstrap it is put
 // in LIB(NATIVE) to use while TWEAK* is unavailable to look up the words in
 // type specs.  Once TWEAK* is available, LIB(NATIVE) is overwritten by the
 // typechecked version defined in DECLARE_NATIVE(NATIVE).
 //
-// 1. To minimize visibility of the trick, there is no LIB(NATIVE_BEDROCK)
+// 1. To minimize visibility of the trick, there is no LIB(NATIVE_UNCHECKED)
 {
-    STATIC_ASSERT(SYM_NATIVE_BEDROCK > MAX_SYM_LIB_PREMADE);  // [1]
+    STATIC_ASSERT(SYM_NATIVE_UNCHECKED > MAX_SYM_LIB_PREMADE);  // [1]
 
     return Apply_Cfunc(NATIVE_CFUNC(NATIVE), LEVEL);
 }
@@ -517,13 +517,13 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
 
     switch (id) {
       case SYM_NATIVE:
-        // native-bedrock: native [...]
-        assert(Word_Id(At_Level(L)) == SYM_NATIVE_BEDROCK);
+        // native-unchecked: native [...]
+        assert(Word_Id(At_Level(L)) == SYM_NATIVE_UNCHECKED);
         break;
 
       case SYM_TWEAK_P:
-        // tweak*-bedrock: native [...]
-        assert(Word_Id(At_Level(L)) == SYM_TWEAK_P_BEDROCK);
+        // tweak*-unchecked: native [...]
+        assert(Word_Id(At_Level(L)) == SYM_TWEAK_P_UNCHECKED);
         break;
 
       case SYM_C_DEBUG_BREAK:
@@ -627,7 +627,7 @@ void Startup_Natives(const Element* boot_natives)
 
     g_current_uses_librebol = false;  // raw natives don't use librebol
 
-} make_bedrock_natives_by_hand: {
+} make_unchecked_natives_by_hand: {
 
   // Eval can't run `native: native [...]` or `tweak*: native [...]`
   //

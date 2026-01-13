@@ -259,7 +259,7 @@ DECLARE_NATIVE(TWEAK_P)
 
 
 //
-//  tweak*-bedrock: native [  ; don't put :GENERIC (covered by TWEAK*)
+//  tweak*-unchecked: native [  ; don't put :GENERIC (covered by TWEAK*)
 //
 //  "(Bootstrap Variation of TWEAK*, before type spec lookups work)"
 //
@@ -268,16 +268,16 @@ DECLARE_NATIVE(TWEAK_P)
 //      dual
 //  ]
 //
-DECLARE_NATIVE(TWEAK_P_BEDROCK)
+DECLARE_NATIVE(TWEAK_P_UNCHECKED)
 //
 // This variation of TWEAK* has no typechecking.  During bootstrap it is put
 // in LIB(TWEAK_P) to use while TWEAK* is unavailable to look up the words in
 // type specs.  Once TWEAK* is available, LIB(TWEAK_P) is overwritten by the
 // typechecked version defined in DECLARE_NATIVE(TWEAK_P).
 //
-// 1. To minimize visibility of the trick, there is no LIB(TWEAK_P_BEDROCK)
+// 1. To minimize visibility of the trick, there is no LIB(TWEAK_P_UNCHECKED)
 {
-    STATIC_ASSERT(SYM_TWEAK_P_BEDROCK > MAX_SYM_LIB_PREMADE);  // [1]
+    STATIC_ASSERT(SYM_TWEAK_P_UNCHECKED > MAX_SYM_LIB_PREMADE);  // [1]
 
     return Apply_Cfunc(NATIVE_CFUNC(TWEAK_P), LEVEL);
 }

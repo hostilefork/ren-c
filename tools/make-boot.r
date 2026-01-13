@@ -273,9 +273,9 @@ boot-natives: stripload:gather (
 ) $native-names
 
 skip-syms: 0
-assert [native-names.1 = 'native-bedrock]  ; don't make lib var [1]
+assert [native-names.1 = 'native-unchecked]  ; don't make lib var [1]
 skip-syms: me + 1
-assert [native-names.2 = 'tweak*-bedrock]  ; don't make lib var [1]
+assert [native-names.2 = 'tweak*-unchecked]  ; don't make lib var [1]
 skip-syms: me + 1
 
 insert boot-natives "["
