@@ -275,7 +275,7 @@ MUTABLE_IF_C(Stable*, INLINE) Slot_Hack(
     CONST_IF_C(Slot*) slot
 ){
     CONSTABLE(Slot*) s = m_cast(Slot*, slot);
-    assert(LIFT_BYTE(s) != DUAL_0);
+    assert(LIFT_BYTE(s) != BEDROCK_0);
     return u_cast(Stable*, s);
 }
 

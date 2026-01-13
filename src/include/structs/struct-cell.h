@@ -257,7 +257,7 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 #define LIFT_BYTE_RAW(cell) /* don't go through LiftHolder() [1] */ \
     THIRD_BYTE(&(cell)->header.bits)
 
-#define DUAL_0  0
+#define BEDROCK_0  0
 
 #if DEBUG_HOOK_LIFT_BYTE  // e.g. stop `LIFT_BYTE(cell) = QUASIFORM_4` [2]
     struct Lift_1_Struct { operator LiftByte() const { return 1; } };
@@ -795,7 +795,7 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
 // considerations for handling, because they may store bit patterns that
 // indicate a function should be run to fulfill the variable (a "GETTER") or
 // a function should be run to accept a value to store (a "SETTER").
-// These considerations apply when the Slot's LIFT_BYTE() is DUAL_0.
+// These considerations apply when the Slot's LIFT_BYTE() is BEDROCK_0.
 //
 // This means you can't casually use something like Init_Integer() or
 // Copy_Cell() to blindly write bit patterns into a Slot, because it might

@@ -19,8 +19,7 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Duals are states that live "underneath" Value*.  Their LIFT_BYTE() is
-// DUAL_0, and they have special meanings.
+// Duals are states that live "underneath" Value*.
 //
 // They can only be stored in Slot* Cells (if they can be stored at all),
 // and so cannot be held in Value*... though they can be represented as
@@ -29,10 +28,10 @@
 
 
 #define Is_Bedrock(cell) \
-    (LIFT_BYTE(known(Slot*, (cell))) == DUAL_0)
+    (LIFT_BYTE(known(Slot*, (cell))) == BEDROCK_0)
 
 
-INLINE const Element* Opt_Extract_Match_Dual(Value* v) {
+INLINE const Element* Opt_Extract_Match_Dual(const Value* v) {
     if (not Is_Pack(v))
         return nullptr;
 
@@ -62,15 +61,17 @@ INLINE const Element* Opt_Extract_Match_Dual(Value* v) {
 //    == \~(_)~\  ; antiform (pack!) "dual: blackhole"
 //
 
-#define Is_Dual_Space_Blackhole_Signal(dual) \
-    Is_Space(dual)
+INLINE bool Is_Dual_Blackhole(const Value* v) {
+    const Element* dual = Opt_Extract_Match_Dual(v);
+    return dual and Is_Space(dual);
+}
 
-#define Is_Blackhole_Slot(slot) \
-    Is_Cell_Space_With_Lift_Sigil((slot), DUAL_0, SIGIL_0)
+#define Is_Bedrock_Blackhole(slot) \
+    Is_Cell_Space_With_Lift_Sigil(known(Slot*, slot), BEDROCK_0, SIGIL_0)
 
-INLINE Slot* Init_Blackhole_Slot(Init(Slot) out) {
+INLINE Slot* Init_Bedrock_Blackhole(Init(Slot) out) {
     Init_Space(out);
-    LIFT_BYTE(out) = DUAL_0;
+    LIFT_BYTE(out) = BEDROCK_0;
     return out;
 }
 
@@ -164,11 +165,11 @@ INLINE bool Is_Dual_Meta_Alias_Signal(const Stable* dual) {
     return Is_Meta_Form_Of(WORD, (dual)) or Is_Meta_Form_Of(TUPLE, (dual));
 }
 
-INLINE bool Is_Dual_Slot_Alias_Signal(Slot* slot) {
+INLINE bool Is_Bedrock_Alias(Slot* slot) {
     return Cell_Has_Lift_Sigil_Heart(
-        slot, DUAL_0, SIGIL_META, TYPE_WORD
+        slot, BEDROCK_0, SIGIL_META, TYPE_WORD
     ) or Cell_Has_Lift_Sigil_Heart(
-        slot, DUAL_0, SIGIL_META, TYPE_TUPLE
+        slot, BEDROCK_0, SIGIL_META, TYPE_TUPLE
     );
 }
 

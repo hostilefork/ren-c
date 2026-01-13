@@ -1333,7 +1333,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
     Copy_Cell(OUT, u_cast(Value*, slot));
 
-    if (LIFT_BYTE(OUT) == DUAL_0) {  // return as nonquoted/nonquasi thing
+    if (LIFT_BYTE(OUT) == BEDROCK_0) {  // return as nonquoted/nonquasi thing
         LIFT_BYTE(OUT) = NOQUOTE_3;
         assert(
             Is_Frame(As_Stable(OUT))
@@ -1368,7 +1368,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     if (Get_Cell_Flag(slot, PROTECTED))  // POKE, must check PROTECT status
         panic (Error_Protected_Key(symbol));
 
-    if (Is_Dual_Slot_Alias_Signal(slot) and Any_Lifted(dual)) {
+    if (Is_Bedrock_Alias(slot) and Any_Lifted(dual)) {
         Copy_Cell(SCRATCH, u_cast(Value*, slot));
         LIFT_BYTE(SCRATCH) = NOQUOTE_3;
         Corrupt_Cell_If_Needful(SPARE);
@@ -1392,7 +1392,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
         return NO_WRITEBACK_NEEDED;
     }
 
-    LIFT_BYTE(slot) = DUAL_0;
+    LIFT_BYTE(slot) = BEDROCK_0;
 
     return NO_WRITEBACK_NEEDED;  // VarList* in cell not changed
 

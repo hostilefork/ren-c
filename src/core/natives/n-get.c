@@ -756,7 +756,7 @@ DECLARE_NATIVE(GET)
         return OUT;  // weird can't pick case, see [A]
 
     if (not Any_Lifted(OUT))
-        panic ("GET of DUAL_0 state, code to resolve this not in GET yet");
+        panic ("GET of BEDROCK_0 state, code to resolve this not in GET yet");
 
     require (
       Unlift_Cell_No_Decay(OUT)

@@ -888,7 +888,7 @@ Bounce Action_Executor(Level* L)
             param = Phase_Param(phase, ARG - cast(Value*, L->rootvar));
         }
 
-        assert(LIFT_BYTE(ARG) != DUAL_0);  // not a tripwire
+        assert(LIFT_BYTE(ARG) != BEDROCK_0);  // not a tripwire
 
         if (Get_Parameter_Flag(param, CONDITIONAL)) {  // <cond> param
             if (Any_Void(ARG)) {

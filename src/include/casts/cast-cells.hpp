@@ -71,7 +71,7 @@ struct CastHook<const F*, const Value*> {  // both must be const [B]
 
     const Cell* c = u_cast(const Cell*, p);
     Assert_Cell_Readable(c);
-    assert(LIFT_BYTE_RAW(c) != DUAL_0);  // dual is only illegal lift
+    assert(LIFT_BYTE_RAW(c) != BEDROCK_0);  // bedrock is only illegal lift
   }
 };
 

@@ -1290,7 +1290,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
   // 1. Tied word indicates that we wish to use the original binding.  So
   //    `for-each $x [1 2 3] [...]` will actually set that x instead of making
   //    a new one.  We use the ALIAS dual convention, of storing the word in
-  //    the slot with DUAL_0
+  //    the slot with BEDROCK_0
 
     // KeyLists are always managed, but varlist is unmanaged by default (so
     // it can be freed if there is a problem)
@@ -1319,7 +1319,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
             dummy_sym = cast(SymId, cast(int, dummy_sym) + 1);
 
             Init(Slot) slot = Append_Context(varlist, symbol);
-            Init_Blackhole_Slot(slot);
+            Init_Bedrock_Blackhole(slot);
             Protect_Cell(slot);
 
             if (body_needs_binding)
@@ -1344,7 +1344,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
             dummy_sym = cast(SymId, cast(int, dummy_sym) + 1);
 
             Copy_Cell_May_Bind(slot, item, binding);
-            LIFT_BYTE(slot) = DUAL_0;  // alias dual convention [1]
+            LIFT_BYTE(slot) = BEDROCK_0;  // alias bedrock convention [1]
         }
         else {
             assert(body_needs_binding);  // set above
@@ -1425,7 +1425,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
 //
 Result(None) Read_Slot_Meta(Sink(Value) out, const Slot* slot)
 {
-    if (LIFT_BYTE(slot) != DUAL_0) {
+    if (LIFT_BYTE(slot) != BEDROCK_0) {
         const Stable* var = Slot_Hack(slot);
 
         Copy_Cell(out, var);
@@ -1436,7 +1436,7 @@ Result(None) Read_Slot_Meta(Sink(Value) out, const Slot* slot)
 
     // e.g. `for-each _ [1 2 3] [...]` sets slot to "toss values"
 
-    assert(not Is_Blackhole_Slot(slot));
+    assert(not Is_Bedrock_Blackhole(slot));
 
     DECLARE_ELEMENT (temp);  // don't have to guard--slot guards
     Copy_Cell_Core(temp, slot, CELL_MASK_COPY);
@@ -1489,7 +1489,7 @@ Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(Slot* slot, Value* v)
         );
     }
 
-    if (Is_Blackhole_Slot(slot))  // e.g. `for-each _ [1 2 3] [...]`
+    if (Is_Bedrock_Blackhole(slot))  // e.g. `for-each _ [1 2 3] [...]`
         return none;  // toss it (we decayed first, in case it is undecayable)
 
     if (Get_Cell_Flag(slot, LOOP_SLOT_NOTE_UNBIND))
@@ -1497,7 +1497,7 @@ Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(Slot* slot, Value* v)
 
     Flags persist = (slot->header.bits & CELL_MASK_PERSIST_SLOT);
 
-    if (LIFT_BYTE(slot) != DUAL_0) {  // ordinary write
+    if (LIFT_BYTE(slot) != BEDROCK_0) {  // ordinary write
         Copy_Cell(u_cast(Value*, slot), v);
         slot->header.bits |= persist;  // preserve persist bits
         return none;

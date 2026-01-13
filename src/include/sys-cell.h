@@ -528,11 +528,6 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
 //    Slot itself...but it can't be overwritten or it would be forgotten on
 //    each loop iteration.
 //
-// 3. Things are proceeding in a hacky way to start making use of the "sub
-//    band" of things that are not lifted, e.g. "true unset".  True unset
-//    indicated by having DUAL_0 set in the lift byte of an *unset* WORD!.
-//    You usually have to go through the mainline slot reading machinery
-//    to deal with it.  But FRAME! machinery currently has some exceptions.
 
 #define CELL_MASK_PERSIST \
     (BASE_FLAG_MANAGED | BASE_FLAG_ROOT | BASE_FLAG_MARKED)
@@ -760,7 +755,7 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
             assert(right >= 0 and right <= 255);
 
             Option(Heart) heart = Unchecked_Heart_Of(cell);
-            if (right != DUAL_0 and not (right & NONQUASI_BIT))
+            if (right != BEDROCK_0 and not (right & NONQUASI_BIT))
                 assert(Any_Isotopic_Type(heart));  // has quasiforms/antiforms
 
             LIFT_BYTE_RAW(cell) = right;
@@ -817,7 +812,7 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
 INLINE Option(Type) Underlying_Type_Of_Unchecked(  // inlined in Type_Of() [1]
     const Stable* v
 ){
-    assert(LIFT_BYTE_RAW(v) != DUAL_0);
+    assert(LIFT_BYTE_RAW(v) != BEDROCK_0);
 
     if (KIND_BYTE_RAW(v) <= MAX_HEARTBYTE)  // raw [2]
         return cast(HeartEnum, KIND_BYTE_RAW(v));
@@ -894,7 +889,7 @@ INLINE Option(Type) Type_Of_When_Unquoted(const Element* elem) {
 
 INLINE void Reset_Cell_Header_Noquote(Cell* c, uintptr_t flags)
 {
-    assert((flags & CELL_MASK_LIFT) == FLAG_LIFT_BYTE(DUAL_0));
+    assert((flags & CELL_MASK_LIFT) == FLAG_LIFT_BYTE(BEDROCK_0));
     Freshen_Cell_Header(c);  // if CELL_MASK_ERASED_0, node+cell flags not set
     c->header.bits |= (  // need to ensure node+cell flag get set
         BASE_FLAG_BASE | BASE_FLAG_CELL | flags | FLAG_LIFT_BYTE(NOQUOTE_3)
