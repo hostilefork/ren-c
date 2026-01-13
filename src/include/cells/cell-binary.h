@@ -49,9 +49,6 @@ INLINE const Byte* Blob_Size_At(Option(Sink(Size)) size_at, const Cell* cell)
 
 //=//// GLOBAL BINARIES //////////////////////////////////////////////////=//
 
-#define EMPTY_BINARY \
-    g_empty_blob
-
 #define BYTE_BUF TG_Byte_Buf
 
 

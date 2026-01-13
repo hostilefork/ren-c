@@ -811,7 +811,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
 
         if (Is_Splice(pattern)) {  // not optimized
             if (Is_None(pattern))
-                Copy_Cell(pattern, g_empty_text);
+                Copy_Cell(pattern, LIB(EMPTY_TEXT));
             else {
                 KIND_BYTE(pattern) = Kind_From_Sigil_And_Heart(
                     SIGIL_PIN, TYPE_BLOCK

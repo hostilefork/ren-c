@@ -368,24 +368,6 @@ static void Init_Root_Vars(void)
     Set_Cell_Flag(g_feed_null_substitute, FEED_HINT_ANTIFORM);
     Protect_Cell(g_feed_null_substitute);
 
-    require (
-      Strand* nulled_uni = Make_Strand(1)  // rebText() can't run yet, review
-    );
-
-  #if RUNTIME_CHECKS
-    Codepoint test_nul;
-    Utf8_Next(&test_nul, Strand_At(nulled_uni, 0));
-    assert(test_nul == '\0');
-    assert(Strand_Len(nulled_uni) == 0);
-  #endif
-
-    known_nullptr(g_empty_text) = Init_Text(Alloc_Value(), nulled_uni);
-    Force_Value_Frozen_Deep(g_empty_text);
-
-    Binary* bzero = Make_Binary(0);
-    known_nullptr(g_empty_blob) = Init_Blob(Alloc_Value(), bzero);
-    Force_Value_Frozen_Deep(g_empty_blob);
-
     known_nullptr(g_quasi_null) = Init_Quasi_Null(Alloc_Value());
     Protect_Cell(g_quasi_null);
 
@@ -412,11 +394,9 @@ static void Shutdown_Root_Vars(void)
     Erase_Bounce_Wild(g_bounce_delegation);
     Erase_Bounce_Wild(g_bounce_suspend);
 
-    rebReleaseAndNull(&g_empty_text);
     rebReleaseAndNull(&g_lifted_heavy_null);
     g_1_quasi_null_array = nullptr;
     rebReleaseAndNull(&g_feed_null_substitute);
-    rebReleaseAndNull(&g_empty_blob);
     rebReleaseAndNull(&g_quasi_null);
     rebReleaseAndNull(&g_tripwire);
 }

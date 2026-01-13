@@ -59,6 +59,7 @@ INLINE const Value* Lib_Value(SymId id) {
 }
 
 #define Lib_Stable(id)  As_Stable(Lib_Value(id))
+#define Lib_Element(id)  As_Element(Lib_Value(id))
 
 INLINE Value* Mutable_Lib_Value(SymId id) {  // writing LIB is risky [A]
     assert(id <= MAX_SYM_LIB_PREMADE);

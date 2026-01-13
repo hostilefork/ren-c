@@ -49,6 +49,9 @@ empty-block: '[]
 none: spread empty-block
 quasar: '~
 
+empty-text: ""
+empty-blob: #""
+
 null: ~null~
 ok: okay: ~okay~
 ok?: okay?/
