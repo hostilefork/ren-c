@@ -442,7 +442,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
     if (pack_array)
         Drop_Lifeguard(pack_array);
 
-    Move_Value(OUT, TOP);  // restore OUT (or circled) from stack [1]
+    Move_Cell(OUT, TOP);  // restore OUT (or circled) from stack [1]
 
 }} set_block_drop_stack_and_continue: {
 

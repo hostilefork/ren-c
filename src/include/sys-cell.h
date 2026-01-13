@@ -1068,27 +1068,34 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
 // Because you cannot assign cells to one another (e.g. `*dest = *src`), a
 // function is used.  This provides an opportunity to check things like moving
 // data into protected locations, and to mask out bits that should not be
-// propagated.  We can also enforce that you can't copy an Value into a Stable
+// propagated.  We can also enforce that you can't copy a Value into a Stable
 // or Element, and that you can't copy a Stable into an Element...keeping
 // antiforms and unstable antiforms out of places they should not be.
 //
-// Interface designed to line up with Copy_Cell_May_Bind()
+// See Copy_Cell_May_Bind() for binding-aware copy.
 //
 // 1. If you write `Erase_Cell(dest)` followed by `Copy_Cell(dest, src)` the
 //    optimizer notices it doesn't need the masking of Freshen_Cell_Header().
 //    This was discovered by trying to force callers to pass in an already
 //    freshened cell and seeing things get more complicated for no benefit.
 //
-// 2. Once upon a time binding init depended on the payload (when quoteds
-//    could forward to a different cell), so this needed to be done first.
-//    That's not true anymore, but some future INIT_BINDING() may need to
-//    be able to study to the cell to do the initialization?
+// 2. When you're using CHECK_CELL_SUBCLASSES, the rule we use is that if
+//    you could pass the destination type to an Init(T) of the unwrapped
+//    source type, the copy is legal.  So if your Src is `const Element*`
+//    and your Dst is `Init(Value)`, it asks "could I pass Init(Value) to
+//    an Init(Element)".  If the answer is yes, the copy is allowed.
 //
-// 3. These overloads are the best I could come up with...but they conflict
-//    if written naively.  The variant for (Init(Element), const Element*)
-//    will compete with one as (Init(Stable), const Stable*) when the second
-//    argument is Element*, since Element can be passed where Stable is taken.
-//    Template magic lets an overload exclude itself to break the contention.
+// 3. C++ doesn't really do templated cast operators, and so the loophole
+//    we use to get arbitrary contravariant casts is to build in a void*
+//    cast to the wrappers as a back door to doing casts.  We trust this
+//    is safe due to the check done in [3], and it's because of this that
+//    OnStackPointer<T> can be supported by Copy_Cell()
+//
+// 4. Depending on the debug situation, you may be looking for where a Cell
+//    was last copied to, or where the Cell was originally initialized.
+//    The default is knowing the last point touched--but you can change this
+//    using the DEBUG_TRACK_COPY_PRESERVES setting, in which case MAYBE_TRACK
+//    is a no-op and the information inside the Cell is migrated.
 
 #define CELL_MASK_COPY \
     ~(CELL_MASK_PERSIST | CELL_FLAG_PROTECTED \
@@ -1096,30 +1103,7 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
 
 #define CELL_MASK_ALL  ~cast(Flags, 0)  // use with caution!
 
-INLINE void Copy_Cell_Header(
-    Cell* out,
-    const Cell* v
-){
-    assert(out != v);  // usually a sign of a mistake; not worth supporting
-    Assert_Cell_Readable(v);
-
-  #if DEBUG_TRACK_EXTEND_CELLS
-    assert(out->tick == TICK);  // should TRACK(out) before call, not after
-  #endif
-
-    Freshen_Cell_Header(out);
-    out->header.bits |= (BASE_FLAG_BASE | BASE_FLAG_CELL  // ensure NODE+CELL
-        | (v->header.bits & CELL_MASK_COPY));
-
-  #if DEBUG_TRACK_COPY_PRESERVES
-    out->file = v->file;
-    out->line = v->line;
-    out->tick = v->tick;
-    out->touch = v->touch;  // see also arbitrary debug use via Touch_Cell()
-  #endif
-}
-
-INLINE Cell* Copy_Cell_Untracked(
+INLINE Cell* Copy_Cell_Core_Untracked(
     Cell* out,
     const Cell* v,
     Flags copy_mask  // typically you don't copy PROTECTED, etc
@@ -1128,12 +1112,12 @@ INLINE Cell* Copy_Cell_Untracked(
     Assert_Cell_Readable(v);
 
     Freshen_Cell_Header(out);  // optimizer elides this after erasure [1]
-    out->header.bits |= (BASE_FLAG_BASE | BASE_FLAG_CELL  // ensure NODE+CELL
+    out->header.bits |= (BASE_FLAG_BASE | BASE_FLAG_CELL  // force BASE + CELL
         | (v->header.bits & copy_mask));
 
-    out->payload = v->payload;  // before init binding anachronism [2]
+    out->extra = v->extra;  // extra may be a binding, or may be inert bits
 
-    out->extra = v->extra;  // binding or inert bits
+    out->payload = v->payload;
 
   #if DEBUG_TRACK_COPY_PRESERVES
     out->file = v->file;
@@ -1146,163 +1130,99 @@ INLINE Cell* Copy_Cell_Untracked(
 }
 
 #if DONT_CHECK_CELL_SUBCLASSES
-    #define Copy_Cell(out,v) \
-        Copy_Cell_Untracked(TRACK(out), (v), CELL_MASK_COPY)
+    #define Copy_Cell_Untracked(out,v) \
+        Copy_Cell_Core_Untracked((out), (v), CELL_MASK_COPY)
 #else
-    INLINE Element* Copy_Cell_Overload(Init(Element) out, const Element* v) {
-        Copy_Cell_Untracked(out, v, CELL_MASK_COPY);
-        return out;
-    }
-
-    template<  // avoid conflict when Element* coerces to Stable* [3]
-        typename T,
-        typename std::enable_if<
-            std::is_convertible<T, const Stable*>::value
-            and not std::is_convertible<T, const Element*>::value
+    template<
+        typename Src,
+        typename Dst,
+        typename RetPtr = needful_unconstify_t(
+            needful_unwrapped_if_wrapped_type(Src)
+        ),
+        typename std::enable_if<  // InitWrapper b.c. Init has pointer implicit
+            needful_is_convertible_v(Dst, needful::InitWrapper<RetPtr>)  // [2]
         >::type* = nullptr
     >
-    INLINE Stable* Copy_Cell_Overload(Init(Stable) out, const T& v) {
-        Copy_Cell_Untracked(out, v, CELL_MASK_COPY);
-        return out;
+    INLINE RetPtr Copy_Cell_Untracked(
+        Dst&& out,  // && so Sink(T) won't "double-corrupt" (just wasteful)
+        const Src& v  // const & so Sink(T) doesn't "re corrupt" (broken!)
+    ) {
+        Copy_Cell_Core_Untracked(out, v, CELL_MASK_COPY);
+        return x_cast(RetPtr, x_cast(void*, out));  // e.g. OnStackPointer [3]
     }
-
-    template<  // avoid conflict when Element*/Stable* coerces to Value* [3]
-        typename T,
-        typename std::enable_if<
-            std::is_convertible<T, const Value*>::value
-            and not std::is_convertible<T, const Stable*>::value
-            and not std::is_convertible<T, const Element*>::value
-        >::type* = nullptr
-    >
-    INLINE Value* Copy_Cell_Overload(Init(Value) out, const T& v) {
-        Copy_Cell_Untracked(out, v, CELL_MASK_COPY);
-        return out;
-    }
-
-    #define Copy_Cell(out,v) \
-        TRACK(Copy_Cell_Overload((out), (v)))
 #endif
 
 #define Copy_Cell_Core(out,v,copy_mask) \
-    TRACK(Copy_Cell_Untracked((out), (v), (copy_mask)))
+    MAYBE_TRACK(Copy_Cell_Core_Untracked((out), (v), (copy_mask)))  // [4]
 
-#define Copy_Lifted_Cell(out,v) \
-    cast(Element*, Lift_Cell(Copy_Cell(u_cast(Value*, (out)), (v))))
-
-INLINE Element* Copy_Plain_Cell(Init(Element) out, const Value* v) {
-    Copy_Cell(u_cast(Value*, (out)), v);
-    LIFT_BYTE(out) = NOQUOTE_3;
-    return out;
-}
+#define Copy_Cell(out,v) \
+    MAYBE_TRACK(Copy_Cell_Untracked((out), (v)))  // [4]
 
 
 //=//// CELL MOVEMENT //////////////////////////////////////////////////////=//
 //
 // Cell movement is distinct from cell copying, because it invalidates the
-// old location (which must be mutable).  The old location is erased if it's
-// an Value and can legally hold CELL_MASK_ERASED_0 for GC, or it's set
-// to be quasar (quasiform SPACE) if it can't hold that state.
+// old location (which must be mutable).  The old location is set to be
+// a an "Unreadable" Cell...hence you shouldn't Move_Cell() out of a user
+// visible Source array.
+//
+// (!!! REVIEW: Could we sense from some flag if it was okay to move a Cell?
+// This would be something that could in general control Init_Unreadable()).
 //
 // Currently the advantage to moving vs. copying is that if the old location
 // held GC nodes live, it doesn't anymore.  So it speeds up the GC and also
-// increases the likelihood of stale nodes being collected.  But the advantage
-// would go away if you were going to immediately overwrite the moved-from
-// cell with something else.
+// increases the likelihood of stale nodes being collected.
 //
-// A theoretical longer-term advantage would be if cells were incrementing
-// some kind of reference count in the series they pointed to.  The AddRef()
-// and Release() mechanics that would be required would be painful to write
-// in C, so this is not likely to happen.  Hence moving a cell out of a
-// data stack slot and then dropping it is technically wasteful.  But it
-// only costs one platform-pointer-sized write operation more than a cell
-// copy, so future-proofing for that scenario has some value.
+// A theoretical longer-term advantage would be if we GC-managed Stubs in
+// Cells on demand when Copy_Cell() duplicated them, and if eliding Cells
+// noticed unmanaged Stubs and freed them.  This would mean Move_Cell() would
+// be different from Copy_Cell() because it wouldn't add management to Stubs
+// that weren't yet managed, thus decreasing GC load...potentially allowing
+// a Cell to be moved many times, elided and have its Stubs freed, all without
+// ever being seen by a GC mark and sweep cycle.
 //
-// Note: Not being willing to disrupt flags currently means that Move_Cell()
-// doesn't work on API cells.  Review.
+// 1. We'd generally like to know who erased a Cell, so having the callsite
+//    implicate a Move_Cell() source cite is a good default.  But if you are
+//    following a hot-potato with DEBUG_TRACK_COPY_PRESERVES, then we don't
+//    want to blow away the moved-from-Cell's original tracking before we
+//    can cpoy it.  Hence use MAYBE_TRACK()
 
-INLINE Element* Init_Quasar_Untracked(Init(Element) out);
-
-INLINE Cell* Move_Cell_Untracked(
-    Cell* out,
-    Cell* c,
-    Flags copy_mask
-){
-    Copy_Cell_Untracked(out, c, copy_mask);  // Move_Cell() adds track to `out`
-    Assert_Cell_Header_Overwritable(c);
-    Init_Quasar_Untracked(c);  // !!! slower than we'd like it to be, review
-
+INLINE Cell* Move_Cell_Core_Untracked(Cell* out, Cell* c, Flags copy_mask)
+{
+    Copy_Cell_Core_Untracked(out, c, copy_mask);
+    Init_Unreadable_Untracked(c);  // gets MAYBE_TRACK() applied by caller [1]
     return out;
 }
 
 #if DONT_CHECK_CELL_SUBCLASSES
-    #define Move_Cell(out,v) \
-        Move_Cell_Untracked(TRACK(out), (v), CELL_MASK_COPY)
+    #define Move_Cell_Untracked(out,v) \
+        Move_Cell_Core_Untracked((out), (v), CELL_MASK_COPY)
 #else
-    INLINE Element* Move_Cell_Overload(Init(Element) out, Element* v) {
-        Move_Cell_Untracked(out, v, CELL_MASK_COPY);
-        return out;
-    }
-
-    template<  // avoid overload conflict when Element* coerces to Stable* [3]
-        typename T,
-        typename std::enable_if<
-            std::is_convertible<T,Stable*>::value
-            && !std::is_convertible<T,Element*>::value
+   template<
+        typename Src,
+        typename Dst,
+        typename RetPtr = needful_unconstify_t(
+            needful_unwrapped_if_wrapped_type(Src)
+        ),
+        typename std::enable_if<  // see Copy_Cell() notes
+            needful_is_convertible_v(Dst, needful::InitWrapper<RetPtr>)
         >::type* = nullptr
     >
-    INLINE Stable* Move_Cell_Overload(Init(Stable) out, const T& v) {
-        Move_Cell_Untracked(out, v, CELL_MASK_COPY);
-        return out;
+    INLINE RetPtr Move_Cell_Untracked(
+        Dst&& out,  // && so Sink(T) won't "double-corrupt" (just wasteful)
+        const Src& v  // const & so Sink(T) doesn't "re corrupt" (broken!)
+    ) {
+        Move_Cell_Core_Untracked(out, v, CELL_MASK_COPY);
+        return x_cast(RetPtr, x_cast(void*, out));  // see Copy_Cell() notes
     }
-
-    #define Move_Cell(out,v) \
-        Move_Cell_Overload(TRACK(out), (v))
 #endif
 
-#define Move_Cell_Core(out,v,cell_mask) \
-    Move_Cell_Untracked(TRACK(out), (v), (cell_mask))
+#define Move_Cell_Core(out,v,copy_mask) \
+    MAYBE_TRACK(Move_Cell_Core_Untracked( \
+        (out), MAYBE_TRACK(v), (copy_mask)))  // may track input [1]
 
-#define Move_Lifted_Cell(out,v) \
-    cast(Element*, Lift_Cell(Move_Cell_Core((out), (v), CELL_MASK_COPY)))
-
-INLINE Value* Move_Atom_Untracked(
-    Value* out,
-    Value* a
-){
-    Assert_Cell_Header_Overwritable(out);  // atoms can't have persistent bits
-    Assert_Cell_Header_Overwritable(a);  // atoms can't have persistent bits
-
-    Assert_Cell_Readable(a);
-
-  #if DEBUG_TRACK_EXTEND_CELLS
-    assert(out->tick == TICK);  // should TRACK(out) before call, not after
-  #endif
-
-    out->header = a->header;
-    out->extra = a->extra;
-    out->payload = a->payload;
-
-    a->header.bits = CELL_MASK_ERASED_0;  // legal state for atoms
-
-    Corrupt_If_Needful(a->extra.corrupt);
-    Corrupt_If_Needful(a->payload.split.one.corrupt);
-    Corrupt_If_Needful(a->payload.split.two.corrupt);
-
-  #if DEBUG_TRACK_COPY_PRESERVES
-    out->file = v->file;
-    out->line = v->line;
-    out->tick = v->tick;
-    out->touch = v->touch;  // see also arbitrary debug use via Touch_Cell()
-  #endif
-
-    return out;
-}
-
-#define Move_Value(out,a) \
-    Move_Atom_Untracked(TRACK(out), (a))
-
-#define Move_Lifted_Atom(out,a) \
-    cast(Element*, Lift_Cell(Move_Atom_Untracked(TRACK(out), (a))))
+#define Move_Cell(out,v) \
+    MAYBE_TRACK(Move_Cell_Untracked((out), MAYBE_TRACK(v)))  // [1]
 
 
 //=//// CELL "BLITTING" (COMPLETE OVERWRITE) //////////////////////////////=//

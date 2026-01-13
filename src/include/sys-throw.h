@@ -52,7 +52,7 @@
 //    return true *if* there are no frames above on the stack.
 //
 INLINE bool Is_Throwing(Level* level_) {
-    if (not Is_Cell_Erased(&g_ts.thrown_arg)) {
+    if (Is_Cell_Readable(&g_ts.thrown_arg)) {
         possibly(level_ == TOP_LEVEL);  // don't enforce this for now [1]
         possibly(Is_Cell_Erased(level_->out));  // not enforced at present
         UNUSED(level_);
@@ -65,7 +65,7 @@ INLINE bool Is_Throwing(Level* level_) {
 
 INLINE const Stable* VAL_THROWN_LABEL(Level* level_) {
     UNUSED(level_);
-    assert(not Is_Cell_Erased(&g_ts.thrown_label));
+    assert(Is_Cell_Readable(&g_ts.thrown_label));
     return &g_ts.thrown_label;
 }
 
@@ -83,10 +83,10 @@ INLINE void Init_Thrown_With_Label(  // assumes `arg` in g_ts.thrown_arg
 
     assert(not Is_Throwing(L));
 
-    assert(Is_Cell_Erased(&g_ts.thrown_arg));
+    assert(Not_Cell_Readable(&g_ts.thrown_arg));
     Copy_Cell(&g_ts.thrown_arg, arg);
 
-    assert(Is_Cell_Erased(&g_ts.thrown_label));
+    assert(Not_Cell_Readable(&g_ts.thrown_label));
     Copy_Cell(&g_ts.thrown_label, label);
     Deactivate_If_Action(&g_ts.thrown_label);
 
@@ -110,9 +110,10 @@ INLINE void CATCH_THROWN(
 ){
     assert(Is_Throwing(L));
 
-    Move_Value(arg_out, &g_ts.thrown_arg);
+    Move_Cell(arg_out, &g_ts.thrown_arg);
+    assert(Not_Cell_Readable(&g_ts.thrown_arg));
 
-    Erase_Cell(&g_ts.thrown_label);
+    Init_Unreadable(&g_ts.thrown_label);
 
     assert(not Is_Throwing(L));
 

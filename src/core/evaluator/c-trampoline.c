@@ -526,6 +526,8 @@ void Startup_Trampoline(void)
     //
     assert(Is_Cell_Erased(&g_ts.thrown_arg));
     assert(Is_Cell_Erased(&g_ts.thrown_label));
+    Init_Unreadable(&g_ts.thrown_arg);
+    Init_Unreadable(&g_ts.thrown_label);
 
     assert(g_ts.unwind_level == nullptr);
 }
@@ -545,6 +547,11 @@ void Startup_Trampoline(void)
 //
 void Shutdown_Trampoline(void)
 {
+    assert(Not_Cell_Readable(&g_ts.thrown_arg));
+    assert(Not_Cell_Readable(&g_ts.thrown_label));
+    Erase_Cell(&g_ts.thrown_arg);
+    Erase_Cell(&g_ts.thrown_label);
+
     assert(TOP_LEVEL == BOTTOM_LEVEL);
     Assert_Corrupted_If_Needful(TOP_LEVEL->prior);  // corrupt from start [1]
 

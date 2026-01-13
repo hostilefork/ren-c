@@ -105,7 +105,7 @@ static Result(None) Push_Keys_And_Params_For_Fence(
             if (Is_Failure(OUT))  // don't want to quietly store errors
                 return fail (Cell_Error(OUT));
 
-            Move_Value(PUSH(), SPARE);
+            Move_Cell(PUSH(), SPARE);
         }
         else {
             require (

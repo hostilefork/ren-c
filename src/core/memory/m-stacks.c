@@ -172,7 +172,11 @@ void Expand_Data_Stack_May_Panic(REBLEN amount)
 //    uses memcpy() to implement this.  Hence we make sure none of the
 //    persistent flags
 //
-// !!! How can we pass in callsite file and line for tracking info?
+// 2. We use Move_Cell() here even though it "wastes" a masking operation to
+//    set the stack cell to an unreadable (unnecessary as stack elements
+//    won't be GC'd after a drop).  The reason is that Move_Cell() may become
+//    semantically distinct from Copy_Cell(), where Copy_Cell() may promot
+//    unmanaged Cells to managed ones...if so, we want to avoid that here.
 //
 Array* Pop_Stack_Values_Core(Flags flags, StackIndex base) {
     Assert_No_DataStack_Pointers_Extant();  // in the future, pop may disrupt
@@ -199,7 +203,18 @@ Array* Pop_Stack_Values_Core(Flags flags, StackIndex base) {
                 crash ("Unexpected antiform found on data stack");
         }
 
-        Move_Cell_Untracked(dest, src, CELL_MASK_ALL);
+        Move_Cell_Core_Untracked(dest, src, CELL_MASK_ALL);  // for future [2]
+
+        #if DEBUG_TRACK_EXTEND_CELLS
+          #if (DEBUG_TRACK_COPY_PRESERVES)
+              // Move_Cell() would already copy the original tracking
+          #else
+              dest->file = src->file;
+              dest->line = src->line;
+              dest->tick = src->tick;
+              dest->touch = src->touch;
+          #endif
+        #endif
 
         #if DEBUG_POISON_DROPPED_STACK_CELLS
           Force_Poison_Cell(src);

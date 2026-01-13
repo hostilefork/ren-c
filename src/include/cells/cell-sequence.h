@@ -670,11 +670,11 @@ INLINE Element* Copy_Sequence_At_Untracked(
     if (Is_Base_A_Cell(payload1)) {  // test if it's a pairing
         const Pairing* p = cast(Pairing*, payload1);  // compressed pair
         if (n == 0) {
-            Copy_Cell_Untracked(out, Pairing_First(p), CELL_MASK_COPY);
+            Copy_Cell(out, Pairing_First(p));
             return out;
         }
         assert(n == 1);
-        Copy_Cell_Untracked(out, Pairing_Second(p), CELL_MASK_COPY);
+        Copy_Cell_Untracked(out, Pairing_Second(p));
         return out;
     }
 
@@ -684,7 +684,7 @@ INLINE Element* Copy_Sequence_At_Untracked(
         if (Get_Cell_Flag(sequence, LEADING_SPACE) ? n == 0 : n != 0)
             return Init_Space(out);
 
-        Copy_Cell_Untracked(out, sequence, CELL_MASK_COPY);  // [2]
+        Copy_Cell_Core_Untracked(out, sequence, CELL_MASK_COPY);  // [2]
         KIND_BYTE(out) = TYPE_WORD;
         LIFT_BYTE(out) = NOQUOTE_3;  // [3]
         return out; }
@@ -696,7 +696,7 @@ INLINE Element* Copy_Sequence_At_Untracked(
             if (Get_Cell_Flag(sequence, LEADING_SPACE) ? n == 0 : n != 0)
                 return Init_Space(out);
 
-            Copy_Cell_Untracked(out, sequence, CELL_MASK_COPY);
+            Copy_Cell_Core_Untracked(out, sequence, CELL_MASK_COPY);
             KIND_BYTE(out) = MIRROR_BYTE(a);
             LIFT_BYTE(out) = NOQUOTE_3;  // [3]
             return out;

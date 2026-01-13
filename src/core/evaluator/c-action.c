@@ -516,16 +516,16 @@ Bounce Action_Executor(Level* L)
                 require (
                   Decay_If_Unstable(OUT)
                 );
-                Move_Value(ARG, OUT);
+                Move_Cell(ARG, OUT);
                 break; }
 
               case PARAMCLASS_META: {
-                Move_Value(ARG, OUT);
+                Move_Cell(ARG, OUT);
                 break; }
 
               case PARAMCLASS_LITERAL: {
                 assert(Not_Antiform(OUT));
-                Move_Value(ARG, OUT);
+                Move_Cell(ARG, OUT);
                 break; }
 
               case PARAMCLASS_SOFT: {
@@ -544,7 +544,7 @@ Bounce Action_Executor(Level* L)
                     Erase_Cell(OUT);
                 }
                 else
-                    Move_Value(ARG, OUT);
+                    Move_Cell(ARG, OUT);
                 break; }
 
               default:
@@ -565,7 +565,7 @@ Bounce Action_Executor(Level* L)
                     Set_Feed_Flag(L->feed, NO_LOOKAHEAD);
             }
 
-            assert(Is_Cell_Erased(OUT));  // output should have been "used up"
+            assert(Not_Cell_Readable(OUT));  // output should be "used up"
             goto continue_fulfilling;
         }
 

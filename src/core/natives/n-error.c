@@ -209,7 +209,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 
     if (Is_Failure(SPARE)) {
         Drop_Level(SUBLEVEL);
-        Move_Value(OUT, SPARE);
+        Move_Cell(OUT, SPARE);
         LIFT_BYTE(OUT) = NOQUOTE_3;  // change antiform error to plain
         return OUT_BRANCHED;
     }
@@ -220,7 +220,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
     }
 
     if (not Any_Void(SPARE))
-        Move_Value(OUT, SPARE);
+        Move_Cell(OUT, SPARE);
 
     if (Is_Level_At_End(SUBLEVEL))
         goto finished;

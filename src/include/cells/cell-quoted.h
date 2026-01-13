@@ -435,3 +435,21 @@ INLINE Stable* Known_Stable_Unlift_Cell_Core(Stable* v) {
 
 #define Known_Stable_Unlift_Cell(v) \
     Known_Stable_Unlift_Cell_Core(Possibly_Antiform(v))
+
+INLINE Element* Copy_Lifted_Cell_Untracked(Init(Element) out, const Value* v)
+{
+    Copy_Cell_Core_Untracked(out, v, CELL_MASK_COPY);
+    return Lift_Cell(u_cast(Value*, out));
+}
+
+#define Copy_Lifted_Cell(out,v) \
+    MAYBE_TRACK(Copy_Lifted_Cell_Untracked((out), (v)))
+
+INLINE Element* Copy_Plain_Cell_Untracked(Init(Element) out, const Value* v) {
+    Copy_Cell_Core_Untracked(out, v, CELL_MASK_COPY);
+    LIFT_BYTE(out) = NOQUOTE_3;
+    return out;
+}
+
+#define Copy_Plain_Cell(out,v) \
+    MAYBE_TRACK(Copy_Plain_Cell_Untracked((out), (v)))

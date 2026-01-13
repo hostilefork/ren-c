@@ -475,11 +475,11 @@ Bounce Stepper_Executor(Level* L)
             or Type_Of_Unchecked(OUT) == TYPE_PATH
         )
     ){  // exemption: put OUT back in CURRENT and CURRENT back in feed [2]
-        Move_Value(&L->feed->fetched, CURRENT);
+        Move_Cell(&L->feed->fetched, CURRENT);
         L->feed->p = &L->feed->fetched;
         Force_Blit_Cell(&L->feed->gotten, L_current_gotten_raw);
 
-        Move_Value(CURRENT, cast(Element*, OUT));
+        Move_Cell(CURRENT, cast(Element*, OUT));
         Invalidate_Gotten(L_current_gotten_raw);
 
         Set_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);
@@ -1448,7 +1448,7 @@ Bounce Stepper_Executor(Level* L)
             )){
                 goto return_thrown;
             }
-            Move_Value(OUT, SPARE);
+            Move_Cell(OUT, SPARE);
         }
         Packify_Action(OUT);  // foo/ is always ACTION!
         goto lookahead;

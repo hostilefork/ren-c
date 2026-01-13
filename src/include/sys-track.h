@@ -47,7 +47,7 @@
   #if CPLUSPLUS_11
     template<typename T>
     INLINE T Track_Cell_Debug(
-        T cell,
+        T&& cell,  // && to avoid Sink(T) "re-corrupting" (broken!)
         const char *file,
         int line
     ){

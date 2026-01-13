@@ -501,7 +501,7 @@ DECLARE_NATIVE(SOME_COMBINATOR)
         return OUT;  // return previous successful parser result
     }
 
-    Move_Value(OUT, SPARE);  // update last successful result
+    Move_Cell(OUT, SPARE);  // update last successful result
     goto call_parser_again;
 }}
 

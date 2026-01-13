@@ -1558,7 +1558,7 @@ DECLARE_NATIVE(EVERY)
         Init_Nulled(OUT);
     }
     else if (Is_Cell_Erased(OUT) or not Is_Light_Null(OUT)) {
-        Move_Value(OUT, SPARE);
+        Move_Cell(OUT, SPARE);
     }
 
     goto next_iteration;

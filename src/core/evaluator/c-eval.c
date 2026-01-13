@@ -226,7 +226,7 @@ Bounce Evaluator_Executor(Level* const L)
 
     if (Is_Ghost(OUT)) {  // ELIDE, COMMENT, (^ EVAL []) etc. [1]
         if (Is_Level_At_End(step_level)) {
-            Move_Value(OUT, PRIMED);
+            Move_Cell(OUT, PRIMED);
             goto finished;
         }
         goto start_new_step;  // leave previous result as-is in PRIMED
@@ -243,7 +243,7 @@ Bounce Evaluator_Executor(Level* const L)
     require (  // panic if error seen before final step [2]
       Ensure_No_Failures_Including_In_Packs(OUT)
     );
-    Move_Value(PRIMED, OUT);  // make current result the preserved one
+    Move_Cell(PRIMED, OUT);  // make current result the preserved one
 
     goto start_new_step;
 

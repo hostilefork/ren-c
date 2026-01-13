@@ -30,32 +30,28 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// If the Cell is indeed relative and needs to be made specific to be put into
-// the target, then the binding is used to do that.
+// This is a variant of Copy_Cell() that will bind a Cell that is not already
+// bound to the passed-in context... if it is bindable.
 //
-// It is nearly as fast as just assigning the value directly in the release
-// build, though checked builds assert that the function in the binding
-// indeed matches the target in the relative value (because relative values
-// in an array may only be relative to the function that deep copied them, and
-// that is the only kind of binding you can use with them).
+// 1. Once upon a time binding init depended on the payload (when quoteds
+//    could forward to a different cell), so this needed to be done first.
+//    That's not true anymore, but some future INIT_BINDING() may need to
+//    be able to study to the cell to do the initialization?
 //
-// Interface designed to line up with Copy_Cell()
-//
-// !!! At the moment, there is a fair amount of overlap in this code with
-// Get_Context_Core().  One of them resolves a value's real binding and then
-// fetches it, while the other resolves a value's real binding but then stores
-// that back into another value without fetching it.  This suggests sharing
-// a mechanic between both...TBD.
-//
-
 
 INLINE Element* Copy_Cell_May_Bind_Untracked(
-    Sink(Element) out,
+    Init(Element) out,
     const Element* v,
     Context* context
 ){
-    Copy_Cell_Header(out, v);
-    out->payload = v->payload;
+    assert(out != v);  // usually a sign of a mistake; not worth supporting
+    Assert_Cell_Readable(v);
+
+    Freshen_Cell_Header(out);
+    out->header.bits |= (BASE_FLAG_BASE | BASE_FLAG_CELL  // force BASE + CELL
+        | (v->header.bits & CELL_MASK_COPY));
+
+    out->payload = v->payload;  // do before binding, anachronism [1]
 
     if (
         not Is_Cell_Bindable(v)  // if not bindable...
@@ -68,12 +64,19 @@ INLINE Element* Copy_Cell_May_Bind_Untracked(
         out->extra.base = context;
     }
 
+  #if DEBUG_TRACK_COPY_PRESERVES
+    out->file = v->file;
+    out->line = v->line;
+    out->tick = v->tick;
+    out->touch = v->touch;  // see also arbitrary debug use via Touch_Cell()
+  #endif
+
     return out;
 }
 
 
 #define Copy_Cell_May_Bind(dest,v,context) \
-    Copy_Cell_May_Bind_Untracked(TRACK(dest), (v), (context))
+    MAYBE_TRACK(Copy_Cell_May_Bind_Untracked((dest), (v), (context)))
 
 
 INLINE Element* Bind_Cell_If_Unbound(Element* v, Context* context) {
@@ -115,7 +118,7 @@ INLINE void Unbind_Cell_If_Bindable_Core(Value* v) {
 //
 INLINE Element* Copy_Dequoted_Cell(Sink(Element) out, const Cell* in) {
     Assert_Cell_Stable(in);
-    Copy_Cell_Untracked(u_cast(Cell*, out), in, CELL_MASK_COPY);
+    Copy_Cell_Core_Untracked(out, in, CELL_MASK_COPY);
     LIFT_BYTE(out) = NOQUOTE_3;
     return out;
 }

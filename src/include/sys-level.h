@@ -720,7 +720,7 @@ INLINE Result(Level*) Prep_Level_Core(
     NOOP  // the INCLUDE_PARAMS_OF_XXX macros still make this, may find a use
 
 #define Erase_ARG(name) \
-    Erase_Cell(Level_Arg(level_, checked_##name##_))
+    u_cast(Init(Slot), Erase_Cell(Level_Arg(level_, checked_##name##_)))
 
 #define ARG(name) \
     cast(checked_type_##name##_, \
@@ -881,7 +881,7 @@ INLINE Bounce Native_Unlift_Result(Level* level_, const Element* v) {
 //
 INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
     assert(not Is_Api_Value(v));  // too easy to not release()
-    Copy_Cell_Untracked(L->out, v, CELL_MASK_COPY);
+    Copy_Cell_Untracked(L->out, v);
 }
 
 

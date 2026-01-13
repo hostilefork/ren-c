@@ -506,7 +506,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
         Source* pack = Make_Source_Managed(2);
         Set_Flex_Len(pack, 2);
         Copy_Lifted_Cell(Array_At(pack, 0), source);  // pack wants META values
-        Move_Lifted_Atom(Array_At(pack, 1), OUT);  // may be FAILURE!
+        Copy_Lifted_Cell(Array_At(pack, 1), OUT);  // may be FAILURE!
 
         Init_Pack(OUT, pack);
     }
@@ -925,12 +925,12 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     possibly(param == cast(Param*, var));  // don't write until meta test done
 
     if (/* param and */ Parameter_Class(param) != PARAMCLASS_META)
-        Move_Value(var, SPARE);
+        Move_Cell(var, SPARE);
     else {
         if (Any_Void(SPARE))
             Init_Ghost(var);
         else {
-            Move_Value(var, SPARE);
+            Move_Cell(var, SPARE);
             require (
               Decay_If_Unstable(var)
             );

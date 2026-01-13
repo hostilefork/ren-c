@@ -648,7 +648,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
       case NATIVE_IS_ALL:
         if (not cond)
             goto return_null;  // failed ALL clause returns null
-        Move_Value(OUT, SPARE);  // leaves SPARE as fresh...good for next step
+        Move_Cell(OUT, SPARE);  // leaves SPARE as fresh...good for next step
         break;
 
       case NATIVE_IS_NONE_OF:
@@ -707,7 +707,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 } return_spare: { ////////////////////////////////////////////////////////////
 
     Drop_Level(SUBLEVEL);
-    Move_Value(OUT, SPARE);
+    Move_Cell(OUT, SPARE);
     return Force_Cell_Heavy(OUT);  // see LEVEL_FLAG_FORCE_HEAVY_BRANCH notes
 
 } return_null: { /////////////////////////////////////////////////////////////
@@ -945,7 +945,7 @@ DECLARE_NATIVE(CASE)
     Drop_Level(SUBLEVEL);
 
     if (Not_Cell_Erased(SPARE)) {  // prioritize fallout result [1]
-        Move_Value(OUT, SPARE);
+        Move_Cell(OUT, SPARE);
         return OUT_BRANCHED;
     }
 
@@ -1169,7 +1169,7 @@ DECLARE_NATIVE(SWITCH)
 
     if (Not_Cell_Erased(SPARE)) {  // something counts as fallout [1]
         possibly(Not_Cell_Stable(SPARE));
-        Move_Value(OUT, SPARE);
+        Move_Cell(OUT, SPARE);
         return OUT_BRANCHED;
     }
 

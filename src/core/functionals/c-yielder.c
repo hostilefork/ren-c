@@ -268,7 +268,7 @@ Bounce Yielder_Dispatcher(Level* const L)
     for (; key != key_tail; ++key, ++param, ++dest, ++src) {
         if (Is_Specialized(param))
             continue;  // don't overwrite locals (including definitional YIELD)
-        Move_Value(dest, src);  // all arguments/refinements are fair game
+        Move_Cell(dest, src);  // all arguments/refinements are fair game
     }
 
     if (Not_Base_Managed(L->varlist))  // don't need it [2]
