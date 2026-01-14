@@ -320,3 +320,12 @@
 (
     null = compose2 @() "(veto)abc"
 )
+
+
+; VETO can be used in COMPOSE
+[
+    (null = compose [1 + 2 (veto)])
+    (null = compose [1 + 2 (lib.veto)])
+
+    (null = compose:deep [1 + 2 (3 + 4) [(veto) 5 + 6]])
+]

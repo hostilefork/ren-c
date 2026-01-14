@@ -19,19 +19,64 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Duals are states that live "underneath" Value*.
+// Bedrock states are states that live "underneath" Value*.
 //
 // They can only be stored in Slot* Cells (if they can be stored at all),
-// and so cannot be held in Value*... though they can be represented as
-// unlifted elements inside antiform PACK!s.
+// and so cannot be held in Value*.
 //
-
+// If you exchange values by a lifted convention, then any NOQUOTE_2 states
+// that are not QUOTED! or QUASIFORM! can be used to represent these bedrock
+// states.  We refer to this multiplexing as a "Dual".
+//
 
 #define Is_Bedrock(cell) \
     (LIFT_BYTE(known(Slot*, (cell))) == BEDROCK_0)
 
+#define Is_Dualized_Bedrock(dual) \
+    (LIFT_BYTE(known(Stable*, (dual))) == NOQUOTE_3)
 
-INLINE const Element* Opt_Extract_Match_Dual(const Value* v) {
+
+//=//// UNDECAYED ~(...)~ BEDROCK PACK!s //////////////////////////////////-//
+//
+// Another way you can represent bedrock states is a their dual states in
+// an antiform PACK!.  This is because dual states are never quoted or quasi,
+// and ordinary Value* in a PACK! are always LIFT-ed to either quoted or
+// quasi states.
+//
+// This PACK! form is known as "undecayed" bedrock...because it reverses a
+// trick used in the decay process that turns unlifted antiforms inside PACK!
+// into bedrock on assignment:
+//
+//     >> x: 1020
+//
+//     >> y: alias $x
+//     == \~(^x)~\  ; antiform (pack!) "alias" <-- undecayed bedrock
+//
+//     >> y: 304
+//
+//     >> x
+//     == 304
+//
+// This may seem kind of dicey compared to being more controlled, and making
+// you go through a variable, e.g. (alias $y $x).  But when building higher
+// level functions that want to work with bedrock, it's convenient:
+//
+//    static: lambda [
+//        []: [bedrock?]
+//        @init [block! fence!]
+//    ][
+//        if init <> '[static-storage] {  ; first run if not equal
+//            static-storage: eval init   ; v-- mutate to [static-storage]
+//            insert clear mutable init $static-storage
+//        }
+//        alias init.1
+//    ]
+//
+// If you couldn't make aliasing a "return value", then static would have to
+// take the thing to assign as the left hand side.  Less fun, more awkward!
+//
+
+INLINE const Element* Opt_Extract_Dual_If_Undecayed_Bedrock(const Value* v) {
     if (not Is_Pack(v))
         return nullptr;
 
@@ -46,10 +91,11 @@ INLINE const Element* Opt_Extract_Match_Dual(const Value* v) {
     return item;
 }
 
-#define Is_Dual(v)  u_cast(bool, Opt_Extract_Match_Dual(v))
+#define Is_Undecayed_Bedrock(v) \
+    u_cast(bool, Opt_Extract_Dual_If_Undecayed_Bedrock(v))
 
 
-//=//// BLACKHOLE ~(_)~ DUAL //////////////////////////////////////////////-//
+//=//// DRAIN BEDROCK: SPACE //////////////////////////////////////////////-//
 //
 // This is what slots are set to when you do things like:
 //
@@ -57,50 +103,64 @@ INLINE const Element* Opt_Extract_Match_Dual(const Value* v) {
 //
 // It makes some amount of sense that the dual would be a SPACE rune.
 //
-//    >> ^blackhole
-//    == \~(_)~\  ; antiform (pack!) "dual: blackhole"
+//    >> drain
+//    == \~(_)~\  ; antiform (pack!) "drain"
+//
+// Note: The name "blackhole" was originally used for this concept, but the
+// need for bedrock PARAMETER! to be a "hole" made that term confusing.
 //
 
-INLINE bool Is_Dual_Blackhole(const Value* v) {
-    const Element* dual = Opt_Extract_Match_Dual(v);
-    return dual and Is_Space(dual);
+INLINE bool Is_Bedrock_Dual_A_Drain(const Stable* dual) {
+    assert(Is_Dualized_Bedrock(dual));
+    return Is_Space(dual);  // maybe no faster than Is_Dual_Drain()?
 }
 
-#define Is_Bedrock_Blackhole(slot) \
-    Is_Cell_Space_With_Lift_Sigil(known(Slot*, slot), BEDROCK_0, SIGIL_0)
+#define Is_Drain_Core(cell, lift_byte) \
+    Is_Cell_Space_With_Lift_Sigil((cell), (lift_byte), SIGIL_0)
 
-INLINE Slot* Init_Bedrock_Blackhole(Init(Slot) out) {
+#define Is_Cell_A_Bedrock_Drain(slot) \
+    Is_Drain_Core(known(Slot*, slot), BEDROCK_0)
+
+#define Is_Dual_Drain(v) \
+    Is_Drain_Core(known(Stable*, v), NOQUOTE_3)
+
+INLINE Slot* Init_Bedrock_Drain(Init(Slot) out) {
     Init_Space(out);
     LIFT_BYTE(out) = BEDROCK_0;
     return out;
 }
 
+INLINE bool Is_Undecayed_Drain(const Value* v) {  // ~(_)~ PACK!
+    const Element* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
+    return dual and Is_Dual_Drain(dual);
+}
 
-//=//// ~(hot-potato)~ WORD! DUALS /////////////////////////////////////////-//
+
+//=//// "HOT-POTATO" : WORD! ///////////////////////////////////////-//
 //
 // WORD! duals are specifically prohibited from being stored in variables
 // -or- decaying, leading them to be a lightweight way of making something
 // that is "FAILURE!-like" which can only be taken as a ^META form.
 //
-// 1. VETO error antiforms signal a desire to cancel the operation that
-//    requested the evaluation.  Unlike GHOST which opts out of slots but keeps
-//    running, many operations that observe a VETO will return NULL:
+// 1. VETO hot potatoes signal a desire to cancel the operation that requested
+//    the evaluation.  Unlike GHOST which opts out of slots but keeps running,
+//    many operations that observe a VETO will return NULL:
 //
 //        >> reduce ["a" ^ghost "b"]
 //        == ["a" "b"]
 //
-//        >> reduce ["a" ^veto "b"]
+//        >> reduce ["a" veto "b"]
 //        == \~null~\  ; antiform
 //
 //    In PARSE, a GROUP! that evaluates to VETO doesn't cancel the parse,
 //    but rather just fails that specific GROUP!'s combinator, rolling over to
-//    the next alternate.
+//    the next alternate:
 //
-//        >> parse [a b] ['a (if 1 < 2 [^veto]) 'b | (print "alt!") 'a 'b]
+//        >> parse [a b] ['a (if 1 < 2 [veto]) 'b | (print "alt!") 'a 'b]
 //        alt!
 //        == 'b
 //
-// 2. DONE error antiforms report that an enumeration is exhausted and has no
+// 2. DONE hot potatoes report that an enumeration is exhausted and has no
 //    further items to give back.  They're used by YIELD or functions that
 //    want to act as generators for looping constructs like FOR-EACH or MAP:
 //
@@ -108,7 +168,7 @@ INLINE Slot* Init_Bedrock_Blackhole(Init(Slot) out) {
 //        make-one-thru-five: func [
 //            return: [done? integer!]
 //        ][
-//            if count = 5 [return ^done]
+//            if count = 5 [return done]
 //            return count: count + 1
 //        ]
 //
@@ -116,40 +176,53 @@ INLINE Slot* Init_Bedrock_Blackhole(Init(Slot) out) {
 //        == [10 20 30 40 50]
 //
 
-INLINE bool Is_Hot_Potato_Dual(Value* v) {
-    if (not Is_Pack(v))
+INLINE bool Is_Hot_Potato_With_Id_Core(
+    Value* v,
+    Option(SymId) id,
+    LiftByte lift_byte
+){
+    if (not Cell_Has_Lift_Sigil_Heart(v, lift_byte, SIGIL_0, TYPE_GROUP))
         return false;
 
     const Element* tail;
     const Element* item = List_At(&tail, v);
     if (item == tail or item + 1 != tail)
         return false;
-    return Is_Word(item);
+    if (not id)
+        return Is_Word(item);
+    return Is_Word_With_Id(item, unwrap id);
 }
 
-INLINE bool Is_Hot_Potato_Dual_With_Id(Value* v, SymId id) {
-    if (not Is_Pack(v))
-        return false;
+#define Is_Hot_Potato_With_Id(v, id) \
+    Is_Hot_Potato_With_Id_Core( \
+        known(Value*, (v)), (id), UNSTABLE_ANTIFORM_1)
 
-    const Element* tail;
-    const Element* item = List_At(&tail, v);
-    if (item == tail or item + 1 != tail)
-        return false;
-    return Is_Word_With_Id(item, id);
-}
+#define Is_Lifted_Hot_Potato_With_Id(v, id) \
+    Is_Hot_Potato_With_Id_Core( \
+        known(Value*, (v)), (id), QUASIFORM_4)
 
-#define Is_Veto_Dual(v)  Is_Hot_Potato_Dual_With_Id(v, SYM_VETO)  // [1]
-#define Is_Done_Dual(v)  Is_Hot_Potato_Dual_With_Id(v, SYM_DONE)  // [2]
+#define Is_Hot_Potato(v) \
+    Is_Hot_Potato_With_Id((v), none)
+
+#define Is_Lifted_Hot_Potato(v) \
+    Is_Lifted_Hot_Potato_With_Id((v), none)
 
 
-//=//// ALIAS ~(^var)~ ~(^obj.field)~ DUALS ///////////////////////////////-//
+#define Is_Cell_A_Veto_Hot_Potato(v) \
+    Is_Hot_Potato_With_Id((v), SYM_VETO)  // [1]
+
+#define Is_Cell_A_Done_Hot_Potato(v) \
+    Is_Hot_Potato_With_Id((v), SYM_DONE)  // [2]
+
+
+//=//// ALIAS BEDROCK: META-WORD!, META-TUPLE! ////////////////////////////-//
 //
-// An alias dual lets one variable act as another.
+// An alias lets one variable act as another.
 //
 //    >> x: 10
 //
 //    >> y: alias $x
-//    == \~(^x)~\  ; antiform (pack!) "dual: alias"
+//    == \~(^x)~\  ; antiform (pack!) "alias"
 //
 //    >> y: 20
 //
@@ -161,31 +234,142 @@ INLINE bool Is_Hot_Potato_Dual_With_Id(Value* v, SymId id) {
 // can set to anything (the decision to decay or not is done before the
 // alias is written or read from).
 
-INLINE bool Is_Dual_Meta_Alias_Signal(const Stable* dual) {
-    return Is_Meta_Form_Of(WORD, (dual)) or Is_Meta_Form_Of(TUPLE, (dual));
-}
-
-INLINE bool Is_Bedrock_Alias(Slot* slot) {
-    return Cell_Has_Lift_Sigil_Heart(
-        slot, BEDROCK_0, SIGIL_META, TYPE_WORD
-    ) or Cell_Has_Lift_Sigil_Heart(
-        slot, BEDROCK_0, SIGIL_META, TYPE_TUPLE
+INLINE bool Is_Bedrock_Dual_An_Alias(const Stable* dual) {
+    assert(Is_Dualized_Bedrock(dual));
+    return (
+        KIND_BYTE(dual) == Kind_From_Sigil_And_Heart(SIGIL_META, TYPE_WORD)
+        or KIND_BYTE(dual) == Kind_From_Sigil_And_Heart(SIGIL_META, TYPE_TUPLE)
     );
 }
 
+INLINE bool Is_Alias_Core(const Cell* cell, LiftByte lift_byte) {
+    return Cell_Has_Lift_Sigil_Heart(
+        cell, lift_byte, SIGIL_META, TYPE_WORD
+    ) or Cell_Has_Lift_Sigil_Heart(
+        cell, lift_byte, SIGIL_META, TYPE_TUPLE
+    );
+}
 
-//=//// DUAL STATE DEFINITIONS ///////////////////////////////////////////////
+#define Is_Cell_A_Bedrock_Alias(slot) \
+    Is_Alias_Core(known(Slot*, slot), BEDROCK_0)
+
+#define Is_Dual_Alias(v) \
+    Is_Alias_Core(known(Stable*, v), NOQUOTE_3)
+
+INLINE bool Is_Undecayed_Alias(const Value* v) {  // ~(^meta)~ PACK!
+    const Element* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
+    return dual and Is_Dual_Alias(dual);
+}
+
+
+//=//// ACCESSOR BEDROCK: FRAME! //////////////////////////////////////////-//
+//
+// An accessor function can serve as a GETTER or a SETTER for processing
+// assignmetns via GET and SET (or GET-WORD/SET-WORD).
+//
+
+INLINE bool Is_Bedrock_Dual_An_Accessor(const Stable* dual) {
+    assert(Is_Dualized_Bedrock(dual));
+    return KIND_BYTE(dual) == Kind_From_Sigil_And_Heart(SIGIL_0, TYPE_FRAME);
+}
+
+#define Is_Accessor_Core(cell,lift_byte) \
+    Cell_Has_Lift_Sigil_Heart((cell), (lift_byte), SIGIL_0, TYPE_FRAME)
+
+#define Is_Cell_A_Bedrock_Accessor(slot) \
+    Is_Accessor_Core(known(Slot*, slot), BEDROCK_0)
+
+#define Is_Dual_Accessor(v) \
+    Is_Accessor_Core(known(Stable*, v), NOQUOTE_3)
+
+INLINE bool Is_Undecayed_Accessor(const Value* v) {  // ~(action!)~ PACK!
+    const Element* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
+    return dual and Is_Dual_Accessor(dual);
+}
+
 
 #define Is_Dual_Word_Named_Signal(dual)  Is_Word(dual)
 
 
-#define DUAL_LIFTED(v)    Lift_Cell(v ? v : Init_Nulled(OUT))
-#define DUAL_SIGNAL_NULL_ABSENT  NULL_OUT
-#define Is_Dual_Nulled_Absent_Signal(dual)  Is_Nulled(dual)
+//=//// DUAL PICKING //////////////////////////////////////////////////////=//
+//
+// PICK is built on top of TWEAK, which uses the "dual protocol" to return
+// the picked result.  This means that if it returns a lifted value (such as
+// a quoted or quasiform) the value existed in the original structure as the
+// unlifted representation of that lifted form.
+//
+// 1. The data structure implementing the TWEAK hook may be able to store null
+//    values literally (e.g. a BLOCK! can't, but an OBJECT! can).  If it can
+//    store nulls, then returning a lifted null in the dual protocol means
+//    "the value was present, and it was null".  But returning a non-lifted
+//    null means "the value was not present" (e.g. asking for a field in an
+//    object that doesn't exist).
+//
+// 2. If a data structure is storing bedrock slots, such as an ALIAS or a
+//    GETTER, then picking it will return the dual of that state for the core
+//    machinery to handle (as opposed to making arbitrary containers worry
+//    about how to dispatch those states).
+//
 
-#define WRITEBACK(out)  DUAL_LIFTED(out)  // commentary
-#define NO_WRITEBACK_NEEDED  DUAL_SIGNAL_NULL_ABSENT
-#define Is_Dual_Nulled_No_Writeback_Signal(dual)  Is_Nulled(dual)
+#define LIFT_OUT_FOR_DUAL_PICK \
+    x_cast(Bounce, Lift_Cell(OUT))
+
+#define LIFT_NULL_OUT_FOR_DUAL_PICK \
+    x_cast(Bounce, Lift_Cell(Init_Nulled(OUT)))  // lifted null: present + null
+
+#define NULL_OUT_PICK_ABSENT  NULL_OUT  // non-lifted null: not present [1]
+
+#define Is_Pick_Absent_Signal(cell)  Is_Nulled(cell)
 
 #define Is_Dual_Nulled_Pick_Signal(dual)  Is_Nulled(dual)
 #define Init_Dual_Nulled_Pick_Signal(dual)  Init_Nulled(dual)
+
+#define OUT_UNLIFTED_DUAL_INDIRECT_PICK \
+    (assert(not Any_Lifted(OUT)), x_cast(Bounce, OUT))  // e.g. ALIAS, GETTER
+
+
+//=//// DUAL POKING ///////////////////////////////////////////////////////=//
+//
+// POKE is also built on top of TWEAK, and uses the dual protocol to receive
+// the value to be poked into the data structure... as well as using dual
+// states to signal conditions of the return.  A key to the design is that
+// if a tweak has to manipulate parts of a Cell that may be stored in a
+// container, it has to return the bits that will be written back.
+//
+// So for instance: if you have a TIME! value you want to poke into a DATE!,
+// the time bits live in the same Cell as the date.  So once the pattern is
+// updated, persisting this in a container (such as an OBJECT! field which
+// held the original date) requires telling the poking machinery what bits
+// to write back.
+//
+
+#define LIFT_OUT_FOR_DUAL_WRITEBACK \
+    x_cast(Bounce, Lift_Cell(OUT))  // commentary
+
+#define Init_Nulled_No_Writeback_Signal(dual) \
+    Init_Nulled(dual)
+
+#define NULL_OUT_NO_WRITEBACK \
+    x_cast(Bounce, Init_Nulled_No_Writeback_Signal(OUT))
+
+#define Is_Dual_Nulled_No_Writeback_Signal(dual)  Is_Nulled(dual)
+
+#define OUT_UNLIFTED_DUAL_INDIRECT_POKE \
+    (assert(not Any_Lifted(OUT)), x_cast(Bounce, OUT))  // e.g. ALIAS, SETTER
+
+
+//=//// TWEAK STATE ENUM /////////////////////////////////////////////////=//
+//
+// TWEAK does the underlying work of GET and SET, but if you call it directly
+// in a PICK mode then it will not indirect the final step, so if you find
+// a BEDROCK_0 state that will be returned as an unlifted value.  The way
+// the TWEAK native decides whether to indirect or not is looking by the
+// state byte at the moment (first cut at making it work).
+//
+
+enum {
+    ST_TWEAK_INITIAL_ENTRY = STATE_0,
+    ST_TWEAK_TWEAKING,  // trampoline rule: OUT must be erased if STATE_0
+    ST_TWEAK_SETTING,
+    ST_TWEAK_GETTING
+};

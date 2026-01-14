@@ -905,37 +905,44 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Parameter)
       case SYM_TEXT: {
         Option(const Strand*) string = Parameter_Strand(param);
         if (not string)
-            return DUAL_LIFTED(nullptr);
-        return DUAL_LIFTED(Init_Text(OUT, unwrap string)); }
+            return LIFT_NULL_OUT_FOR_DUAL_PICK;
+
+        Init_Text(OUT, unwrap string);
+        return LIFT_OUT_FOR_DUAL_PICK; }
 
       case SYM_SPEC: {
         Option(const Source*) spec = Parameter_Spec(param);
         if (not spec)
-            return DUAL_LIFTED(nullptr);
-        return DUAL_LIFTED(Init_Block(OUT, unwrap spec)); }
+            return LIFT_NULL_OUT_FOR_DUAL_PICK;
+
+        Init_Block(OUT, unwrap spec);
+        return LIFT_OUT_FOR_DUAL_PICK; }
 
       case SYM_OPTIONAL:
-        return DUAL_LIFTED(Init_Logic(OUT, Get_Parameter_Flag(param, REFINEMENT)));
+        Init_Logic(OUT, Get_Parameter_Flag(param, REFINEMENT));
+        return LIFT_OUT_FOR_DUAL_PICK;
 
       case SYM_CLASS:
         switch (Parameter_Class(param)) {
           case PARAMCLASS_NORMAL:
-            return DUAL_LIFTED(Init_Word(OUT, CANON(NORMAL)));
+            Init_Word(OUT, CANON(NORMAL));
+            return LIFT_OUT_FOR_DUAL_PICK;
 
           case PARAMCLASS_META:
-            return DUAL_LIFTED(Init_Word(OUT, CANON(META)));
+            Init_Word(OUT, CANON(META));
+            return LIFT_OUT_FOR_DUAL_PICK;
 
           case PARAMCLASS_LITERAL:
           case PARAMCLASS_SOFT:
-            return DUAL_LIFTED(Init_Word(OUT, CANON(THE)));
-
+            Init_Word(OUT, CANON(THE));
+            return LIFT_OUT_FOR_DUAL_PICK;
           default: assert(false);
         }
         crash (nullptr);
 
       case SYM_ESCAPABLE:
         Init_Logic(OUT, Parameter_Class(param) == PARAMCLASS_SOFT);
-        return DUAL_LIFTED(OUT);
+        return LIFT_OUT_FOR_DUAL_PICK;
 
       /* case SYM_DECORATED: */  // No symbol! Use DECORATE-PARAMETER...
 
@@ -964,7 +971,8 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Parameter)
         Manage_Stub(strand);
         Freeze_Flex(strand);
         Set_Parameter_Strand(param, strand);
-        return WRITEBACK(Copy_Cell(OUT, param)); }  // need Cell pointer update
+        Copy_Cell(OUT, param);
+        return LIFT_OUT_FOR_DUAL_WRITEBACK; }  // need Cell pointer update
 
       default:
         break;

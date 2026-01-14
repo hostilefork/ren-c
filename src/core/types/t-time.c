@@ -580,10 +580,10 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Time)
         break;
 
       default:
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
     }
 
-    return DUAL_LIFTED(OUT);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
@@ -632,7 +632,8 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Time)
 
     Tweak_Cell_Nanoseconds(time, Join_Time(&tf, false));
 
-    return WRITEBACK(Copy_Cell(OUT, time));  // caller must update time bits
+    Copy_Cell(OUT, time);
+    return LIFT_OUT_FOR_DUAL_WRITEBACK;  // update time bits
 }}
 
 

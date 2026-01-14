@@ -944,19 +944,20 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Rune)
   handle_pick: { /////////////////////////////////////////////////////////////
 
     if (n <= 0)
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
     REBLEN len;
     Utf8(const*) cp = Cell_Utf8_Len_Size_At(&len, nullptr, rune);
     if (n > len)
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
     Codepoint c;
     cp = Utf8_Next(&c, cp);
     for (; n != 1; --n)
         cp = Utf8_Next(&c, cp);
 
-    return DUAL_LIFTED(Init_Char_Unchecked(OUT, c));
+    Init_Char_Unchecked(OUT, c);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 

@@ -47,7 +47,7 @@ DECLARE_NATIVE(TRY)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    if (Is_Failure(v) or Is_Hot_Potato_Dual(v))  // what about Any_Void()? [1]
+    if (Is_Failure(v) or Is_Hot_Potato(v))  // what about Any_Void()? [1]
         return NULL_OUT;
 
     return COPY_TO_OUT(v);  // !!! also tolerates other antiforms, should it?
@@ -269,7 +269,7 @@ DECLARE_NATIVE(EXCEPT)
     if (Is_Failure(left)) {
         LIFT_BYTE(left) = NOQUOTE_3;  // turn FAILURE! to plain ERROR! [1]
     }
-    else if (Is_Hot_Potato_Dual(left)) {
+    else if (Is_Hot_Potato(left)) {
         // leave as-is [2]
     }
     else
@@ -331,7 +331,7 @@ DECLARE_NATIVE(REQUIRE)
 
     Value* v = ARG(VALUE);
 
-    if (Is_Failure(v) or Is_Dual(v)) {
+    if (Is_Failure(v) or Is_Undecayed_Bedrock(v)) {
       require (
         Decay_If_Unstable(v)
       );

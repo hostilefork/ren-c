@@ -987,13 +987,13 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
         n = Try_Get_Array_Index_From_Picker(series, picker);
     else {
         if (not Try_Get_Series_Index_From_Picker(&n, series, picker))
-            return DUAL_SIGNAL_NULL_ABSENT;
+            return NULL_OUT_PICK_ABSENT;
     }
 
     if (n < 0)
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
     if (n >= Series_Len_Head(series))
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
     const Stable* poke;
 
@@ -1013,18 +1013,21 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
         const Element* at = Array_At(Cell_Array(series), n);
 
         Copy_Cell_May_Bind(OUT, at, List_Binding(series));
-        return DUAL_LIFTED(Inherit_Const(OUT, series));
+        Inherit_Const(OUT, series);
+        return LIFT_OUT_FOR_DUAL_PICK;
     }
 
     if (Any_String(series)) {
         Codepoint c = Get_Strand_Char_At(Cell_Strand(series), n);
-        return DUAL_LIFTED(Init_Char_Unchecked(OUT, c));
+        Init_Char_Unchecked(OUT, c);
+        return LIFT_OUT_FOR_DUAL_PICK;
     }
 
     assert(Is_Blob(series));
 
     Byte b = *Binary_At(Cell_Binary(series), n);
-    return DUAL_LIFTED(Init_Integer(OUT, b));
+    Init_Integer(OUT, b);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
@@ -1097,7 +1100,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
 
     UNUSED(tail);
 
-    return NO_WRITEBACK_NEEDED;  // Array* in Cell stays the same
+    return NULL_OUT_NO_WRITEBACK;  // Array* in Cell stays the same
 }}
 
 

@@ -312,10 +312,11 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Pair)
   handle_pick: { /////////////////////////////////////////////////////////////
 
     if (n != 1 and n != 2)
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
     Stable* which = (n == 1) ? Cell_Pair_First(pair) : Cell_Pair_Second(pair);
-    return DUAL_LIFTED(Copy_Cell(OUT, which));
+    Copy_Cell(OUT, which);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
@@ -332,7 +333,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Pair)
     Stable* which = (n == 1) ? Cell_Pair_First(pair) : Cell_Pair_Second(pair);
     Copy_Cell(which, poke);
 
-    return NO_WRITEBACK_NEEDED;  // PAIR! is two independent cells in Ren-C
+    return NULL_OUT_NO_WRITEBACK;  // PAIR! is two independent cells in Ren-C
 }}
 
 

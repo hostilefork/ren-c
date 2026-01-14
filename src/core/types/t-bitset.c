@@ -665,7 +665,8 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Bitset)
 
     bool bit = Check_Bits(VAL_BITSET(bset), picker, false);
 
-    return DUAL_LIFTED(Init_Logic(OUT, bit));
+    Init_Logic(OUT, bit);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
@@ -684,7 +685,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Bitset)
     )){
         panic (PARAM(PICKER));
     }
-    return NO_WRITEBACK_NEEDED;
+    return NULL_OUT_NO_WRITEBACK;
 }}
 
 

@@ -136,7 +136,7 @@
             yield: enclose yield/ f -> [
                 ignore ^f.value
                 if '~null~ = lift ^f.value [  ; safe "light null" detection
-                    ignore ^f.value: ^done
+                    ignore ^f.value: done
                     eval f
                 ]
                 ^f.value: lift ^f.value
@@ -154,7 +154,7 @@
     g: e-generator [
         ignore ^a: yield fail "a"
         b: yield 1
-        ignore ^c: yield ^done
+        ignore ^c: yield done
         d: yield null  ; rigged to terminate the generator
         e: yield <unreachable>
     ]

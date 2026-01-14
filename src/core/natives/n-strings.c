@@ -449,7 +449,7 @@ DECLARE_NATIVE(JOIN)
     if (Any_Void(SPARE))  // spaced [elide print "hi"], etc
         goto next_mold_step;  // vaporize
 
-    if (Is_Veto_Dual(SPARE))
+    if (Is_Cell_A_Veto_Hot_Potato(SPARE))
         goto vetoed;
 
     require (
@@ -508,7 +508,7 @@ DECLARE_NATIVE(JOIN)
     if (Any_Void(SPARE))
         goto next_stack_step;  // vaporize
 
-    if (Is_Veto_Dual(SPARE))
+    if (Is_Cell_A_Veto_Hot_Potato(SPARE))
         goto vetoed;
 
     require (

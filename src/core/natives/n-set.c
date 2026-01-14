@@ -571,6 +571,8 @@ DECLARE_NATIVE(SET)
 
     Value* dual = Lift_Cell(v);  // make dual for TWEAK [2]
 
+    STATE = ST_TWEAK_SETTING;
+
     Option(Bounce) b = Irreducible_Bounce(
         LEVEL,
         Apply_Cfunc(NATIVE_CFUNC(TWEAK), LEVEL)

@@ -526,10 +526,10 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Sequence)
   handle_pick: { /////////////////////////////////////////////////////////////
 
     if (n < 0 or n >= Sequence_Len(seq))
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
     Copy_Sequence_At(OUT, seq, n);
-    return DUAL_LIFTED(OUT);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 

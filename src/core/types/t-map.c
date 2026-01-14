@@ -902,7 +902,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
     );
 
     if (not n)
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
     const Value* val = Flex_At(
         Value,
@@ -910,9 +910,10 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
         (((unwrap n) - 1) * 2) + 1
     );
     if (Is_Zombie(val))
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
-    return DUAL_LIFTED(Copy_Cell(OUT, val));
+    Copy_Cell(OUT, val);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
@@ -923,7 +924,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
         strict
     );
 
-    return NO_WRITEBACK_NEEDED;  // no upstream change for Map* reference
+    return NULL_OUT_NO_WRITEBACK;  // no upstream change for Map* reference
 }}
 
 

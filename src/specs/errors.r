@@ -287,6 +287,9 @@ series-frozen:      "series is permanently frozen, can't modify"
 series-held:        "series has temporary read-only hold for iteration"
 series-auto-frozen: "series was implicitly frozen (e.g. as key for MAP!)"
 
+cant-get-drain:     "Variables in the 'drain' bedrock state are write-only"
+unstable-non-meta:  "Unexpected unstable in non-^^META pick of $1"
+
 series-data-freed:  "series contents no longer available due to FREE"
 
 hidden:             "not allowed - would expose or modify hidden values"

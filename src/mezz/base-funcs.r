@@ -524,18 +524,22 @@ eval-all: func [
 [<|]: infix:postpone eval-all/
 
 
-; !!! This is an interim implementation of GETTER that returns nothing.
-; (Note it would be wasteful to call the getter, when 99 times out of 100
-; the value would be discarded--so whatever is done here should avoid that.)
-;
-getter: infix proc [
-    @var [element?:]
-    action [block! action!]
+drain: does [~(_)~]
+
+accessor: lambda [
+    "Returns bedrock state storable in variable giving it GET/SET behavior"
+    []: [bedrock?]  ; [accessor?]
+    frame [<unrun> frame!]
 ][
-    tweak unchain var case [
-        block? ^action [does action]
-        <else> [unrun action/]
-    ]
+    unlift quasi reduce $(frame)
+]
+
+getter: lambda [
+    "Returns a bedrock state storable in a variable to give it GET behavior"
+    []: [bedrock?]  ; [accessor?]
+    body [block! fence!]
+][
+    accessor does body
 ]
 
 
