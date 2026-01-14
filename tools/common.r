@@ -470,6 +470,7 @@ export stripload: func [
                 keep to word! copy:part s e  ; `...` is WORD! in "...:"
             )
             |
+            opt "ignore "  ; e.g. `ignore ^veto: ~(veto)~ in base-constants.r
             opt "^^" opt "/" s: <here> word-start-char opt some word-rest-char
             e: <here> ": " (
                 keep to word! copy:part s e

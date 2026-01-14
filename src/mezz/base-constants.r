@@ -46,14 +46,17 @@ LF:        newline
 NUL:       #{00}  ; ^(NULL) no longer legal internal to strings
 
 empty-block: '[]
-none: spread empty-block
+none: ~[]~
 quasar: '~
 
 empty-text: ""
 empty-blob: #""
 
 null: ~null~
+quasi-null: '~null~
+
 ok: okay: ~okay~
+quasi-okay: '~okay~
 ok?: okay?/
 
 ; https://rebol.metaeducation.com/t/why-caret-to-use-void-vs-just-void/2526

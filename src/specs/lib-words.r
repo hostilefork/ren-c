@@ -61,7 +61,7 @@ Rebol [
     accept
     break
     reject
-    veto
+    parse-veto  ; workaround VETO living in BASE-CONSTANTS range
     inline
     seek  ; Ren-C addition
     ;

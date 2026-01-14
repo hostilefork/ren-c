@@ -206,14 +206,25 @@ STATIC_ASSERT((int)AM_FIND_MATCH == (int)PF_FIND_MATCH);
 // !!! This and other efficiency tricks from R3-Alpha should be reviewed to
 // see if they're really the best option.
 //
-INLINE Option(SymId) VAL_CMD(const Cell* v) {
-    Option(SymId) sym = Word_Id(v);
+// 1. It's preferable if we have (veto? ^veto) be true.  This implies that
+//    the lib definition (in %base-constants.r) for VETO is a hot potato
+//    PACK!, and that means we want that lib variable locked and in the
+//    base constants range.  This is before the PARSE words range.  The
+//    easiest workaround is just to turn SYM_VETO into SYM_PARSE_VETO.  A
+//    better solution would actually do the ^META lookup to notice any
+//    word (VETO or otherwise) that looks up to the ~(veto)~ hot potato and
+//    handle it the same, but that's more involved for this old PARSE3 code.
+//
+INLINE Option(SymId) Word_Id_If_Parse3_Keyword(const Cell* v) {
+    Option(SymId) id = Word_Id(v);
     if (
-        cast(int, sym) >= MIN_SYM_PARSE3
-        and cast(int, sym) <= MAX_SYM_PARSE3
+        cast(SymId16, id) >= MIN_SYM_PARSE3
+        and cast(SymId16, id) <= MAX_SYM_PARSE3
     ){
-        return sym;
+        return id;
     }
+    if (id == SYM_VETO)
+        return SYM_PARSE_VETO;  // workaround for base-constants range [1]
     return SYM_0;
 }
 
@@ -381,13 +392,9 @@ static Result(Option(SymId)) Get_Parse_Value(
     Stable* out_value = u_cast(Stable*, out);  // defuses Sink() behavior [1]
 
     if (Is_Word(rule)) {
-        Option(SymId) id = Word_Id(rule);
-        if (
-            cast(int, id) >= MIN_SYM_PARSE3
-            and cast(int, id) <= MAX_SYM_PARSE3
-        ){
+        Option(SymId) id = Word_Id_If_Parse3_Keyword(rule);
+        if (id)
             return id;
-        }
 
         require (
           Get_Var(out_value, NO_STEPS, rule, context)
@@ -485,7 +492,7 @@ bool Process_Group_For_Parse_Throws(
 
     Drop_Level(sub);
 
-    if (Is_Veto_Dual(eval)) {
+    if (Is_Cell_A_Veto_Hot_Potato(eval)) {
         *veto = true;
         return false;
     }
@@ -806,7 +813,7 @@ static Result(REBIXO) To_Thru_Block_Rule(
             const Element* rule = blk;
 
             if (Is_Word(rule)) {
-                Option(SymId) cmd = VAL_CMD(rule);
+                Option(SymId) cmd = Word_Id_If_Parse3_Keyword(rule);
 
                 if (cmd) {
                     if (cmd == SYM_END)
@@ -1290,7 +1297,6 @@ DECLARE_NATIVE(SUBPARSE)
 // * A special throw to indicate a return out of the PARSE itself, triggered
 // by the RETURN instruction.  This also returns a thrown value, but will
 // be caught by PARSE before returning.
-//
 {
     INCLUDE_PARAMS_OF_SUBPARSE;
 
@@ -1457,7 +1463,7 @@ DECLARE_NATIVE(SUBPARSE)
     //=//// ANY-WORD?/ANY-PATH? PROCESSING ////////////////////////////////=//
 
     if (Is_Word(rule) or Is_Get_Word(rule) or Is_Set_Word(rule)) {
-        Option(SymId) cmd = VAL_CMD(rule);
+        Option(SymId) cmd = Word_Id_If_Parse3_Keyword(rule);
         if (cmd) {
             if (not Is_Word(rule)) {
                 //
@@ -1568,7 +1574,7 @@ DECLARE_NATIVE(SUBPARSE)
                 if (not (Is_Word(P_RULE) or Is_Set_Word(P_RULE)))
                     panic (Error_Parse3_Variable(L));
 
-                if (VAL_CMD(P_RULE))  // set set [...]
+                if (Word_Id_If_Parse3_Keyword(P_RULE))  // set set [...]
                     panic (Error_Parse3_Command(L));
 
                 // We need to add a new binding before we derelativize w.r.t.
@@ -1661,7 +1667,7 @@ DECLARE_NATIVE(SUBPARSE)
                 if (Any_Void(eval))
                     goto pre_rule;
 
-                if (Is_Veto_Dual(eval)) {
+                if (Is_Cell_A_Veto_Hot_Potato(eval)) {
                     Init_Nulled(ARG(POSITION));  // treat as mismatch
                     goto post_match_processing;
                 }
@@ -1750,7 +1756,7 @@ DECLARE_NATIVE(SUBPARSE)
                 Init_Thrown_With_Label(LEVEL, LIB(NULL), LIB(PARSE_REJECT));
                 goto return_thrown; }
 
-              case SYM_VETO:  // skip to next alternate
+              case SYM_PARSE_VETO:  // skip to next alternate
                 Init_Nulled(ARG(POSITION));  // not found
                 FETCH_NEXT_RULE(L);
                 goto post_match_processing;
@@ -1797,8 +1803,8 @@ DECLARE_NATIVE(SUBPARSE)
 
           skip_pre_rule:;
 
-            // Any other WORD! with VAL_CMD() is a parse keyword, but is
-            // a "match command", so proceed...
+            // Any other WORD! with Word_Id_If_Parse3_Keyword() is a parse
+            // keyword, but is a "match command", so proceed...
         }
         else {
             // It's not a PARSE command, get or set it
@@ -1973,7 +1979,7 @@ DECLARE_NATIVE(SUBPARSE)
         REBIXO i;  // temp index point
 
         if (Is_Word(rule)) {
-            Option(SymId) cmd = VAL_CMD(rule);
+            Option(SymId) cmd = Word_Id_If_Parse3_Keyword(rule);
 
             switch (opt cmd) {
               case SYM_SKIP:
