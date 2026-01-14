@@ -619,7 +619,7 @@ RebolValue* API_rebVoid(void)  // unstable antiform [B]
 // you could just use `return "~";` and it would be as good or better (there
 // is an optimization to take care of this when returning from functions).
 //
-// (Natives using the core API can use `return TRASH_OUT;` for slightly more
+// (Natives using the core API can use `return TRASH;` for slightly more
 // efficiency, as it directly initializes the OUT cell with a tripwire.)
 //
 RebolValue* API_rebTripwire(void)
@@ -1630,15 +1630,42 @@ RebolValue* API_rebRecoverInterruptible(
 
 
 //
+//  rebLift: API
+//
+// Variant of rebValue() that lifts its result.  So `rebLift(...)` is same as
+// `rebValue("lift", ...)`, with the advantage of being faster and not
+// depending on what the LIFT word looks up to.
+//
+// (It also has the advantage of not showing LIFT on the call stack.  That
+// is important for the console when trapping its generated result, to be
+// able to lift it without the backtrace showing a LIFT stack frame.)
+//
+RebolValue* API_rebLift(
+    RebolContext* binding,
+    const void* p, void* vaptr
+){
+    ENTER_API;
+
+    Value* v = Alloc_Value_Core(CELL_MASK_ERASED_0);
+
+    Flags flags = RUN_VA_MASK_NONE;
+    Undecayed_Run_Valist_And_Call_Va_End(
+        v, flags, binding, p, vaptr
+    ) except (Error* e) {
+        Free_Value(v);  // rebRelease() would test cell validity
+        panic (e);
+    }
+
+    Lift_Cell(v);
+    Set_Base_Root_Bit(v);
+    return v;
+}
+
+
+//
 //  rebQuote: API
 //
-// Variant of rebValue() that simply quotes its result.  So `rebQuote(...)` is
-// equivalent to `rebValue("quote", ...)`, with the advantage of being faster
-// and not depending on what the QUOTE word looks up to.
-//
-// (It also has the advantage of not showing QUOTE on the call stack.  That
-// is important for the console when trapping its generated result, to be
-// able to quote it without the backtrace showing a QUOTE stack frame.)
+// For convenience, another variant of rebValue() that quotes its result.
 //
 RebolValue* API_rebQuote(
     RebolContext* binding,
@@ -1659,7 +1686,8 @@ RebolValue* API_rebQuote(
     if (Is_Antiform(v))
         panic ("rebQuote() called on expression that returned an antiform");
 
-    return Quote_Cell(cast(Element*, v));
+    Quote_Cell(As_Element(v));
+    return v;
 }
 
 
