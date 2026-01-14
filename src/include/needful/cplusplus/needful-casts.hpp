@@ -282,7 +282,16 @@
 //    specialized while objects can.  However, we want "universal references"
 //    which is how (T&& arg) is interpreted for functions vs. objects.
 //
-// 5. If the input is a thin Needful wrapper, validate the cast based on its
+// 5. This used to use `std::forward<FromRef>(from)`.  But `from` was a
+//    `const FromRef&` (e.g. `const unsigned char (&)[64]`), which meant that
+//     `FromRef` is not deduced as a reference type (parameter isn't a
+//     forwarding ref), so GCC correctly rejects binding away const.
+//
+//    Not clear what the forwarding intent was; if we just pass `from` then
+//    the CastHook will use reference semantics if appropriate, and this
+//    allows decay to the expected pointer type.
+//
+// 6. If the input is a thin Needful wrapper, validate the cast based on its
 //    underlying representation.  This avoids forcing wrapper-to-wrapper
 //    conversions during hook dispatch (e.g. Need(Value*) -> Need(const Value*)
 //    when constifying), while still letting wrapper expressions participate
@@ -370,7 +379,8 @@ Hookable_Cast_Helper(const FromRef & from) {
   #if NEEDFUL_CAST_CALLS_HOOKS
     using From = decay_t<FromRef>;
     using ConstFrom = needful_constify_t(From);
-    CastHook<ConstFrom, ConstTo>::Validate_Bits(std::forward<FromRef>(from));
+
+    CastHook<ConstFrom, ConstTo>::Validate_Bits(from);  // no forward [5]
   #endif
 
     return needful_mutable_cast(
@@ -405,7 +415,7 @@ Hookable_Cast_Helper(FromRef&& from)
     );
 
   #if NEEDFUL_CAST_CALLS_HOOKS
-        using ConstFrom = needful_constify_t(  // validate beneath wrapper [5]
+        using ConstFrom = needful_constify_t(  // validate beneath wrapper [6]
             needful_unwrapped_if_wrapped_type(From)
         );
         CastHook<ConstFrom, ConstTo>::Validate_Bits(static_cast<ConstFrom>(from));
