@@ -122,7 +122,7 @@ INLINE Details* Phase_Details_Core(Phase* p) {
 }
 
 #define Phase_Details(p) \
-    Phase_Details_Core(known(Phase*, (p)))
+    Phase_Details_Core(x_cast_known(Phase*, (p)))
 
 
 INLINE bool Is_Frame_Details(const Cell* v) {
@@ -151,7 +151,7 @@ INLINE ParamList* Phase_Paramlist_Core(Phase* p) {
 }
 
 #define Phase_Paramlist(p) \
-    Phase_Paramlist_Core(known(Phase*, (p)))
+    Phase_Paramlist_Core(x_cast_known(Phase*, (p)))
 
 
 // More optimized version of Bonus_Keylist(Phase_Paramlist(a)),
@@ -172,7 +172,7 @@ INLINE Param* Phase_Params_Head_Core(Phase* p) {
 }
 
 #define Phase_Params_Head(p) \
-    Phase_Params_Head_Core(known(Phase*, (p)))
+    Phase_Params_Head_Core(x_cast_known(Phase*, (p)))
 
 INLINE Dispatcher* Details_Dispatcher(Details* details)
   { return f_cast(Dispatcher*, LINK_DETAILS_DISPATCHER(details)); }
@@ -360,4 +360,4 @@ INLINE bool Action_Is_Derived_From(Phase* derived, Phase* base) {
 
 
 #define First_Unspecialized_Param(key_out,phase) \
-    First_Unspecialized_Param_Core((key_out), known(Phase*, (phase)))
+    First_Unspecialized_Param_Core((key_out), x_cast_known(Phase*, (phase)))

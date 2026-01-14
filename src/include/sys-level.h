@@ -283,7 +283,7 @@ INLINE void Tweak_Level_Phase_Core(Level* L, Phase* phase) {
 }
 
 #define Tweak_Level_Phase(L,phase) \
-    Tweak_Level_Phase_Core(L, known(Phase*, (phase)))
+    Tweak_Level_Phase_Core(L, x_cast_known(Phase*, (phase)))
 
 INLINE void Tweak_Level_Coupling(Level* L, Option(VarList*) coupling)
   { Tweak_Frame_Coupling(L->rootvar, coupling); }  // also fast

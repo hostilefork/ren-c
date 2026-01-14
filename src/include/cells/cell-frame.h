@@ -214,15 +214,15 @@ INLINE Element* Init_Frame_Untracked(
 
 #define Init_Frame_Unchecked(out,identity,label,coupling) \
     TRACK(Init_Frame_Unchecked_Untracked( \
-        (out), known(Phase*, (identity)), (label), (coupling)))
+        (out), x_cast_known(Phase*, (identity)), (label), (coupling)))
 
 #define Init_Frame(out,identity,label,coupling) \
-    TRACK(Init_Frame_Untracked((out), known(Phase*, (identity)), \
+    TRACK(Init_Frame_Untracked((out), x_cast_known(Phase*, (identity)), \
         known(Option(const Symbol*), (label)), (coupling)))
 
 #define Init_Lensed_Frame(out,identity,lens,coupling) \
-    TRACK(Init_Frame_Untracked((out), known(Phase*, (identity)), \
-        known(Option(Phase*), (lens)), (coupling)))
+    TRACK(Init_Frame_Untracked((out), x_cast_known(Phase*, (identity)), \
+        x_cast_known(Option(Phase*), (lens)), (coupling)))
 
 
 //=//// ACTIONS (FRAME! Antiforms) ////////////////////////////////////////=//
@@ -269,7 +269,8 @@ INLINE Stable* Init_Action_By_Phase(
 }
 
 #define Init_Action(out,identity,label,coupling) \
-    Init_Action_By_Phase((out), known(Phase*, (identity)), (label), (coupling))
+    Init_Action_By_Phase((out), x_cast_known(Phase*, (identity)), \
+        (label), (coupling))
 
 INLINE Stable* Deactivate_If_Action(Exact(Stable*) v) {
     if (Is_Action(v))

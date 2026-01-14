@@ -83,10 +83,10 @@ INLINE Option(VarList*) Misc_Phase_Adjunct_Core(Phase* a) {
 }
 
 #define Misc_Phase_Adjunct(p) \
-    Misc_Phase_Adjunct_Core(known(Phase*, (p)))
+    Misc_Phase_Adjunct_Core(x_cast_known(Phase*, (p)))
 
 #define Tweak_Misc_Phase_Adjunct(p, adjunct) \
-    Tweak_Misc_Phase_Adjunct_Core(known(Phase*, (p)), adjunct)
+    Tweak_Misc_Phase_Adjunct_Core(x_cast_known(Phase*, (p)), adjunct)
 
 
 #define CELL_CONTEXT_VARLIST(c)  CELL_PAYLOAD_1(c)

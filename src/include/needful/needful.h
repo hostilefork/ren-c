@@ -548,19 +548,14 @@ void Needful_Panic_Abruptly(const char* error) {
 **    where as constructs named "known" suggests that you *just know*.
 */
 
-#define needful_rigid_known(T,expr) \
-    needful_xtreme_cast(T,expr)
+#define needful_lenient_known(T,expr)        (expr)
+#define needful_rigid_known(T,expr)          (expr)
 
-#define needful_lenient_known(T,expr) /* const passthru const [1] */ \
-    needful_xtreme_cast(T,expr)
+#define needful_rigid_known_not(T,expr)      (expr)
+#define needful_lenient_known_not(T,expr)    (expr)
 
-#define needful_rigid_known_not(T,expr) \
-    needful_xtreme_cast(T,expr)
-
-#define needful_lenient_known_not(T,expr) /* const passthru const [1] */ \
-    needful_xtreme_cast(T,expr)
-
-#define needful_known_any(TLIST,expr)  (expr)  /* doesn't change type */
+#define needful_rigid_known_any(TLIST,expr)  (expr)
+/* no neeedful_lenient_known_any yet */
 
 #define needful_known_lvalue(variable)  (*&variable)
 
@@ -573,7 +568,7 @@ void Needful_Panic_Abruptly(const char* error) {
 #define ENABLEABLE(T, name) T name
 
 
-/****[[ cast(): VISIBLE (AND HOOKABLE!) ERGONOMIC CASTS ]]********************
+/****[[ VISIBLE (AND HOOKABLE!) ERGONOMIC CASTS ]]****************************
 **
 ** These macros for casting provide *easier-to-spot* variants of parentheses
 ** cast (so you can see where the casts are in otherwise-parenthesized
@@ -590,6 +585,43 @@ void Needful_Panic_Abruptly(const char* error) {
 ** what types can be cast to what)...as well as runtime checks in your debug
 ** builds, that can actually validate that the data being cast is legal for
 ** the target type.  This even works for casts of raw pointers to types!
+**
+*****[[ CAST SELECTION GUIDE ]]***********************************************
+**
+**        PRO-TIP: #define cast() as h_cast() in your codebase!!! [1]
+**
+** SAFETY LEVEL
+**    - Hookable cast:            h_cast()    // safe default w/debug hooks
+**    - Unhooked/unchecked cast:  u_cast()    // use with fresh malloc()s
+**                                               // ...or critical debug paths
+**
+** POINTER CONSTNESS
+**    - Adding mutability:         m_cast()    // const T* => T*
+**    - Preserve mutability:       h_cast()    // TA* => TB* ...or...
+**                               & u_cast()      // const TA* => const TB*
+**
+** TYPE CONVERSIONS
+**    - Non-pointer to pointer:    p_cast()    // intptr_t => T*
+**    - Non-integral to integral:  i_cast()    // T* => intptr_t
+**    - Function to function:      f_cast()    // ret1(*)(...) => ret2(*)(...)
+**    - va_list to void*:          v_cast()    // va_list* <=> void*
+**
+*****[[ NOTES ]]**************************************************************
+**
+** 1. Because `cast` has a fair likelihood of being defined as the name of a
+**    function or variable in C codebases, Needful does not force a definition
+**    of `cast`.  But in an ideal situation, you could adapt your codebase
+**    such that cast() can be defined, and defined as h_cast().
+**
+**    It's also potentially the case that you might want to start it out as
+**    meaning u_cast()...especially if gradually adding Needful to existing
+**    code.  You could start by turning all the old (T)(V) casts into cast()
+**    defined as u_cast()...and redefine it as h_cast() after a process over
+**    the span of time, having figured out which needed to be other casts.
+*/
+
+
+/****[[ cast() and u_cast(): MAIN CAST ]]*************************************
 **
 ** 1. As with all needful macros, we don't force short names on clients.
 **    You may have a `cast()` function or variable in your codebase, and if
@@ -736,6 +768,28 @@ void Needful_Panic_Abruptly(const char* error) {
     ((T)(__VA_ARGS__))
 
 
+/****[[ x_cast_known: WORKAROUND cast(T, known(T, ...)) ISSUE ]]**************
+**
+** The original version of known(T, expr) would also cast the result to the
+** type.  This is sometimes desirable, but not always, and so the more
+** "fundamental" composable part seemed to be to be just the type checking
+** and pass through the original expression as-is.  Then if you wanted a
+** cast as well, you could use the kind of cast you wanted (hooked or not).
+**
+** It's a better approach, but there were some problems with the macro
+** expansion when trying to do cast(T, known(T, expr)).  Due to needing to
+** focus on other things, the quickest workaround was to keep a casting
+** version of known() that matched the version before the change (using
+** the x_cast()).  This should be revisited to make it work correctly.
+**/
+
+#define needful_rigid_x_cast_known(T,expr) \
+    needful_xtreme_cast(T,expr)
+
+#define needful_lenient_x_cast_known(T,expr) /* const passthru const [1] */ \
+    needful_xtreme_cast(T,expr)
+
+
 /****[[ upcast: CAST SAFELY UPWARD ]]*****************************************
 **
 ** upcast() is useful when defining macros, where you expect what you're
@@ -745,40 +799,6 @@ void Needful_Panic_Abruptly(const char* error) {
 
 #define needful_upcast /* (T,expr) */  needful_xtreme_cast
 
-
-/****[[ CAST SELECTION GUIDE ]]***********************************************
-**
-**        PRO-TIP: #define cast() as h_cast() in your codebase!!! [1]
-**
-** SAFETY LEVEL
-**    - Hookable cast:            h_cast()    // safe default w/debug hooks
-**    - Unhooked/unchecked cast:  u_cast()    // use with fresh malloc()s
-**                                               // ...or critical debug paths
-**
-** POINTER CONSTNESS
-**    - Adding mutability:         m_cast()    // const T* => T*
-**    - Preserve mutability:       h_cast()    // TA* => TB* ...or...
-**                               & u_cast()      // const TA* => const TB*
-**
-** TYPE CONVERSIONS
-**    - Non-pointer to pointer:    p_cast()    // intptr_t => T*
-**    - Non-integral to integral:  i_cast()    // T* => intptr_t
-**    - Function to function:      f_cast()    // ret1(*)(...) => ret2(*)(...)
-**    - va_list to void*:          v_cast()    // va_list* <=> void*
-**
-*****[[ NOTES ]]**************************************************************
-**
-** 1. Because `cast` has a fair likelihood of being defined as the name of a
-**    function or variable in C codebases, Needful does not force a definition
-**    of `cast`.  But in an ideal situation, you could adapt your codebase
-**    such that cast() can be defined, and defined as h_cast().
-**
-**    It's also potentially the case that you might want to start it out as
-**    meaning u_cast()...especially if gradually adding Needful to existing
-**    code.  You could start by turning all the old (T)(V) casts into cast()
-**    defined as u_cast()...and redefine it as h_cast() after a process over
-**    the span of time, having figured out which needed to be other casts.
-*/
 
 /***[[ attempt, until, whilst: ENHANCED LOOP MACROS ]]************************
 **
@@ -1045,11 +1065,11 @@ void Needful_Panic_Abruptly(const char* error) {
 **    define that here, because it's open ended as to what you'd use for
 **    your error value type.
 **
-** 2. The lenient form of known() is quite useful for writing polymorphic
+** 2. The lenient form of known_cast() is quite useful for writing polymorphic
 **    macros which are const-in => const-out and mutable-in => mutable-out.
 **    This tends to be more useful than wanting to enforce that only mutable
 **    pointers can be passed into a macro (the bulk of macros are reading
-**    operations, anyway).  So lenient defaults to the short name `known()`.
+**    operations, anyway).  So lenient defaults the short name `known_cast()`.
 */
 
 #if !defined(NEEDFUL_DONT_DEFINE_OPTION_SHORTHANDS)
@@ -1110,13 +1130,21 @@ void Needful_Panic_Abruptly(const char* error) {
 
 #if !defined(NEEDFUL_DONT_DEFINE_KNOWN_SHORTHANDS)
     #define rigid_known /* (T,expr) */           needful_rigid_known
-    #define lenient_known /* (T,expr) */         needful_lenient_known
     #define rigid_known_not /* (T,expr) */       needful_rigid_known_not
-    #define lenient_known_not /* (T,expr) */     needful_lenient_known_not
+    #define rigid_known_any /* ((T,...),expr) */ needful_rigid_known_any
 
-    #define known /* (T,expr) */ /* [2] */       needful_lenient_known
-    #define known_not /* (T,expr) */ /* [2] */   needful_lenient_known_not
-    #define known_any /* ((T1,T2,...),expr) */   needful_known_any
+    #define lenient_known /* (T,expr) */         needful_lenient_known
+    #define lenient_known_not /* (T,expr) */     needful_lenient_known_not
+    /*  no lenient_known_any at this time */
+
+    #define known /* (T,expr) [2] */             needful_lenient_known
+    #define known_not /* (T,expr) [2] */         needful_lenient_known_not
+    #define known_any /* ((T,...),expr) */       needful_rigid_known
+
+    #define rigid_x_cast_known /* (T,expr) */    needful_rigid_x_cast_known
+    #define lenient_x_cast_known /* (T,expr) */  needful_lenient_x_cast_known
+
+    #define x_cast_known /* (T,expr) [2] */      needful_lenient_x_cast_known
 
     #define known_lvalue /* (var) */             needful_known_lvalue
 #endif

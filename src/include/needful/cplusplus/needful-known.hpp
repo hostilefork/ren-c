@@ -96,7 +96,15 @@ struct IsConvertibleAny<T>
 
 
 //=//// TYPE ENSURING HELPER //////////////////////////////////////////////=//
-
+//
+// 1. known(T, expr) does not change the type of expr, but only asserts that
+//    it can be converted to T.  known_not(T, expr) and known_any(T, expr)
+//    wouldn't know what type to convert it to if you wanted it to convert!
+//
+// 2. x_cast_known(T, expr) *does* change the type of expr; and it comes in
+//    lenient form, that detects constness and applies it to T as needed
+//    based on the constness of expr.
+//
 
 template<typename From, typename First, typename... Rest>
 struct IsConvertibleAsserter {
@@ -120,7 +128,7 @@ struct NotConvertibleAsserter {
         needful::remove_reference_t<decltype(expr)>, \
         T \
     >), \
-    needful_xtreme_cast(T, (expr)))
+    (expr))  // [1]
 
 #undef needful_lenient_known
 #define needful_lenient_known(T,expr) \
@@ -128,7 +136,17 @@ struct NotConvertibleAsserter {
         needful::remove_reference_t<decltype(expr)>, \
         needful_constify_t(T) /* loosen to matching constified T too */ \
     >), \
-    needful_xtreme_cast(needful_merge_const_t(decltype(expr), T), (expr)))
+    (expr))  // [1]
+
+#undef needful_rigid_known_any
+#define needful_rigid_known_any(TLIST,expr) \
+    (NEEDFUL_DUMMY_INSTANCE(needful::IsConvertibleAsserter< \
+        needful::remove_reference_t<decltype(expr)>, \
+        NEEDFUL_UNPARENTHESIZE TLIST \
+    >), \
+    (expr))  // [1]
+
+// !!! write lenient_known_any if needed
 
 #undef needful_rigid_known_not
 #define needful_rigid_known_not(T,expr) \
@@ -136,7 +154,7 @@ struct NotConvertibleAsserter {
         needful::remove_reference_t<decltype(expr)>, \
         T \
     >), \
-    (expr))
+    (expr))  // [1]
 
 #undef needful_lenient_known_not
 #define needful_lenient_known_not(T,expr) \
@@ -144,16 +162,23 @@ struct NotConvertibleAsserter {
         needful::remove_reference_t<decltype(expr)>, \
         needful_constify_t(T) /* loosen to matching constified T too */ \
     >), \
-    (expr))
+    (expr))  // [1]
 
-
-#undef needful_known_any
-#define needful_known_any(TLIST,expr) \
+#undef needful_rigid_x_cast_known
+#define needful_rigid_x_cast_known(T,expr) \
     (NEEDFUL_DUMMY_INSTANCE(needful::IsConvertibleAsserter< \
         needful::remove_reference_t<decltype(expr)>, \
-        NEEDFUL_UNPARENTHESIZE TLIST \
+        T \
     >), \
-    (expr))
+    needful_xtreme_cast(T, (expr)))  // [2]
+
+#undef needful_lenient_x_cast_known
+#define needful_lenient_x_cast_known(T,expr) \
+    (NEEDFUL_DUMMY_INSTANCE(needful::IsConvertibleAsserter< \
+        needful::remove_reference_t<decltype(expr)>, \
+        needful_constify_t(T) /* loosen to matching constified T too */ \
+    >), \
+    needful_xtreme_cast(needful_merge_const_t(decltype(expr), T), (expr))) // [2]
 
 
 //=//// TYPE LIST HELPER //////////////////////////////////////////////////=//
