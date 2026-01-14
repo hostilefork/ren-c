@@ -40,7 +40,42 @@ DECLARE_NATIVE(VETO_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC_OUT(Is_Veto_Dual(v));
+    return LOGIC_OUT(Is_Cell_A_Veto_Hot_Potato(v));
+}
+
+
+//
+//  drain?: native [
+//
+//  "Test if VALUE is the ~(_)~ bedrock representation, or $VAR holding it"
+//
+//      return: [logic?]
+//      @value [group! $word! $tuple!]
+//  ]
+//
+DECLARE_NATIVE(DRAIN_Q)
+{
+    INCLUDE_PARAMS_OF_DRAIN_Q;
+
+    Element* v = Element_ARG(VALUE);
+
+    bool is_drain;
+
+    if (Is_Tied(v)) {
+        Clear_Cell_Sigil(v);
+
+        Quote_Cell(v);
+        Stable* result = rebStable(CANON(TWEAK), v, CANON(NONE));
+        is_drain = Is_Dual_Drain(result);
+        rebRelease(result);
+    }
+    else {
+        if (Eval_Any_List_At_Throws(OUT, v, SPECIFIED))
+            return THROWN;
+        is_drain = Is_Undecayed_Drain(OUT);
+    }
+
+    return LOGIC_OUT(is_drain);
 }
 
 
@@ -213,7 +248,7 @@ DECLARE_NATIVE(REDUCE)
     if (Is_Ghost(SPARE))
         goto next_reduce_step;  // void results are skipped by reduce
 
-    if (Is_Veto_Dual(SPARE))
+    if (Is_Cell_A_Veto_Hot_Potato(SPARE))
         goto vetoed;  // veto means stop processing and return NULL
 
     require (

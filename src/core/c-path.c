@@ -172,7 +172,7 @@ DECLARE_NATIVE(PICK)
     if (Is_Action(dual))
         panic ("TWEAK* delegation machinery not done yet");
 
-    if (Is_Dual_Nulled_Absent_Signal(dual))  // lifted is "NULL-but-present"
+    if (Is_Pick_Absent_Signal(dual))  // lifted is "NULL-but-present"
         return fail (Error_Bad_Pick_Raw(ARG(PICKER)));
 
     panic ("Non-ACTION! antiform returned by TWEAK* dual protocol");
@@ -198,20 +198,25 @@ DECLARE_NATIVE(PICK)
 //  "Implementation detail of PICK and POKE, also underlies SET and GET"
 //
 //      return: [
-//          <null> "no writeback needed"
-//          word! frame! quoted! quasiform! ^word! ^tuple!
+//          <null>  "no writeback needed"
+//          quoted! quasiform!  "lifted cell for bits to update in container"
+//          frame! ^word! ^tuple! space?  "request indirect writeback"
 //      ]
 //      location [<cond> fundamental?]  ; can't poke a quoted/quasi
 //      picker [<cond> element?]
-//      dual "DUAL PROTOCOL: action is accessor, lifted action is action"
-//          [<null> word! frame! quoted! quasiform!]
+//      dual [
+//          <null>  "pick semantics (vs. poke)"
+//          quoted! quasiform!  "lifted value to poke"
+//          frame! ^word! ^tuple! space?  "store indirection instruction"
+//          word!  "protect/unprotect signal (temporary!)"
+//      ]
 //  ]
 //
 DECLARE_NATIVE(TWEAK_P)
 //
 // TWEAK* underlies the implementation of SET/GET (on TUPLE!, WORD!, etc.)
 //
-// If it receives a SPACE as the DUAL, then it acts "pick-like", and will
+// If it receives NULL as the DUAL, then it acts "pick-like", and will
 // tell you what's in that cell as the result...using the dual protocol.
 //
 // If it receives any other state, then it will use that to modify the
@@ -230,19 +235,6 @@ DECLARE_NATIVE(TWEAK_P)
 // Because the return value is not null, it's telling you that if a tuple
 // was being poked with the value (e.g. obj.date.year: 1999) then the bits
 // in obj.date would have to be changed.
-//
-// ACTION!s are used as a currency to help with situations like in the FFI:
-//
-//    struct.million_ints_field.10
-//
-// TWEAK* is called on each path step.  But if the underlying C data for the
-// STRUCT! is a C array of a million `int`s, then you don't want to explode
-// that into a BLOCK! of a million INTEGER!s... to then only pick the 10th!
-//
-// Hence, being able to return an ACTION! to be a "lazy" result that can
-// narrowly do the 10th pick is useful.  But this must be distinguishable
-// from a PICK that actually returns an ACTION! as the value (e.g. if an
-// OBJECT! had an ACTION! as a field).  Hence, TWEAK* uses the dual protocol.
 {
     INCLUDE_PARAMS_OF_TWEAK_P;  // TWEAK* must be frame compatible w/PICK+POKE
 

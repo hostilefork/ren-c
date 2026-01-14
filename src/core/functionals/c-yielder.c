@@ -46,7 +46,7 @@ DECLARE_NATIVE(DONE_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC_OUT(Is_Done_Dual(v));
+    return LOGIC_OUT(Is_Cell_A_Done_Hot_Potato(v));
 }
 
 
@@ -204,7 +204,7 @@ Bounce Yielder_Dispatcher(Level* const L)
     if (Is_Nulled(plug)) {  // no plug, must be YIELD of a RAISED...
         assert(Is_Lifted_Failure(yielded_lifted));
 
-        if (Is_Done_Dual(yielded_lifted)) {
+        if (Is_Cell_A_Done_Hot_Potato(yielded_lifted)) {
             // don't elevate to a panic, just consider it finished
         }
         else {  // all other error antiforms elevated to panics
@@ -369,11 +369,11 @@ Bounce Yielder_Dispatcher(Level* const L)
         and Frame_Coupling(label) == Level_Varlist(L)
     ){
         CATCH_THROWN(OUT, L);
-        if (Is_Done_Dual(OUT)) {
+        if (Is_Cell_A_Done_Hot_Potato(OUT)) {
             Init_Space(original_frame);
             goto invoke_completed_yielder;
         }
-        if (Is_Hot_Potato_Dual(OUT) or Is_Failure(OUT)) {
+        if (Is_Hot_Potato(OUT) or Is_Failure(OUT)) {
             Init_Quasar(original_frame);
             Init_Thrown_Panic(L, Cell_Error(OUT));
             return THROWN;
@@ -542,7 +542,7 @@ DECLARE_NATIVE(DEFINITIONAL_YIELD)
 //            yield 20
 //        }
 //
-//    (You could also do `return: macro [^x] [yield ^x yield ^done]` and it
+//    (You could also do `return: macro [^x] [yield ^x yield done]` and it
 //    would work with the same effect.  But yielding a final value seems
 //    common enough to be worth it to have a refinement for it.)
 {
@@ -596,7 +596,7 @@ DECLARE_NATIVE(DEFINITIONAL_YIELD)
 
     if (
         Is_Failure(v)
-        or Is_Hot_Potato_Dual(v)
+        or Is_Hot_Potato(v)
         or ARG(FINAL)
     ){
         Stable* spare = Init_Action(

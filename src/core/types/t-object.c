@@ -1308,38 +1308,24 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     }
 
     if (not slot)
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
     Stable* dual = ARG(DUAL);
-    if (Not_Lifted(dual)) {
-        if (Is_Dual_Nulled_Pick_Signal(dual))
-            goto handle_pick;
+    if (Is_Dual_Nulled_Pick_Signal(dual))
+        goto handle_pick;
 
-        if (Is_Frame(dual))
-            goto handle_poke;
-
-        if (Is_Dual_Word_Named_Signal(dual))
-            goto handle_named_signal;
-
-        if (Is_Dual_Meta_Alias_Signal(dual))
-            goto handle_poke;
-
-        panic (Error_Bad_Poke_Dual_Raw(dual));  // smart error RE:remove?
-    }
+    if (Is_Dual_Word_Named_Signal(dual))
+        goto handle_named_signal;
 
     goto handle_poke;
 
   handle_pick: { /////////////////////////////////////////////////////////////
 
-    Copy_Cell(OUT, u_cast(Value*, slot));
+    Cell* out_cell = Copy_Cell_Core(OUT, slot, CELL_MASK_COPY);
 
-    if (LIFT_BYTE(OUT) == BEDROCK_0) {  // return as nonquoted/nonquasi thing
-        LIFT_BYTE(OUT) = NOQUOTE_3;
-        assert(
-            Is_Frame(As_Stable(OUT))
-            or Is_Dual_Meta_Alias_Signal(As_Stable(OUT))
-        );
-        return OUT;  // not lifted, so not a "normal" state
+    if (LIFT_BYTE(out_cell) == BEDROCK_0) {  // return as nonquoted/nonquasi
+        LIFT_BYTE(out_cell) = NOQUOTE_3;
+        return OUT_UNLIFTED_DUAL_INDIRECT_PICK;
     }
 
     Context* c = Cell_Context(context);
@@ -1347,10 +1333,10 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     if (  // !!! BUGGY, new system needed
         KIND_BYTE(OUT) == TYPE_FRAME
         and LIFT_BYTE_RAW(OUT) == STABLE_ANTIFORM_2
-        and Frame_Coupling(u_cast(Stable*, OUT)) == UNCOUPLED
+        and Frame_Coupling(As_Stable(OUT)) == UNCOUPLED
         and Stub_Flavor(c) == FLAVOR_VARLIST
     ){
-        Tweak_Frame_Coupling(u_cast(Stable*, OUT), cast(VarList*, c));
+        Tweak_Frame_Coupling(As_Stable(OUT), cast(VarList*, c));
     }
 
     Lift_Cell(OUT);  // lift the cell to indicate "normal" state
@@ -1358,43 +1344,27 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
-    assert(
-        Any_Lifted(dual)
-        or Is_Frame(dual)
-        or Is_Dual_Meta_Alias_Signal(dual)
-        // more!
-    );
-
     if (Get_Cell_Flag(slot, PROTECTED))  // POKE, must check PROTECT status
         panic (Error_Protected_Key(symbol));
 
-    if (Is_Bedrock_Alias(slot) and Any_Lifted(dual)) {
-        Copy_Cell(SCRATCH, u_cast(Value*, slot));
-        LIFT_BYTE(SCRATCH) = NOQUOTE_3;
-        Corrupt_Cell_If_Needful(SPARE);
-        Copy_Cell(OUT, dual);
-        require (
-          Unlift_Cell_No_Decay(OUT)
-        );
-        STATE = 1;
-        require (
-          Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
-        );
-        return NO_WRITEBACK_NEEDED;
+    if (Is_Dualized_Bedrock(dual)) {  // CASE 1: Overwriting w/new bedrock
+        Copy_Cell_Core(slot, dual, CELL_MASK_COPY);  // store
+        LIFT_BYTE(slot) = BEDROCK_0;
+        return NULL_OUT_NO_WRITEBACK;  // VarList* in cell not changed
     }
 
-    Copy_Cell(m_cast(Value*, u_cast(Value*, slot)), dual);
-
-    if (Any_Lifted(dual)) {  // don't antagonize...yet [1]
-        require (
-          Unlift_Cell_No_Decay(m_cast(Value*, u_cast(Value*, slot)))
-        );
-        return NO_WRITEBACK_NEEDED;
+    if (Is_Bedrock(slot)) {  // CASE 2: Writing non-bedrock into bedrock slot
+        Copy_Cell_Core(OUT, slot, CELL_MASK_COPY);  // fetch for return
+        LIFT_BYTE(OUT) = NOQUOTE_3;
+        return OUT_UNLIFTED_DUAL_INDIRECT_POKE;  // alias, setter, drain...
     }
 
-    LIFT_BYTE(slot) = BEDROCK_0;
+    Copy_Cell_Core(slot, dual, CELL_MASK_COPY);
 
-    return NO_WRITEBACK_NEEDED;  // VarList* in cell not changed
+    require (  // CASE 3: Ordinary writing non-bedrock into non-bedrock slot
+        Unlift_Cell_No_Decay(m_cast(Value*, u_cast(Value*, slot)))
+    );
+    return NULL_OUT_NO_WRITEBACK;  // VarList* in cell not changed
 
 } handle_named_signal: { /////////////////////////////////////////////////////
 
@@ -1415,7 +1385,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
         panic (Error_Bad_Poke_Dual_Raw(dual));
     }
 
-    return NO_WRITEBACK_NEEDED;  // VarList* in context not changed
+    return NULL_OUT_NO_WRITEBACK;  // VarList* in context not changed
 }}
 
 

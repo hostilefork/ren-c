@@ -521,7 +521,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Varargs)
     if (Is_Ghost(OUT))
         return nullptr;
 
-    return DUAL_LIFTED(OUT);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: {
 

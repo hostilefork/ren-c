@@ -251,7 +251,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
 
     for (const Element* at = first; at != tail; ++at) {
         if (not Any_Lifted(at)) {
-            if (Is_Dual_Meta_Alias_Signal(at))  // !!! new concept
+            if (Is_Dual_Alias(at))  // !!! new concept
                 continue;  // !!! try this for alias first, others later...
 
             return fail ("Non-lifted element in PACK!");
@@ -283,7 +283,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
 
     assert(not Is_Lifted_Failure(first));  // we ruled these out already
 
-    if (Is_Dual_Meta_Alias_Signal(first)) {
+    if (Is_Dual_Alias(first)) {
         trap (
             Get_Word_Or_Tuple(v, first, SPECIFIED)
         );

@@ -935,10 +935,10 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
         break;
 
       default:
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
     }
 
-    return DUAL_LIFTED(OUT);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
@@ -1115,7 +1115,8 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
     if (zone != NO_DATE_ZONE)
         Adjust_Date_Zone_Core(date, zone);
 
-    return WRITEBACK(Copy_Cell(OUT, date));  // all bits must writeback
+    Copy_Cell(OUT, date);
+    return LIFT_OUT_FOR_DUAL_WRITEBACK;  // write all bits
 }}
 
 

@@ -132,3 +132,13 @@
 [
     ([1 2 3 4] = reduce [1 if ok [spread [2 3]] 4])
 ]
+
+; VETO can be used in REDUCE
+[
+    (null = reduce [1 + 2 veto])
+    (null = reduce [1 + 2 lib.veto])
+
+    ; !!! Should predicates be offered VETO?
+    ;
+    ([~(veto)~ ~(veto)~] = reduce:predicate [veto veto] lift/)
+]

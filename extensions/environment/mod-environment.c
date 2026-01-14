@@ -136,17 +136,19 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Environment)
         return rebDelegate("panic", unwrap error);
 
     if (not value)  // return error if not present, must TRY or OPT
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
 
     if (
         Environment_Conflates_Empty_Strings_As_Absent(env)
         and Series_Len_At(unwrap value) == 0
     ){
         rebRelease(unwrap value);
-        return DUAL_SIGNAL_NULL_ABSENT;
+        return NULL_OUT_PICK_ABSENT;
     }
 
-    return DUAL_LIFTED(unwrap value);
+    Copy_Cell(OUT, unwrap value);
+    rebRelease(unwrap value);
+    return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
@@ -175,7 +177,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Environment)
     if (error)
         return rebDelegate("panic", unwrap error);
 
-    return NO_WRITEBACK_NEEDED;
+    return NULL_OUT_NO_WRITEBACK;
 }}
 
 

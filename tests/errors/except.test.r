@@ -30,5 +30,5 @@
 ;
 ; Trying out the idea of passing the dual as-is; handler must be ^META.
 (
-    ^veto except (^e -> [veto? ^e])
+    veto except (^e -> [veto? ^e])
 )

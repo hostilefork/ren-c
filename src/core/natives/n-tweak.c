@@ -81,7 +81,8 @@ static Option(Error*) Trap_Adjust_Lifted_Antiform_For_Tweak(Value* spare)
 Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     Level* level_,
     Level* sub,  // will Push_Level() if not already pushed
-    StackIndex picker_index
+    StackIndex picker_index,
+    bool dont_indirect
 ){
     if (Is_Lifted_Antiform(SPARE)) {
         Option(Error*) e = Trap_Adjust_Lifted_Antiform_For_Tweak(SPARE);
@@ -145,12 +146,10 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
             );
     }
 
-} call_pick_p: {
+} call_tweak: {
 
-    // We actually call TWEAK*, the lower-level function that uses the dual
-    // protocol--instead of PICK.  That is because if the pick is not the
-    // last pick, it may return an out-of-band function value that we need
-    // to use to do the next pick.
+  // We actually call TWEAK*, the lower-level function that uses the dual
+  // protocol--instead of PICK.
 
     bool threw = Trampoline_With_Top_As_Root_Throws();
     if (threw)  // don't want to return casual error you can TRY from
@@ -159,11 +158,60 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     assert(sub == TOP_LEVEL);
     unnecessary(Drop_Action(sub));  // !! action is dropped, should it be?
 
+    if (Is_Dualized_Bedrock(As_Stable(SPARE))) {
+        if (dont_indirect)
+            goto return_without_unbinding;
+
+        goto handle_indirect_pick;
+    }
+
+    possibly(Is_Pick_Absent_Signal(As_Stable(SPARE)));
+    goto possibly_unbind_spare_and_return;
+
+} handle_indirect_pick: { ////////////////////////////////////////////////////
+
+  // 1. The drain could PANIC regardless of access via VAR or ^VAR, (as it is
+  //    "dishonest" to give anything back, when whatever was last assigned was
+  //    discarded).  But it's probably more useful if ^VAR is willing to give
+  //    a FAILURE! so you can say (try ^var) and get NULL.
+
+    Stable* dual_spare = As_Stable(SPARE);
+
+    if (Is_Bedrock_Dual_An_Accessor(dual_spare)) {  // FRAME!
+        Api(Value*) result = rebLift(dual_spare);
+        Copy_Cell(SPARE, result);  // lifted result of running FRAME!
+        rebRelease(result);
+        goto possibly_unbind_spare_and_return;
+    }
+
+    if (Is_Bedrock_Dual_An_Alias(dual_spare)) {  // ^WORD!, ^TUPLE!
+        Quote_Cell(As_Element(dual_spare));
+        Api(Value*) result = rebLift(CANON(GET), dual_spare);
+        Copy_Cell(SPARE, result);  // lifted result of GET
+        rebRelease(result);
+        goto possibly_unbind_spare_and_return;
+    }
+
+    if (Is_Bedrock_Dual_A_Drain(dual_spare)) {  // SPACE
+        Quasify_Isotopic_Fundamental(  // signify lifted FAILURE! [1]
+            Init_Context_Cell(
+                SPARE, TYPE_ERROR, Error_Cant_Get_Drain_Raw()
+            )
+        );
+        goto return_without_unbinding;
+    }
+
+    return Error_User("TWEAK* returned unknown dualized bedrock element");
+
+} possibly_unbind_spare_and_return: { ////////////////////////////////////////
+
     if (Get_Cell_Flag(
         Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
     )){
         Unbind_Cell_If_Bindable_Core(SPARE);  // unbind after reading
     }
+
+} return_without_unbinding: { ////////////////////////////////////////////////
 
     return SUCCESS;
 }}
@@ -224,17 +272,20 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
                     "PICK with keyword or trash picker never allowed"
                 );
 
-            Copy_Cell(value_arg, TOP_ELEMENT);
-            if (Is_Any_Lifted_Void(TOP_STABLE)) // don't know if it was ^META :-(
+            if (Is_Any_Lifted_Void(TOP_ELEMENT)) // don't know if was ^META :-(
                 break;  // remove signal
 
+            if (Is_Quoted(TOP_ELEMENT))
+                break;
+
+            Value* sub_spare = Copy_Cell(Level_Spare(sub), TOP_ELEMENT);
             require (
-              Unlift_Cell_No_Decay(value_arg)
+              Unlift_Cell_No_Decay(sub_spare)
             );
-            Decay_If_Unstable(value_arg) except (Error* e) {
+            Decay_If_Unstable(sub_spare) except (Error* e) {
                 return e;
             }
-            Lift_Cell(value_arg);
+            Copy_Cell(TOP_ELEMENT, Lift_Cell(sub_spare));
             break;
         }
 
@@ -242,23 +293,16 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         Option(Sigil) picker_sigil = Sigil_Of(picker_instruction);
         UNUSED(picker_sigil);  // ideas on the table for this...
 
-        if (SIGIL_META == Cell_Underlying_Sigil(As_Element(SCRATCH))) {
-            Copy_Cell(value_arg, TOP_ELEMENT);  // don't decay
-            continue;
-        }
+        if (SIGIL_META == Cell_Underlying_Sigil(As_Element(SCRATCH)))
+            continue;  // don't decay TOP_ELEMENT
 
         // if not meta, needs to decay if unstable
 
-        if (not Any_Lifted(TOP_STABLE)) {
-            Copy_Cell(value_arg, TOP_STABLE);
+        if (not Any_Lifted(TOP_ELEMENT))
             continue;  // dual signal, do not lift dual
-        }
 
-        if (Is_Lifted_Ghost(TOP_STABLE)) {  // (x: ()) works, (x: ~()~ doesn't)
-            Init_Ghost_For_Unset(value_arg);
-            Lift_Cell(value_arg);
-            continue;
-        }
+        if (Is_Lifted_Ghost(TOP_ELEMENT))
+            continue;  // (x: ()) works, (x: ~()~ doesn't)
 
         bool was_singular_pack = (
             Is_Lifted_Pack(TOP_ELEMENT) and Series_Len_At(TOP_ELEMENT) == 1
@@ -266,22 +310,26 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
         if (was_singular_pack) {  // alias hack: allow (alias: ~(^word)~)
             const Element* at = List_Item_At(TOP_ELEMENT);
-            if (Is_Dual_Meta_Alias_Signal(at)) {
-                Copy_Cell(value_arg, at);
+            if (  // allow only some bedrock forms
+                Is_Dual_Alias(at)
+                or Is_Dual_Accessor(at)
+                or Is_Dual_Drain(at)
+            ){
+                Copy_Cell(TOP_ELEMENT, at);
                 continue;
             }
         }
 
-        Copy_Cell(value_arg, TOP_ELEMENT);
+        Value* sub_spare = Copy_Cell(Level_Spare(sub), TOP_ELEMENT);
         require (
-          Unlift_Cell_No_Decay(value_arg)
+          Unlift_Cell_No_Decay(sub_spare)
         );
-        Decay_If_Unstable(value_arg) except (Error* e) {
+        Decay_If_Unstable(sub_spare) except (Error* e) {
             return e;
         };
-        Lift_Cell(value_arg);
+        Copy_Lifted_Cell(TOP_ELEMENT, sub_spare);
 
-        if (Is_Lifted_Action(As_Stable(value_arg))) {
+        if (Is_Lifted_Action(TOP_ELEMENT)) {
             //
             // !!! SURPRISING ACTION ASSIGNMENT DETECTION WOULD GO HERE !!!
             // Current concept is that actions-in-a-pack would be how the
@@ -297,7 +345,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
             if (Is_Word(picker_arg)) {
                 Update_Frame_Cell_Label(  // !!! is this a good idea?
-                    As_Stable(value_arg), Word_Symbol(picker_arg)
+                    TOP_ELEMENT, Word_Symbol(picker_arg)
                 );
             }
         }
@@ -313,13 +361,11 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         Clear_Cell_Sigil(As_Element(picker_arg));  // drop any sigils
     }
 
+    Copy_Cell(value_arg, TOP_ELEMENT);
+
     Clear_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION);  // consider *once*
 
-    Corrupt_Cell_If_Needful(TOP_STABLE);  // shouldn't use past this point
-
 } call_updater: {
-
-    bool threw = Trampoline_With_Top_As_Root_Throws();
 
     if (Get_Cell_Flag(
         Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
@@ -327,11 +373,57 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         Unbind_Cell_If_Bindable_Core(SPARE);  // unbind before writing
     }
 
+    bool threw = Trampoline_With_Top_As_Root_Throws();
+
     if (threw)  // don't want to return casual error you can TRY from
         return Error_No_Catch_For_Throw(TOP_LEVEL);
 
+    Stable* dual_spare = As_Stable(SPARE);  // sub level's OUT went to SPARE
+
+    if (not Is_Dualized_Bedrock(dual_spare)) {
+        possibly(Is_Dual_Nulled_No_Writeback_Signal(dual_spare));
+        goto return_success;
+    }
+
+  handle_indirect_poke: {
+
+  // This means TWEAK* returned OUT_UNLIFTED_DUAL_INDIRECT_POKE, and whatever
+  // that output was written to the SPARE of level_.  It means that it didn't
+  // write the value, but told us where it wants the value to be written
+  // (such as to an aliased variable, or through a SETTER function).
+  //
+  // We handle it here, and indicate there is no writeback needed.
+  //
+  // (If someone wanted a writeback *and* to run something like a SETTER from
+  // a Bedrock slot, they'd have to handle the SETTER themselves and then
+  // return what they wanted to write back.  We provide this general mechanism
+  // as a convenience, expecting most POKE targets to want writeback -OR-
+  // an indirect poke--but not both at once.)
+
+    if (Is_Bedrock_Dual_An_Accessor(dual_spare)) {  // FRAME!
+        Element* quoted = Copy_Cell(Level_Spare(sub), TOP_ELEMENT);
+        rebElide(dual_spare, quoted);  // quote suppresses eval
+    }
+    else if (Is_Bedrock_Dual_An_Alias(dual_spare)) {  // ^WORD!, ^TUPLE!
+        Element* quoted = Copy_Lifted_Cell(Level_Spare(sub), TOP_ELEMENT);
+        Quote_Cell(As_Element(dual_spare));
+        rebElide(CANON(TWEAK), dual_spare, quoted);  // quote suppresses eval
+    }
+    else if (Is_Bedrock_Dual_A_Drain(dual_spare)) {  // SPACE
+        // do nothing, you wrote to a drain...
+    }
+    else return Error_User(
+        "TWEAK* returned bad dualized bedrock element for writeback"
+    );
+
+    Init_Nulled_No_Writeback_Signal(SPARE);
+    goto return_success;
+
+} return_success: { //////////////////////////////////////////////////////////
+
+    Corrupt_Cell_If_Needful(TOP);  // shouldn't use past this point
     return SUCCESS;
-}}
+}}}
 
 
 //
@@ -352,7 +444,8 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 //
 Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    bool groups_ok
+    bool groups_ok,
+    bool is_tweak
 ){
     assert(OUT != SCRATCH and OUT != SPARE);
 
@@ -607,8 +700,9 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     );
 
     for (; stackindex != limit; ++stackindex, Restart_Action_Level(sub)) {
+        bool dont_indirect = is_tweak and (stackindex == limit - 1);
         error = Trap_Call_Pick_Refresh_Dual_In_Spare(
-            level_, sub, stackindex
+            level_, sub, stackindex, dont_indirect
         );
         if (error) {
             if (sub->varlist)
@@ -617,17 +711,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             goto return_error;
         }
 
-        if (Any_Lifted(SPARE)) {  // most common answer--successful pick
-            if (Is_Metaform(scratch_var))
-                continue;  // all meta picks are as-is
-
-            if (Is_Lifted_Unstable_Antiform(SPARE))
-                panic ("Unexpected unstable in non-meta pick");
-
-            continue;
-        }
-
-        if (Is_Dual_Nulled_Absent_Signal(As_Stable(SPARE))) {
+        if (Is_Pick_Absent_Signal(As_Stable(SPARE))) {
             Copy_Cell(SPARE, Data_Stack_At(Element, stackindex));
             error = Error_Bad_Pick_Raw(As_Element(SPARE));
             if (
@@ -649,29 +733,31 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             goto return_error;
         }
 
-        if (Is_Frame(As_Stable(SPARE))) {
-            Api(Value*) result = rebUndecayed(As_Stable(SPARE));
-            Copy_Cell(SPARE, result);
-            Lift_Cell(SPARE);
-            rebRelease(result);
+        if (dont_indirect) {
+            possibly(LIFT_BYTE(SPARE) == NOQUOTE_3);  // bedrock introspect
             continue;
         }
 
-        if (Is_Dual_Meta_Alias_Signal(As_Element(SPARE))) {
-            Quote_Cell(As_Element(SPARE));
-            Api(Value*) result = rebUndecayed(CANON(GET), SPARE);
-            if (not result)
-                Init_Lifted_Null(SPARE);
-            else {
-                Copy_Lifted_Cell(SPARE, result);
-                rebRelease(result);
+        assert(Any_Lifted(SPARE));  // successful pick
+
+        if (Is_Metaform(scratch_var))
+            continue;  // all meta picks are as-is
+
+        if (Is_Lifted_Unstable_Antiform(SPARE)) {
+            if (
+                Is_Lifted_Hot_Potato(As_Stable(SPARE))
+                and stackindex == limit - 1
+            ){
+                continue;  // last non-meta pick can be unstable if hot-potato
             }
-            continue;
+            error = Error_Unstable_Non_Meta_Raw(
+                Data_Stack_At(Element, stackindex)
+            );
+            Drop_Level(sub);
+            goto return_error;
         }
 
-        error = Error_User("TWEAK* (dual protocol) gave unknown state for PICK");
-        Drop_Level(sub);
-        goto return_error;
+        continue;  // if not last pick in tuple, pick again from this product
     }
 
     Drop_Level(sub);
@@ -682,6 +768,8 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
         not Is_Metaform(scratch_var)
         and Is_Lifted_Antiform(spare_location_dual)
         and not Is_Stable_Antiform_Kind_Byte(KIND_BYTE(spare_location_dual))
+        and not Is_Lifted_Hot_Potato(spare_location_dual)  // allow e.g. VETO
+        // allow GHOST, also?
     ){
         return Error_User("PICK result cannot be unstable unless metaform");
     }
@@ -792,7 +880,8 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 //
 Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
     Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    Option(Element*) steps_out  // no GROUP!s if nulled
+    Option(Element*) steps_out,  // no GROUP!s if nulled
+    bool is_tweak
 ){
     possibly(SPARE == steps_out or SCRATCH == steps_out);
 
@@ -803,7 +892,8 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 
     Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
         level_,
-        steps_out != NO_STEPS
+        steps_out != NO_STEPS,
+        is_tweak
     );
     if (e)
         return e;
@@ -832,8 +922,8 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //  "Low-level variable setter, that can assign within the dual band"
 //
 //      return: [
-//          <null> frame! word! quasiform! quoted! ^word! ^tuple!
-//          failure!    "Passthru even if it skips the assign"
+//          <null> frame! word! quasiform! quoted! ^word! ^tuple! space?
+//          failure!  "Passthru even if it skips the assign"
 //      ]
 //      target "Word or tuple, or calculated sequence steps (from GET)"
 //          [
@@ -847,7 +937,8 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //              <opt> "act as a raw GET of the dual state"
 //              <unrun> frame! "store a GETTER/SETTER function in dual band"
 //              word! "special instructions (e.g. PROTECT, UNPROTECT)"
-//              ^word! "alias a word to another word"
+//              ^word! ^tuple! "store an alias to another variable"
+//              space? "store a 'drain', which erases all assignments"
 //              quasiform! quoted! "store unlifted values as a normal SET"
 //          ]
 //      :groups "Allow GROUP! Evaluations"
@@ -858,11 +949,6 @@ DECLARE_NATIVE(TWEAK)
 {
     INCLUDE_PARAMS_OF_TWEAK;
     UNUSED(ARG(STEPS));  // TBD
-
-    enum {
-        ST_TWEAK_INITIAL_ENTRY = STATE_0,
-        ST_TWEAK_TWEAKING  // trampoline rule: OUT must be erased if STATE_0
-    };
 
     Copy_Cell(OUT, LOCAL(DUAL));
 
@@ -877,12 +963,17 @@ DECLARE_NATIVE(TWEAK)
     else
         steps = NO_STEPS;  // no GROUP! evals
 
-    STATE = ST_TWEAK_TWEAKING;  // we'll be setting out to something not erased
+    if (STATE == STATE_0)
+        STATE = ST_TWEAK_TWEAKING;  // we'll set out to something not erased
 
     heeded (Copy_Cell(SCRATCH, target));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(LEVEL, steps);
+    Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
+        LEVEL,
+        steps,
+        STATE == ST_TWEAK_TWEAKING  // should last step of pick not indirect?
+    );
     if (e)
         panic (unwrap e);
 

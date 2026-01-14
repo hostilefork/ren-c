@@ -473,21 +473,21 @@ DECLARE_NATIVE(PACK_Q)
 
 
 //
-//  dual?: native:intrinsic [
+//  bedrock?: native:intrinsic [
 //
-//  "Tells you if argument is a 'dual' (antiform block, one unlifted item)"
+//  "Is VALUE 'unlifted bedrock' (antiform PACK! containing one unlifted item)"
 //
 //      return: [logic?]
 //      ^value '[any-value?]
 //  ]
 //
-DECLARE_NATIVE(DUAL_Q)
+DECLARE_NATIVE(BEDROCK_Q)
 {
-    INCLUDE_PARAMS_OF_DUAL_Q;
+    INCLUDE_PARAMS_OF_BEDROCK_Q;
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC_OUT(Is_Dual(v));
+    return LOGIC_OUT(Is_Undecayed_Bedrock(v));
 }
 
 
@@ -506,7 +506,7 @@ DECLARE_NATIVE(HOT_POTATO_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    return LOGIC_OUT(Is_Hot_Potato_Dual(v));
+    return LOGIC_OUT(Is_Hot_Potato(v));
 }
 
 

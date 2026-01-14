@@ -105,7 +105,8 @@ Result(None) Get_Var_In_Scratch_To_Out(
 
     Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
         level_,
-        steps_out
+        steps_out,
+        false  // GET, not TWEAK
     );
     if (e)
         return fail (unwrap e);
@@ -434,7 +435,12 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
       Level* sub = Make_End_Level(&Action_Executor, LEVEL_MASK_NONE)
     );
 
-    error = Trap_Call_Pick_Refresh_Dual_In_Spare(TOP_LEVEL, sub, TOP_INDEX);
+    error = Trap_Call_Pick_Refresh_Dual_In_Spare(
+        TOP_LEVEL,
+        sub,
+        TOP_INDEX,
+        false  // not tweaking, so do indirection
+    );
     if (error)
         goto return_error;
 
@@ -748,6 +754,8 @@ DECLARE_NATIVE(GET)
         return Init_Pack(OUT, a);
     }
 
+    STATE = ST_TWEAK_GETTING;
+
     Option(Bounce) b = Irreducible_Bounce(
         LEVEL,
         Apply_Cfunc(NATIVE_CFUNC(TWEAK), LEVEL)
@@ -758,11 +766,10 @@ DECLARE_NATIVE(GET)
     if (Is_Failure(OUT))
         return OUT;  // weird can't pick case, see [A]
 
-    if (not Any_Lifted(OUT))
-        panic ("GET of BEDROCK_0 state, code to resolve this not in GET yet");
+    assert(Any_Lifted(OUT));  // should not give back BEDROCK_0 states.
 
     require (
-      Unlift_Cell_No_Decay(OUT)
+      Unlift_Cell_No_Decay(OUT)  // decay or not was guided by ^VAR marker
     );
     return OUT;
 }
@@ -778,7 +785,8 @@ Result(None) Set_Var_In_Scratch_To_Out(
     Lift_Cell(OUT);  // must be lifted to be taken literally in dual protocol
     Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
         level_,
-        steps_out
+        steps_out,
+        false  // SET, not TWEAK
     );
     require (
       Unlift_Cell_No_Decay(OUT)

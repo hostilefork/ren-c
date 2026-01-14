@@ -308,7 +308,9 @@ DECLARE_NATIVE(PROTECT)
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-            LEVEL, NO_STEPS
+            LEVEL,
+            NO_STEPS,
+            true  // TWEAK, not a GET or SET (does it matter?)
         );
         if (e)
             panic (unwrap e);
@@ -376,7 +378,9 @@ DECLARE_NATIVE(UNPROTECT)
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-            LEVEL, NO_STEPS
+            LEVEL,
+            NO_STEPS,
+            true  // TWEAK, not a GET or SET (does it matter?)
         );
         if (e)
             panic (unwrap e);

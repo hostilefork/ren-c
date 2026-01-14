@@ -20,6 +20,7 @@
 %datatypes/action.test.r
 %datatypes/binary.test.r
 %datatypes/bitset.test.r
+%datatypes/drain.test.r
 %datatypes/blank.test.r
 %datatypes/block.test.r
 %datatypes/chain.test.r
@@ -152,6 +153,7 @@
 %file/split-path.test.r
 %file/file-typeq.test.r
 
+%functions/accessor.test.r
 %functions/adapt.test.r
 %functions/augment.test.r
 %functions/cascade.test.r

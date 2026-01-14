@@ -349,6 +349,7 @@ Bounce Stepper_Executor(Level* L)
         assert(Is_Quasiform(L_next));
         panic ("Antiform passed in through API, must use @ or ^ operators");
     }
+    assert(LIFT_BYTE(L_next) >= NOQUOTE_3);  // enforced by API
     Copy_Cell(CURRENT, L_next);
     Fetch_Next_In_Feed(L->feed);
 
@@ -1009,6 +1010,9 @@ Bounce Stepper_Executor(Level* L)
 
     if (Is_Failure(OUT))  // e.g. couldn't pick word as field from binding
         panic (Cell_Error(OUT));  // don't conflate with action result
+
+    if (Is_Hot_Potato(OUT))
+        goto lookahead;  // legal e.g. for VETO
 
     assert(Is_Cell_Stable(OUT));  // plain WORD!, FAILURE! is only unstable
     Stable* out = cast(Stable*, OUT);
