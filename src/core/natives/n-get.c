@@ -180,7 +180,10 @@ Result(None) Get_Word_Or_Tuple(
     Restore_Level_Scratch_Spare(L, saved_state);
 
     if (OUT != out) {
-        Copy_Cell(out, As_Stable(OUT));
+        if (error)
+            Corrupt_If_Needful(out);  // propagate corruption (can't copy)
+        else
+            Copy_Cell(out, As_Stable(OUT));
         Force_Blit_Cell(OUT, TOP);
         DROP();
     }
