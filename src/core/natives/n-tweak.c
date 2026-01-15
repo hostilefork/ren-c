@@ -770,7 +770,9 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     if (
         not Is_Metaform(scratch_var)
         and Is_Lifted_Antiform(spare_location_dual)
-        and not Is_Stable_Antiform_Kind_Byte(KIND_BYTE(spare_location_dual))
+        and Not_Stable_Antiform_Heart(
+            Heart_Of_Unsigiled_Isotopic(spare_location_dual)
+        )
         and not Is_Lifted_Hot_Potato(spare_location_dual)  // allow e.g. VETO
         // allow GHOST, also?
     ){

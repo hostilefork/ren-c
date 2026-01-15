@@ -240,8 +240,9 @@ static Result(None) Push_Keys_And_Params_Core(
         return fail (Error_Bad_Func_Def_Raw(v));  // too many blocks
 
     Context* derived = Derive_Binding(Level_Binding(L), v);
+    bool is_returner = (TOP_INDEX == returner_index);
     trap (
-        Set_Spec_Of_Parameter_In_Top(L, v, derived)
+        Set_Spec_Of_Parameter_In_Top(L, v, derived, is_returner)
     );
 
     goto next_spec_item;
@@ -331,106 +332,56 @@ static Result(None) Push_Keys_And_Params_Core(
             panic (Error_Bad_Func_Def_Raw(v));  // until all 'word => '@word
     }
 
-    Option(Type) type = Type_Of(v);
-    if (not type)
-        return fail (
-            "Extension types not supported in function spec"
-        );
-
+    bool refinement = false;  // paths with blanks at head are refinements
     const Symbol* symbol = nullptr;  // avoids compiler warning
     ParamClass pclass = PARAMCLASS_0;  // error if not changed
 
-    bool refinement = false;  // paths with blanks at head are refinements
-    bool is_returner = false;
-    if (type == TYPE_CHAIN) {
-        switch (opt Try_Get_Sequence_Singleheart(v)) {
-          case LEADING_SPACE_AND(WORD): {  // review: ^META-refinements
-            refinement = true;
-            symbol = Cell_Refinement_Symbol(v);
-            pclass = PARAMCLASS_NORMAL;
-            break; }
+    if (not Is_Chain(v))
+        goto post_chain_handling;
 
-          case TRAILING_SPACE_AND(BLOCK): {
-            trap (
-                Unsingleheart_Sequence(spare)
+  handle_chain: {
+
+    Option(SingleHeart) singleheart = Try_Get_Sequence_Singleheart(v);
+    if (not singleheart)
+        return fail (Error_Bad_Func_Def_Raw(v));
+
+    trap (
+      Unsingleheart_Sequence(spare)  // updates v
+    );
+
+    switch (unwrap singleheart) {
+      case TRAILING_SPACE_AND(BLOCK): {
+        if (
+            returner_id != SYM_DUMMY1  // used by LAMBDA (hack)
+            or Series_Len_At(spare) != 0
+        ){
+            return fail (
+                "SET-BLOCK! result spec only allowed as []: in LAMBDA"
             );
-            if (
-                returner_id != SYM_DUMMY1  // used by LAMBDA (hack)
-                or Series_Len_At(spare) != 0
-            ){
-                return fail (
-                    "SET-BLOCK! result spec only allowed as []: in LAMBDA"
-                );
-            }
-            symbol = CANON(DUMMY1);
-            pclass = PARAMCLASS_META;
-            is_returner = true;
-            break; }
-
-          case TRAILING_SPACE_AND(WORD):
-            if (
-                quoted
-                or not returner_id
-                or Word_Id(v) != unwrap returner_id
-            ){
-                return fail (
-                    "SET-WORD in spec must match RETURN:/YIELD: name"
-                );
-            }
-            symbol = Word_Symbol(v);
-            pclass = PARAMCLASS_META;
-            is_returner = true;
-            break;
-
-          default:
-            break;
         }
-    }
-    else if (Is_Pinned_Form_Of(GROUP, v)) {  // @(...) PARAMCLASS_SOFT
-        if (Series_Len_At(v) == 1) {
-            const Element* word = List_Item_At(v);
-            if (Is_Word(word)) {
-                pclass = PARAMCLASS_SOFT;
-                symbol = Word_Symbol(word);
-            }
+        symbol = CANON(DUMMY1);
+        pclass = PARAMCLASS_META;
+        break; }
+
+      case TRAILING_SPACE_AND(WORD): {
+        if (
+            quoted
+            or not returner_id
+            or Word_Id(v) != unwrap returner_id
+        ){
+            return fail (
+                "SET-WORD in spec must match RETURN:/YIELD: name"
+            );
         }
-    }
-    else if (Heart_Of(v) == TYPE_WORD) {
         symbol = Word_Symbol(v);
+        break; }
 
-        if (Is_Pinned_Form_Of(WORD, v)) {  // output
-            pclass = PARAMCLASS_LITERAL;
-        }
-        else if (Is_Meta_Form_Of(WORD, v)) {
-            pclass = PARAMCLASS_META;
-        }
-        else if (type == TYPE_WORD) {
-            pclass = PARAMCLASS_NORMAL;
-        }
-    }
-    else
-        return fail (Error_Bad_Func_Def_Raw(v));
+      default: {
+        if (not Singleheart_Has_Leading_Space(unwrap singleheart))
+            return fail (Error_Bad_Func_Def_Raw(v));
 
-    if (pclass == PARAMCLASS_0)  // didn't match
-        return fail (Error_Bad_Func_Def_Raw(v));
-
-    if (
-        returner_id
-        and Symbol_Id(symbol) == unwrap returner_id
-        and not is_returner
-    ){
-        if (SYM_DUMMY1 == unwrap returner_id)
-            return fail (
-                "DUMMY1 is a reserved arg name in LAMBDA due to a hack :-("
-            );
-        if (SYM_RETURN == unwrap returner_id)
-            return fail (
-                "Generator provides RETURN:, use LAMBDA if not desired"
-            );
-        assert(SYM_YIELD == unwrap returner_id);
-        return fail (
-            "Generator provides YIELD:, can't have YIELD parameter"
-        );
+        refinement = true;
+        goto post_chain_handling; }
     }
 
     if (
@@ -448,7 +399,65 @@ static Result(None) Push_Keys_And_Params_Core(
         goto next_spec_item;
     }
 
-    // Pushing description values for a new named element...
+    goto post_chain_handling;
+
+} post_chain_handling: { /////////////////////////////////////////////////////
+
+    if (Heart_Of(v) == TYPE_WORD) {
+        symbol = Word_Symbol(v);
+
+        switch (opt Sigil_Of(v)) {
+          case SIGIL_0:
+            pclass = PARAMCLASS_NORMAL;
+            break;
+
+          case SIGIL_PIN:
+            pclass = PARAMCLASS_LITERAL;
+            break;
+
+          case SIGIL_META:
+            pclass = PARAMCLASS_META;
+            break;
+
+          case SIGIL_TIE:  // aliasable parmaeters... coming soon!
+            return fail (Error_Bad_Func_Def_Raw(v));
+        }
+
+        goto push_parameter;
+    }
+
+    if (Is_Pinned_Form_Of(GROUP, v)) {  // @(...) PARAMCLASS_SOFT
+        if (Series_Len_At(v) == 1) {
+            const Element* word = List_Item_At(v);
+            if (Is_Word(word)) {
+                pclass = PARAMCLASS_SOFT;
+                symbol = Word_Symbol(word);
+            }
+        }
+        goto push_parameter;
+    }
+
+    return fail (Error_Bad_Func_Def_Raw(v));
+
+} push_parameter: { //////////////////////////////////////////////////////////
+
+    if (pclass == PARAMCLASS_0)  // didn't match
+        return fail (Error_Bad_Func_Def_Raw(v));
+
+    if (returner_id and Symbol_Id(symbol) == unwrap returner_id) {
+        if (SYM_DUMMY1 == unwrap returner_id)
+            return fail (
+                "DUMMY1 is a reserved arg name in LAMBDA due to a hack :-("
+            );
+        if (SYM_RETURN == unwrap returner_id)
+            return fail (
+                "Generator provides RETURN:, use LAMBDA if not desired"
+            );
+        assert(SYM_YIELD == unwrap returner_id);
+        return fail (
+            "Generator provides YIELD:, can't have YIELD parameter"
+        );
+    }
 
     Init_Word(PUSH(), symbol);  // duplicates caught when popping
 
@@ -473,7 +482,7 @@ static Result(None) Push_Keys_And_Params_Core(
 
     goto next_spec_item;
 
-} next_spec_item: {
+}} next_spec_item: {
 
     Fetch_Next_In_Feed(L->feed);
     augment_initial_entry = false;

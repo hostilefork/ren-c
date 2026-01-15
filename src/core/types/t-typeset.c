@@ -104,7 +104,8 @@ void Shutdown_Type_Predicates(void)
 Result(None) Set_Spec_Of_Parameter_In_Top(
     Level* const L,
     const Element* spec,
-    Context* spec_binding
+    Context* spec_binding,
+    bool is_returner
 ){
     USE_LEVEL_SHORTHANDS (L);
 

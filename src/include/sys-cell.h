@@ -700,6 +700,12 @@ INLINE void Set_Cell_Crumb(Cell* c, Crumb crumb) {
 #define Heart_Of(c) \
     Unchecked_Heart_Of(Ensure_Readable(c))
 
+INLINE Heart Heart_Of_Unsigiled_Isotopic(const Cell* c) {
+    KindByte kind_byte = KIND_BYTE(c);
+    assert(0 == kind_byte >> KIND_SIGIL_SHIFT);
+    return u_cast(Heart, kind_byte);
+}
+
 INLINE Option(Heart) Heart_Of_Fundamental(const Cell* c) {
     assert(LIFT_BYTE_RAW(c) == NOQUOTE_3);
     return Heart_Of(c);

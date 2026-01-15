@@ -1108,8 +1108,9 @@ Result(Value*) Init_Typechecker(
         PUSH(), FLAG_PARAMCLASS_BYTE(PARAMCLASS_NORMAL)
     );
 
+    bool is_returner = false;
     trap (
-      Set_Spec_Of_Parameter_In_Top(L, block, Cell_Binding(block))
+      Set_Spec_Of_Parameter_In_Top(L, block, Cell_Binding(block), is_returner)
     );
 
     Element* def = Init_Block(SCRATCH, Pop_Source_From_Stack(base));

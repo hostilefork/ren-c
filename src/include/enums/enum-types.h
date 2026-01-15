@@ -385,20 +385,3 @@ INLINE Heart Heart_Of_Singleheart(SingleHeart single) {
     assert(heart != TYPE_0 and heart != TYPE_RUNE);
     return heart;
 }
-
-// This needs to be defined prior to the %cast-cells.h file, so that it can
-// make sure you don't cast an unstable antiform to a Stable*.  This is before
-// the inclusion of Option() so it doesn't use Heart_Of(), which is good
-// for efficiency even if it looks a bit weird.
-//
-// !!! Would this be faster as a flag in g_sparse_memberships[]?  Test that.
-//
-INLINE bool Is_Stable_Antiform_Kind_Byte(KindByte kind_byte) {
-    assert((kind_byte >> KIND_SIGIL_SHIFT) == 0);  // no antiform sigils
-    return (
-        kind_byte != u_cast(KindByte, TYPE_GROUP)  // Is_Pack()
-        and kind_byte != u_cast(KindByte, TYPE_ERROR)  // Is_Failure()
-        and kind_byte != u_cast(KindByte, TYPE_COMMA)  // Is_Ghost()
-        and kind_byte != u_cast(KindByte, TYPE_RUNE)  // Is_Tripwire()
-    );
-}

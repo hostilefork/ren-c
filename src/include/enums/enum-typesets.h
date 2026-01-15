@@ -40,6 +40,27 @@
 #include "tmp-typesets.h"
 
 
+// This needs to be defined prior to the %cast-cells.h file, so that it can
+// make sure you don't cast an unstable antiform to a Stable*.  This is before
+// the inclusion of Option() so it doesn't use Heart_Of(), which is good
+// for efficiency even if it looks a bit weird.
+//
+// !!! Would this be faster as a flag in g_sparse_memberships[]?  Test that.
+//
+INLINE bool Is_Stable_Antiform_Heart(Heart heart) {
+    assert(Any_Isotopic_Type(heart));
+    return (
+        heart == TYPE_WORD  // Is_Logic()
+        or heart == TYPE_BLOCK  // Is_Splice()
+        or heart == TYPE_FENCE  // Is_Datatype()
+        or heart == TYPE_FRAME  // Is_Action()
+    );
+}
+
+#define Not_Stable_Antiform_Heart(heart) \
+    (not Is_Stable_Antiform_Heart(heart))
+
+
 //=//// EXTRA NEEDING GC MARK /////////////////////////////////////////////=//
 //
 // Note that the Heart_Of() is what is being tested--e.g. the type that the

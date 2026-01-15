@@ -220,21 +220,18 @@ INLINE Count Noquotify(Element* elem) {
 
         bool stable = (LIFT_BYTE_RAW(v) != UNSTABLE_ANTIFORM_1);
 
-        uintptr_t mask = v->header.bits & CELL_MASK_HEART_AND_SIGIL_AND_LIFT;
-        assert(stable == (
-            mask != (  // FAILURE!
-                FLAG_HEART(TYPE_ERROR) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
-            )
-            and mask != (  // GHOST!
-                FLAG_HEART(TYPE_COMMA) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
-            )
-            and mask != (  // PACK!
-                FLAG_HEART(TYPE_GROUP) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
-            )
-            and mask != (  // TRASH!
-                FLAG_HEART(TYPE_RUNE) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
-            )
-        ));
+      #if RUNTIME_CHECKS
+        if (stable)
+            assert(
+                Not_Antiform(v)
+                or Is_Stable_Antiform_Heart(Heart_Of_Unsigiled_Isotopic(v))
+            );
+        else
+            assert(
+                Is_Antiform(v)
+                and Not_Stable_Antiform_Heart(Heart_Of_Unsigiled_Isotopic(v))
+            );
+      #endif
 
         return stable;
     }
@@ -359,9 +356,8 @@ INLINE Element* Reify(Value* v) {
 
 INLINE Stable* Stably_Antiformize_Unbound_Fundamental_Core(Stable* v) {
     assert(Heart_Of(v) != TYPE_WORD);  // no LOGIC_IS_OKAY handling
-    assert(Any_Isotopic_Type(Heart_Of(v)));
     assert(LIFT_BYTE(v) == NOQUOTE_3);
-    assert(Is_Stable_Antiform_Kind_Byte(KIND_BYTE(v)));
+    assert(Is_Stable_Antiform_Heart(Heart_Of_Unsigiled_Isotopic(v)));
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))
         assert(not Cell_Binding(v));
     LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;
@@ -370,9 +366,8 @@ INLINE Stable* Stably_Antiformize_Unbound_Fundamental_Core(Stable* v) {
 
 INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
     assert(Heart_Of(v) != TYPE_WORD);  // no LOGIC_IS_OKAY handling
-    assert(Any_Isotopic_Type(Heart_Of(v)));
     assert(LIFT_BYTE_RAW(v) == NOQUOTE_3);
-    assert(not Is_Stable_Antiform_Kind_Byte(KIND_BYTE(v)));
+    assert(Not_Stable_Antiform_Heart(Heart_Of_Unsigiled_Isotopic(v)));
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))
         assert(not Cell_Binding(v));
     LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;
