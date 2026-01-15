@@ -361,7 +361,7 @@ bool Specialize_Action_Throws(
                 panic (Error_Bad_Parameter_Raw(ordered));
             }
 
-            Stable* ordered_slot = Slot_Hack(
+            Value* ordered_slot = Slot_Hack(
                 Varlist_Slot(exemplar, VAL_WORD_INDEX(ordered))
             );
             if (not Is_Specialized(cast(Param*, ordered_slot))) {

@@ -71,7 +71,9 @@ typedef struct Reb_Sock_Port_State SOCKREQ;
 
 INLINE SOCKREQ *Sock_Of_Port(const Stable* port)
 {
-    Stable* state = Slot_Hack(Varlist_Slot(Cell_Varlist(port), STD_PORT_STATE));
+    Stable* state = Stable_Slot_Hack(
+        Varlist_Slot(Cell_Varlist(port), STD_PORT_STATE)
+    );
     return Cell_Handle_Pointer(SOCKREQ, state);
 }
 

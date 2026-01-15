@@ -191,7 +191,7 @@ INLINE const Source* Freeze_Source_Shallow(const Source* a) {
     }
 #endif
 
-INLINE const Stable* Ensure_Mutable(const Stable* v) {
+INLINE const Value* Ensure_Mutable(const Value* v) {
     assert(Cell_Payload_1_Needs_Mark(v));
     const Flex* f = cast(Flex*, CELL_PAYLOAD_1(v));  // varlist, etc.
 

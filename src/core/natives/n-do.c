@@ -872,7 +872,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
         if (Get_Parameter_Flag(e->param, REFINEMENT))
             continue;
 
-        if (Is_Parameter(Slot_Hack(e->slot))) {
+        if (Is_Parameter(Stable_Slot_Hack(e->slot))) {
             param = e->param;
             break;
         }

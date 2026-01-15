@@ -165,7 +165,7 @@ DECLARE_NATIVE(DNS_ACTOR)
     const Symbol* verb = Level_Verb(LEVEL);
 
     VarList* ctx = Cell_Varlist(port);
-    Stable* spec = Slot_Hack(Varlist_Slot(ctx, STD_PORT_SPEC));
+    Stable* spec = Stable_Slot_Hack(Varlist_Slot(ctx, STD_PORT_SPEC));
 
     switch (opt Symbol_Id(verb)) {
       case SYM_OPEN_Q:
@@ -180,7 +180,7 @@ DECLARE_NATIVE(DNS_ACTOR)
         UNUSED(PARAM(STRING)); // handled in dispatcher
         UNUSED(PARAM(LINES)); // handled in dispatcher
 
-        Stable* host = Slot_Hack(Obj_Slot(spec, STD_PORT_SPEC_NET_HOST));
+        Stable* host = Stable_Slot_Hack(Obj_Slot(spec, STD_PORT_SPEC_NET_HOST));
 
         if (Is_Nulled(host)) {
             //

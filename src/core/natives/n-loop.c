@@ -609,7 +609,7 @@ DECLARE_NATIVE(CFOR)
     Add_Definitional_Break_Again_Continue(body, level_);
 
     Fixed(Slot*) slot = Varlist_Fixed_Slot(varlist, 1);
-    Stable* var = Slot_Hack(slot);
+    Stable* var = Stable_Slot_Hack(slot);
 
     if (
         Is_Integer(ARG(START))
@@ -1660,7 +1660,7 @@ DECLARE_NATIVE(REMOVE_EACH)
         const Slot* slot_tail;
         Fixed(Slot*) slot = Varlist_Fixed_Slots(&slot_tail, varlist);
         for (; slot != slot_tail; ++slot) {
-            Stable* var = Slot_Hack(slot);
+            Stable* var = Stable_Slot_Hack(slot);
             if (index == len) {
                 Init_Nulled(var);  // Y on 2nd step of remove-each [x y] "abc"
                 continue;  // the `for` loop setting variables

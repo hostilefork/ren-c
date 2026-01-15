@@ -992,7 +992,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Let)
     Push_Pointer_To_Flex(g_mold.stack, let);
 
     const Symbol* spelling = Let_Symbol(let);
-    const Stable* var = Slot_Hack(Let_Slot(let));
+    const Stable* var = Stable_Slot_Hack(Let_Slot(let));
 
     if (form) {
         Append_Spelling(mo->strand, spelling);

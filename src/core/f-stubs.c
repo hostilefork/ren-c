@@ -300,8 +300,8 @@ REBINT Get_System_Int(REBLEN i1, REBLEN i2, REBINT default_int)
 {
     Slot* slot = Get_System(i1, i2);
 
-    if (Is_Integer(Slot_Hack(slot)))
-        return VAL_INT32(Slot_Hack(slot));
+    if (Is_Integer(Stable_Slot_Hack(slot)))
+        return VAL_INT32(Stable_Slot_Hack(slot));
 
     return default_int;
 }

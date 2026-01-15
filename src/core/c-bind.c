@@ -1426,8 +1426,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
 Result(None) Read_Slot_Meta(Sink(Value) out, const Slot* slot)
 {
     if (LIFT_BYTE(slot) != BEDROCK_0) {
-        const Stable* var = Slot_Hack(slot);
-
+        const Value* var = Slot_Hack(slot);
         Copy_Cell(out, var);
         return none;
     }

@@ -369,7 +369,7 @@ DECLARE_NATIVE(TEXT_X_COMBINATOR)
     VarList* state = Cell_Varlist(ARG(STATE));
 
     bool cased = Logical_Test(  // or trust it's a LOGIC ?
-        Slot_Hack(Varlist_Slot(state, IDX_UPARSE_PARAM_CASE))
+        Stable_Slot_Hack(Varlist_Slot(state, IDX_UPARSE_PARAM_CASE))
     );
 
     Element* v = Element_ARG(VALUE);
@@ -600,7 +600,7 @@ static bool Combinator_Param_Hook(
         return true;  // keep iterating the parameters.
     }
 
-    Stable* var = Slot_Hack(Varlist_Slots_Head(s->ctx) + offset);
+    Stable* var = Stable_Slot_Hack(Varlist_Slots_Head(s->ctx) + offset);
 
     if (symid == SYM_STATE) {  // the "state" is currently the UPARSE frame
         Copy_Cell(var, ARG(STATE));

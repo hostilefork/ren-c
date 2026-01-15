@@ -1006,12 +1006,12 @@ DECLARE_NATIVE(PROXY_EXPORTS)
         if (dest) {
             // Fail if found?
             require (
-              Read_Slot(Slot_Init_Hack(dest), src)
+              Read_Slot_Meta(Slot_Init_Hack(dest), src)
             );
         }
         else {
             require (
-              Read_Slot(Append_Context(where, symbol), src)
+              Read_Slot_Meta(Append_Context(where, symbol), src)
             );
         }
     }

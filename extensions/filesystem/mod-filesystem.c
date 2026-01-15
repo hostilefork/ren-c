@@ -588,7 +588,7 @@ DECLARE_NATIVE(CHANGE_DIR)
     INCLUDE_PARAMS_OF_CHANGE_DIR;
 
     Stable* arg = ARG(PATH);
-    Stable* current_path = Slot_Hack(
+    Stable* current_path = Stable_Slot_Hack(
         Get_System(SYS_OPTIONS, OPTIONS_CURRENT_PATH)
     );
 

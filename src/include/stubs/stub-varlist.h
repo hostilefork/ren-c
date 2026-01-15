@@ -264,19 +264,29 @@ INLINE Fixed(Slot*) Varlist_Fixed_Slot(VarList* c, Ordinal n) {  // 1-based
 //=//// TRANSITIONAL HACK FOR SLOT=>VALUE //////////////////////////////////=//
 //
 // This is a temporary workaround.  Ultimately slots should only be converted
-// to Stable* directly in a narrow set of cases, when dual representation is
+// to Value* directly in a narrow set of cases, when dual representation is
 // not a possibility.
 
 INLINE Init(Slot) Slot_Init_Hack(Slot* slot) {
     return u_cast(Init(Slot), slot);
 }
 
-MUTABLE_IF_C(Stable*, INLINE) Slot_Hack(
+MUTABLE_IF_C(Value*, INLINE) Slot_Hack(
     CONST_IF_C(Slot*) slot
 ){
-    CONSTABLE(Slot*) s = m_cast(Slot*, slot);
+    CONSTABLE(Value*) s = u_cast(Value*, slot);
     assert(LIFT_BYTE(s) != BEDROCK_0);
-    return u_cast(Stable*, s);
+    return s;
+}
+
+MUTABLE_IF_C(Stable*, INLINE) Stable_Slot_Hack(
+    CONST_IF_C(Slot*) slot
+){
+    CONSTABLE(Value*) s = u_cast(Value*, slot);
+    assert(LIFT_BYTE(s) != BEDROCK_0);
+    if (LIFT_BYTE(s) <= STABLE_ANTIFORM_2)
+        panic ("Stable_Slot_Hack() called on non-Stable slot");
+    return As_Stable(s);
 }
 
 
@@ -435,7 +445,7 @@ INLINE const Element* Quoted_Returner_Of_Paramlist(
     ) ? 2 : 1;
     assert(Key_Id(Varlist_Key(paramlist, slot_num)) == returner);
     UNUSED(returner);
-    Stable* param = Slot_Hack(Varlist_Slot(paramlist, slot_num));
+    Stable* param = Stable_Slot_Hack(Varlist_Slot(paramlist, slot_num));
     Assert_Quotified_Parameter(param);
     return cast(Element*, param);
 }

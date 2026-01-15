@@ -276,7 +276,7 @@ const Stable* Find_Error_For_Sym(SymId id)
         Index n = 1;
         for (; n <= Varlist_Len(category); ++n) {
             if (Are_Synonyms(Key_Symbol(Varlist_Key(category, n)), canon)) {
-                Stable* message = Slot_Hack(Varlist_Slot(category, n));
+                Stable* message = Stable_Slot_Hack(Varlist_Slot(category, n));
                 assert(Is_Block(message) or Is_Text(message));
                 return message;
             }
@@ -514,7 +514,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
             Word_Symbol(type)
         );
         if (category) {
-            assert(Is_Object(Slot_Hack(category)));
+            assert(Is_Object(Stable_Slot_Hack(category)));
 
             // Find correct message for ID: (if any)
 
@@ -524,8 +524,8 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
             );
             if (correct_message) {
                 assert(
-                    Is_Text(Slot_Hack(correct_message))
-                    or Is_Block(Slot_Hack(correct_message))
+                    Is_Text(Stable_Slot_Hack(correct_message))
+                    or Is_Block(Stable_Slot_Hack(correct_message))
                 );
                 if (not Is_Nulled(message))
                     return fail (Error_Invalid_Error_Raw(arg));
@@ -1202,7 +1202,7 @@ Error* Error_On_Port(SymId id, Stable* port, REBINT err_code)
     Slot* spec = Varlist_Slot(ctx, STD_PORT_SPEC);
 
     Slot* val = Varlist_Slot(Cell_Varlist(spec), STD_PORT_SPEC_HEAD_REF);
-    if (Is_Space(Slot_Hack(val)))
+    if (Is_Space(Stable_Slot_Hack(val)))
         val = Varlist_Slot(Cell_Varlist(spec), STD_PORT_SPEC_HEAD_TITLE);  // less
 
     DECLARE_VALUE (err_code_value);
@@ -1275,7 +1275,7 @@ VarList* Startup_Errors(const Element* boot_errors)
     const Slot* category_tail;
     Slot* category = Varlist_Slots(&category_tail, catalog);
     for (; category != category_tail; ++category) {
-        assert(Is_Block(Slot_Hack(category)));
+        assert(Is_Block(Stable_Slot_Hack(category)));
         Api(Stable*) error = rebStable(
             CANON(CONSTRUCT), CANON(PIN), Slot_Hack(category)
         );
@@ -1433,7 +1433,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Error)
     for (n = 0; n < len;) {
         DECLARE_ELEMENT (safe);
         const Element* item = Array_At(array, index + n);
-        Stable* wval = nullptr;
+        Value* wval = nullptr;
 
         Option(const Symbol*) symbol = Symbol_For_Error_Element(item);
         if (symbol) {

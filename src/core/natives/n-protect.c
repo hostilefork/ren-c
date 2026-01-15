@@ -197,7 +197,7 @@ void Protect_Varlist(VarList* varlist, Flags flags)
     const Slot* slot_tail;
     Slot* slot = Varlist_Slots(&slot_tail, varlist);
     for (; slot != slot_tail; ++slot)
-        Protect_Value(Slot_Hack(slot), flags);
+        Protect_Value(Stable_Slot_Hack(slot), flags);
 }
 
 
