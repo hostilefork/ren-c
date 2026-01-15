@@ -286,7 +286,7 @@ static bool Subparse_Throws(
     //
     Init_Tripwire(Erase_ARG(NUM_QUOTES));
     Init_Tripwire(Erase_ARG(POSITION));
-    Init_Tripwire(Erase_ARG(SAVE));
+    Init_Quasar(Erase_ARG(SAVE));
     Init_Tripwire(Erase_ARG(LOOKBACK));
 
     // !!! By calling the subparse native here directly from its C function
@@ -421,9 +421,6 @@ static Result(Option(SymId)) Get_Parse_Value(
         if (Is_Nulled(out_value))
             return fail (Error_Bad_Null(rule));
 
-        if (Is_Trash(out_value))
-            return fail (Error_Bad_Word_Get(rule, out));
-
         if (Is_Logic(out_value) or Is_Splice(out_value))
             Quasify_Antiform(out_value);
         else if (Is_Datatype(out)) {  // convert to functions for now
@@ -497,14 +494,9 @@ bool Process_Group_For_Parse_Throws(
         return false;
     }
 
-    if (Any_Void(eval)) {
-        // allow it (can't decay)
-    }
-    else {
-        require (
-          Decay_If_Unstable(eval)
-        );
-    }
+    require (
+      Ensure_No_Failures_Including_In_Packs(eval)
+    );
 
     // !!! The input is not locked from modification by agents other than the
     // PARSE's own REMOVE etc.  This is a sketchy idea, but as long as it's
@@ -1312,16 +1304,16 @@ DECLARE_NATIVE(SUBPARSE)
     // But we save the number of quotes in a local variable.  This way we can
     // put the quotes back on whenever doing a COPY etc.
     //
-    assert(Is_Trash(ARG(NUM_QUOTES)));
-    Init_Integer(ARG(NUM_QUOTES), Quotes_Of(Element_ARG(INPUT)));
+    assert(Is_Trash(LOCAL(NUM_QUOTES)));
+    Init_Integer(LOCAL(NUM_QUOTES), Quotes_Of(Element_ARG(INPUT)));
     Noquotify(Element_ARG(INPUT));
 
     // Make sure index position is not past END
     if (SERIES_INDEX_UNBOUNDED(ARG(INPUT)) > Series_Len_Head(ARG(INPUT)))
         SERIES_INDEX_UNBOUNDED(ARG(INPUT)) = Series_Len_Head(ARG(INPUT));
 
-    assert(Is_Trash(ARG(POSITION)));
-    Copy_Cell(ARG(POSITION), ARG(INPUT));
+    assert(Is_Trash(LOCAL(POSITION)));
+    Copy_Cell(LOCAL(POSITION), ARG(INPUT));
 
   #if RUNTIME_CHECKS
     //
@@ -1704,10 +1696,7 @@ DECLARE_NATIVE(SUBPARSE)
                 require (
                   Stable* condition = Decay_If_Unstable(eval)
                 );
-                require (
-                  bool cond = Test_Conditional(condition)
-                );
-                if (cond)
+                if (Logical_Test(condition))
                     goto pre_rule;
 
                 Init_Nulled(ARG(POSITION));  // not found
@@ -2680,7 +2669,7 @@ DECLARE_NATIVE(PARSE_REJECT)
 //
 void Startup_Parse3(void)
 {
-    known_nullptr(g_trash_parse3_success) = Protect_Cell(rebValue(
+    known_nullptr(g_trash_parse3_success) = Protect_Cell(rebUndecayed(
         "~#[PARSE3 success, so no FAILURE! (no other result unless ACCEPT)]#~"
     ));
 }

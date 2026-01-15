@@ -103,7 +103,7 @@ make-port*: func [
     ; a BLOCK!.  But DECODE-URL now returns an object, and you can't make
     ; an derived object via an object at this time.  Do it manually.
     ;
-    for-each [key val] spec [
+    for-each [key ^val] spec [
         if not any [vacant? $val, space? val] [
             set (extend port.spec key) val
         ]

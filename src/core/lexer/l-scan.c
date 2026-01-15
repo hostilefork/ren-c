@@ -3224,7 +3224,7 @@ Bounce Scanner_Executor(Level* level_)
             if (Is_Failure(level_->out))
                 assert(TOP_INDEX == STACK_BASE);
             else
-                assert(Is_Tripwire(As_Stable(level_->out)));
+                assert(Is_Tripwire(level_->out));
         }
         else
             assert(b == BOUNCE_CONTINUE);

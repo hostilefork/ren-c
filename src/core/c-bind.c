@@ -921,8 +921,8 @@ DECLARE_NATIVE(ADD_LET_BINDING)
     }
     else {
         assert(Is_Word(word));
-        if (Any_Void(v))
-            Init_Ghost(Stub_Cell(let));
+        if (Is_Non_Meta_Assignable_Unstable_Antiform(v))
+            Copy_Cell(Stub_Cell(let), v);
         else {
             require (  // !!! Review: action-PACK! rules?
                 Stable* stable = Decay_If_Unstable(v)

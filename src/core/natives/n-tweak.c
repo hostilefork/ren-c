@@ -133,9 +133,9 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     if (Any_Lifted(picker_arg)) {  // literal x.'y or x.('y) => 'y
         Known_Stable_Unlift_Cell(picker_arg);
 
-        if (Is_Logic(picker_arg) or Is_Trash(picker_arg))
+        if (Is_Logic(picker_arg))
             return Error_User(
-                "PICK with keyword or trash picker never allowed"
+                "PICK with logic picker never allowed"
             );
     }
     else {
@@ -267,15 +267,18 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         if (Any_Lifted(picker_arg)) {  // literal x.'y or x.('y) => 'y
             Known_Stable_Unlift_Cell(picker_arg);
 
-            if (Is_Logic(picker_arg) or Is_Trash(picker_arg))
+            if (Is_Logic(picker_arg))
                 return Error_User(
-                    "PICK with keyword or trash picker never allowed"
+                    "PICK with logic picker never allowed"
                 );
 
             if (Is_Any_Lifted_Void(TOP_ELEMENT)) // don't know if was ^META :-(
                 break;  // remove signal
 
             if (Is_Quoted(TOP_ELEMENT))
+                break;
+
+            if (Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(TOP_ELEMENT))
                 break;
 
             Value* sub_spare = Copy_Cell(Level_Spare(sub), TOP_ELEMENT);
@@ -301,8 +304,8 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         if (not Any_Lifted(TOP_ELEMENT))
             continue;  // dual signal, do not lift dual
 
-        if (Is_Lifted_Ghost(TOP_ELEMENT))
-            continue;  // (x: ()) works, (x: ~()~ doesn't)
+        if (Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(TOP_ELEMENT))
+            continue;  // (x: ()) works, (x: ~()~ doesn't), (x: ~) works
 
         bool was_singular_pack = (
             Is_Lifted_Pack(TOP_ELEMENT) and Series_Len_At(TOP_ELEMENT) == 1

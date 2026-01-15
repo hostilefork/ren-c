@@ -805,7 +805,7 @@ void Startup_Core(void)
         Slot_Init_Hack(Get_System(SYS_CONTEXTS, CTX_LIB)),
         g_lib_module
     );
-    Api(Stable*) trash = rebStable(
+    Api(Value*) trash = rebUndecayed(
         "~#[SYS.CONTEXTS.USER unavailable: Mezzanine Startup not finished]#~"
     );
     Copy_Cell(

@@ -373,3 +373,13 @@ enum {
     ST_TWEAK_SETTING,
     ST_TWEAK_GETTING
 };
+
+
+// !!! Places that use this should probably be running through the central
+// SET/TWEAK code.  Also, it's not clear if this should just be Is_Ghost().
+//
+INLINE bool Is_Non_Meta_Assignable_Unstable_Antiform(const Value* v)
+  { return Is_Ghost(v) or Is_Trash(v); }
+
+INLINE bool Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(const Stable* v)
+ { return Is_Lifted_Ghost(v) or Is_Lifted_Trash(v); }

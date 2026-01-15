@@ -537,6 +537,9 @@ DECLARE_NATIVE(PROCEDURE)
         Quotify_Parameter_Local(param);
         Set_Cell_Flag(param, PARAM_NOTE_TYPECHECKED);
 
+        assert(Get_Parameter_Flag(param, TRASH_DEFINITELY_OK));
+        assert(Get_Parameter_Flag(param, AUTO_TRASH));
+
       #if DEBUG_PROTECT_PARAM_CELLS
         Protect_Cell(param);
       #endif
@@ -750,7 +753,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
             panic (Error_Bad_Return_Type(target_level, v, param));
 
         if (
-            Is_Possibly_Unstable_Value_Trash(v)
+            Is_Trash(v)
             and Get_Parameter_Flag(param, AUTO_TRASH)
         ){
             Init_Trash_Named_From_Level(v, target_level);

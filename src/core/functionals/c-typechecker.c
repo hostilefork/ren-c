@@ -145,9 +145,6 @@ Bounce Typechecker_Dispatcher(Level* const L)
         Details_At(details, IDX_TYPECHECKER_TYPESET_BYTE)
     );
 
-    if (Is_Trash(v) and typeset_byte != cast(Byte, TYPE_TRASH))
-        panic ("trash! antiforms can't be typechecked");
-
     if (not type)  // not a built-in type, no typechecks apply
         return LOGIC_OUT(false);
 
@@ -831,26 +828,17 @@ bool Typecheck_Uses_Spare_And_Scratch(
   try_parameter_flag_optimizations: {
 
     if (Is_Antiform(v)) {
-        if (
-            Get_Parameter_Flag(param, NULL_DEFINITELY_OK)
-            and Is_Light_Null(v)
-        ){
-            return true;
-        }
+        if (Get_Parameter_Flag(param, NULL_DEFINITELY_OK))
+            if (Is_Light_Null(v))  // heavy null becomes light after decay
+                return true;
 
-        if (
-            Get_Parameter_Flag(param, VOID_DEFINITELY_OK)
-            and Any_Void(v)
-        ){
-            return true;
-        }
+        if (Get_Parameter_Flag(param, VOID_DEFINITELY_OK))
+            if (Any_Void(v))
+                return true;
 
-        if (
-            Get_Parameter_Flag(param, TRASH_DEFINITELY_OK)
-            and Is_Possibly_Unstable_Value_Trash(v)
-        ){
-            return true;
-        }
+        if (Get_Parameter_Flag(param, TRASH_DEFINITELY_OK))
+            if (Is_Trash(v))
+                return true;
     }
 
     if (Get_Parameter_Flag(param, ANY_STABLE_OK) and Is_Cell_Stable(v))

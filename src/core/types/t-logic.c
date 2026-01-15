@@ -235,10 +235,9 @@ DECLARE_NATIVE(BOOLEAN)
 {
     INCLUDE_PARAMS_OF_BOOLEAN;
 
-    require (
-      bool cond = Test_Conditional(ARG(VALUE))
-    );
-    return Init_Word(OUT, cond ? CANON(TRUE) : CANON(FALSE));
+    bool logic = Logical_Test(ARG(VALUE));
+
+    return Init_Word(OUT, logic ? CANON(TRUE) : CANON(FALSE));
 }
 
 
@@ -289,10 +288,9 @@ DECLARE_NATIVE(TO_YESNO)
 {
     INCLUDE_PARAMS_OF_TO_YESNO;
 
-    require (
-      bool cond = Test_Conditional(ARG(CONDITION))
-    );
-    return Init_Word(OUT, cond ? CANON(YES) : CANON(NO));
+    bool logic = Logical_Test(ARG(CONDITION));
+
+    return Init_Word(OUT, logic ? CANON(YES) : CANON(NO));
 }
 
 
@@ -343,10 +341,9 @@ DECLARE_NATIVE(TO_ONOFF)
 {
     INCLUDE_PARAMS_OF_TO_ONOFF;
 
-    require (
-      bool cond = Test_Conditional(ARG(CONDITION))
-    );
-    return Init_Word(OUT, cond ? CANON(ON) : CANON(OFF));
+    bool logic = Logical_Test(ARG(CONDITION));
+
+    return Init_Word(OUT, logic ? CANON(ON) : CANON(OFF));
 }
 
 
@@ -364,14 +361,10 @@ DECLARE_NATIVE(AND_Q)
 {
     INCLUDE_PARAMS_OF_AND_Q;
 
-    require (
-      bool cond1 = Test_Conditional(ARG(VALUE1))
-    );
-    require (
-      bool cond2 = Test_Conditional(ARG(VALUE2))
-    );
+    bool logic1 = Logical_Test(ARG(VALUE1));
+    bool logic2 = Logical_Test(ARG(VALUE2));
 
-    if (cond1 and cond2)
+    if (logic1 and logic2)
         return LOGIC_OUT(true);
 
     return LOGIC_OUT(false);
@@ -392,14 +385,10 @@ DECLARE_NATIVE(OR_Q)
 {
     INCLUDE_PARAMS_OF_OR_Q;
 
-    require (
-      bool cond1 = Test_Conditional(ARG(VALUE1))
-    );
-    require (
-      bool cond2 = Test_Conditional(ARG(VALUE2))
-    );
+    bool logic1 = Logical_Test(ARG(VALUE1));
+    bool logic2 = Logical_Test(ARG(VALUE2));
 
-    if (cond1 or cond2)
+    if (logic1 or logic2)
         return LOGIC_OUT(true);
 
     return LOGIC_OUT(false);
@@ -438,10 +427,9 @@ DECLARE_NATIVE(NOT_1)  // see TO-C-NAME
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    require (
-      bool cond = Test_Conditional(v)
-    );
-    return LOGIC_OUT(not cond);
+    bool logic = Logical_Test(v);
+
+    return LOGIC_OUT(not logic);
 }
 
 
@@ -460,10 +448,9 @@ DECLARE_NATIVE(TO_LOGIC)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    require (
-      bool cond = Test_Conditional(v)
-    );
-    return LOGIC_OUT(cond);
+    bool logic = Logical_Test(v);
+
+    return LOGIC_OUT(logic);
 }
 
 
@@ -475,7 +462,7 @@ DECLARE_NATIVE(TO_LOGIC)
 // This scales the idea back to a very simple concept of a literal GROUP!,
 // WORD!, or TUPLE!.
 //
-INLINE Result(bool) Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
+INLINE bool Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
     Level* level_
 ){
     INCLUDE_PARAMS_OF_AND_1;  // should be same as OR and XOR
@@ -503,10 +490,10 @@ INLINE Result(bool) Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
     }
 
     require (
-      Stable* out = Decay_If_Unstable(OUT)
+      Stable* stable_out = Decay_If_Unstable(OUT)
     );
 
-    return Test_Conditional(out);
+    return Logical_Test(stable_out);
 }
 
 
@@ -525,15 +512,11 @@ DECLARE_NATIVE(AND_1)  // see TO-C-NAME
 {
     INCLUDE_PARAMS_OF_AND_1;
 
-    require (
-      bool left = Test_Conditional(ARG(LEFT))
-    );
+    bool left = Logical_Test(ARG(LEFT));
     if (not left)
-        return LOGIC_OUT(false);  // if left is false, don't run right hand side
+        return LOGIC_OUT(false);  // if left is false, don't run right
 
-    require (
-      bool right = Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(LEVEL)
-    );
+    bool right = Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(LEVEL);
 
     return LOGIC_OUT(right);
 }
@@ -554,15 +537,11 @@ DECLARE_NATIVE(OR_1)  // see TO-C-NAME
 {
     INCLUDE_PARAMS_OF_OR_1;
 
-    require (
-      bool left = Test_Conditional(ARG(LEFT))
-    );
+    bool left = Logical_Test(ARG(LEFT));
     if (left)
-        return LOGIC_OUT(true);  // if left is true, don't run right hand side
+        return LOGIC_OUT(true);  // if left is true, don't run right
 
-    require (
-      bool right = Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(LEVEL)
-    );
+    bool right = Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(LEVEL);
 
     return LOGIC_OUT(right);
 }
@@ -575,21 +554,19 @@ DECLARE_NATIVE(OR_1)  // see TO-C-NAME
 //
 //      return: [logic!]
 //      left [any-stable?]
-//      @right "Always evaluated"
+//      @right "Always evaluated"  ; [1]
 //          [group! word! tuple! ^word! ^tuple!]
 //  ]
 //
 DECLARE_NATIVE(XOR_1)  // see TO-C-NAME
+//
+// 1. XOR has to always evaluate its right hand side.
 {
     INCLUDE_PARAMS_OF_XOR_1;
 
-    require (
-      bool right = Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(LEVEL)
-    );  // always evals
+    bool right = Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(LEVEL);  // [1]
 
-    require (
-      bool left = Test_Conditional(ARG(LEFT))
-    );
+    bool left = Logical_Test(ARG(LEFT));
     if (not left)
         return LOGIC_OUT(right);
 

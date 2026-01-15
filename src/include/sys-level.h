@@ -817,7 +817,7 @@ INLINE Bounce Native_Panic_Result(Level* L, Error* e) {;
 // whether they are `return: ~` or not, based on where they keep the return
 // information.  So they can't use the `return TRASH_OUT;` idiom.
 //
-INLINE Stable* Init_Trash_Named_From_Level(Sink(Stable) out, Level* level_) {
+INLINE Value* Init_Trash_Named_From_Level(Sink(Value) out, Level* level_) {
     Option(const Symbol*) label = Level_Label(level_);
     if (label)
         Init_Labeled_Trash(out, unwrap label);

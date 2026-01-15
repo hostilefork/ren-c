@@ -361,6 +361,25 @@ DECLARE_NATIVE(FAILURE_Q)
 
 
 //
+//  trash?: native:intrinsic [
+//
+//  "Tells you if argument is a TRASH! antiform"
+//
+//      return: [logic!]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(TRASH_Q)
+{
+    INCLUDE_PARAMS_OF_TRASH_Q;
+
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    return LOGIC_OUT(Is_Trash(v));
+}
+
+
+//
 //  set-location-of-error: native [
 //
 //  "Sets the WHERE, NEAR, FILE, and LINE fields of an error"

@@ -2069,9 +2069,22 @@ DECLARE_NATIVE(CONSTRUCT)
 
 } eval_set_step_result_in_spare: {  //////////////////////////////////////////
 
-    require (
-      Stable* spare = Decay_If_Unstable(SPARE)
-    );
+  // 1. CONSTRUCT isn't generically handling all the SET assignment behavior
+  //    (e.g. SET-BLOCK!)... and in that behavior is things like validation
+  //    of action assignments.  We really shouldn't be bypassing the logic
+  //    of SET; this should be calling the internals for SET.  But also,
+  //    CONSTRUCT may be dialected, e.g. (construct [a (10) ~b~ ^c]) to
+  //    line up with the function locals dialect.  Just to get the system
+  //    working, this mimics SET's tolerance of trash and ghost.
+
+    Value* adjusted_spare;
+    if (Is_Non_Meta_Assignable_Unstable_Antiform(SPARE))  // [1] :-/
+        adjusted_spare = SPARE;
+    else {
+      require (
+        adjusted_spare = Decay_If_Unstable(SPARE)
+      );
+    }
 
     VarList* varlist = Cell_Varlist(OUT);
 
@@ -2079,7 +2092,10 @@ DECLARE_NATIVE(CONSTRUCT)
         Option(Index) index = VAL_WORD_INDEX(TOP_ELEMENT);
         assert(index);  // created a key for every SET-WORD! above!
 
-        Copy_Cell(Slot_Init_Hack(Varlist_Slot(varlist, unwrap index)), spare);
+        Copy_Cell(
+            Slot_Init_Hack(Varlist_Slot(varlist, unwrap index)),
+            adjusted_spare
+        );
 
         DROP();
     }

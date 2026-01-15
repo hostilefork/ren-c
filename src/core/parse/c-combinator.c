@@ -368,10 +368,9 @@ DECLARE_NATIVE(TEXT_X_COMBINATOR)
 
     VarList* state = Cell_Varlist(ARG(STATE));
 
-    require (
-      bool cased = Test_Conditional(  // or trust it's a LOGIC ?
+    bool cased = Logical_Test(  // or trust it's a LOGIC ?
         Slot_Hack(Varlist_Slot(state, IDX_UPARSE_PARAM_CASE))
-    ));
+    );
 
     Element* v = Element_ARG(VALUE);
     Element* input = Element_ARG(INPUT);

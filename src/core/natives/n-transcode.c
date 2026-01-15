@@ -258,7 +258,7 @@ DECLARE_NATIVE(TRANSCODE)
         return OUT;
     }
 
-    assert(Is_Tripwire(As_Stable(OUT)));  // TRASH! if it's not a FAILURE!
+    assert(Is_Tripwire(OUT));  // TRASH! if it's not a FAILURE!
 
     if (ARG(ONE)) {  // want *exactly* one element
         if (TOP_INDEX == STACK_BASE)

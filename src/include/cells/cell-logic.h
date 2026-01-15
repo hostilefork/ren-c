@@ -233,39 +233,12 @@ INLINE bool Is_Lifted_Null(const Value* v) {
 // be a conditional function put in scopes that influences the test, similar
 // to how RebindableSyntax works.)
 //
-// 1. ~okay~ and ~null~ have been fixed as the only two antiform WORD!s, due
-//    to the solidity of establishing a LOGIC! type outweighing the "value"
-//    of keeping it open to create more antiform words later.  "Hot potatoes"
-//    offer an answer for things like ~(NaN)~.
+// Since things like TRASH!, GHOST!, and empty PACK! are all unstable, we
+// don't have to worry about testing a stable value causing an error.  It's
+// legal on all stable states.
 //
-// 2. TRASH! has gone back and forth on whether it is truthy; but now that
-//    unsetness is handled by the GHOST! state, reasons for making it not be
-//    an error have vanished, e.g. (`all [x: () ...]` vs. `all [x: ~ ...]`)
-//
-INLINE Result(bool) Test_Conditional(
-    Exact(const Stable*) v  // disable passing Element* (they're always truthy)
-){
-    Assert_Cell_Readable(v);
-
-    if (LIFT_BYTE(v) != STABLE_ANTIFORM_2)
-        return true;  // all non-antiforms (including quasi/quoted) are truthy
-
-    if (KIND_BYTE(v) == TYPE_WORD) { // conditional test of ~null~/~okay~
-        if (Get_Cell_Flag(v, LOGIC_IS_OKAY)) {
-            assert(Word_Id(v) == SYM_OKAY);
-            return true;
-        }
-        assert(Word_Id(v) == SYM_NULL);  // only other word! antiform [1]
-        return false;
-    }
-
-    if (KIND_BYTE(v) == TYPE_RUNE)  // trash--no longer truthy [2]
-        return fail (
-            "TRASH! (antiform RUNE!) values are neither truthy nor falsey"
-        );
-
-    return true;  // !!! are all non-word/non-trash stable antiforms truthy?
-}
+#define Logical_Test(v) \
+    (not Is_Nulled(Known_Stable(v)))
 
 
 //=//// "HEAVY NULLS" (BLOCK! Antiform Pack with `~null~` in it) //////////=//

@@ -137,7 +137,7 @@ email!      "email address"
             [any-utf8? any-inert?]
 
 rune!       "immutable codepoint or codepoint sequence"
-~trash!~    "state held by unset variables, can't be passed as normal argument"
+~trash!~:U  "Vanishes in console, can't assign normally via WORD!"
             (:payload1)  ; may or may not embed data in rune vs. use node
             [any-utf8? any-inert? any-sequencable?]
 

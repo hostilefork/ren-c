@@ -186,7 +186,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Date)
     if (Does_Date_Have_Time(v)) {
         Append_Codepoint(mo->strand, '/');
         Bounce bounce = GENERIC_CFUNC(MOLDIFY, Is_Time)(LEVEL);  // ARG(FORM)?
-        assert(Is_Possibly_Unstable_Value_Trash(Value_From_Bounce(bounce)));
+        assert(Is_Trash(Value_From_Bounce(bounce)));
         // !!! generically might BOUNCE_CONTINUE
         UNUSED(bounce);
 

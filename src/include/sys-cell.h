@@ -632,6 +632,7 @@ INLINE void Set_Cell_Crumb(Cell* c, Crumb crumb) {
     Unchecked_Cell_Has_Lift_Heart_No_Sigil(Ensure_Readable(cell), \
         (lift), (heart))
 
+
 //=//// HOOKABLE KIND_BYTE() ACCESSOR ////////////////////////////////////=//
 //
 // It can often be helpful to inject code to when the KIND_BYTE() is being
@@ -654,11 +655,13 @@ INLINE void Set_Cell_Crumb(Cell* c, Crumb crumb) {
             : cell (const_cast<Cell*>(cell))
           {}
 
-        operator KindByte() const {  // implicit cast, add read checks here
+        operator KindByte() const {
+            /* add read checks you want here */
             return KIND_BYTE_RAW(cell);
         }
 
-        void operator=(KindByte right) {  // add write checks you want here
+        void operator=(KindByte right) {
+            /* add write checks you want here */
             KIND_BYTE_RAW(cell) = right;
         }
 
@@ -747,16 +750,19 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
             : cell (m_cast(Cell*, std::forward<T>(wrapper)))
         {}       // ^-- m_cast const Cell* for simplicity [1]
 
-        operator LiftByte() const {  // implicit cast, add read checks here
+        operator LiftByte() const {
+            /* add read checks you want here */
             return LIFT_BYTE_RAW(cell);
         }
 
-        void operator=(int right) {  // add write checks you want here
+        void operator=(int right) {
             assert(right >= 0 and right <= 255);
 
             Option(Heart) heart = Unchecked_Heart_Of(cell);
             if (right != BEDROCK_0 and not (right & NONQUASI_BIT))
                 assert(Any_Isotopic_Type(heart));  // has quasiforms/antiforms
+
+            /* add write checks you want here */
 
             LIFT_BYTE_RAW(cell) = right;
         }

@@ -231,6 +231,9 @@ INLINE Count Noquotify(Element* elem) {
             and mask != (  // PACK!
                 FLAG_HEART(TYPE_GROUP) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
             )
+            and mask != (  // TRASH!
+                FLAG_HEART(TYPE_RUNE) | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
+            )
         ));
 
         return stable;

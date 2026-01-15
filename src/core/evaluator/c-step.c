@@ -752,7 +752,7 @@ Bounce Stepper_Executor(Level* L)
       Get_Var_In_Scratch_To_Out(L, NO_STEPS)
     );
 
-    possibly(Not_Cell_Stable(OUT) or Is_Trash(As_Stable(OUT)));
+    possibly(Not_Cell_Stable(OUT));
 
     if (Get_Level_Flag(L, AFRAID_OF_GHOSTS) and Is_Ghost(OUT))
         Set_Cell_Flag(OUT, OUT_NOTE_SCARY_GHOST);  // avoid accidents [1]
@@ -1026,8 +1026,8 @@ Bounce Stepper_Executor(Level* L)
         panic ("Leading slash means execute FRAME! or ACTION! only");
     }
 
-    if (Is_Trash(out))  // checked second [1]
-        panic (Error_Bad_Word_Get(CURRENT, out));
+    if (Is_Trash(OUT))  // checked second [1] -- !!! REVIEW, out not unstable!
+        panic (Error_Bad_Word_Get(CURRENT, OUT));
 
     goto lookahead;
 

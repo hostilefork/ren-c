@@ -831,16 +831,22 @@ DECLARE_NATIVE(SQUARE_ROOT)
 //  "Tells you if default would overwrite a value (TRASH, NULL?, BLANK?)"
 //
 //      return: [logic!]
-//      value [any-stable?]
+//      ^value [any-value?]
 //  ]
 //
 DECLARE_NATIVE(VACANCY_Q)
 {
     INCLUDE_PARAMS_OF_VACANCY_Q;
 
-    Stable* v = ARG(VALUE);
+    Value* v = ARG(VALUE);
+    if (Any_Void(v) or Is_Trash(v))
+        return LOGIC_OUT(true);
 
-    return LOGIC_OUT(Is_Trash(v) or Is_Nulled(v) or Is_None(v));
+    require (
+      Stable* stable = Decay_If_Unstable(v)
+    );
+
+    return LOGIC_OUT(Is_Nulled(stable) or Is_None(stable));
 }
 
 

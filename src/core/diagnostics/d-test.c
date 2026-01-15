@@ -69,7 +69,7 @@
 //          block!  "Block of test numbers and failures"
 //          text!   "Message if INCLUDE_TEST_LIBREBOL_NATIVE not defined"
 //      ]
-//      value "Argument that may be useful for ad hoc tests"
+//      ^value "Argument that may be useful for ad hoc tests"
 //          [<end> any-value?]
 //  ]
 //

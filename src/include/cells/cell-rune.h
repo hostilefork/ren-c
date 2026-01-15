@@ -392,14 +392,14 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
 //
 
 #define Is_Tripwire_Core(v) \
-    Is_Cell_Space_With_Lift_Sigil((v), STABLE_ANTIFORM_2, SIGIL_0)
+    Is_Cell_Space_With_Lift_Sigil((v), UNSTABLE_ANTIFORM_1, SIGIL_0)
 
 #define Is_Tripwire(v) \
-    Is_Tripwire_Core(Possibly_Antiform(v))
+    Is_Tripwire_Core(Possibly_Unstable(v))
 
-INLINE Stable* Init_Tripwire_Untracked(Init(Stable) out) {
+INLINE Value* Init_Tripwire_Untracked(Init(Value) out) {
     Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base
-    Stably_Antiformize_Unbound_Fundamental(out);
+    Unstably_Antiformize_Unbound_Fundamental(out);
     assert(Is_Tripwire(out));
     return out;
 }
@@ -411,9 +411,10 @@ INLINE Stable* Init_Tripwire_Untracked(Init(Stable) out) {
     Init_Quasar(out)
 
 
-INLINE Stable* Init_Labeled_Trash(Init(Stable) out, const Symbol* label) {
+INLINE Value* Init_Labeled_Trash(Init(Value) out, const Symbol* label) {
     Init_Utf8_Non_String_From_Strand(out, TYPE_RUNE, label);
-    Stably_Antiformize_Unbound_Fundamental(out);
+    Unstably_Antiformize_Unbound_Fundamental(out);
+    assert(Is_Trash(out));
     return out;
 }
 

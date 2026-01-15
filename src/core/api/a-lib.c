@@ -1808,11 +1808,7 @@ bool API_rebLogical(
         panic (e);
     }
 
-    bool logic = Test_Conditional(eval) except (Error* e) {
-        panic (e);
-    }
-
-    return logic;
+    return Logical_Test(eval);
 }
 
 

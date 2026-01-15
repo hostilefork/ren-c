@@ -466,8 +466,8 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
     require (
       Stable* key = Decay_If_Unstable(SPARE)
     );
-    if (Is_Nulled(key) or Is_Trash(key))
-        panic ("Null or trash can't be used as key in MAP!");
+    if (Is_Logic(key))
+        panic ("LOGIC! can't be used as a key in MAP!");
 
     Copy_Cell(PUSH(), key);
 
@@ -490,8 +490,8 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
     require (
       Stable* val = Decay_If_Unstable(SPARE)
     );
-    if (Is_Nulled(val) or Is_Trash(val))
-        panic ("Null or trash can't be used as value in MAP!");
+    if (Is_Logic(val))
+        panic ("LOGIC! can't be used as value in MAP!");
 
     if (  // give label to action/frame if it's a word and doesn't have one
         Is_Word(TOP_STABLE)
@@ -863,7 +863,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
     Element* map = Element_ARG(LOCATION);
 
     const Stable* picker = ARG(PICKER);
-    assert(not Is_Logic(picker) and not Is_Trash(picker));
+    assert(not Is_Logic(picker));
 
     bool strict = false;  // case-preserving [1]
 

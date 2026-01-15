@@ -60,15 +60,17 @@
 
 // Shared helper for CONDITIONAL, OPTIONAL, and WHEN.
 //
+// !!! Because this decays it means COND, OPT, and WHEN can't be intrinsics.
+// It's probably worth it to figure out how to make them intrinsics by adding
+// special support for their needs.
+//
 // 1. We want things like (opt if ...) or (opt switch ...) to work, with the
 //    idea that you effectively adapt the GHOST!-returning control structure
 //    to be a NONE-returning control structure (without needing to come up
 //    with a different name).  It's worth the slight impurity of "reacting
 //    to GHOST! conditionally".  If OPT does it, they all might as well.
-
-// !!! Because this decays it means COND, OPT, and WHEN can't be intrinsics.
-// It's probably worth it to figure out how to make them intrinsics by adding
-// special support for their needs.
+//
+// 2. false makes GHOST! if COND, NONE if OPT, VETO if WHEN
 //
 static Result(bool) Return_Out_For_Conditional_Optional_Or_When(Level* level_)
 {
@@ -80,7 +82,7 @@ static Result(bool) Return_Out_For_Conditional_Optional_Or_When(Level* level_)
         return fail (Cell_Error(v));
 
     if (Is_Ghost(v))  // [1]
-        return false;  // makes GHOST! if COND, NONE if OPT, VETO if WHEN
+        return false;  // [2]
 
     Copy_Cell(OUT, v);  // save (in case pack!, we want to return the pack)
 
@@ -88,10 +90,7 @@ static Result(bool) Return_Out_For_Conditional_Optional_Or_When(Level* level_)
       Stable* stable = Decay_If_Unstable(v)
     );
 
-    require (
-      bool logic = Test_Conditional(stable)
-    );
-    return logic;  // false makes GHOST! if COND, NONE if OPT, VETO if WHEN
+    return Logical_Test(stable);  // [2]
 }
 
 
@@ -295,10 +294,7 @@ DECLARE_NATIVE(IF)
     Stable* condition = ARG(CONDITION);
     Element* branch = ARG(BRANCH);
 
-    require (
-      bool cond = Test_Conditional(condition)
-    );
-    if (not cond)
+    if (not Logical_Test(condition))
         return GHOST_OUT_UNBRANCHED;  // ghost is "light" void (triggers ELSE)
 
     return DELEGATE_BRANCH(OUT, branch, condition);  // branch semantics [A]
@@ -308,11 +304,11 @@ DECLARE_NATIVE(IF)
 //
 //  either: native [
 //
-//  "When CONDITION is NULL, run NULL-BRANCH, else run NON-NULL-BRANCH"
+//  "When CONDITION is NULL, run NULL-BRANCH, else run OKAY-BRANCH"
 //
-//      return: [any-value? heavy-null?]
+//      return: [any-value? ghost! heavy-null?]
 //      condition [any-stable?]
-//      @non-null-branch [any-branch?]
+//      @okay-branch [any-branch?]
 //      @null-branch [any-branch?]
 //  ]
 //
@@ -322,11 +318,9 @@ DECLARE_NATIVE(EITHER)
 
     Stable* condition = ARG(CONDITION);
 
-    require (
-      bool cond = Test_Conditional(condition)
-    );
-
-    Element* branch = cond ? ARG(NON_NULL_BRANCH) : ARG(NULL_BRANCH);
+    Element* branch = Logical_Test(condition)
+        ? ARG(OKAY_BRANCH)
+        : ARG(NULL_BRANCH);
 
     return DELEGATE_BRANCH(OUT, branch, condition);  // branch semantics [A]
 }
@@ -606,7 +600,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
   //    without that intermediate step.
   //
   // 2. The predicate allows you to return GHOST! and opt out of voting one
-  //    way or another.  Heavy voids will error on the Test_Conditional()
+  //    way or another.  (Heavy void can't decay for the Logical_Test())
 
     SUBLEVEL->executor = &Just_Use_Out_Executor;  // tunnel thru [1]
 
@@ -635,24 +629,22 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
     Set_Level_Flag(LEVEL, SAW_NON_VOID);
 
-    require (
-      bool cond = Test_Conditional(stable_condition)
-    );
+    bool logic = Logical_Test(stable_condition);
 
     switch (which) {
       case NATIVE_IS_ANY:
-        if (cond)
+        if (logic)
             goto return_spare;  // successful ANY clause returns the value
         break;
 
       case NATIVE_IS_ALL:
-        if (not cond)
+        if (not logic)
             goto return_null;  // failed ALL clause returns null
         Move_Cell(OUT, SPARE);  // leaves SPARE as fresh...good for next step
         break;
 
       case NATIVE_IS_NONE_OF:
-        if (cond)
+        if (logic)
             goto return_null;  // succeeding NONE-OF clause returns null
         break;
     }
@@ -873,23 +865,21 @@ DECLARE_NATIVE(CASE)
 
 } processed_result_in_spare: {  //////////////////////////////////////////////
 
-    // 1. We want this to panic:
-    //
-    //       >> foo: func [] [return case [okay ["a"]]]
-    //
-    //       >> append foo "b"
-    //       ** Access Error: CONST or iterative value (see MUTABLE): "a"
-    //
-    //    So the FUNC's const body evaluation led to CASE's argument block
-    //    being evaluated as const.  But we have to proxy that const flag
-    //    over to the block.
-
-    require (
-      Stable* spare = Decay_If_Unstable(SPARE)
-    );
-    require (
-      bool cond = Test_Conditional(spare)
-    );
+  // 1. We want this to panic:
+  //
+  //       >> foo: func [] [return case [okay ["a"]]]
+  //
+  //       >> append foo "b"
+  //       ** Access Error: CONST or iterative value (see MUTABLE): "a"
+  //
+  //    So the FUNC's const body evaluation led to CASE's argument block
+  //    being evaluated as const.  But we have to proxy that const flag
+  //    over to the block.
+  //
+  // 2. We want to make sure we don't skip over things in the CASE structure
+  //    that aren't branches.  But we only have to check when we skip: the
+  //    branch is checked by the switch() statement in CONTINUE_BRANCH() if
+  //    it is to be run.
 
     Element* branch = Copy_Cell_May_Bind(
         SCRATCH, At_Level(SUBLEVEL), Level_Binding(SUBLEVEL)
@@ -898,8 +888,11 @@ DECLARE_NATIVE(CASE)
 
     Fetch_Next_In_Feed(SUBLEVEL->feed);
 
-    if (not cond) {
-        if (not Any_Branch(branch))  // like IF [1]
+    require (
+      Stable* spare = Decay_If_Unstable(SPARE)
+    );
+    if (not Logical_Test(spare)) {
+        if (not Any_Branch(branch))  // CONTINUE_BRANCH does its own check [2]
             panic (Error_Bad_Value_Raw(branch));  // stable
 
         goto handle_next_clause;
@@ -907,7 +900,7 @@ DECLARE_NATIVE(CASE)
 
     STATE = ST_CASE_RUNNING_BRANCH;
     SUBLEVEL->executor = &Just_Use_Out_Executor;
-    return CONTINUE_BRANCH(OUT, branch, SPARE);
+    return CONTINUE_BRANCH(OUT, branch, SPARE);  // [2]
 
 } branch_result_in_out: {  ///////////////////////////////////////////////////
 
@@ -1122,11 +1115,7 @@ DECLARE_NATIVE(SWITCH)
         require (
           Stable* scratch = Decay_If_Unstable(SCRATCH)
         );
-        require (
-          bool cond = Test_Conditional(scratch)
-        );
-
-        if (not cond)
+        if (not Logical_Test(scratch))
             goto next_switch_step;
     }
 
@@ -1268,11 +1257,11 @@ DECLARE_NATIVE(DEFAULT)
         Get_Var_In_Scratch_To_Out(level_, steps)
     );
 
-    if (not Any_Void(OUT)) {
+    if (not (Any_Void(OUT) or Is_Trash(OUT))) {
         require (  // may need decay [2]
             Stable* out = Decay_If_Unstable(OUT)
         );
-        if (not (Is_Trash(out) or Is_Nulled(out) or Is_None(out)))
+        if (not (Is_Nulled(out) or Is_None(out)))
             return OUT;  // consider it a "value" [3]
     }
 

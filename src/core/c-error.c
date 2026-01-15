@@ -825,7 +825,7 @@ Error* Error_Need_Non_End(const Element* target) {
 //
 Error* Error_Bad_Word_Get(
     const Element* target,
-    const Stable* trash
+    const Value* trash
 ){
     assert(Is_Trash(trash));
 

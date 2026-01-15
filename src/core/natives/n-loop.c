@@ -1551,10 +1551,7 @@ DECLARE_NATIVE(EVERY)
     require (
       Stable* spare = Decay_If_Unstable(SPARE)
     );
-    require (
-      bool cond = Test_Conditional(spare)
-    );
-    if (not cond) {
+    if (not Logical_Test(spare)) {
         Init_Nulled(OUT);
     }
     else if (Is_Cell_Erased(OUT) or not Is_Light_Null(OUT)) {
@@ -1722,7 +1719,7 @@ DECLARE_NATIVE(REMOVE_EACH)
   } process_body_result: {  //////////////////////////////////////////////////
 
     // The only signals allowed are OKAY, NULL, and VOID.  This likely catches
-    // more errors than allowing any Test_Conditional() value to mean "remove"
+    // more errors than allowing any Logical_Test() value to mean "remove"
     // (e.g. use DID MATCH or NOT MATCH instead of just MATCH).
     //
     // 1. The reason VOID is tolerated is because CONTINUE with no argument
@@ -2484,13 +2481,10 @@ DECLARE_NATIVE(INSIST)
     if (Any_Void(OUT))
         goto loop_again;  // skip ghosts [2]
 
-    require (  // decay for truth test [3]
-      Stable* out = Decay_If_Unstable(OUT)
-    );
     require (
-      bool cond = Test_Conditional(out)
+      Stable* stable_out = Decay_If_Unstable(OUT)
     );
-    if (cond)
+    if (Logical_Test(stable_out))
         return OUT_BRANCHED;
 
     goto loop_again;  // not truthy, keep going
@@ -2552,16 +2546,14 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
     require (
       Stable* spare = Decay_If_Unstable(SPARE)
     );
-    require (
-      bool cond = Test_Conditional(spare)
-    );
+    bool logic = Logical_Test(spare);
 
     if (is_while) {
-        if (not cond)
+        if (not logic)
             goto return_out;  // falsey condition => last body result
     }
     else {  // is_until
-        if (cond)
+        if (logic)
             goto return_out;  // truthy condition => last body result
     }
 

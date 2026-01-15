@@ -61,7 +61,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
     const Stable* action,  // need ->binding, so can't just be a Phase*
     StackIndex lowest_stackindex,  // caller can add refinements
     Option(Binder*) binder,
-    Option(const Stable*) placeholder
+    Option(const Value*) placeholder
 ){
     StackIndex highest_stackindex = TOP_INDEX;
 
@@ -178,7 +178,7 @@ ParamList* Make_Varlist_For_Action(
     const Stable* action, // need ->binding, so can't just be a Phase*
     StackIndex lowest_stackindex,
     Option(Binder*) binder,
-    Option(const Stable*) placeholder
+    Option(const Value*) placeholder
 ){
     ParamList* exemplar = Make_Varlist_For_Action_Push_Partials(
         action,

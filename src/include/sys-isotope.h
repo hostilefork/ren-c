@@ -141,7 +141,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
         break; }
 
       case TYPE_RUNE:  // TRASH!
-        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]
+        LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
 
       case TYPE_COMMA:  // GHOST!
@@ -226,7 +226,10 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
             goto finished_no_value;
 
         if (Is_Ghost(v))
-            return fail ("Cannot decay GHOST! to a value");
+            return fail ("Cannot decay GHOST! to a stable value");
+
+        if (Is_Trash(v))
+            return fail ("Cannot decay TRASH! to a stable value");
 
         goto finished;
     }
@@ -280,6 +283,9 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
 
     if (Is_Lifted_Ghost(first))
         return fail ("PACK! cannot decay GHOST! in first slot");
+
+    if (Is_Lifted_Trash(first))
+        return fail ("PACK! cannot decay TRASH! in first slot");
 
     assert(not Is_Lifted_Failure(first));  // we ruled these out already
 

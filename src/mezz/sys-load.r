@@ -557,7 +557,7 @@ bind construct [
         args: '(args)  ; variable same name as field, trips up binding
     ]
 
-    if (not trash? get $script-pre-load-hook) and (match [file! url!] source) [
+    if (not trash? ^script-pre-load-hook) and (match [file! url!] source) [
         ;
         ; !!! It seems we could/should pass system.script here, and the
         ; filtering of source as something not to notify about would be the
@@ -631,7 +631,7 @@ bind construct [
 export*: func [
     "Add words to module's (exports: []) list, return value if assigned"
 
-    return: [any-stable?]
+    return: [any-value?]
     where "Specialized for each module via EXPORT"
         [module!]
     @what [word!: /word!: group!: group! block!]

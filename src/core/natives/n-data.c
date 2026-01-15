@@ -1326,17 +1326,17 @@ DECLARE_NATIVE(NONE_Q)
 //
 //  tripwire?: native:intrinsic [
 //
-//  "Tells you if argument is an ~ antiform, e.g. an tripwire TRASH! form"
+//  "Tells you if argument is an ~ antiform, e.g. a tripwire TRASH! form"
 //
 //      return: [logic!]
-//      value '[<cond> any-stable?]
+//      value '[<cond> any-value?]
 //  ]
 //
 DECLARE_NATIVE(TRIPWIRE_Q)
 {
     INCLUDE_PARAMS_OF_TRIPWIRE_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     return LOGIC_OUT(Is_Tripwire(v));
 }
