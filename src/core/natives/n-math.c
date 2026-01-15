@@ -324,7 +324,7 @@ DECLARE_NATIVE(ROUND)
 //
 //  "Returns OKAY if the number is even"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [integer! time!]
 //  ]
 //
@@ -830,7 +830,7 @@ DECLARE_NATIVE(SQUARE_ROOT)
 //
 //  "Tells you if default would overwrite a value (TRASH, NULL?, BLANK?)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [any-stable?]
 //  ]
 //
@@ -876,7 +876,7 @@ DECLARE_NATIVE(VACANCY_Q)
 //
 //  "TRUE if the values are equal"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value1 [any-stable? <void>]
 //      ^value2 [any-stable? <void>]
 //      :relax "Use less strict comparison rules (e.g. caseless comparison)"
@@ -929,7 +929,7 @@ DECLARE_NATIVE(EQUAL_Q)
 //
 //  "TRUE if the first value is less than the second value"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value1 [fundamental?]  ; !!! Don't allow antiforms? [1]
 //      value2 [fundamental?]
 //  ]
@@ -994,7 +994,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_Element)
 //
 //  "TRUE if the values are identical"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value1 [any-stable? <void>]
 //      ^value2 [any-stable? <void>]
 //  ]
@@ -1068,7 +1068,7 @@ DECLARE_NATIVE(SAME_Q)
 //
 //  "TRUE if the first value is greater than the second value"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value1 [fundamental?]
 //      value2 [fundamental?]
 //  ]
@@ -1094,7 +1094,7 @@ DECLARE_NATIVE(GREATER_Q)
 //
 //  "TRUE if the first value is equal to or less than the second value"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value1 [fundamental?]
 //      value2 [fundamental?]
 //  ]
@@ -1120,7 +1120,7 @@ DECLARE_NATIVE(EQUAL_OR_LESSER_Q)
 //
 //  "TRUE if the first value is greater than or equal to the second value"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value1 [fundamental?]
 //      value2 [fundamental?]
 //  ]
@@ -1221,7 +1221,7 @@ DECLARE_NATIVE(ZEROIFY)
 //
 //  "Returns TRUE if the value is negative"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [any-number? time! pair!]
 //  ]
 //
@@ -1241,7 +1241,7 @@ DECLARE_NATIVE(NEGATIVE_Q)
 //
 //  "Returns TRUE if the value is positive"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [any-number? time! pair!]
 //  ]
 //
@@ -1261,7 +1261,7 @@ DECLARE_NATIVE(POSITIVE_Q)
 //
 //  "Returns TRUE if the value is zero (for its datatype)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [any-scalar? pair! char?]
 //  ]
 //

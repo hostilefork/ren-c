@@ -167,7 +167,7 @@ net-log: lambda [txt :C :S][txt]
 net-trace: proc [
     "Switch between using a no-op or a print operation for net-tracing"
 
-    val [logic?]
+    val [logic!]
 ][
     either val [
         hijack net-log/ func [txt :C :S][

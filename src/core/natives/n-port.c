@@ -207,7 +207,7 @@ DECLARE_NATIVE(QUERY)
 //
 //  "Change mode or control for port or file, and return success status"  ; [1]
 //
-//      return: [logic?]
+//      return: [logic!]
 //      target [port! file!]
 //      field [<cond> word!]
 //      value

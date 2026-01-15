@@ -41,7 +41,7 @@ the %platforms.r file for this kludgey-yet-longstanding list.
 The only example was this:
 
     options: [
-        odbc-requires-ltdl [logic?] ()
+        odbc-requires-ltdl [logic!] ()
     ]
 
 I don't know how it was supposed to work, but the idea of an extension being

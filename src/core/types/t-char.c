@@ -422,7 +422,7 @@ DECLARE_NATIVE(TO_CHAR)
 //
 //  "Test if a value is the #{00} binary BLOB!, representing codepoint 0"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [element?]
 //  ]
 //

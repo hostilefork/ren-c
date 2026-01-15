@@ -346,7 +346,7 @@ DECLARE_NATIVE(REQUIRE)
 //
 //  "Tells you if argument is an FAILURE! antiform, doesn't panic if it is"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //

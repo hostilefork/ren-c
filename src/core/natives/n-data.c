@@ -154,7 +154,7 @@ DECLARE_NATIVE(BIND)
 //
 //  "Return whether a datatype is bindable or not"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [<cond> any-stable?]  ; takes antiforms for fail, good idea?
 //  ]
 //
@@ -395,7 +395,7 @@ DECLARE_NATIVE(USE)
 //
 //  "Test if an argument is a chain with a leading space"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -418,7 +418,7 @@ DECLARE_NATIVE(REFINEMENT_Q)
 //
 //  "Test if an argument is a chain with a word and trailing space"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -441,7 +441,7 @@ DECLARE_NATIVE(SET_WORD_Q)
 //
 //  "Test if argument is a path like /WORD: (for setting action variables)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -464,7 +464,7 @@ DECLARE_NATIVE(SET_RUN_WORD_Q)
 //
 //  "Test if argument is a path like /WORD"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -491,7 +491,7 @@ DECLARE_NATIVE(RUN_WORD_Q)
 //
 //  "Test if an argument is a chain with a leading space and a word"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -514,7 +514,7 @@ DECLARE_NATIVE(GET_WORD_Q)
 //
 //  "Test if an argument is a chain with a tuple and trailing space"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -537,7 +537,7 @@ DECLARE_NATIVE(SET_TUPLE_Q)
 //
 //  "Test if an argument is a chain with a leading space and a tuple"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -560,7 +560,7 @@ DECLARE_NATIVE(GET_TUPLE_Q)
 //
 //  "Test if an argument is a chain with a group and trailing space"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -583,7 +583,7 @@ DECLARE_NATIVE(SET_GROUP_Q)
 //
 //  "Test if an argument is a chain with a leading space and a group"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -606,7 +606,7 @@ DECLARE_NATIVE(GET_GROUP_Q)
 //
 //  "Test if an argument is a chain with a block and trailing space"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -629,7 +629,7 @@ DECLARE_NATIVE(SET_BLOCK_Q)
 //
 //  "Test if an argument is a chain with a leading space and a block"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -652,7 +652,7 @@ DECLARE_NATIVE(GET_BLOCK_Q)
 //
 //  "Test if an argument is a 2-element chain with a trailing space"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -675,7 +675,7 @@ DECLARE_NATIVE(ANY_SET_VALUE_Q)
 //
 //  "Test if an argument is a 2-element chain with a leading space"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> any-value?]
 //  ]
 //
@@ -698,7 +698,7 @@ DECLARE_NATIVE(ANY_GET_VALUE_Q)
 //
 //  "Test if an argument is an QUASI form of word"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -721,7 +721,7 @@ DECLARE_NATIVE(QUASI_WORD_Q)
 //
 //  "Test if an argument is a rune with one codepoint (or #{00} NUL blob)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -744,7 +744,7 @@ DECLARE_NATIVE(CHAR_Q)
 //
 //  "Test if an argument is quoted word"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -769,7 +769,7 @@ DECLARE_NATIVE(LIT_WORD_Q)
 //
 //  "Test if an argument is a quoted path"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -792,7 +792,7 @@ DECLARE_NATIVE(LIT_PATH_Q)
 //
 //  "Test if a value type always produces itself in the evaluator"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> any-value?]
 //  ]
 //
@@ -1025,7 +1025,7 @@ DECLARE_NATIVE(PROXY_EXPORTS)
 //
 //  "non-null if a function that gets first argument before the call"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      frame [<unrun> frame!]
 //  ]
 //
@@ -1112,7 +1112,7 @@ DECLARE_NATIVE(VANISHABLE)
 //
 //  "Return if a function naturally suppresses GHOST! to HEAVY VOID conversion"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      action [<unrun> frame!]
 //  ]
 //
@@ -1181,7 +1181,7 @@ DECLARE_NATIVE(FREE)
 //
 //  "Tells if data has been released with FREE"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value "Returns false if value wouldn't be FREEable (e.g. WORD!)"
 //          [<cond> any-stable?]
 //  ]
@@ -1222,7 +1222,7 @@ DECLARE_NATIVE(FREE_Q)
 //
 //  "Return whether or not the underlying data of one value aliases another"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value1 [any-series?]
 //      value2 [any-series?]
 //  ]
@@ -1240,7 +1240,7 @@ DECLARE_NATIVE(ALIASES_Q)
 //
 //  "Tells you if the argument (taken as meta) is storable in a variable"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -1264,7 +1264,7 @@ DECLARE_NATIVE(ANY_STABLE_Q)
 //
 //  "Accepts absolutely any argument state (unstable antiforms included)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value  '[any-value?]    ; recursion allowed due to '[...], unchecked!
 //  ]
 //
@@ -1288,7 +1288,7 @@ DECLARE_NATIVE(ANY_VALUE_Q)  // synonym for internal concept of ANY_ATOM
 //
 //  "!!! Temporary !!! attempt to answer if [word ^word $word @word]"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> any-stable?]
 //  ]
 //
@@ -1309,7 +1309,7 @@ DECLARE_NATIVE(ANY_WORD_Q)
 //
 //  "Tells you if argument is an ~[]~ antiform, e.g. an empty splice"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> any-stable?]
 //  ]
 //
@@ -1328,7 +1328,7 @@ DECLARE_NATIVE(NONE_Q)
 //
 //  "Tells you if argument is an ~ antiform, e.g. an tripwire TRASH! form"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> any-stable?]
 //  ]
 //
@@ -1368,7 +1368,7 @@ DECLARE_NATIVE(NOOP)  // lack of a hyphen common, e.g. jQuery.noop
 //
 //  "Tells you if argument is a quasiform space (~)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> any-stable?]
 //  ]
 //
@@ -1391,7 +1391,7 @@ DECLARE_NATIVE(QUASAR_Q)
 //
 //  "Is VALUE the RUNE! representing a single space character [_]"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> any-stable?]
 //  ]
 //
@@ -1414,7 +1414,7 @@ DECLARE_NATIVE(SPACE_Q)
 //
 //  "Is VALUE a RUNE! consisting only of spaces [_ __ ____ _______ ...]"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> any-stable?]
 //  ]
 //
@@ -1474,7 +1474,7 @@ DECLARE_NATIVE(HEAVY)
 //
 //  "Determine if argument is the heavy form of NULL, ~(~null~)~ antiform"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -1543,7 +1543,7 @@ DECLARE_NATIVE(DECAY)
 //
 //  "Answer if a value is decayable"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //

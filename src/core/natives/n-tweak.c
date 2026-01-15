@@ -133,7 +133,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     if (Any_Lifted(picker_arg)) {  // literal x.'y or x.('y) => 'y
         Known_Stable_Unlift_Cell(picker_arg);
 
-        if (Is_Keyword(picker_arg) or Is_Trash(picker_arg))
+        if (Is_Logic(picker_arg) or Is_Trash(picker_arg))
             return Error_User(
                 "PICK with keyword or trash picker never allowed"
             );
@@ -267,7 +267,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         if (Any_Lifted(picker_arg)) {  // literal x.'y or x.('y) => 'y
             Known_Stable_Unlift_Cell(picker_arg);
 
-            if (Is_Keyword(picker_arg) or Is_Trash(picker_arg))
+            if (Is_Logic(picker_arg) or Is_Trash(picker_arg))
                 return Error_User(
                     "PICK with keyword or trash picker never allowed"
                 );

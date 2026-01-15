@@ -79,9 +79,10 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
   //    functions would need to accept them as parameters.  That leads to a
   //    mess--trying to handle unstable pack antiforms via meta-parameters.)
   //
-  // 3. All WORD!s are allowed to have quasiforms, but only special ones are
-  //    allowed to be antiform "keywords".  Others are reserved for future
-  //    usage, though dialects can use quasi words however they want.
+  // 3. All WORD!s are allowed to have quasiforms, but only NULL and OKAY are
+  //    allowed to be antiforms.  Reserving others for future use had only
+  //    nebulous benefit and created uncertainty, while having just those two
+  //    states provides a solid LOGIC! type (vs. type constraint).
 
     Option(Heart) heart = Heart_Of(elem);
 
@@ -125,16 +126,15 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
             CELL_FLAG_TYPE_SPECIFIC_A | CELL_FLAG_TYPE_SPECIFIC_B
         );
         switch (opt Word_Id(elem)) {
-          case SYM_NULL:
-            Set_Cell_Flag(elem, KEYWORD_IS_NULL);
+          case SYM_OKAY:
+            Set_Cell_Flag(elem, LOGIC_IS_OKAY);
             break;
 
-          case SYM_OKAY:
-          case SYM_NAN:
+          case SYM_NULL:
             break;
 
           default:
-            return fail (Error_Illegal_Keyword_Raw(elem));  // limited [3]
+            return fail (Error_Illegal_Anti_Word_Raw(elem));  // limited [3]
         }
         Unbind_Any_Word(elem);  // antiforms can't be bound [2]
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]

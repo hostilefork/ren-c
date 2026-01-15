@@ -119,7 +119,7 @@ backtrace*: func [
     level [<opt> integer!]
         "Stack level to return frame for (void to list)"
     :limit "Max number of frames (pending and active), false for no limit"
-        [logic? integer!]
+        [logic! integer!]
     :brief "Do not list depths, just function labels on one line"
 ][
     if level [

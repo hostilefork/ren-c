@@ -318,7 +318,7 @@ DECLARE_NATIVE(UNLIFT_P)
 //
 //  "Tells you whether argument is a stable or unstable antiform"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //      :type
 //  ]
@@ -458,7 +458,7 @@ DECLARE_NATIVE(SPREAD)
 //
 //  "Tells you if argument is a parameter pack (antiform block)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -477,7 +477,7 @@ DECLARE_NATIVE(PACK_Q)
 //
 //  "Is VALUE 'unlifted bedrock' (antiform PACK! containing one unlifted item)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -496,7 +496,7 @@ DECLARE_NATIVE(BEDROCK_Q)
 //
 //  "Tells you if argument is an undecayable PACK!, with one unlifted WORD!"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //

@@ -30,7 +30,7 @@
 //
 //  "Detect whether argument is the ~(veto)~ dual"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -49,7 +49,7 @@ DECLARE_NATIVE(VETO_Q)
 //
 //  "Test if VALUE is the ~(_)~ bedrock representation, or $VAR holding it"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      @value [group! $word! $tuple!]
 //  ]
 //

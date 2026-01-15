@@ -2183,7 +2183,7 @@ DECLARE_NATIVE(MAP)
 //          ghost!           "if body never ran"
 //      ]
 //      count "Repetitions (true loops infinitely, false doesn't run)"
-//          [<opt> any-number? logic?]
+//          [<opt> any-number? logic!]
 //      body [<cond> <unrun> <const> block! frame!]  ; [A]
 //  ]
 //

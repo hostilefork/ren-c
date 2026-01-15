@@ -101,7 +101,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Is_Blob)
 //      return: [
 //          blob! "Default return is double format (64 bits, 53-bit precision)"
 //      ]
-//      arg [decimal!]  ; REVIEW: ~NaN~, ~inf~ as antiforms
+//      arg [decimal!]  ; REVIEW: [~(NaN)~ ~(+inf)~ ~(-inf)~] hot potatoes
 //      options "[single] -> Use single format (32 bits, 24-bit precision)"
 //          [block!]
 //  ]
@@ -143,7 +143,7 @@ DECLARE_NATIVE(ENCODE_IEEE_754) {
 //  decode-IEEE-754: native [
 //      "Decode binary blob as decimal according to the IEEE-754 standard"
 //
-//      return: [decimal!]  ; review ~NaN~, ~inf~ as antiforms
+//      return: [decimal!]  ; REVIEW: [~(NaN)~ ~(+inf)~ ~(-inf)~] hot potatoes
 //      blob [blob!]
 //      options "[single] -> Use single format (32 bits, 24-bit precision)"
 //          [block!]

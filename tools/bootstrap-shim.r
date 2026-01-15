@@ -792,7 +792,6 @@ modernize-typespec: func3 [
         any-stable?     any-stable!
         any-string?     any-string!
         element?        any-stable!  ; doesn't distinguish
-        logic?          logic!
         <variadic>      <...>
         boolean?        word!
         onoff?          word!

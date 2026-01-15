@@ -46,7 +46,7 @@
 //     == [a b c ~null~]
 //
 //     >> antiform: ~null~  ; quasiforms evaluates to their antiforms
-//     == \~null~\  ; antiform (keyword!)
+//     == \~null~\  ; antiform (logic!)
 //
 //     >> append [a b c] antiform
 //     ** PANIC: ...
@@ -355,7 +355,7 @@ INLINE Element* Reify(Value* v) {
 //
 
 INLINE Stable* Stably_Antiformize_Unbound_Fundamental_Core(Stable* v) {
-    assert(Heart_Of(v) != TYPE_WORD);  // no KEYWORD_IS_NULL handling
+    assert(Heart_Of(v) != TYPE_WORD);  // no LOGIC_IS_OKAY handling
     assert(Any_Isotopic_Type(Heart_Of(v)));
     assert(LIFT_BYTE(v) == NOQUOTE_3);
     assert(Is_Stable_Antiform_Kind_Byte(KIND_BYTE(v)));
@@ -366,7 +366,7 @@ INLINE Stable* Stably_Antiformize_Unbound_Fundamental_Core(Stable* v) {
 }
 
 INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
-    assert(Heart_Of(v) != TYPE_WORD);  // no KEYWORD_IS_NULL handling
+    assert(Heart_Of(v) != TYPE_WORD);  // no LOGIC_IS_OKAY handling
     assert(Any_Isotopic_Type(Heart_Of(v)));
     assert(LIFT_BYTE_RAW(v) == NOQUOTE_3);
     assert(not Is_Stable_Antiform_Kind_Byte(KIND_BYTE(v)));
@@ -381,6 +381,7 @@ INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
 
 #define Unstably_Antiformize_Unbound_Fundamental(v) \
     Unstably_Antiformize_Unbound_Fundamental_Core(Possibly_Unstable(v))
+
 
 //=//// LIFTING ///////////////////////////////////////////////////////////=//
 

@@ -1024,7 +1024,7 @@ Bounce Action_Executor(Level* L)
 
   ensure_typecheckers_dont_overwrite_output: {
 
-  // If a NATIVE:INTRINSIC returns [logic?] then it is supposed to return
+  // If a NATIVE:INTRINSIC returns [logic!] then it is supposed to return
   // that logic by means of either `nullptr` or `BOUNCE_OKAY`, as opposed
   // to disrupting the output cell.  We can check enforce that even if
   // not being called intrinsically, to catch bugs in the typecheckers.

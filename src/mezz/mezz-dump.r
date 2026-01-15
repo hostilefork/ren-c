@@ -96,7 +96,7 @@ bind construct [
     return ()
 ])
 
-contains-newline: func [return: [logic?] pos [block! group!]] [
+contains-newline: func [return: [logic!] pos [block! group!]] [
     while [pos] [
         any [
             new-line? pos

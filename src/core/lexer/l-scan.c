@@ -1260,7 +1260,7 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
 
     while (not transcode->at) {
         if (L->feed->p == nullptr) {  // API null, can't be in feed...
-            Init_Quasi_Null(PUSH());  // ...so use a quasi null
+            Init_Lifted_Null(PUSH());  // ...so use a quasi null
             Set_Cell_Flag(TOP, FEED_HINT_ANTIFORM);
             if (Get_Scan_Executor_Flag(L, NEWLINE_PENDING)) {
                 Clear_Scan_Executor_Flag(L, NEWLINE_PENDING);

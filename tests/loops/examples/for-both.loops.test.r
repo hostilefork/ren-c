@@ -68,7 +68,7 @@
   ;
   ; 2. The strategy here is that we want to LIFT anything that a THEN would
   ;    react to, leaving "light void" (ghost!) and "light null" (the ~null~
-  ;    keyword!) in their unlifted states.  This lets them serve as the signal
+  ;    logic!) in their unlifted states.  This lets them serve as the signal
   ;    for breaking or opting out of contributing to the final loop result:
   ;
   ;        >> lift ()
@@ -81,7 +81,7 @@
   ;        == ~null~
   ;
   ;        >> null then lift/
-  ;        == \~null~\  ; antiform (keyword!)
+  ;        == \~null~\  ; antiform (logic!)
   ;
   ; 3. In order to "erase" the contribution of loops that don't run, we have
   ;    to work around the fact that FOR-EACH and LIFT aren't marked as being

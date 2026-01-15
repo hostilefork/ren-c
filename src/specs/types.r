@@ -250,7 +250,7 @@ comma!        "separator between full evaluations"
 
 
 word!       "evaluates a variable or action"
-~keyword!~  "special constant values (e.g. ~null~, ~okay~)"
+~logic!~    "either ~okay~, or ~null~ (the only 'falsey' state)"
             (payload1)
             [any-utf8? any-sequencable?]
 

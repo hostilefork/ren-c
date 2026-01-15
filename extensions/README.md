@@ -166,5 +166,5 @@ extension has for further configuring it.  This hasn't been really hammered
 out yet... but it was thought to look something like:
 
     options: [
-        option-name [word! logic?] ()
+        option-name [word! logic!] ()
     ]

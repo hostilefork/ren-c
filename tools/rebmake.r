@@ -63,7 +63,7 @@ map-files-to-local: func [
 ]
 
 ends-with?: func [
-    return: [logic?]
+    return: [logic!]
     s [any-string?]
     suffix [<opt> any-string?]
 ][

@@ -2,8 +2,8 @@
 (logic? okay)
 (logic? null)
 (not logic? 1)
-(keyword! = type of okay)
-(null = try type of null)
+(logic! = type of okay)
+(logic! = type of null)
 
 ((on? 'on) = true? 'true)
 ((on? 'off) = true? 'false)

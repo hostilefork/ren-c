@@ -818,7 +818,7 @@ pe-format: context [
     ]
 
     parse-exe: func [
-        return: [logic?]
+        return: [logic!]
         exe-data [blob!]
     ][
         reset

@@ -1113,7 +1113,7 @@ DECLARE_NATIVE(JS_NATIVE)
 //
 //  "Evaluate JavaScript code, give back types reb.Box() supports, else TRASH!"
 //
-//      return: [trash! <null> logic? integer! text!]
+//      return: [trash! <null> logic! integer! text!]
 //      source [text!]
 //      :local "Evaluate in local scope (as opposed to global)"
 //  ]
@@ -1221,7 +1221,7 @@ DECLARE_NATIVE(STARTUP_P)
 //  "Internal debug tool for seeing what's going on in JavaScript dispatch"
 //
 //      return: ~
-//      enable [logic?]
+//      enable [logic!]
 //  ]
 //
 DECLARE_NATIVE(JS_TRACE)

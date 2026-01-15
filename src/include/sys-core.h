@@ -651,13 +651,11 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "cells/cell-series.h"
 #include "cells/cell-array.h"
 
-#include "cells/cell-comma.h"  // Is_Ghost_Or_Void() references nihil block antiform
-
+#include "cells/cell-comma.h"  // includes GHOST! atm
+#include "cells/cell-void.h"
 
 #include "cells/cell-word.h"  // needs to know about QUOTED! for binding
-#include "cells/cell-void.h"
-#include "cells/cell-nulled.h"  // ~null~ is an antiform word
-#include "cells/cell-logic.h"  // TRUE, FALSE, YES, NO, ON, OFF are words
+#include "cells/cell-logic.h"  // ~okay~ and ~null~ WORD! antiforms
 
 #include "cells/cell-string.h"
 #include "cells/cell-binary.h"

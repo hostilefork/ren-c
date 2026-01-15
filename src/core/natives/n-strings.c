@@ -55,7 +55,7 @@ static bool Check_Char_Range(const Stable* val, Codepoint limit)
 //
 //  "Returns TRUE if value or string is in ASCII character range (below 128)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [any-string? char? integer!]
 //  ]
 //
@@ -72,7 +72,7 @@ DECLARE_NATIVE(ASCII_Q)
 //
 //  "Returns TRUE if value or string is in Latin-1 character range (below 256)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [any-string? char? integer!]
 //  ]
 //

@@ -169,7 +169,7 @@
     parse3 [~foo~ ~foo~] [some foo]
 )
 ~bad-antiform~ !! (
-    foo: ~NaN~
+    foo: ~foo~
     parse3 [~foo~ ~foo~] [some foo]
 )
 

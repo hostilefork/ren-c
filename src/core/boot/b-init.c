@@ -356,7 +356,7 @@ static void Init_Root_Vars(void)
   // keep array alive via stable API handle (META PACK, not PACK)
 
     Source* a = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
-    Init_Quasi_Null(Stub_Cell(a));
+    Init_Quasi_Null(u_cast(Element*, Stub_Cell(a)));
     Freeze_Source_Deep(a);
     known_nullptr(g_1_quasi_null_array) = a;
     known_nullptr(g_lifted_heavy_null) = Init_Lifted_Pack(Alloc_Value(), a);
@@ -364,11 +364,11 @@ static void Init_Root_Vars(void)
 
 } make_other_things: {
 
-    known_nullptr(g_feed_null_substitute) = Init_Quasi_Null(Alloc_Value());
+    known_nullptr(g_feed_null_substitute) = Init_Lifted_Null(Alloc_Value());
     Set_Cell_Flag(g_feed_null_substitute, FEED_HINT_ANTIFORM);
     Protect_Cell(g_feed_null_substitute);
 
-    known_nullptr(g_quasi_null) = Init_Quasi_Null(Alloc_Value());
+    known_nullptr(g_quasi_null) = Init_Lifted_Null(Alloc_Value());
     Protect_Cell(g_quasi_null);
 
     known_nullptr(g_tripwire) = Init_Tripwire(Alloc_Value());

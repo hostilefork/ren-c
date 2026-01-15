@@ -333,7 +333,7 @@
 (equal? same? '/a first [a:] same? first [a:] '/a)
 ; reflexivity
 (same? first [a:] first [a:])
-; logic? values
+; logic! values
 (same? okay okay)
 (same? null null)
 (not same? okay null)

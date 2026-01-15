@@ -1355,7 +1355,7 @@ DECLARE_NATIVE(ENCODE_UTF_8) {
 //  decode-UTF-8: native [
 //      "Decode (and validate) bytes as text according to the UTF-8 standard"
 //
-//      return: [text!]  ; review ~NaN~, ~inf~ as antiforms
+//      return: [text!]  ; REVIEW: [~(NaN)~ ~(+inf)~ ~(-inf)~] hot potatoes
 //      blob [blob!]
 //      options "TBD: allow CR (off by default), other options?"
 //          [block!]

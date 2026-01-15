@@ -7,7 +7,7 @@
 //=////////////////////////////////////////////////////////////////////////=//
 //
 // Copyright 2012 REBOL Technologies
-// Copyright 2012-2025 Ren-C Open Source Contributors
+// Copyright 2012-2026 Ren-C Open Source Contributors
 // REBOL is a trademark of REBOL Technologies
 //
 // See README.md and CREDITS.md for more information.
@@ -40,13 +40,154 @@
 //
 //   https://forum.rebol.info/t/flexible-logic-system-terminology/2252
 //
+// Null has another application, as a signal for "soft failure", for instance
+// (find [c d] 'e) is null.  It is treated as a "branch inhibitor" by control
+// constructs like IF.
+//
+// The representation for nulls is the antiform of the WORD! "null":
+//
+//    >> find [c d] 'e
+//    == \~null~\  ; antiform
+//
+// This choice conveniently fits with the rule that nulls should not be able
+// to be stored in blocks (as no antiforms can be).  Greater safety comes from
+// catching potential mistakes with this property:
+//
+//    >> append [a b] find [c d] 'e
+//    ** Error: Cannot put ~null~ antiforms in blocks
+//
+// If a no-op is desired in this situation, COND can be used to convert the
+// null to a GHOST!:
+//
+//    >> cond find [c d] 'e
+//    == \~,~\  ; antiform (ghost!) "void"
+//
+//    >> append [a b] cond find [c d] 'e
+//    == \~null~\  ; antiform
+//
+// OPT can convert the NULL to a NONE, which "opts-in with nothing":
+//
+//    >> append [a b] opt find [c d] 'e
+//    == [a b]
+//
 //=//// NOTES /////////////////////////////////////////////////////////////=//
 //
-// * Despite Rebol's C heritage, the INTEGER! 0 is purposefully not "falsey".
+// A. In the libRebol API, a nulled RebolValue* actually uses C's concept of
+//    a null pointer to represent the optional state.  By promising this
+//    is the case, clients of the API can write `if (value)` or `if (!value)`
+//    as tests for the null state...with no need to release cell handles
+//    for nulls.  Hence there is no `isRebolNull()` API.
+//
+//    HOWEVER: The definition which must be used is `nullptr` and not C's
+//    macro for NULL, because NULL may just be defined as just the integer 0.
+//    This can confuse variadics which won't treat NULL as a pointer.
+//
+// B. Despite Rebol's C heritage, INTEGER! 0 is purposefully not "falsey".
 //
 
 
-//=//// CANON CONDITIONAL LOGIC [~NULL~ ~OKAY~] ///////////////////////////=//
+//=//// LOGIC INITIALIZATION AND EXTRACTION //////////////////////////////=//
+//
+// Null testing is done often enough that it's worth being able to do that
+// test only via masking the header bits of a cell, without having to look
+// at the underlying Symbol ID to confirm it is SYM_NULL or SYM_OKAY.  So
+// we use a dedicated header flag applicable to LOGIC! cells.
+//
+// 1. This creates a bit of potential for mistakes when constructing LOGIC!
+//    cells, as you can't just change the LIFT_BYTE() of a WORD!.  But this
+//    is true of all antiforms--this is why producing quasiforms and antiforms
+//    are forced through chokepoints like Coerce_To_Antiform().
+//
+
+#define CELL_FLAG_LOGIC_IS_OKAY  CELL_FLAG_TYPE_SPECIFIC_A  // [1]
+
+INLINE Stable* Init_Logic_Untracked(Init(Stable) out, bool logic) {
+    return Init_Word_Untracked(
+        out,
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2)
+            | (logic ? CELL_FLAG_LOGIC_IS_OKAY : 0),
+        logic ? CANON(OKAY) : CANON(NULL)
+    );
+}
+
+#define Init_Logic(out,flag) \
+    TRACK(Init_Logic_Untracked((out), (flag)))
+
+#define Init_Nulled(out) /* name helps avoid confusion [B] */ \
+    TRACK(Init_Word_Untracked( \
+        (out), \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | (not CELL_FLAG_LOGIC_IS_OKAY),  \
+        CANON(NULL)))
+
+#define Init_Lifted_Null(out) \
+    Init_Quasi_Word(Possibly_Unstable(out), CANON(NULL))
+
+#define Init_Quasi_Null(out) \
+    Init_Quasi_Word(Known_Element(out), CANON(NULL))
+
+
+#define Init_Okay(out) \
+    TRACK(Init_Word_Untracked( \
+        (out), \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) \
+            | CELL_FLAG_LOGIC_IS_OKAY,  \
+        CANON(OKAY)))
+
+
+//=//// LOGIC EXTRACTION //////////////////////////////////////////////////=//
+//
+// If you know you have a LOGIC!, all you need to do is test the flag...
+//
+
+INLINE bool Cell_Logic_Core(const Stable* v) {
+    assert(Is_Logic(v));
+    return Get_Cell_Flag(v, LOGIC_IS_OKAY);
+}
+
+#define Cell_Logic(v) \
+    Cell_Logic_Core(Known_Stable(v))
+
+
+//=//// LIGHT NULLS (WORD! antiform of NULL) //////////////////////////////=//
+//
+// 1. Beyond having a special header-only test for nulls, we can also do it
+//    without even an inline function call.  (Debug builds tend not to inline
+//    functions aggressively.)  However, the Ensure_Readable() adds overhead
+//    in many checked builds...all the more reasons to not add another call!
+//
+// 2. To avoid confusing the test for whether cell contents are the null
+//    representation with the test for if a pointer itself is C's NULL, it is
+//    called "Is_Nulled()" instead of "Is_Null()".
+//
+
+#define Is_Light_Null(v) /* test allowed on potentially unstable values */ \
+    ((Ensure_Readable(Possibly_Unstable(v))->header.bits & ( \
+        CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_LOGIC_IS_OKAY \
+    )) == ( \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
+            | (not CELL_FLAG_LOGIC_IS_OKAY)))
+
+#define Is_Nulled(v) /* test for stable values, name avoids confusion [2] */ \
+    ((Ensure_Readable(Possibly_Antiform(v))->header.bits & ( \
+        CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_LOGIC_IS_OKAY \
+    )) == ( \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
+            | (not CELL_FLAG_LOGIC_IS_OKAY)))
+
+
+INLINE bool Is_Lifted_Null(const Value* v) {
+    if (LIFT_BYTE(v) != QUASIFORM_4)
+        return false;
+    if (Heart_Of(v) != TYPE_WORD)
+        return false;
+    return Word_Id(v) == SYM_NULL;
+}
+
+#define Is_Quasi_Null(v) \
+    Is_Lifted_Null(Known_Stable(v))  // subtle distinction of question...
+
+
+//=//// CANON LOGIC TRUTHY: ~OKAY~ ANTIFORM ///////////////////////////////=//
 //
 // The ~null~ antiform is the only "branch inhibitor", e.g. the only thing
 // that prevents functions like IF from running their branches.  But most
@@ -68,54 +209,121 @@
 // conflate with dialected meanings.
 //
 
-INLINE bool Is_Logic_Core(const Stable* v) {
-    Assert_Cell_Readable(v);
-    if (LIFT_BYTE(v) != STABLE_ANTIFORM_2 or Heart_Of(v) != TYPE_WORD)
-        return false;
-    Option(SymId) id = Word_Id(v);
-    return id == SYM_NULL or id == SYM_OKAY;
-}
-
-#define Is_Logic(v) \
-    Is_Logic_Core(Known_Stable(v))
+#define Is_Possibly_Unstable_Value_Okay(v) \
+    ((Ensure_Readable(Possibly_Unstable(v))->header.bits & ( \
+        CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_LOGIC_IS_OKAY \
+    )) == ( \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
+            | CELL_FLAG_LOGIC_IS_OKAY))
 
 #define Is_Okay(v) \
-    Is_Anti_Word_With_Id((v), SYM_OKAY)
+    ((Ensure_Readable(Possibly_Antiform(v))->header.bits & ( \
+        CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_LOGIC_IS_OKAY \
+    )) == ( \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
+            | CELL_FLAG_LOGIC_IS_OKAY))
 
-INLINE bool Is_Possibly_Unstable_Value_Okay(const Value* v) {
-    if (not Is_Possibly_Unstable_Value_Keyword(v))
+
+//=//// CONDITIONAL "TRUTHINESS" and "FALSEYNESS" /////////////////////////=//
+//
+// The default behavior of the system is to consider there being only one
+// conditionally false value: the ~null~ antiform.
+//
+// (Some question has arisen about the extensibility of this, if there could
+// be a conditional function put in scopes that influences the test, similar
+// to how RebindableSyntax works.)
+//
+// 1. ~okay~ and ~null~ have been fixed as the only two antiform WORD!s, due
+//    to the solidity of establishing a LOGIC! type outweighing the "value"
+//    of keeping it open to create more antiform words later.  "Hot potatoes"
+//    offer an answer for things like ~(NaN)~.
+//
+// 2. TRASH! has gone back and forth on whether it is truthy; but now that
+//    unsetness is handled by the GHOST! state, reasons for making it not be
+//    an error have vanished, e.g. (`all [x: () ...]` vs. `all [x: ~ ...]`)
+//
+INLINE Result(bool) Test_Conditional(
+    Exact(const Stable*) v  // disable passing Element* (they're always truthy)
+){
+    Assert_Cell_Readable(v);
+
+    if (LIFT_BYTE(v) != STABLE_ANTIFORM_2)
+        return true;  // all non-antiforms (including quasi/quoted) are truthy
+
+    if (KIND_BYTE(v) == TYPE_WORD) { // conditional test of ~null~/~okay~
+        if (Get_Cell_Flag(v, LOGIC_IS_OKAY)) {
+            assert(Word_Id(v) == SYM_OKAY);
+            return true;
+        }
+        assert(Word_Id(v) == SYM_NULL);  // only other word! antiform [1]
         return false;
-    return Word_Id(v) == SYM_OKAY;
+    }
+
+    if (KIND_BYTE(v) == TYPE_RUNE)  // trash--no longer truthy [2]
+        return fail (
+            "TRASH! (antiform RUNE!) values are neither truthy nor falsey"
+        );
+
+    return true;  // !!! are all non-word/non-trash stable antiforms truthy?
 }
 
-#define Init_Okay(out) \
-    TRACK(Init_Word_Untracked( \
-        (out), \
-        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2), \
-        CANON(OKAY)))  // okay is valid KEYWORD! symbol
 
-INLINE Stable* Init_Logic_Untracked(Init(Stable) out, bool logic) {
-    return Init_Word_Untracked(
-        out,
-        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2)
-            | (logic ? 0 : CELL_FLAG_KEYWORD_IS_NULL),
-        logic ? CANON(OKAY) : CANON(NULL)
-    );
+//=//// "HEAVY NULLS" (BLOCK! Antiform Pack with `~null~` in it) //////////=//
+//
+// Because a branch evaluation can produce NULL, we would not be able from
+// the outside to discern a taken branch from a non-taken one in order to
+// implement constructs like ELSE and THEN:
+//
+//     >> if ok [null] else [print "If passthru null, we get this :-("]
+//     If passthru null, we get this :-(  ; <-- BAD!
+//
+// For this reason, branching constructs "box" NULLs to antiform blocks, as a
+// parameter "pack".  Since these decay back to plain NULL in *most* contexts,
+// this gives the right behavior *most* of the time...while being distinct
+// enough that ELSE & THEN can react to them as signals the branch was taken.
+//
+//     >> x: ~(~null~)~
+//     == \~(~null~)~\  ; antiform (pack!) "heavy null"
+//
+//     >> x
+//     == \~null~\  ; antiform
+//
+//     >> if ok [null]
+//     == \~(~null~)~\  ; antiform (pack!) "heavy null"
+//
+//     >> if ok [null] else [print "This won't run"]
+//     == \~(~null~)~\  ; antiform (pack!) "heavy null"
+//
+
+#define Init_Heavy_Null_Untracked(out) \
+    Init_Pack_Untracked((out), g_1_quasi_null_array)
+
+#define Init_Heavy_Null(out) \
+    Init_Pack((out), g_1_quasi_null_array)
+
+INLINE bool Is_Heavy_Null(const Value* v) {
+    if (not Is_Pack(v))
+        return false;
+    const Element* tail;
+    const Element* at = List_At(&tail, v);
+    return (tail == at + 1) and Is_Lifted_Null(at);
 }
 
-#define Init_Logic(out,flag) \
-    TRACK(Init_Logic_Untracked((out), (flag)))
-
-INLINE bool Cell_Logic_Core(const Stable* v) {
-    assert(Is_Antiform(v));
-    assert(Heart_Of(v) == TYPE_WORD);
-    SymId id = unwrap Word_Id(v);
-    assert(id == SYM_NULL or id == SYM_OKAY);
-    return id == SYM_OKAY;
+INLINE bool Is_Lifted_Heavy_Null(const Stable* v) {
+    if (not Is_Lifted_Pack(v))
+        return false;
+    const Element* tail;
+    const Element* at = List_At(&tail, v);
+    return (tail == at + 1) and Is_Lifted_Null(at);
 }
 
-#define Cell_Logic(v) \
-    Cell_Logic_Core(Known_Stable(v))
+INLINE Value* Force_Cell_Heavy(Value* v) {
+    if (Is_Light_Null(v))
+        Init_Heavy_Null(v);
+    else if (Is_Ghost(v))
+        Init_Heavy_Void(v);
+    return v;
+}
 
 
 //=//// BOOLEAN WORDS [TRUE FALSE] ////////////////////////////////////////=//
@@ -247,44 +455,3 @@ INLINE bool Cell_Yes(const Stable* v) {  // corresponds to YES?
 }
 
 #define Cell_No(v) (not Cell_Yes(v))
-
-
-//=//// CONDITIONAL "TRUTHINESS" and "FALSEYNESS" /////////////////////////=//
-//
-// The default behavior of the system is to consider there being only one
-// conditionally false value: the ~null~ antiform.
-//
-// (Some question has arisen about the extensibility of this, if there could
-// be a conditional function put in scopes that influences the test, similar
-// to how RebindableSyntax works.)
-//
-// 1. At the moment, ~okay~ and ~null~ are the only two KEYWORD!s (antiform
-//    WORD!s).  There is some question on what behavior is wanted from ~NaN~...
-//    would it be falsey?  Not known since it's not in use yet.  But generally
-//    right now it looks like ~null~ and ~okay~ the only things to consider,
-//    and if anything else is tested it errors.
-//
-// 2. TRASH! has gone back and forth on whether it is truthy; but now that
-//    unsetness is handled by the GHOST! state, reasons for making it not be
-//    an error have vanished, e.g. (`all [x: () ...]` vs. `all [x: ~ ...]`)
-//
-INLINE Result(bool) Test_Conditional(
-    Exact(const Stable*) v  // disable passing Element* (they're always truthy)
-){
-    Assert_Cell_Readable(v);
-
-    if (LIFT_BYTE(v) != STABLE_ANTIFORM_2)
-        return true;  // all non-antiforms (including quasi/quoted) are truthy
-
-    if (KIND_BYTE(v) == TYPE_WORD) { // conditional test of ~null~/~okay~
-        assert(Get_Cell_Flag(v, KEYWORD_IS_NULL) == (Word_Id(v) == SYM_NULL));
-        return Not_Cell_Flag(v, KEYWORD_IS_NULL);  // ~NaN~ falsey?  [1]
-    }
-
-    if (KIND_BYTE(v) == TYPE_RUNE)  // trash--no longer truthy [2]
-        return fail (
-            "TRASH! (antiform RUNE!) values are neither truthy nor falsey"
-        );
-
-    return true;  // !!! are all non-word/non-trash stable antiforms truthy?
-}

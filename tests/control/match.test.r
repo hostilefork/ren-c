@@ -64,7 +64,7 @@
     (null = non:lift null null)
     ((the '10) = non:lift null 10)
 
-    (null = non [logic?] okay)
+    (null = non [logic!] okay)
 ]
 
 ; PROHIBIT is an inverted version of ENSURE, where it must not match
@@ -79,7 +79,7 @@
     (10 = prohibit null 10)
 
     ~???~ !! (prohibit null null)
-    ~???~ !! (prohibit [logic?] okay)
+    ~???~ !! (prohibit [logic!] okay)
 ]
 
 

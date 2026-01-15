@@ -183,7 +183,7 @@ DECLARE_NATIVE(TAIL_OF)
 //
 //  "Test if something is at the head position"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [<cond> fundamental?]
 //  ]
 //
@@ -203,7 +203,7 @@ DECLARE_NATIVE(HEAD_Q)
 //
 //  "Test if something is at the tail position"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [fundamental?]
 //  ]
 //
@@ -223,7 +223,7 @@ DECLARE_NATIVE(TAIL_Q)
 //
 //  "Test if something is past the tail position"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [fundamental?]
 //  ]
 //

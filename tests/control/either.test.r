@@ -91,7 +91,7 @@
     ; has to wait.
 
     (
-        takes-2-logics: func [x [logic?] y [logic?]] [return x]
+        takes-2-logics: func [x [logic!] y [logic!]] [return x]
         infix-voider: infix func [return: [~[~bad~]~] x y] [
             return '~bad~
         ]

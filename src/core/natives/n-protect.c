@@ -50,7 +50,7 @@ DECLARE_NATIVE(CONST) {
 //
 //  "Return if a value is a read-only view of its underlying data"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [element?]
 //  ]
 //
@@ -95,7 +95,7 @@ DECLARE_NATIVE(MUTABLE)
 //
 //  "Return if a value is a writable view of its underlying data"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [any-series? any-context?]
 //  ]
 //
@@ -420,7 +420,7 @@ bool Is_Value_Frozen_Deep(const Cell* v) {
 //
 //  "Determine if the value is locked (deeply and permanently immutable)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [any-stable?]
 //  ]
 //

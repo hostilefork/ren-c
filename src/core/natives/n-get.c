@@ -803,7 +803,7 @@ Result(None) Set_Var_In_Scratch_To_Out(
 //
 //  "Check to see if a variable is defined (unset is considered defined)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      target [word! tuple! path!]
 //  ]
 //

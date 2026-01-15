@@ -51,7 +51,7 @@ DECLARE_NATIVE(NIHIL)
 //
 //  "Tells you if argument is a comma antiform (unstable)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -72,7 +72,7 @@ DECLARE_NATIVE(GHOST_Q)
 //
 //  "Is VALUE a VOID (antiform comma, e.g. ghost!) or HEAVY VOID (empty pack!)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -93,7 +93,7 @@ DECLARE_NATIVE(VOID_Q)
 //
 //  "Is VALUE specifically HEAVY VOID (empty pack!)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //

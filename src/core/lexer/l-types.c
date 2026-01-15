@@ -118,7 +118,7 @@ DECLARE_NATIVE(SIGIL_OF)
 //
 //  "Test if a value is a SIGIL... e.g. pin, meta, or tie [@ ^ $]"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> fundamental?]
 //  ]
 //
@@ -142,7 +142,7 @@ DECLARE_NATIVE(SIGIL_Q)
 //
 //  "Test if value has a sigil"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[any-stable?]
 //      :type
 //  ]

@@ -337,7 +337,7 @@ DECLARE_NATIVE(EITHER)
 //
 //  "Test for NOT ghost, 'light' null, or failure! (IF DID is prefix THEN)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -365,7 +365,7 @@ DECLARE_NATIVE(DID_1)
 //
 //  "Test for ghost, 'light' null, or failure! (IF DIDN'T is prefix ELSE)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //

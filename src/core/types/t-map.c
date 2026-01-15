@@ -863,7 +863,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
     Element* map = Element_ARG(LOCATION);
 
     const Stable* picker = ARG(PICKER);
-    assert(not Is_Keyword(picker) and not Is_Trash(picker));
+    assert(not Is_Logic(picker) and not Is_Trash(picker));
 
     bool strict = false;  // case-preserving [1]
 
@@ -886,7 +886,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
       Unliftify_Decayed(dual)
     );
 
-    if (Is_Keyword(dual))  // ~null~ is bad, but... ~okay~ ? ~NaN~ ?
+    if (Is_Logic(dual))  // ~null~ is bad, but... ~okay~ ?
         panic (Error_Bad_Antiform(dual));
 
     poke = dual;

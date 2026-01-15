@@ -42,7 +42,7 @@ REBINT CT_Port(const Element* a, const Element* b, bool strict)
 //
 //  "Test if a port is open (or other type?)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [fundamental?]
 //  ]
 //

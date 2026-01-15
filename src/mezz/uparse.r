@@ -273,14 +273,14 @@ bind construct [
 ;
 combinator?: func [
     "Crude test to try and determine if an ACTION! is a combinator"
-    return: [logic?]
+    return: [logic!]
     frame [<unrun> frame!]
 ][
     return did all [has frame 'state]
 ]
 
 negatable-parser?: func [
-    return: [logic?]
+    return: [logic!]
     frame [<unrun> frame!]
 ][
     return did find words of frame 'negated
@@ -1749,10 +1749,10 @@ default-combinators: make map! [
         return ~()~
     ]
 
-    keyword! combinator [
+    logic! combinator [
         return: [ghost!]
         input [any-series?]
-        value [keyword!]
+        value [logic!]
         {comb neq?}
     ][
         panic "~okay~ /~null~ antiforms not legal as rules, use COND(ITIONAL)"
@@ -2254,12 +2254,8 @@ default-combinators: make map! [
 
             splice! []  ; e.g. ~[]~ opts out of both `rule` and `@item` [3]
 
-            okay?/ [
-                panic "WORD! fetches cannot be ~okay~ in UPARSE (see COND)"
-            ]
-
-            null?/ [
-                panic "WORD! fetches cannot be ~null~ in UPARSE (see COND)"
+            logic! [
+                panic "WORD! fetches cannot be LOGIC! in UPARSE (see COND)"
             ]
 
             panic [

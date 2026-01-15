@@ -30,7 +30,7 @@
 //
 //  "Tells you if the argument is a light ~null~ antiform (branch inhibitor)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value "Use DECAY if testing heavy null (e.g. PACK! containing null)"
 //           '[any-stable? pack!]
 //  ]
@@ -68,7 +68,7 @@ DECLARE_NATIVE(NULL_Q)
 //
 //  "Tells you if the argument is an ~okay~ antiform (canon branch trigger)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[any-stable?]
 //  ]
 //
@@ -87,7 +87,7 @@ DECLARE_NATIVE(OKAY_Q)
 //
 //  "Tells you if the argument is either the ~null~ or ~okay~ antiform"
 //
-//      return: '[logic?]  ; recursion allowed due to '[...], unchecked!
+//      return: '[logic!]  ; recursion allowed due to '[...], unchecked!
 //      value '[any-stable?]
 //  ]
 //
@@ -106,7 +106,7 @@ DECLARE_NATIVE(LOGIC_Q)
 //
 //  "Produces ~null~ antiform for 0, or ~okay~ antiform for all other integers"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value [integer!]
 //  ]
 //
@@ -124,7 +124,7 @@ DECLARE_NATIVE(INT_TO_LOGIC)
 //
 //  "Tells you if the argument is the TRUE or FALSE word"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -147,7 +147,7 @@ DECLARE_NATIVE(BOOLEAN_Q)
 //
 //  "Tells you if the argument is the ON or OFF word"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -170,7 +170,7 @@ DECLARE_NATIVE(ONOFF_Q)
 //
 //  "Tells you if the argument is the YES or NO word"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[<cond> element?]
 //  ]
 //
@@ -193,7 +193,7 @@ DECLARE_NATIVE(YESNO_Q)
 //
 //  "Tests if word is the word TRUE (errors if not TRUE or FALSE)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      word [~[true false]~]
 //  ]
 //
@@ -210,7 +210,7 @@ DECLARE_NATIVE(TRUE_Q)
 //
 //  "Tests if value is the word FALSE (errors if not TRUE or FALSE)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      word [~[true false]~]
 //  ]
 //
@@ -247,7 +247,7 @@ DECLARE_NATIVE(BOOLEAN)
 //
 //  "Tests if word is the word YES (errors if not YES or NO)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      word [~[yes no]~]
 //  ]
 //
@@ -264,7 +264,7 @@ DECLARE_NATIVE(YES_Q)
 //
 //  "Tests if value is the word NO (errors if not YES or NO)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      word [~[yes no]~]
 //  ]
 //
@@ -301,7 +301,7 @@ DECLARE_NATIVE(TO_YESNO)
 //
 //  "Tests if word is the word ON (errors if not ON or OFF)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      word [~[on off]~]
 //  ]
 //
@@ -318,7 +318,7 @@ DECLARE_NATIVE(ON_Q)
 //
 //  "Tests if value is the word OFF (errors if not ON or OFF)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      word [~[on off]~]
 //  ]
 //
@@ -355,7 +355,7 @@ DECLARE_NATIVE(TO_ONOFF)
 //
 //  "Returns true if both values are conditionally true (no 'short-circuit')"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value1 [any-stable?]
 //      value2 [any-stable?]
 //  ]
@@ -383,7 +383,7 @@ DECLARE_NATIVE(AND_Q)
 //
 //  "Returns true if both values are conditionally false (no 'short-circuit')"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value1 [any-stable?]
 //      value2 [any-stable?]
 //  ]
@@ -411,7 +411,7 @@ DECLARE_NATIVE(OR_Q)
 //
 //  "Null if the integer input is a zero"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      integer [integer!]
 //  ]
 //
@@ -428,7 +428,7 @@ DECLARE_NATIVE(NULL_IF_ZERO)
 //
 //  "Returns the logic complement (inverts the nullness of what's passed in)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[any-stable?]
 //  ]
 //
@@ -450,7 +450,7 @@ DECLARE_NATIVE(NOT_1)  // see TO-C-NAME
 //
 //  "Returns logic of what's given (null if null, okay for everything else)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      value '[any-stable?]
 //  ]
 //
@@ -515,7 +515,7 @@ INLINE Result(bool) Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
 //
 //  "Boolean AND, right hand side must be in GROUP! to allow short-circuit"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      left [any-stable?]
 //      @right "Right is evaluated if left is true"
 //          [group! word! tuple! ^word! ^tuple!]
@@ -544,7 +544,7 @@ DECLARE_NATIVE(AND_1)  // see TO-C-NAME
 //
 //  "Boolean OR, right hand side must be in GROUP! to allow short-circuit"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      left [any-stable?]
 //      @right "Right is evaluated if left is false"
 //          [group! word! tuple! ^word! ^tuple!]
@@ -573,7 +573,7 @@ DECLARE_NATIVE(OR_1)  // see TO-C-NAME
 //
 //  "Boolean XOR (operation cannot be short-circuited)"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      left [any-stable?]
 //      @right "Always evaluated"
 //          [group! word! tuple! ^word! ^tuple!]

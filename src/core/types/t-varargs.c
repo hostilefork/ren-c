@@ -700,7 +700,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
 //
 //  "Returns TRUE if a frame may take a variable number of arguments"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      frame [<unrun> frame!]
 //  ]
 //

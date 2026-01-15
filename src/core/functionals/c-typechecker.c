@@ -41,7 +41,7 @@
 //
 //  "For internal use (builds parameters and return slot)"
 //
-//      return: '[logic?]
+//      return: '[logic!]
 //      value "Value to test"
 //          '[<cond> any-stable?]
 //      :type "Test a concrete type, (integer?:type integer!) passes"
@@ -147,17 +147,6 @@ Bounce Typechecker_Dispatcher(Level* const L)
 
     if (Is_Trash(v) and typeset_byte != cast(Byte, TYPE_TRASH))
         panic ("trash! antiforms can't be typechecked");
-
-    if (
-        Is_Nulled(v) and (
-            typeset_byte != cast(Byte, TYPE_KEYWORD)
-            and typeset_byte != cast(Byte, TYPE_TRASH)
-        )
-    ){
-        panic (
-            "NULL antiforms have limited typechecking (e.g. KEYWORD?, TRASH?)"
-        );
-    }
 
     if (not type)  // not a built-in type, no typechecks apply
         return LOGIC_OUT(false);
@@ -1186,7 +1175,7 @@ DECLARE_NATIVE(TYPECHECKER)
 //
 //  "Same typechecking as function arguments"
 //
-//      return: [logic? failure!]  ; returns error vs. panic [1]
+//      return: [logic! failure!]  ; returns error vs. panic [1]
 //      test [block! datatype! parameter! action!]
 //      ^value [any-value?]
 //      :meta "Don't pre-decay argument (match ^META argument mode)"

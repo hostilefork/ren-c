@@ -83,7 +83,7 @@ suffix-of: lambda [
 
 dir?: lambda [
     "Returns TRUE if the file or url ends with a slash (or backslash)"
-    []: [logic?]
+    []: [logic!]
     target [file! url!]
 ][
     did find "/\" last target

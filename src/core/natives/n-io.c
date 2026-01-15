@@ -136,7 +136,7 @@ DECLARE_NATIVE(MOLD)
         Copy_Lifted_Cell(Array_At(pack, 1), unwrap ARG(LIMIT));
     }
     else
-        Init_Lifted_Null(Array_At(pack, 1));
+        Init_Quasi_Null(Array_At(pack, 1));
 
     return Init_Pack(OUT, pack);
 }
@@ -254,7 +254,7 @@ DECLARE_NATIVE(NEW_LINE)
 //
 //  "Returns the state of the new-line marker within a block or group"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      position "Position to check marker"
 //          [block! group! varargs!]
 //  ]

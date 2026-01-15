@@ -361,7 +361,7 @@ extract: func [
 alter: func [
     "Append value if not found, else remove it; returns true if added"
 
-    return: [logic?]
+    return: [logic!]
     series [any-series? port! bitset!] "(modified)"
     value
     :case "Case-sensitive comparison"

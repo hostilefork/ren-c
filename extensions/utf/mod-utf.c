@@ -149,7 +149,7 @@ static Result(Strand*) Decode_Ucs2(  // [1]
 //
 //  "Codec for identifying BLOB! data for a .TXT file"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      data [blob!]
 //  ]
 //
@@ -260,7 +260,7 @@ static Binary* Encode_UCS2(  // [1]
 //
 //  "Codec for identifying BLOB! data for a little-endian UTF16 file"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      data [blob!]
 //  ]
 //
@@ -350,7 +350,7 @@ DECLARE_NATIVE(ENCODE_UTF16LE)
 //
 //  "Codec for identifying BLOB! data for a big-endian UTF16 file"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      data [blob!]
 //  ]
 //

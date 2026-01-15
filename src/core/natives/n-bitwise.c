@@ -41,8 +41,8 @@
 //
 //  "Returns the one's complement value"
 //
-//      return: [logic? integer! tuple! blob!]
-//      value [logic? integer! tuple! blob!]
+//      return: [logic! integer! tuple! blob!]
+//      value [logic! integer! tuple! blob!]
 //  ]
 //
 DECLARE_NATIVE(BITWISE_NOT)
@@ -77,9 +77,9 @@ INLINE bool Math_Arg_For_Logic(Stable* arg)
 //
 //  "Bitwise AND of two values"
 //
-//      return: [logic? integer! char? tuple! blob!]
-//      value1 [logic? integer! char? tuple! blob!]
-//      value2 [logic? integer! char? tuple! blob!]
+//      return: [logic! integer! char? tuple! blob!]
+//      value1 [logic! integer! char? tuple! blob!]
+//      value2 [logic! integer! char? tuple! blob!]
 //  ]
 //
 DECLARE_NATIVE(BITWISE_AND)
@@ -104,9 +104,9 @@ DECLARE_NATIVE(BITWISE_AND)
 //
 //  "Bitwise OR of two values"
 //
-//      return: [logic? integer! char? tuple! blob!]
-//      value1 [logic? integer! char? tuple! blob!]
-//      value2 [logic? integer! char? tuple! blob!]
+//      return: [logic! integer! char? tuple! blob!]
+//      value1 [logic! integer! char? tuple! blob!]
+//      value2 [logic! integer! char? tuple! blob!]
 //  ]
 //
 DECLARE_NATIVE(BITWISE_OR)
@@ -131,9 +131,9 @@ DECLARE_NATIVE(BITWISE_OR)
 //
 //  "Bitwise XOR of two values"
 //
-//      return: [logic? integer! char? tuple! blob!]
-//      value1 [logic? integer! char? tuple! blob!]
-//      value2 [logic? integer! char? tuple! blob!]
+//      return: [logic! integer! char? tuple! blob!]
+//      value1 [logic! integer! char? tuple! blob!]
+//      value2 [logic! integer! char? tuple! blob!]
 //  ]
 //
 DECLARE_NATIVE(BITWISE_XOR)
@@ -158,9 +158,9 @@ DECLARE_NATIVE(BITWISE_XOR)
 //
 //  "Bitwise AND NOT of two values"
 //
-//      return: [logic? integer! char? tuple! blob!]
-//      value1 [logic? integer! char? tuple! blob!]
-//      value2 [logic? integer! char? tuple! blob!]
+//      return: [logic! integer! char? tuple! blob!]
+//      value1 [logic! integer! char? tuple! blob!]
+//      value2 [logic! integer! char? tuple! blob!]
 //  ]
 //
 DECLARE_NATIVE(BITWISE_AND_NOT)

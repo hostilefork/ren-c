@@ -48,9 +48,6 @@ arg3
 arg4
 arg5
 
-; === SPECULATIVE ~NaN~ ===
-
-NaN
 
 optimized-out
 anonymous

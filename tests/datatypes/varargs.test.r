@@ -184,7 +184,7 @@
             ]
             set-adjunct tester/ make system.standard.action-adjunct [
                 description: spaced ["Return TRUE if value is" an type-name]
-                return-type: [logic?]
+                return-type: [logic!]
             ]
         ]
     ]

@@ -12,7 +12,7 @@
 ; Also, the logic operation is on OKAY and NULL, due to the agnosticism about
 ; what words are used in Flexible Logic.
 
-; logic?
+; logic!
 (okay and+ okay = okay)
 (okay and+ null = null)
 (null and+ okay = null)

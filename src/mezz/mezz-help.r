@@ -170,7 +170,7 @@ help-value: proc [
 
     case [  ; !!! should come from %types.r
         trash? ^value ['trash!]
-        keyword? ^value ['keyword!]
+        logic? ^value ['logic!]
         splice? ^value ['splice!]
         action? ^value ['action]
         pack? ^value ['pack!]

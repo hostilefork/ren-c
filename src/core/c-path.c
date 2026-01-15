@@ -144,8 +144,8 @@ DECLARE_NATIVE(PICK)
 
     Init_Dual_Nulled_Pick_Signal(LOCAL(DUAL));  // PICK, not POKE
 
-    if (Is_Keyword(picker) or Is_Trash(picker))
-        panic ("PICK with keyword or trash picker never allowed");
+    if (Is_Logic(picker) or Is_Trash(picker))
+        panic ("PICK with logic or trash picker never allowed");
 
 } dispatch_generic: { ////////////////////////////////////////////////////////
 
@@ -318,8 +318,8 @@ DECLARE_NATIVE(POKE)
   //    have a way to produce the dual ACTION! to indicate an accessor.
   //    Should there be a POKE:DUAL, or just a SET:DUAL?
 
-    if (Is_Keyword(picker) or Is_Trash(picker))
-        panic ("PICK with keyword or trash picker never allowed");
+    if (Is_Logic(picker) or Is_Trash(picker))
+        panic ("PICK with logic or trash picker never allowed");
 
     if (Is_Failure(v))
         return COPY_TO_OUT(v);  // bypass and don't do the poke

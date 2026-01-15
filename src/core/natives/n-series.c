@@ -551,7 +551,7 @@ DECLARE_NATIVE(SKIP)
 //      return: [<null> any-series? port!]
 //      series [<cond> any-series? port!]
 //      index "Seeks to given index, not clipped to head/tail by default"
-//          [any-number? logic? pair!]
+//          [any-number? logic! pair!]
 //      :bounded "Return null if index is before tail or after head"
 //  ]
 //

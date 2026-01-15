@@ -36,7 +36,7 @@
 //
 //  "Detect whether argument is the ~(done)~ dual"
 //
-//      return: [logic?]
+//      return: [logic!]
 //      ^value '[any-value?]
 //  ]
 //

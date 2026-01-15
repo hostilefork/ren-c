@@ -313,7 +313,7 @@
 (equal? equal? '/a first [a:] equal? first [a:] '/a)
 ; reflexivity
 (equal? first [a:] first [a:])
-; logic? values
+; logic! values
 (equal? okay okay)
 (equal? null null)
 (not equal? okay null)

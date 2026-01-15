@@ -829,10 +829,10 @@ INLINE Value* Undecayed_Antiformize_Unbound_Quasiform(Exact(Value*) v) {
 
     switch (unwrap Heart_Of(v)) {
       case TYPE_WORD:
-        if (Word_Id(v) == SYM_NULL)
-            Set_Cell_Flag(v, KEYWORD_IS_NULL);  // see cell-nulled.h
+        if (Word_Id(v) == SYM_OKAY)
+            Set_Cell_Flag(v, LOGIC_IS_OKAY);  // see %cell-logic.h
         else
-            assert(Not_Cell_Flag(v, KEYWORD_IS_NULL));
+            assert(Not_Cell_Flag(v, LOGIC_IS_OKAY));
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;
         break;
 

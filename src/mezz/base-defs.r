@@ -238,7 +238,7 @@ an: lambda [
 
 empty?: lambda [
     "OKAY if none or void, if empty, or if index is at or beyond its tail"
-    []: [logic?]
+    []: [logic!]
     container [
         <cond> <opt> any-series? any-sequence? object! port! bitset! map!
     ]

@@ -257,7 +257,7 @@ ask: func [
 confirm: func [
     "Confirms a user choice"
 
-    return: [logic?]
+    return: [logic!]
     question "Prompt to user"
         [any-series?]
     :with [text! block!]

@@ -174,7 +174,7 @@ undefined?: cascade [defined?/ not/]
 
 unspecialized?: lambda [
     "Determine if a variable looks up to a PARAMETER!"
-    []: [logic?]
+    []: [logic!]
     var [word! tuple!]
 ][
     try parameter? get meta var
@@ -182,7 +182,7 @@ unspecialized?: lambda [
 
 specialized?: lambda [
     "Determine if a variable doesn't look up to a PARAMETER!"
-    []: [logic?]
+    []: [logic!]
     var [word! tuple!]
 ][
     not try parameter? get meta var
@@ -196,7 +196,7 @@ specialized?: lambda [
 ; will be handled accordingly:
 ;
 ;    >> 10 ->- lib/= 5 + 5  ; as if you wrote `10 = 5 + 5`
-;    ** Script Error: + does not allow logic? for its value1 argument
+;    ** Script Error: + does not allow logic! for its value1 argument
 ;
 ;    >> 10 ->- equal? 5 + 5  ; as if you wrote `equal? 10 5 + 5`
 ;    == ~okay~  ; anti
@@ -246,7 +246,7 @@ so: infix:postpone func [
 
     return: [any-stable?]
     condition "Condition to test, must resolve to logic (use DID, NOT)"
-        [logic?]
+        [logic!]
     feed "Needs value to return as result e.g. (x: even? 4 so 10 + 20)"
         [<end> any-stable? <variadic>]
 ][
