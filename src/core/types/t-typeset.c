@@ -117,7 +117,6 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
     ParamClass pclass = Parameter_Class(TOP_ELEMENT);
     assert(pclass != PARAMCLASS_0);  // must have class
-    UNUSED(pclass);
 
     Flags flags = CELL_PARAMETER_PAYLOAD_2_FLAGS(TOP_ELEMENT);
     if (flags & PARAMETER_FLAG_REFINEMENT)
@@ -416,6 +415,21 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
         Option(Type) datatype_type = Datatype_Type(fetched);
         if (not datatype_type)
             goto cant_optimize;
+
+        if (
+            not is_returner
+            and u_cast(TypeByte, datatype_type) > MAX_TYPEBYTE_ELEMENT
+        ){
+            HeartByte heart_byte =
+                u_cast(TypeByte, datatype_type) - MAX_TYPEBYTE_ELEMENT;
+
+            if (
+                Not_Stable_Antiform_Heart(u_cast(Heart, heart_byte)) and
+                (pclass != PARAMCLASS_META and pclass != PARAMCLASS_SOFT)
+            ){
+                panic ("Unstable type unusable unless ^META or soft param");
+            }
+        }
 
         *optimized = u_cast(TypesetByte, unwrap datatype_type);
         ++optimized;
@@ -727,7 +741,7 @@ Result(None) Decorate_Element(const Element* decoration, Element* element)
 //
 //  "Based on the parameter type, this gives you e.g. @(foo) or :foo or 'foo"
 //
-//      return: [element?]
+//      return: [element? failure!]
 //      decoration [  ; TBD: create DECORATION? type constraint
 //          <opt> "give back value as-is"
 //          ~[@ ^ $ ~]~ "sigils on SPACE character act as proxy for sigilizing"
@@ -737,7 +751,6 @@ Result(None) Decorate_Element(const Element* decoration, Element* element)
 //          ~[$. $: $/]~ "tied-word proxies"
 //          quoted! "allows things like [' '' ''' '@ ''^ ''$] etc."
 //          parameter! "apply parameter decoration rules as in spec dialect"
-//          failure! "if decoration is invalid for the value"
 //      ]
 //      value [<cond> plain?]
 //  ]
@@ -766,7 +779,7 @@ DECLARE_NATIVE(DECORATE)
 //
 //  "Based on the parameter type, this gives you e.g. @(foo) or :foo or 'foo"
 //
-//      return: [element?]
+//      return: [element? failure!]
 //      decoration [  ; TBD: create DECORATION? type constraint
 //          <opt> "give back value as-is"
 //          ~[@ ^ $ ~]~ "sigils on SPACE character act as proxy for sigilizing"
@@ -776,7 +789,6 @@ DECLARE_NATIVE(DECORATE)
 //          ~[$. $: $/]~ "tied-word proxies"
 //          quoted! "allows things like [' '' ''' '@ ''^ ''$] etc."
 //          parameter! "apply parameter decoration rules as in spec dialect"
-//          failure! "if decoration is invalid for the value"
 //      ]
 //      value [<cond> element?]
 //  ]
