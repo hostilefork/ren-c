@@ -299,7 +299,7 @@ bool Pushed_Continuation(
         if (not (Is_Action(got) or Is_Frame(got)))
             panic ("Only ACTION! or FRAME! result from PATH! BRANCH allowed");
 
-        branch = As_Element(Deactivate_If_Action(got));
+        branch = Deactivate_If_Action(got);
         goto handle_frame; }
 
       default:

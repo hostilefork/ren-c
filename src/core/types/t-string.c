@@ -807,10 +807,10 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
       case SYM_FIND: {
         INCLUDE_PARAMS_OF_FIND;
 
-        Stable* pattern = ARG(PATTERN);
+        Value* pattern = ARG(PATTERN);
 
-        if (Is_Splice(pattern)) {  // not optimized
-            if (Is_None(pattern))
+        if (Is_Possibly_Unstable_Value_Splice(pattern)) {  // not optimized
+            if (Is_None(As_Stable(pattern)))
                 Copy_Cell(pattern, LIB(EMPTY_TEXT));
             else {
                 KIND_BYTE(pattern) = Kind_From_Sigil_And_Heart(
@@ -825,7 +825,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
             }
         }
         else if (Is_Antiform(pattern))
-            panic (pattern);
+            panic (As_Stable(pattern));
 
         Flags flags = (
             (ARG(MATCH) ? AM_FIND_MATCH : 0)

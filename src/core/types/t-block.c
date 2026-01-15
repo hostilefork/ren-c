@@ -262,7 +262,7 @@ REBINT Find_In_Array(
     const Array* array,
     Index index_unsigned, // index to start search
     REBLEN end_unsigned, // ending position
-    const Stable* pattern,
+    const Value* pattern,
     Flags flags, // see AM_FIND_XXX
     REBINT skip // skip factor
 ){
@@ -279,7 +279,7 @@ REBINT Find_In_Array(
 
     // match a block against a block
 
-    if (Is_Splice(pattern)) {
+    if (Is_Possibly_Unstable_Value_Splice(pattern)) {
         *len = Series_Len_At(pattern);
         if (*len == 0)  // empty block matches any position [1]
             return index_unsigned;
@@ -314,7 +314,7 @@ REBINT Find_In_Array(
 
     // Apply predicates to items in block
 
-    if (Is_Action(pattern)) {
+    if (Is_Possibly_Unstable_Value_Action(pattern)) {
         *len = 1;
 
         for (; index >= start and index < end; index += skip) {
@@ -332,7 +332,9 @@ REBINT Find_In_Array(
     if (Is_Antiform(pattern))
         panic ("Only Antiforms Supported by FIND are ACTION and SPLICE");
 
-    if (Is_Nulled(pattern)) {  // never match [1]
+    const Stable* stable_pattern = As_Stable(pattern);
+
+    if (Is_Nulled(stable_pattern)) {  // never match [1]
         *len = 0;
         return NOT_FOUND;
     }
@@ -341,15 +343,15 @@ REBINT Find_In_Array(
 
     // Optimized find word in block
 
-    if (Any_Word(pattern)) {
+    if (Any_Word(stable_pattern)) {
         for (; index >= start and index < end; index += skip) {
             const Element* item = Array_At(array, index);
-            const Symbol* pattern_symbol = Word_Symbol(pattern);
+            const Symbol* pattern_symbol = Word_Symbol(stable_pattern);
             if (Any_Word(item)) {
                 if (flags & AM_FIND_CASE) { // Must be same type and spelling
                     if (
                         Word_Symbol(item) == pattern_symbol
-                        and Type_Of(item) == Type_Of(pattern)
+                        and Type_Of(item) == Type_Of(stable_pattern)
                     ){
                         return index;
                     }
@@ -370,7 +372,11 @@ REBINT Find_In_Array(
     for (; index >= start and index < end; index += skip) {
         const Element* item = Array_At(array, index);
         require (
-          bool equal = Equal_Values(item, pattern, did (flags & AM_FIND_CASE))
+          bool equal = Equal_Values(
+            item,
+            stable_pattern,
+            did (flags & AM_FIND_CASE)
+          )
         );
         if (equal)
             return index;
@@ -568,22 +574,25 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_List)
       case SYM_SELECT: {
         INCLUDE_PARAMS_OF_FIND; // must be same as select
 
-        Stable* pattern = ARG(PATTERN);  // SELECT takes antiforms literally
+        Value* pattern = ARG(PATTERN);  // SELECT takes antiforms literally
 
-        if (Is_Antiform(pattern) and not Is_Splice(pattern)) {
+        if (
+            Is_Antiform(pattern)
+            and not Is_Possibly_Unstable_Value_Splice(pattern)
+        ){
             if (id == SYM_SELECT)
                 panic ("Cannot SELECT with antiforms on lists");
 
-            if (Is_Datatype(pattern)) {
+            if (Is_Datatype(As_Stable(pattern))) {
                 require (  // out = in is okay
-                    Init_Typechecker(LEVEL, pattern, pattern)
+                    Init_Typechecker(LEVEL, pattern, As_Stable(pattern))
                 );
             }
-            else if (Is_Action(pattern)) {
+            else if (Is_Possibly_Unstable_Value_Action(pattern)) {
                 // treat as FIND function
             }
             else
-                panic (Error_Bad_Antiform(pattern));
+                panic (Error_Bad_Antiform(As_Stable(pattern)));
         }
 
         Flags flags = (
@@ -1032,7 +1041,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
 } handle_poke: { /////////////////////////////////////////////////////////////
 
     if (Is_Any_Lifted_Void(dual)) {
-        poke = LIB(NONE);  // nullptr for removal in Modify_Xxx() atm
+        poke = Stable_LIB(NONE);  // nullptr for removal in Modify_Xxx() atm
         goto call_modify;
     }
 
@@ -1352,7 +1361,7 @@ typedef struct {
     bool cased;
     bool reverse;
     REBLEN offset;
-    const Stable* comparator;
+    const Value* comparator;
 } SortInfo;
 
 
@@ -1408,13 +1417,12 @@ IMPLEMENT_GENERIC(SORT, Any_List)
 
   set_up_comparator: {
 
-    Stable* cmp = opt ARG(COMPARE);
-    if (not cmp) {
+    if (not ARG(COMPARE)) {
         info.comparator = LIB(LESSER_Q);
         info.offset = 0;
     }
     else {
-        Deactivate_If_Action(cmp);
+        Element* cmp = Deactivate_If_Action(unwrap ARG(COMPARE));
         if (Heart_Of(cmp)) {
             info.comparator = cmp;
             info.offset = 0;

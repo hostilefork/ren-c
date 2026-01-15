@@ -953,7 +953,7 @@ DECLARE_NATIVE(COMPOSE2)
 
     const Stable* result;
     if (Any_Void(OUT))
-        result = LIB(NONE);  // canonize as empty splice
+        result = Stable_LIB(NONE);  // canonize as empty splice
     else {
         require (
           result = Decay_If_Unstable(OUT)

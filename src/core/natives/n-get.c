@@ -651,7 +651,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
     if (Is_Group(out))
         return fail ("GROUP! result from SET/GET of GROUP! target not legal");
 
-    const Stable* action = Lib_Stable(id);  // different TARGETS [1]
+    const Value* action = Lib_Value(id);  // different TARGETS [1]
     ParamList* paramlist = Phase_Paramlist(Frame_Phase(action));
     const Element* param = Known_Unspecialized(
         Phase_Param(paramlist, PARAM_INDEX(TARGET))

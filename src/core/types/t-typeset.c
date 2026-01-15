@@ -74,7 +74,7 @@ void Startup_Type_Predicates(void)
         Details* details = Make_Typechecker(typeset_byte);
 
         Init_Action(Sink_Lib_Value(id), details, Canon_Symbol(id), UNCOUPLED);
-        assert(Ensure_Frame_Details(Lib_Stable(id)));
+        assert(Ensure_Frame_Details(Lib_Value(id)));
     }
 
     // Shorthands used in native specs, so have to be available in boot

@@ -570,7 +570,7 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
         UNCOUPLED  // coupling
     );
 
-    assert(cast(Details*, Frame_Phase(Lib_Stable(id))) == details);
+    assert(cast(Details*, Frame_Phase(Lib_Value(id))) == details);
 }}
 
 
@@ -689,10 +689,10 @@ void Startup_Natives(const Element* boot_natives)
     g_currently_loading_module = nullptr;
 
   #if RUNTIME_CHECKS  // ensure a couple of functions can be looked up by ID
-    if (not Is_Action(LIB(FOR_EACH)))
+    if (not Is_Possibly_Unstable_Value_Action(LIB(FOR_EACH)))
         crash (LIB(FOR_EACH));
 
-    if (not Is_Action(LIB(PARSE_REJECT)))
+    if (not Is_Possibly_Unstable_Value_Action(LIB(PARSE_REJECT)))
         crash (LIB(PARSE_REJECT));
 
     Count num_append_args = Phase_Num_Params(Frame_Phase(LIB(APPEND)));

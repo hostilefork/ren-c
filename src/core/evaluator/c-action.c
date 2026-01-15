@@ -1150,7 +1150,7 @@ Bounce Action_Executor(Level* L)
 //
 Result(None) Push_Action(
     Level* L,
-    const Stable* frame,
+    const Value* frame,
     Option(InfixMode) infix_mode
 ){
     assert(L->executor == &Action_Executor);

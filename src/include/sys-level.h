@@ -1052,7 +1052,7 @@ INLINE void Disable_Dispatcher_Catching_Of_Throws(Level* L)
 //
 INLINE void Inject_Definitional_Returner(
     Level* L,
-    const Stable* definitional,  // LIB(DEFINITIONAL_RETURN), or YIELD
+    const Value* definitional,  // LIB(DEFINITIONAL_RETURN), or YIELD
     SymId id  // SYM_YIELD, SYM_RETURN
 ){
     Details* details = Ensure_Level_Details(L);

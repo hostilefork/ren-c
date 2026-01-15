@@ -319,10 +319,10 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Blob)
       case SYM_FIND: {
         INCLUDE_PARAMS_OF_FIND;
 
-        Stable* pattern = ARG(PATTERN);
+        Value* pattern = ARG(PATTERN);
 
-        if (Is_Splice(pattern)) {  // not optimized
-            if (Is_None(pattern))
+        if (Is_Possibly_Unstable_Value_Splice(pattern)) {  // not optimized
+            if (Is_None(As_Stable(pattern)))
                 Copy_Cell(pattern, LIB(EMPTY_TEXT));
             else {
                 KIND_BYTE(pattern) = Kind_From_Sigil_And_Heart(
@@ -337,7 +337,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Blob)
             }
         }
         else if (Is_Antiform(pattern))
-            panic (pattern);
+            panic (As_Stable(pattern));
 
         Flags flags = (
             (ARG(MATCH) ? AM_FIND_MATCH : 0)
@@ -567,7 +567,7 @@ IMPLEMENT_GENERIC(TO, Is_Blob)
     }
 
     if (to == TYPE_BLOB) {
-        const Stable* part = LIB(NULL);  // no :PART, copy to end
+        const Stable* part = Stable_LIB(NULL);  // no :PART, copy to end
         require (
           Copy_Blob_Part_At_May_Modify_Index(OUT, v, part)
         );

@@ -152,12 +152,12 @@ INLINE Element* Rootvar_Of_Varlist(VarList* c)  // mutable archetype access
 
 #define UNCOUPLED  u_cast(Option(VarList*), nullptr)  // not all can couple [1]
 
-INLINE Option(VarList*) Frame_Coupling(const Stable* c) {
+INLINE Option(VarList*) Frame_Coupling(const Cell* c) {
     assert(Heart_Of(c) == TYPE_FRAME);
     return cast(VarList*, CELL_FRAME_PAYLOAD_2_COUPLING(c));
 }
 
-INLINE void Tweak_Frame_Coupling(Stable* c, Option(VarList*) coupling) {
+INLINE void Tweak_Frame_Coupling(Cell* c, Option(VarList*) coupling) {
     assert(Heart_Of(c) == TYPE_FRAME);
     CELL_FRAME_PAYLOAD_2_COUPLING(c) = opt coupling;
     if (coupling)

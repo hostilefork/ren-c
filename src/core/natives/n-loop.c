@@ -1975,7 +1975,7 @@ DECLARE_NATIVE(MAP_EACH)
     if (not Is_Action(data))
         Quote_Cell(As_Element(data));  // dialect, in theory [1]
 
-    const Stable* map_action = LIB(MAP);
+    const Value* map_action = LIB(MAP);
     Details* details = Ensure_Frame_Details(map_action);
 
     Tweak_Level_Phase(LEVEL, details);

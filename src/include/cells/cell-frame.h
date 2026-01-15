@@ -129,7 +129,7 @@ INLINE void Tweak_Frame_Lens(Stable* v, Phase* lens) {
     Tweak_Frame_Lens_Or_Label(v, lens);
 }
 
-INLINE Option(Phase*) Frame_Lens(const Stable* c) {
+INLINE Option(Phase*) Frame_Lens(const Cell* c) {
     assert(Heart_Of(c) == TYPE_FRAME);
     Flex* f = cast(Flex*, CELL_FRAME_EXTRA_LENS_OR_LABEL(c));
     if (not f or Is_Stub_Symbol(f))
@@ -138,7 +138,7 @@ INLINE Option(Phase*) Frame_Lens(const Stable* c) {
     return cast(Phase*, f);
 }
 
-INLINE Option(const Symbol*) Frame_Label(const Stable* c) {
+INLINE Option(const Symbol*) Frame_Label(const Cell* c) {
     assert(Heart_Of(c) == TYPE_FRAME);
     Flex* f = cast(Flex*, CELL_FRAME_EXTRA_LENS_OR_LABEL(c));
     if (not f)
@@ -150,14 +150,14 @@ INLINE Option(const Symbol*) Frame_Label(const Stable* c) {
     return cast(Symbol*, f);
 }
 
-INLINE Option(const Symbol*) Frame_Label_Deep(const Stable* c) {
+INLINE Option(const Symbol*) Frame_Label_Deep(const Cell* c) {
     Option(const Symbol*) label = Frame_Label(c);
     if (label)
         return label;
     return Frame_Label(Phase_Archetype(Frame_Phase(c)));
 }
 
-INLINE void Update_Frame_Cell_Label(Stable* c, Option(const Symbol*) label) {
+INLINE void Update_Frame_Cell_Label(Cell* c, Option(const Symbol*) label) {
     assert(Heart_Of(c) == TYPE_FRAME);
     Assert_Cell_Writable(c);  // archetype R/O
     Tweak_Frame_Lens_Or_Label(c, label);
@@ -249,8 +249,8 @@ INLINE Element* Init_Frame_Untracked(
 //     == [1 <even> 3 <even> 5]  ; no actual EVEN? antiforms can be in block
 //
 
-INLINE Stable* Actionify(Exact(Stable*) val) {
-    assert(Is_Frame(val) and LIFT_BYTE(val) == NOQUOTE_3);
+INLINE Stable* Actionify(Stable* val) {
+    assert(Is_Frame(val));
     Stably_Antiformize_Unbound_Fundamental(val);
     assert(Is_Action(val));
     return val;
@@ -272,10 +272,10 @@ INLINE Stable* Init_Action_By_Phase(
     Init_Action_By_Phase((out), x_cast_known(Phase*, (identity)), \
         (label), (coupling))
 
-INLINE Stable* Deactivate_If_Action(Exact(Stable*) v) {
-    if (Is_Action(v))
+INLINE Element* Deactivate_If_Action(Value* v) {
+    if (Is_Possibly_Unstable_Value_Action(v))
         LIFT_BYTE(v) = NOQUOTE_3;
-    return v;
+    return As_Element(v);
 }
 
 
@@ -323,17 +323,17 @@ INLINE Value* Packify_Action(Value* v) {  // put ACTION! in a PACK! [1]
 // checked quickly by the evaluator.
 //
 
-INLINE Option(InfixMode) Frame_Infix_Mode(const Stable* c) {
+INLINE Option(InfixMode) Frame_Infix_Mode(const Cell* c) {
     assert(Heart_Of(c) == TYPE_FRAME);
     return u_cast(InfixMode, Get_Cell_Crumb(c));
 }
 
-INLINE void Tweak_Frame_Infix_Mode(Stable* c, Option(InfixMode) mode) {
+INLINE void Tweak_Frame_Infix_Mode(Cell* c, Option(InfixMode) mode) {
     assert(Heart_Of(c) == TYPE_FRAME);
     Set_Cell_Crumb(c, opt mode);
 }
 
-INLINE bool Is_Frame_Infix(const Stable* c) {  // faster than != PREFIX_0
+INLINE bool Is_Frame_Infix(const Cell* c) {  // faster than != PREFIX_0
     assert(Heart_Of(c) == TYPE_FRAME);
     return did (c->header.bits & CELL_MASK_CRUMB);
 }
@@ -345,9 +345,9 @@ INLINE bool Is_Frame_Infix(const Stable* c) {  // faster than != PREFIX_0
 // you generally want to mirror its vanishable status.
 //
 
-INLINE void Copy_Vanishability(Stable* to, const Stable* from) {
-    assert(Is_Action(to) or Is_Frame(to));
-    assert(Is_Action(from) or Is_Frame(from));
+INLINE void Copy_Vanishability(Cell* to, const Cell* from) {
+    assert(Is_Possibly_Unstable_Value_Action(to) or Is_Possibly_Unstable_Value_Frame(to));
+    assert(Is_Possibly_Unstable_Value_Action(from) or Is_Possibly_Unstable_Value_Frame(from));
 
     if (Get_Cell_Flag(from, WEIRD_VANISHABLE))
         Set_Cell_Flag(to, WEIRD_VANISHABLE);

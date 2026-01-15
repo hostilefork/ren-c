@@ -66,7 +66,7 @@ bool Do_Breakpoint_Throws(
     Element* inst = As_Element(rebValue("debug-console"));
 
     if (Is_Integer(inst)) {
-        Init_Thrown_With_Label(TOP_LEVEL, inst, LIB(QUIT));
+        Init_Thrown_With_Label(TOP_LEVEL, inst, Stable_LIB(QUIT));
         rebRelease(inst);
         return true;
     }

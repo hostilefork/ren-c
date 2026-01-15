@@ -58,7 +58,7 @@
 // frame if needed.
 //
 ParamList* Make_Varlist_For_Action_Push_Partials(
-    const Stable* action,  // need ->binding, so can't just be a Phase*
+    const Value* action,  // need ->binding, so can't just be a Phase*
     StackIndex lowest_stackindex,  // caller can add refinements
     Option(Binder*) binder,
     Option(const Value*) placeholder
@@ -73,8 +73,11 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
 
     Tweak_Bonus_Keylist_Shared(a, Phase_Keylist(phase));
 
-    assert(Is_Action(action) or Is_Frame(action));  // tolerate either?
-    Stable* rootvar = Flex_Head_Dynamic(Element, a);
+    assert(
+        Is_Possibly_Unstable_Value_Action(action)
+        or Is_Possibly_Unstable_Value_Frame(action)
+    );
+    Cell* rootvar = Flex_Head_Dynamic(Element, a);
     Copy_Cell(rootvar, action);
     LIFT_BYTE(rootvar) = NOQUOTE_3;  // make sure it's a plain FRAME!
     Protect_Rootvar_If_Debug(rootvar);
@@ -175,7 +178,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
 // and not absolute.
 //
 ParamList* Make_Varlist_For_Action(
-    const Stable* action, // need ->binding, so can't just be a Phase*
+    const Value* action, // need ->binding, so can't just be a Phase*
     StackIndex lowest_stackindex,
     Option(Binder*) binder,
     Option(const Value*) placeholder
@@ -208,7 +211,7 @@ ParamList* Make_Varlist_For_Action(
 //
 bool Specialize_Action_Throws(
     Sink(Stable) out,
-    const Stable* specializee,
+    const Value* specializee,
     Option(Element*) def,  // !!! REVIEW: binding modified directly, not copied
     StackIndex lowest_stackindex
 ){

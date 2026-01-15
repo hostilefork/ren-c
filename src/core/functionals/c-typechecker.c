@@ -166,7 +166,7 @@ bool Typechecker_Details_Querier(
 
     switch (property) {
       case SYM_RETURN_OF: {
-        const Stable* archetype = LIB(TYPECHECKER_ARCHETYPE);
+        const Value* archetype = LIB(TYPECHECKER_ARCHETYPE);
         Details* archetype_details = Ensure_Frame_Details(archetype);
         return Raw_Native_Details_Querier(
             out, archetype_details, SYM_RETURN_OF
@@ -1075,14 +1075,14 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
 //
 // Give back an action antiform which can act as a checker for a datatype.
 //
-Result(Stable*) Init_Typechecker(
+Result(Value*) Init_Typechecker(
     Level* const L,
-    Init(Stable) out,
+    Init(Value) out,
     const Stable* datatype_or_block
 ){
     USE_LEVEL_SHORTHANDS (L);
 
-    possibly(out == datatype_or_block);
+    possibly(u_cast(Value*, out) == datatype_or_block);
 
     if (Is_Datatype(datatype_or_block)) {
         Option(Type) t = Datatype_Type(datatype_or_block);
@@ -1093,7 +1093,7 @@ Result(Stable*) Init_Typechecker(
         SymId16 id16 = cast(SymId16, type_byte) + MIN_SYM_TYPESETS - 1;
         assert(id16 == type_byte);  // MIN_SYM_TYPESETS should be 1
 
-        Copy_Cell(out, Lib_Stable(cast(SymId, id16)));
+        Copy_Cell(out, Lib_Value(cast(SymId, id16)));
         assert(Ensure_Frame_Details(out));  // need TypesetByte
 
         return out;

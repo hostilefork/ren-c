@@ -425,13 +425,12 @@ static Result(Option(SymId)) Get_Parse_Value(
             Quasify_Antiform(out_value);
         else if (Is_Datatype(out)) {  // convert to functions for now
             StateByte saved_state = Save_Level_Scratch_Spare(TOP_LEVEL);
-            DECLARE_STABLE (checker);
+            DECLARE_VALUE (checker);
             require (
               Init_Typechecker(TOP_LEVEL, checker, out)
             );
-            assert(Heart_Of(checker) == TYPE_FRAME);
-            Copy_Cell(out_value, checker);
-            LIFT_BYTE(out_value) = NOQUOTE_3;
+            Copy_Plain_Cell(out_value, checker);
+            assert(Is_Frame(out_value));
             Restore_Level_Scratch_Spare(TOP_LEVEL, saved_state);
         }
         else {
@@ -1066,7 +1065,7 @@ static Result(REBIXO) To_Thru_Non_Block_Rule(
         // other considerations for how non-block rules act with array input?
         //
         Flags find_flags = (P_FLAGS & AM_FIND_CASE);
-        DECLARE_STABLE (temp);
+        DECLARE_VALUE (temp);
         if (Is_Quoted(rule)) {  // make `'[foo bar]` match `[foo bar]`
             Unquote_Cell(Copy_Cell_May_Bind(temp, rule, P_RULE_BINDING));
         }
@@ -1723,7 +1722,9 @@ DECLARE_NATIVE(SUBPARSE)
                 else
                     panic ("PARSE3 ACCEPT only works with GROUP! and <here>");
 
-                Init_Thrown_With_Label(LEVEL, thrown_arg, LIB(PARSE_ACCEPT));
+                Init_Thrown_With_Label(
+                    LEVEL, thrown_arg, Stable_LIB(PARSE_ACCEPT)
+                );
                 goto return_thrown; }
 
               case SYM_BREAK: {
@@ -1735,14 +1736,18 @@ DECLARE_NATIVE(SUBPARSE)
                 DECLARE_VALUE (thrown_arg);
                 Init_Integer(thrown_arg, P_POS);
 
-                Init_Thrown_With_Label(LEVEL, thrown_arg, LIB(PARSE_BREAK));
+                Init_Thrown_With_Label(
+                    LEVEL, thrown_arg, Stable_LIB(PARSE_BREAK)
+                );
                 goto return_thrown; }
 
               case SYM_REJECT: {
                 //
                 // Similarly, this is a break/continue style "throw"
                 //
-                Init_Thrown_With_Label(LEVEL, LIB(NULL), LIB(PARSE_REJECT));
+                Init_Thrown_With_Label(
+                    LEVEL, LIB(NULL), Stable_LIB(PARSE_REJECT)
+                );
                 goto return_thrown; }
 
               case SYM_PARSE_VETO:  // skip to next alternate
@@ -1838,15 +1843,13 @@ DECLARE_NATIVE(SUBPARSE)
         if (Is_Datatype(lookup)) {
             StateByte saved_state = Save_Level_Scratch_Spare(TOP_LEVEL);
             require (
-              Init_Typechecker(TOP_LEVEL, u_cast(Stable*, P_SAVE), lookup)
+              Init_Typechecker(TOP_LEVEL, SPARE, lookup)
             );
             Restore_Level_Scratch_Spare(TOP_LEVEL, saved_state);
 
-            Copy_Cell(SPARE, lookup);
             LIFT_BYTE(SPARE) = NOQUOTE_3;
             rule = As_Element(SPARE);
             assert(Is_Frame(rule));
-
         }
         else if (Is_Antiform(lookup))
             panic (Error_Bad_Antiform(lookup));

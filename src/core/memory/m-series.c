@@ -356,7 +356,7 @@ void Remove_Any_Series_Len(Element* v, Index index, REBINT len)
           Length tail = Modify_String_Or_Blob(
             temp,
             ST_MODIFY_CHANGE,
-            LIB(NONE),  // e.g. erase content (empty splice, ~[]~ antiform)
+            Stable_LIB(NONE),  // e.g. erase content (empty splice, ~[]~)
             UNLIMITED,
             (not AM_LINE),
             &len,

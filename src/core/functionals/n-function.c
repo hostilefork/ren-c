@@ -567,7 +567,7 @@ Bounce Init_Thrown_Unwind_Value(
     Level* target // required if level is INTEGER! or ACTION!
 ) {
     DECLARE_STABLE (label);
-    Copy_Cell(label, LIB(UNWIND));
+    Copy_Cell(label, Stable_LIB(UNWIND));
 
     if (Is_Frame(seek) and Is_Frame_On_Stack(Cell_Varlist(seek))) {
         g_ts.unwind_level = Level_Of_Varlist_If_Running(Cell_Varlist(seek));
@@ -760,7 +760,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
         }
 
         DECLARE_STABLE (label);
-        Copy_Cell(label, LIB(UNWIND)); // see Make_Thrown_Unwind_Value
+        Copy_Cell(label, Stable_LIB(UNWIND)); // see Make_Thrown_Unwind_Value
         g_ts.unwind_level = target_level;
 
         Init_Thrown_With_Label(LEVEL, v, label);
@@ -786,7 +786,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
         Is_Tag(stable)
         and strcmp(cast(char*, Cell_Utf8_At(stable)), "redo") == 0
     ){
-        gather_args = LIB(NULL);
+        gather_args = Stable_LIB(NULL);
     }
     else if (Is_Action(stable) or Is_Frame(stable)) {  // just reuse Level
         gather_args = stable;
@@ -801,13 +801,14 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
     // of the frame.  Use DEFINITIONAL-REDO as the throw label that Eval_Core()
     // will identify for that behavior.
     //
-    Stable* spare = Copy_Cell(SPARE, LIB(DEFINITIONAL_REDO));
+    Copy_Cell(SPARE, LIB(DEFINITIONAL_REDO));
+    Element* frame = Deactivate_If_Action(SPARE);
     Tweak_Frame_Coupling(  // comment said "may have changed"?
-        spare,
+        frame,
         Varlist_Of_Level_Force_Managed(target_level)
     );
 
-    Init_Thrown_With_Label(LEVEL, gather_args, spare);
+    Init_Thrown_With_Label(LEVEL, gather_args, frame);
     return BOUNCE_THROWN;
 }
 

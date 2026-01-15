@@ -970,7 +970,7 @@ DECLARE_NATIVE(SWITCH)
 
     Stable* left = ARG(VALUE);
     Element* cases = Element_ARG(CASES);
-    Stable* predicate;  // enforced as EQUAL? by initial_entry if none given
+    Value* predicate;  // enforced as EQUAL? by initial_entry if none given
 
     enum {
         ST_SWITCH_INITIAL_ENTRY = STATE_0,

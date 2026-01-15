@@ -842,7 +842,7 @@ void Pop_Unpopped_Return(Sink(Element) out, StackIndex base)
 //
 Details* Make_Dispatch_Details(
     Flags flags,
-    const Stable* exemplar,  // FRAME! "interface" is keyword in MSVC :-(
+    const Value* exemplar,  // FRAME!/ACTION!, "interface" is MSVC keyword :-(
     Dispatcher* dispatcher,  // native C function called by Action_Executor()
     Option(Ordinal) details_max  // 1-based max index desired for Phase_Details
 ){

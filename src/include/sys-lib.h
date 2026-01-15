@@ -58,9 +58,6 @@ INLINE const Value* Lib_Value(SymId id) {
     return v;
 }
 
-#define Lib_Stable(id)  As_Stable(Lib_Value(id))
-#define Lib_Element(id)  As_Element(Lib_Value(id))
-
 INLINE Value* Mutable_Lib_Value(SymId id) {  // writing LIB is risky [A]
     assert(id <= MAX_SYM_LIB_PREMADE);
     Value* v = cast(Value*, Stub_Cell(&g_lib_patches[id]));
@@ -78,9 +75,11 @@ INLINE Sink(Value) Sink_Lib_Value(SymId id) {
     return v;
 }
 
-#define LIB(name)  Lib_Stable(SYM_##name)
+#define LIB(name)  Lib_Value(SYM_##name)
+#define Stable_LIB(name)  As_Stable(Lib_Value(SYM_##name))
+
 #define Sink_LIB(name)  Sink_Lib_Value(SYM_##name)
-#define Mutable_LIB(name)  Mutable_Lib_Stable(SYM_##name)
+#define Mutable_LIB(name)  Mutable_Lib_Value(SYM_##name)
 
 #define Protect_LIB(name) /* careful: preprocessor NULL could become SYM_0 */ \
     Protect_Cell(Mutable_Lib_Stable(SYM_##name))  // PROTECT more things [A]
