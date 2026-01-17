@@ -67,7 +67,7 @@
 )
 
 (
-    null? (~null~ then [panic ~#unreachable~])
+    null? (~null~ then [~(unreachable)~])
 )
 
 (~ then [okay])
@@ -92,31 +92,31 @@
     (1000 + 20 () then [okay])
 
     (^ghost then [okay])
-    (1020 = (1000 + 20 elide-if-void (^ghost else [panic ~#unreachable~])))
+    (1020 = (1000 + 20 elide-if-void (^ghost else [~(unreachable)~])))
 
     ((^ghost) then [okay])
-    (ghost? (1000 + 20 ((^ghost) else [panic ~#unreachable~])))
+    (ghost? (1000 + 20 ((^ghost) else [~(unreachable)~])))
 
     (eval [] then [okay])
-    (ghost? eval [] else [panic ~#unreachable~])
+    (ghost? eval [] else [~(unreachable)~])
 ]
 
 [
     (foo: func [] [return ^ghost], ok)
     (foo then [okay])
-    (1020 = (1000 + 20 elide-if-void (foo else [panic ~#unreachable~])))
+    (1020 = (1000 + 20 elide-if-void (foo else [~(unreachable)~])))
 ]
 
 [
-    (foo: lambda [] [if null [panic ~#unreachable~]], ok)
+    (foo: lambda [] [if null [~(unreachable)~]], ok)
     (foo else [okay])
-    (null? (1000 + 20 foo then [panic ~#unreachable~]))
+    (null? (1000 + 20 foo then [~(unreachable)~]))
 ]
 
 [
     (foo: lambda [] [], ok)
     (foo then [okay])
-    (1020 = (1000 + 20 elide-if-void (foo else [panic ~#unreachable~])))
+    (1020 = (1000 + 20 elide-if-void (foo else [~(unreachable)~])))
 ]
 
 ; https://forum.rebol.info/t/2176

@@ -877,7 +877,7 @@ void Startup_Core(void)
         "wrap*", g_sys_util_module, rebQ(&boot->system_util),
         "if not equal? '~end~",
           "evaluate inside", g_sys_util_module, rebQ(&boot->system_util),
-            "[panic ~#[sys.util]#~]",
+            "[panic --[sys.util load error]--]",
 
         "set-adjunct sys.util make object! [",  // no MODULE/EXPORT yet [2]
             "name: 'System",  // this is MAKE OBJECT!, not MODULE, must quote

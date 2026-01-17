@@ -415,7 +415,7 @@ DECLARE_NATIVE(READ_CHAR)
         timeout_msec = rebUnboxInteger("case [",
             "decimal?", timeout, "[1000 * round:up", timeout, "]",
             "integer?", timeout, "[1000 *", timeout, "]",
-            "panic ~(unreachable)~",
+            "~(unreachable)~",
         "]");
 
         if (timeout_msec == 0)

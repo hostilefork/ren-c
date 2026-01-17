@@ -226,7 +226,7 @@ main-startup: func [
                     compose2:deep inside item '@(<*>) item
                 )
             ]
-            panic ~#unreachable~
+            ~(unreachable)~
         ]
     ]
 
@@ -242,11 +242,11 @@ main-startup: func [
         switch state [
             <die> [
                 emit [quit 1]  ; must leave unbound to get console's QUIT [1]
-                emit [panic ~#unreachable~]
+                emit [~(unreachable)~]
             ]
             <quit> [
                 emit [quit 0]  ; must leave unbound to get console's QUIT [1]
-                emit [panic ~#unreachable~]
+                emit [~(unreachable)~]
             ]
             <start-console> [
                 emit #start-console

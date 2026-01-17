@@ -495,7 +495,7 @@ default-combinators: make map! [
                 return ^result
             ])
         ]
-        panic ~#unreachable~
+        ~(unreachable)~
     ]
 
     'while combinator [
@@ -522,7 +522,7 @@ default-combinators: make map! [
                 continue
             ]
         ]
-        panic ~#unreachable~
+        ~(unreachable)~
     ]
 
     'until combinator [
@@ -550,7 +550,7 @@ default-combinators: make map! [
             take:last state.loops
             return ^result
         ]
-        panic ~#unreachable~
+        ~(unreachable)~
     ]
 
     'cycle combinator [
@@ -568,7 +568,7 @@ default-combinators: make map! [
                 continue
             ]
         ]
-        panic ~#unreachable~
+        ~(unreachable)~
     ]
 
     'tally combinator [
@@ -587,7 +587,7 @@ default-combinators: make map! [
             ]
             count: count + 1
         ]
-        panic ~#unreachable~
+        ~(unreachable)~
     ]
 
     'break combinator [
@@ -782,7 +782,7 @@ default-combinators: make map! [
             ; don't factor in parser's advancement here (THRU does)
             return ^result
         ]
-        panic ~#unreachable~
+        ~(unreachable)~
     ]
 
     'thru combinator [
@@ -803,7 +803,7 @@ default-combinators: make map! [
             input: remainder  ; factor in parser's advancement (TO doesn't)
             return ^result
         ]
-        panic ~#unreachable~
+        ~(unreachable)~
     ]
 
     'seek combinator [
@@ -855,7 +855,7 @@ default-combinators: make map! [
             input: remainder
             return copy:part start limit
         ]
-        panic ~#unreachable~
+        ~(unreachable)~
     ]
 
     === TAG! SUB-DISPATCHING COMBINATOR ===

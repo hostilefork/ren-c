@@ -412,7 +412,7 @@ compiler-class: make object! [
             [<opt> file! text!]
         <.>
     ][
-        panic ~#[archetype check invoked]#~
+        panic "archetype CHECK invoked"
     ]
 
     compile: func [
@@ -424,7 +424,7 @@ compiler-class: make object! [
         cflags [text! tag! block!]
         <.>
     ][
-        panic ~#[archetype compile invoked]#~
+        panic "archetype COMPILE invoked"
     ]
 
     link: func [
@@ -435,7 +435,7 @@ compiler-class: make object! [
         ldflags [<opt> block! any-string?]
         <.>
     ][
-        panic ~#[archetype link invoked]#~
+        panic "archetype LINK invoked"
     ]
 ]
 
