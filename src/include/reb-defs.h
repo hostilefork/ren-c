@@ -411,3 +411,22 @@ typedef enum {
     LOOP_INTERRUPT_AGAIN,
     LOOP_INTERRUPT_CONTINUE
 } LoopInterrupt;
+
+
+//=//// TWEAK STATE ENUM /////////////////////////////////////////////////=//
+//
+// TWEAK does the underlying work of GET and SET, but if you call it directly
+// in a PICK mode then it will not indirect the final step, so if you find
+// a BEDROCK_0 state that will be returned as an unlifted value.  The way
+// the TWEAK native decides whether to indirect or not is looking by the
+// state byte at the moment (first cut at making it work).
+//
+
+#define STATE_0  0  // use macro vs. just hardcoding 0 around the system
+
+typedef enum {
+    ST_TWEAK_INITIAL_ENTRY = STATE_0,
+    ST_TWEAK_TWEAKING,  // trampoline rule: OUT must be erased if STATE_0
+    ST_TWEAK_SETTING,
+    ST_TWEAK_GETTING
+} TweakMode;

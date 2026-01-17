@@ -310,7 +310,7 @@ DECLARE_NATIVE(PROTECT)
         Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
             LEVEL,
             NO_STEPS,
-            true  // TWEAK, not a GET or SET (does it matter?)
+            ST_TWEAK_TWEAKING  // !!! does mode matter?
         );
         if (e)
             panic (unwrap e);
@@ -380,7 +380,7 @@ DECLARE_NATIVE(UNPROTECT)
         Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
             LEVEL,
             NO_STEPS,
-            true  // TWEAK, not a GET or SET (does it matter?)
+            ST_TWEAK_TWEAKING  // !!! does mode matter?
         );
         if (e)
             panic (unwrap e);

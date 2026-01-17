@@ -106,7 +106,7 @@ Result(None) Get_Var_In_Scratch_To_Out(
     Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
         level_,
         steps_out,
-        false  // GET, not TWEAK
+        ST_TWEAK_GETTING
     );
     if (e)
         return fail (unwrap e);
@@ -786,7 +786,7 @@ Result(None) Set_Var_In_Scratch_To_Out(
     Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
         level_,
         steps_out,
-        false  // SET, not TWEAK
+        ST_TWEAK_SETTING
     );
     require (
       Unlift_Cell_No_Decay(OUT)

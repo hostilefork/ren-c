@@ -98,21 +98,13 @@ Result(Element*) Init_Any_Sequence_At_Listlike(
 }
 
 
-
-// Use Level flag vs. a state byte, so that we can reuse the same frame
-// for the calls to the generic TWEAK* implementations, even if it wants to
-// use the state byte and do continuations/delegations.
-//
-#define LEVEL_FLAG_PICK_NOT_INITIAL_ENTRY  LEVEL_FLAG_MISCELLANEOUS
-
-
 //
 //  pick: native [
 //
 //  "Perform a path picking operation; same code as `(location).(picker)`"
 //
 //      return: [<null> any-stable?]
-//      location [<cond> <unrun> plain?]  ; can't pick sigil'd/quoted
+//      location [<cond> plain?]  ; can't pick sigil'd/quoted
 //      picker "Index offset, symbol, or other value to use as index"
 //          [<cond> any-stable?]
 //      {dual}  ; slot in position of DUAL for TWEAK*
@@ -130,66 +122,40 @@ DECLARE_NATIVE(PICK)
 {
     INCLUDE_PARAMS_OF_PICK;
 
-    if (Get_Level_Flag(LEVEL, PICK_NOT_INITIAL_ENTRY))
-        goto dispatch_generic;
-
-  initial_entry: {
-
+    Element* location = Element_ARG(LOCATION);
     Stable* picker = ARG(PICKER);
 
-    if (not ARG(LOCATION))  // (try first none) same as (try first [])
-        return fail (Error_Bad_Pick_Raw(picker));
+    StackIndex base = TOP_INDEX;
 
-    Set_Level_Flag(LEVEL, PICK_NOT_INITIAL_ENTRY);
+    Copy_Lifted_Cell(PUSH(), location);
+    Copy_Lifted_Cell(PUSH(), picker);
 
-    Init_Dual_Nulled_Pick_Signal(LOCAL(DUAL));  // PICK, not POKE
+    heeded (Init_Quasar(SCRATCH));  // carries flags...
+    heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    if (Is_Logic(picker))
-        panic ("PICK with logic picker never allowed");
+    Init_Dual_Nulled_Pick_Signal(OUT);
 
-} dispatch_generic: { ////////////////////////////////////////////////////////
+    STATE = 1;
 
-    Bounce bounce = opt Irreducible_Bounce(
+    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         LEVEL,
-        Dispatch_Generic(TWEAK_P, Element_ARG(LOCATION), LEVEL)
+        base,
+        ST_TWEAK_GETTING
     );
+    Drop_Data_Stack_To(base);
 
-    if (bounce)
-        return bounce;  // we will get a callback (if not error/etc.)
-
-    if (Any_Lifted(OUT)) // if a value was found, it's returned as LIFTED
-        goto pick_succeeded_out_is_lifted;
-
-} tweak_gave_dual_signal: {
-
-    // Non-LIFTED?s are signals in dual protocol
+    if (e)  // should be willing to bounce to trampoline...
+        panic (unwrap e);
 
     if (Is_Failure(OUT))
-        return OUT;
-
-    Stable* dual = As_Stable(OUT);
-
-    if (Is_Action(dual))
-        panic ("TWEAK* delegation machinery not done yet");
-
-    if (Is_Pick_Absent_Signal(dual))  // lifted is "NULL-but-present"
-        return fail (Error_Bad_Pick_Raw(ARG(PICKER)));
-
-    panic ("Non-ACTION! antiform returned by TWEAK* dual protocol");
-
-} pick_succeeded_out_is_lifted: {
+        return OUT;  // !!! should this be lifted?
 
     require (
-      Unlift_Cell_No_Decay(OUT)
+      Unlift_Cell_No_Decay(OUT)  // !!! use faster version, known ok antiform?
     );
 
-    if (Not_Cell_Stable(OUT)) {
-        assert(false);  // Note: once usermode TWEAK* exists, it may screw up
-        panic ("TWEAK* returned a lifted unstable antiform");
-    }
-
     return OUT;
-}}
+}
 
 
 //
@@ -285,7 +251,7 @@ DECLARE_NATIVE(TWEAK_P_UNCHECKED)
 //
 //  poke: native [
 //
-//  "Poke a tuple as in `(location).(picker): value`, but returns value"
+//  "Poke a tuple as in `(location).(picker): value`, returns value"
 //
 //      return: [any-value? failure!]
 //      location "(modified)"
@@ -305,56 +271,37 @@ DECLARE_NATIVE(POKE)
     Stable* picker = ARG(PICKER);
     Value* v = ARG(VALUE);
 
-    if (Get_Level_Flag(LEVEL, POKE_NOT_INITIAL_ENTRY))
-        goto dispatch_generic;
+    StackIndex base = TOP_INDEX;
 
-  initial_entry: {
+    Copy_Lifted_Cell(PUSH(), location);
+    Copy_Lifted_Cell(PUSH(), picker);
 
-  // 1. We don't want to limit the TWEAK* function from changing value, and
-  //    also want it to have full use of SPARE, SCRATCH, and OUT.  So POKE
-  //    has a slightly larger frame where it stores the value in a local.
-  //
-  // 2. We produce the DUAL argument in the same frame.  However, we don't
-  //    have a way to produce the dual ACTION! to indicate an accessor.
-  //    Should there be a POKE:DUAL, or just a SET:DUAL?
+    heeded (Init_Quasar(SCRATCH));  // carries flags...
+    heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    if (Is_Logic(picker))
-        panic ("PICK with logic picker never allowed");
+    Copy_Lifted_Cell(OUT, v);
 
-    if (Is_Failure(v))
-        return COPY_TO_OUT(v);  // bypass and don't do the poke
+    STATE = 1;
 
-    Set_Level_Flag(LEVEL, POKE_NOT_INITIAL_ENTRY);
-
-    Copy_Cell(LOCAL(STORE), v);  // save value to return [1]
-
-    Stable* dual = Lift_Cell(v);  // same slot (TWEAK* reuses this frame!) [2]
-    USED(dual);  // TWEAK* expects QUOTED!/QUASIFORM! for literal DUAL
-
-    goto dispatch_generic;
-
-} dispatch_generic: { ////////////////////////////////////////////////////////
-
-  // 1. Though the POKE frame is slightly larger than that for TWEAK*, its
-  //    memory layout is compatible with TWEAK*, and can be reused.
-
-    Bounce bounce = opt Irreducible_Bounce(
+    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         LEVEL,
-        Dispatch_Generic(TWEAK_P, location, LEVEL)
+        base,
+        ST_TWEAK_SETTING
+    );
+    Drop_Data_Stack_To(base);
+
+    if (e)
+        panic (unwrap e);
+
+    if (Is_Failure(OUT))
+        return OUT;  // !!! should this be lifted?
+
+    require (
+      Unlift_Cell_No_Decay(OUT)  // !!! use faster version, known ok antiform?
     );
 
-    if (bounce)
-        return bounce;  // we will get a callback (if not error/etc.)
-
-    Stable* writeback = As_Stable(OUT);
-
-    if (not Is_Nulled(writeback))  // see TWEAK* for meaning of non-null
-        panic (
-            "Can't writeback to immediate in POKE (use TWEAK* if intentional)"
-        );
-
-    return COPY_TO_OUT(LOCAL(STORE));  // stored ^VALUE argument was meta
-}}
+    return OUT;
+}
 
 
 // 1. R3-Alpha and Red considered TUPLE! with any number of trailing zeros to

@@ -430,59 +430,17 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
 
 //
-//  Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps: C
+//  Trap_Push_Steps_To_Stack: C
 //
-// This is centralized code for setting or "tweaking" variables.
-//
-// **Almost all parts of the system should go through this code for assignment,
-// even when they know they have just a WORD! in their hand and don't need path
-// dispatch.**  Only a few places bypass this code for reasons of optimization,
-// but they must do so carefully, because that would skip things like
-// accessors (which implement type checking, etc.)
-//
-// 1. The calling function should do `heeded (Corrupt_Cell_If_Needful(SPARE))`.
-//    This helps be sure they're not expecting SPARE to be untouched.  (It's
-//    better than trying to work "Corrupts_Spare()" into the already quite-long
-//    name of the function.)
-//
-Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
+Option(Error*) Trap_Push_Steps_To_Stack(
     Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    bool groups_ok,
-    bool is_tweak
+    bool groups_ok
 ){
-    assert(OUT != SCRATCH and OUT != SPARE);
-
-    Stable* out = As_Stable(OUT);
-
-    assert(LEVEL == TOP_LEVEL);
-    possibly(Get_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION));
-    bool only_action = Get_Cell_Flag(
-        SCRATCH,
-        SCRATCH_VAR_NOTE_ONLY_ACTION
-    );
-    USED(only_action);
-
-  #if NEEDFUL_DOES_CORRUPTIONS  // confirm caller pre-corrupted spare [1]
-    assert(Not_Cell_Readable(SPARE));
-  #endif
-
-    Flags flags = LEVEL_MASK_NONE;  // reused, top level, no keepalive needed
-
-    Sink(Value) spare_location_dual = SPARE;
-
     StackIndex base = TOP_INDEX;
-    StackIndex stackindex_top;
-
-    Option(Error*) error = SUCCESS;  // for common exit path on error
 
     Element* scratch_var = As_Element(SCRATCH);
 
-  #if RUNTIME_CHECKS
-    Protect_Cell(scratch_var);  // (common exit path undoes this protect)
-    Protect_Cell(OUT);
-  #endif
-
-  dispatch_based_on_scratch_var_type: {
+    Option(Error*) error = SUCCESS;
 
     if (Is_Word(scratch_var) or Is_Meta_Form_Of(WORD, scratch_var))
         goto handle_scratch_var_as_wordlike;
@@ -525,7 +483,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
     unnecessary(Lift_Cell(TOP_STABLE));  // if ^x, not literally ^x ... meta-variable
 
-    goto set_from_steps_on_stack;
+    goto return_success;
 
 } handle_scratch_var_as_sequence: {
 
@@ -563,7 +521,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             Lift_Cell(TOP_STABLE);
             Lift_Cell(Init_Word(PUSH(), CANON(DOT_1)));
             Lift_Cell(Init_Word(PUSH(), u_cast(const Symbol*, payload1)));
-            goto set_from_steps_on_stack;
+            goto return_success;
         }
 
         // `a/` or `a.`
@@ -589,7 +547,6 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
         if (not Try_Get_Binding_Of(
             PUSH(), Copy_Cell_May_Bind(SPARE, head, at_binding)
         )){
-            DROP();
             error = Error_No_Binding_Raw(As_Element(SPARE));
             goto return_error;
         }
@@ -600,16 +557,16 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     for (at = head; at != tail; ++at) {
         bool unbind;
         switch (LIFT_BYTE(at)) {
-            case NOQUOTE_3:
-              unbind = false;
-              break;
+          case NOQUOTE_3:
+            unbind = false;
+            break;
 
-            case ONEQUOTE_NONQUASI_5:
-              unbind = true;
-              break;
+          case ONEQUOTE_NONQUASI_5:
+            unbind = true;
+            break;
 
-            default:
-              panic ("TUPLE! dialect allows single quote 'unbind on items");
+          default:
+            panic ("TUPLE! dialect allows single quote 'unbind on items");
         }
 
         if (Heart_Of(at) == TYPE_GROUP) {
@@ -619,7 +576,6 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             }
 
             if (Eval_Any_List_At_Throws(SPARE, at, at_binding)) {
-                Drop_Data_Stack_To(base);
                 error = Error_No_Catch_For_Throw(TOP_LEVEL);
                 goto return_error;
             }
@@ -627,7 +583,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             Stable* spare_picker = (
                 Decay_If_Unstable(SPARE)
             ) except (Error* e) {
-                UNUSED(e);
+                error = e;
                 goto return_error;
             }
 
@@ -648,7 +604,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
             Set_Cell_Flag(TOP, STEP_NOTE_WANTS_UNBIND);
     }
 
-    goto set_from_steps_on_stack;
+    goto return_success;
 
 } handle_scratch_var_as_pinned_steps_block: {
 
@@ -659,9 +615,66 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     for (at = head; at != tail; ++at)
         Copy_Cell_May_Bind(PUSH(), at, at_binding);
 
-    goto set_from_steps_on_stack;
+    goto return_success;
 
-}} set_from_steps_on_stack: { ////////////////////////////////////////////////
+} return_success: { //////////////////////////////////////////////////////////
+
+    Corrupt_Cell_If_Needful(SPARE);
+    return SUCCESS;
+
+} return_error: { ////////////////////////////////////////////////////////////
+
+    Drop_Data_Stack_To(base);
+    return error;
+}}
+
+
+//
+//  Trap_Tweak_From_Stack_Steps_With_Dual_Out: C
+//
+// This is centralized code for setting or "tweaking" variables.
+//
+// **Almost all parts of the system should go through this code for assignment,
+// even when they know they have just a WORD! in their hand and don't need path
+// dispatch.**  Only a few places bypass this code for reasons of optimization,
+// but they must do so carefully, because that would skip things like
+// accessors (which implement type checking, etc.)
+//
+// 1. The calling function should do `heeded (Corrupt_Cell_If_Needful(SPARE))`.
+//    This helps be sure they're not expecting SPARE to be untouched.  (It's
+//    better than trying to work "Corrupts_Spare()" into the already quite-long
+//    name of the function.)
+//
+Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
+    Level* level_,  // OUT may be FAILURE! antiform, see [A]
+    StackIndex base,
+    TweakMode mode
+){
+    assert(OUT != SCRATCH and OUT != SPARE);
+
+    Stable* out = As_Stable(OUT);
+
+    assert(LEVEL == TOP_LEVEL);
+    possibly(Get_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION));
+
+  #if NEEDFUL_DOES_CORRUPTIONS  // confirm caller pre-corrupted spare [1]
+    assert(Not_Cell_Readable(SPARE));
+  #endif
+
+    Flags flags = LEVEL_MASK_NONE;  // reused, top level, no keepalive needed
+
+    Sink(Value) spare_location_dual = SPARE;
+
+    StackIndex stackindex_top;
+
+    Option(Error*) error = SUCCESS;  // for common exit path on error
+
+    Element* scratch_var = As_Element(SCRATCH);
+
+  #if RUNTIME_CHECKS
+    Protect_Cell(scratch_var);  // (common exit path undoes this protect)
+    Protect_Cell(OUT);
+  #endif
 
     // We always poke from the top of the stack, not from OUT.  This is
     // because we may have to decay it, and we don't want to modify OUT.
@@ -703,7 +716,9 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
     );
 
     for (; stackindex != limit; ++stackindex, Restart_Action_Level(sub)) {
-        bool dont_indirect = is_tweak and (stackindex == limit - 1);
+        bool dont_indirect = (
+            (mode == ST_TWEAK_TWEAKING) and (stackindex == limit - 1)
+        );
         error = Trap_Call_Pick_Refresh_Dual_In_Spare(
             level_, sub, stackindex, dont_indirect
         );
@@ -843,7 +858,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 
     goto poke_again;
 
-}}} return_error: { ///////////////////////////////////////////////////////////
+}} return_error: { ///////////////////////////////////////////////////////////
 
     assert(error);
   #if RUNTIME_CHECKS
@@ -886,22 +901,25 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
 Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
     Level* level_,  // OUT may be FAILURE! antiform, see [A]
     Option(Element*) steps_out,  // no GROUP!s if nulled
-    bool is_tweak
+    TweakMode mode
 ){
     possibly(SPARE == steps_out or SCRATCH == steps_out);
 
     assert(STATE != STATE_0);  // trampoline rule: OUT only erased if STATE_0
 
-    dont(assert(TOP_INDEX == STACK_BASE));  // Hmmm, why not?
+    possibly(TOP_INDEX != STACK_BASE);
     StackIndex base = TOP_INDEX;
 
-    Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out_Push_Steps(
-        level_,
-        steps_out != NO_STEPS,
-        is_tweak
-    );
+    bool groups_ok = (steps_out != nullptr);
+    Option(Error*) e = Trap_Push_Steps_To_Stack(level_, groups_ok);
     if (e)
         return e;
+
+    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out(level_, base, mode);
+    if (e) {
+        Drop_Data_Stack_To(base);
+        return e;
+    }
 
     if (not steps_out or steps_out == GROUPS_OK) {
         Drop_Data_Stack_To(base);
@@ -977,7 +995,7 @@ DECLARE_NATIVE(TWEAK)
     Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
         LEVEL,
         steps,
-        STATE == ST_TWEAK_TWEAKING  // should last step of pick not indirect?
+        u_cast(TweakMode, STATE)  // should last step of pick not indirect?
     );
     if (e)
         panic (unwrap e);

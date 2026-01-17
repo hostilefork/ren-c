@@ -127,8 +127,6 @@ INLINE Byte State_Byte_From_Flags(Flags flags)
   { return SECOND_BYTE(&flags); }
 
 
-#define STATE_0 0  // use macro vs. just hardcoding 0 around the system
-
 #undef LEVEL_FLAG_8
 #undef LEVEL_FLAG_9
 #undef LEVEL_FLAG_10
