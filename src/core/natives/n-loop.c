@@ -295,7 +295,7 @@ void Add_Definitional_Break_Again_Continue(
 //
 static Bounce Loop_Series_Common(
     Level* level_,
-    Stable* var, // Must not be movable from context expansion, see #2274
+    Fixed(Slot*) slot,  // See #2274
     const Element* body,
     Stable* start,
     Index end,
@@ -312,7 +312,7 @@ static Bounce Loop_Series_Common(
     // if they change `var` during the loop, it affects the iteration.  Hence
     // it must be checked for changing to another series, or non-series.
     //
-    Copy_Cell(var, start);
+    Stable* var = Copy_Cell(Slot_Hack(slot), start);
     Index* state = &SERIES_INDEX_UNBOUNDED(var);
 
     // Run only once if start is equal to end...edge case.
@@ -399,7 +399,7 @@ static Bounce Loop_Series_Common(
 //
 static Bounce Loop_Integer_Common(
     Level* level_,
-    Stable* var,  // Must not be movable from context expansion, see #2274
+    Fixed(Slot*) slot,  // See #2274
     const Element* body,
     REBI64 start,
     REBI64 end,
@@ -409,9 +409,8 @@ static Bounce Loop_Integer_Common(
     // if they change `slot` during the loop, it affects the iteration.  Hence
     // it must be checked for changing to a non-integer form.
     //
-    Reset_Cell_Header_Noquote(TRACK(var), CELL_MASK_INTEGER);
+    Stable* var = Init_Integer(Slot_Hack(slot), start);
     REBI64* state = &mutable_VAL_INT64(var);
-    *state = start;
 
     // Run only once if start is equal to end...edge case.
     //
@@ -482,7 +481,7 @@ static Bounce Loop_Integer_Common(
 //
 static Bounce Loop_Number_Common(
     Level* level_,
-    Stable* var,  // Must not be movable from context expansion, see #2274
+    Fixed(Slot*) slot,  // See #2274
     const Element* body,
     Stable* start,
     Stable* end,
@@ -515,9 +514,8 @@ static Bounce Loop_Number_Common(
     // As in Loop_Integer_Common(), the state is actually in a cell; so each
     // loop iteration it must be checked to ensure it's still a decimal...
     //
-    Reset_Cell_Header_Noquote(TRACK(var), CELL_MASK_DECIMAL);
+    Stable* var = Init_Decimal(Slot_Hack(slot), s);
     REBDEC *state = &VAL_DECIMAL(var);
-    *state = s;
 
     // Run only once if start is equal to end...edge case.
     //
@@ -609,7 +607,6 @@ DECLARE_NATIVE(CFOR)
     Add_Definitional_Break_Again_Continue(body, level_);
 
     Fixed(Slot*) slot = Varlist_Fixed_Slot(varlist, 1);
-    Stable* var = Stable_Slot_Hack(slot);
 
     if (
         Is_Integer(ARG(START))
@@ -618,7 +615,7 @@ DECLARE_NATIVE(CFOR)
     ){
         return Loop_Integer_Common(
             level_,
-            var,
+            slot,
             ARG(BODY),
             VAL_INT64(ARG(START)),
             Is_Decimal(ARG(END))
@@ -632,7 +629,7 @@ DECLARE_NATIVE(CFOR)
         if (Any_Series(ARG(END))) {
             return Loop_Series_Common(
                 level_,
-                var,
+                slot,
                 ARG(BODY),
                 ARG(START),
                 Series_Index(ARG(END)),
@@ -642,7 +639,7 @@ DECLARE_NATIVE(CFOR)
         else {
             return Loop_Series_Common(
                 level_,
-                var,
+                slot,
                 ARG(BODY),
                 ARG(START),
                 Int32s(ARG(END), 1) - 1,
@@ -652,7 +649,7 @@ DECLARE_NATIVE(CFOR)
     }
 
     return Loop_Number_Common(
-        level_, var, ARG(BODY), ARG(START), ARG(END), ARG(BUMP)
+        level_, slot, ARG(BODY), ARG(START), ARG(END), ARG(BUMP)
     );
 }
 
