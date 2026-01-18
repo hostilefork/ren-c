@@ -1008,7 +1008,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
 
     Stable* dual = ARG(DUAL);
     if (Not_Lifted(dual)) {
-        if (Is_Dual_Nulled_Pick_Signal(dual))
+        if (Is_Tweak_Nulled_Pick_Signal(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));

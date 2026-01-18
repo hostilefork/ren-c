@@ -52,7 +52,7 @@
 // conversions from these types.
 //
 DECLARE_C_TYPE_LIST(g_convertible_to_cell,
-    Cell, Slot, Param, Value, Stable, Element,
+    Cell, Slot, Param, Value, Stable, Element, Dual,
     Pairing,  // same size as Stub, holds two Cells
     char,  // some memory blobs use char* for debuggers to read UTF-8 easier
     Base, Byte, void
@@ -97,6 +97,26 @@ struct CastHook<const F*, const Stable*> {  // both must be const [B]
 
 template<typename F>  // [A]
 struct CastHook<const F*, const Element*> {  // both must be const [B]
+    static void Validate_Bits(const F* p) {
+        STATIC_ASSERT(In_C_Type_List(g_convertible_to_cell, F));
+
+        if (not p)
+            return;
+
+        const Cell* c = u_cast(const Cell*, p);
+        Assert_Cell_Readable(c);
+        assert(LIFT_BYTE_RAW(c) > STABLE_ANTIFORM_2);
+    }
+};
+
+
+//=//// cast(Dual*, ...) //////////////////////////////////////////////////=//
+
+// Same rules as Element* (just a different meaning: ordinary cells are the
+// lifted states, while bedrock states are represented by NOQUOTE_3).
+
+template<typename F>  // [A]
+struct CastHook<const F*, const Dual*> {  // both must be const [B]
     static void Validate_Bits(const F* p) {
         STATIC_ASSERT(In_C_Type_List(g_convertible_to_cell, F));
 

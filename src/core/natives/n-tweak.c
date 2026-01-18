@@ -158,24 +158,27 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     assert(sub == TOP_LEVEL);
     unnecessary(Drop_Action(sub));  // !! action is dropped, should it be?
 
-    if (Is_Dualized_Bedrock(As_Stable(SPARE))) {
+    if (Is_Pick_Absent_Signal(SPARE))
+        goto return_without_unbinding;
+
+    Dual* dual_spare = As_Dual(SPARE);
+
+    if (Is_Dualized_Bedrock(dual_spare)) {
         if (dont_indirect)
             goto return_without_unbinding;
 
         goto handle_indirect_pick;
     }
 
-    possibly(Is_Pick_Absent_Signal(As_Stable(SPARE)));
     goto possibly_unbind_spare_and_return;
 
-} handle_indirect_pick: { ////////////////////////////////////////////////////
+  handle_indirect_pick: { ////////////////////////////////////////////////////
 
   // 1. The drain could PANIC regardless of access via VAR or ^VAR, (as it is
   //    "dishonest" to give anything back, when whatever was last assigned was
   //    discarded).  But it's probably more useful if ^VAR is willing to give
   //    a FAILURE! so you can say (try ^var) and get NULL.
 
-    Stable* dual_spare = As_Stable(SPARE);
 
     if (Is_Bedrock_Dual_An_Accessor(dual_spare)) {  // FRAME!
         Api(Value*) result = rebLift(dual_spare);
@@ -185,7 +188,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     }
 
     if (Is_Bedrock_Dual_An_Alias(dual_spare)) {  // ^WORD!, ^TUPLE!
-        Quote_Cell(As_Element(dual_spare));
+        Quote_Cell(dual_spare);
         Api(Value*) result = rebLift(CANON(GET), dual_spare);
         Copy_Cell(SPARE, result);  // lifted result of GET
         rebRelease(result);
@@ -203,7 +206,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
 
     return Error_User("TWEAK* returned unknown dualized bedrock element");
 
-} possibly_unbind_spare_and_return: { ////////////////////////////////////////
+}} possibly_unbind_spare_and_return: { ///////////////////////////////////////
 
     if (Get_Cell_Flag(
         Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
@@ -327,7 +330,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         );
 
         if (was_singular_pack) {  // alias hack: allow (alias: ~(^word)~)
-            const Element* at = List_Item_At(TOP_ELEMENT);
+            const Dual* at = u_cast(Dual*, List_Item_At(TOP_ELEMENT));
             if (  // allow only some bedrock forms
                 Is_Dual_Alias(at)
                 or Is_Dual_Accessor(at)
@@ -368,12 +371,13 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     if (threw)  // don't want to return casual error you can TRY from
         return Error_No_Catch_For_Throw(TOP_LEVEL);
 
-    Stable* dual_spare = As_Stable(SPARE);  // sub level's OUT went to SPARE
-
-    if (not Is_Dualized_Bedrock(dual_spare)) {
-        possibly(Is_Dual_Nulled_No_Writeback_Signal(dual_spare));
+    if (Is_Nulled_No_Writeback_Signal(SPARE))
         goto return_success;
-    }
+
+    Dual* dual_spare = As_Dual(SPARE);  // sub level's OUT went to SPARE
+
+    if (not Is_Dualized_Bedrock(dual_spare))
+        goto return_success;
 
   handle_indirect_poke: {
 
@@ -396,7 +400,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     }
     else if (Is_Bedrock_Dual_An_Alias(dual_spare)) {  // ^WORD!, ^TUPLE!
         Element* quoted = Copy_Lifted_Cell(Level_Spare(sub), TOP_ELEMENT);
-        Quote_Cell(As_Element(dual_spare));
+        Quote_Cell(dual_spare);
         rebElide(CANON(TWEAK), dual_spare, quoted);  // quote suppresses eval
     }
     else if (Is_Bedrock_Dual_A_Drain(dual_spare)) {  // SPACE
@@ -409,11 +413,11 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     Init_Nulled_No_Writeback_Signal(SPARE);
     goto return_success;
 
-} return_success: { //////////////////////////////////////////////////////////
+}} return_success: { //////////////////////////////////////////////////////////
 
     Corrupt_Cell_If_Needful(TOP);  // shouldn't use past this point
     return SUCCESS;
-}}}
+}}
 
 
 //
@@ -690,7 +694,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 } calculate_pick_stack_limit: {
 
     StackIndex limit = stackindex_top;
-    if (Is_Dual_Nulled_Pick_Signal(out))
+    if (Is_Tweak_Nulled_Pick_Signal(out))
         limit = stackindex_top + 1;
 
     if (stackindex == limit)
@@ -788,7 +792,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     //    (it just re-lifted it) so the undecayed won't make an unstable
     //    value here if the picker wasn't ^META.
 
-    if (Is_Dual_Nulled_Pick_Signal(out)) {
+    if (Is_Tweak_Nulled_Pick_Signal(out)) {
         assert(Is_Nulled(TOP_STABLE));
       #if RUNTIME_CHECKS
         Unprotect_Cell(OUT);
@@ -825,7 +829,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
     // Subsequent updates become pokes, regardless of initial updater function
 
-    if (Is_Dual_Nulled_No_Writeback_Signal(spare_writeback_dual)) {
+    if (Is_Nulled_No_Writeback_Signal(spare_writeback_dual)) {
       #if RUNTIME_CHECKS
         Unprotect_Cell(OUT);
       #endif
@@ -851,7 +855,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     assert(error);
   #if RUNTIME_CHECKS
     Unprotect_Cell(OUT);
-    if (Is_Dual_Nulled_Pick_Signal(OUT))
+    if (Is_Tweak_Nulled_Pick_Signal(OUT))
         Corrupt_Cell_If_Needful(OUT);  // so you don't think it picked null
   #endif
 

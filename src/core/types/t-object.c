@@ -1310,12 +1310,8 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     if (not slot)
         return NULL_OUT_PICK_ABSENT;
 
-    Stable* dual = ARG(DUAL);
-    if (Is_Dual_Nulled_Pick_Signal(dual))
+    if (Is_Tweak_Nulled_Pick_Signal(ARG(DUAL)))
         goto handle_pick;
-
-    if (Is_Dual_Word_Named_Signal(dual))
-        goto handle_named_signal;
 
     goto handle_poke;
 
@@ -1344,6 +1340,11 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
 } handle_poke: { /////////////////////////////////////////////////////////////
 
+    Dual* dual = As_Dual(ARG(DUAL));
+
+    if (Is_Dual_Word_Named_Signal(dual))
+        goto handle_named_signal;
+
     if (Get_Cell_Flag(slot, PROTECTED))  // POKE, must check PROTECT status
         panic (Error_Protected_Key(symbol));
 
@@ -1366,7 +1367,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     );
     return NULL_OUT_NO_WRITEBACK;  // VarList* in cell not changed
 
-} handle_named_signal: { /////////////////////////////////////////////////////
+  handle_named_signal: { /////////////////////////////////////////////////////
 
     switch (opt Word_Id(dual)) {
       case SYM_PROTECT:
@@ -1386,7 +1387,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     }
 
     return NULL_OUT_NO_WRITEBACK;  // VarList* in context not changed
-}}
+}}}
 
 
 // !!! Should this be legal?

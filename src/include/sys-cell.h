@@ -56,17 +56,19 @@
 //
 
 #if DONT_CHECK_CELL_SUBCLASSES
+    #define Known_Dual(v)         (v)
     #define Known_Element(v)      (v)
     #define Possibly_Antiform(v)  (v)
     #define Known_Stable(v)       (v)
     #define Possibly_Unstable(v)  (v)
-    #define Possibly_Dual(v)      (v)
+    #define Possibly_Bedrock(v)   (v)
 #else
+    #define Known_Dual(v)         known(Dual*, (v))
     #define Known_Element(v)      known(Element*, (v))
     #define Possibly_Antiform(v)  known_not(Element*, (v))
     #define Known_Stable(v)       known(Stable*, (v))
     #define Possibly_Unstable(v)  known_not(Stable*, (v))
-    #define Possibly_Dual(v)      known_not(Value*, (v))
+    #define Possibly_Bedrock(v)   known_not(Value*, (v))
 #endif
 
 
@@ -85,9 +87,10 @@
 // a Cell with an antiform LIFT_BYTE() to an Element*).
 //
 
+#define As_Dual(v)      cast(Dual*, (v))
 #define As_Element(v)   cast(Element*, Possibly_Antiform(v))
 #define As_Stable(v)    cast(Stable*, Possibly_Unstable(v))
-#define As_Value(v)     cast(Value*, Possibly_Dual(v))
+#define As_Value(v)     cast(Value*, Possibly_Bedrock(v))
 
 
 //=//// CELL READABLE + WRITABLE + INITABLE CHECKS ////////////////////////=//

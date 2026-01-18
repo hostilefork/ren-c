@@ -829,6 +829,25 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
 #endif
 
 
+//=//// DUALS /////////////////////////////////////////////////////////////=//
+//
+// Some parts of the system want to be able to represent a value that could
+// be in a BEDROCK_0 state, but push it "in-band" of normal values.  This is
+// done by taking most values and putting them in lifted representation, and
+// then using the unlifted NOQUOTE_3 state to represent BEDROCK_0.
+//
+// PACK!, for example, contains "dual values"...they are Element* (because
+// they have to be, to be in a List).  But the representational conception is
+// that the values are lifted unless they are signals in the NOQUOTE_3 state.)
+//
+
+#if DONT_CHECK_CELL_SUBCLASSES
+    typedef struct RebolValueStruct Dual;
+#else
+    struct Dual : public Element {};
+#endif
+
+
 //=//// "Param" SUBCLASS OF "Value" ///////////////////////////////////////=//
 //
 // The datatype ParamList holds a list of PARAMETER! values for unspecialized

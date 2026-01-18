@@ -29,11 +29,12 @@
 // states.  We refer to this multiplexing as a "Dual".
 //
 
+
 #define Is_Bedrock(cell) \
-    (LIFT_BYTE(known(Slot*, (cell))) == BEDROCK_0)
+    (LIFT_BYTE(Possibly_Bedrock(cell)) == BEDROCK_0)
 
 #define Is_Dualized_Bedrock(dual) \
-    (LIFT_BYTE(known(Stable*, (dual))) == NOQUOTE_3)
+    (LIFT_BYTE(Known_Dual(dual)) == NOQUOTE_3)
 
 
 //=//// UNDECAYED ~(...)~ BEDROCK PACK!s //////////////////////////////////-//
@@ -76,12 +77,12 @@
 // take the thing to assign as the left hand side.  Less fun, more awkward!
 //
 
-INLINE const Element* Opt_Extract_Dual_If_Undecayed_Bedrock(const Value* v) {
+INLINE const Dual* Opt_Extract_Dual_If_Undecayed_Bedrock(const Value* v) {
     if (not Is_Pack(v))
         return nullptr;
 
     const Element* tail;
-    const Element* item = List_At(&tail, v);
+    const Dual* item = u_cast(Dual*, List_At(&tail, v));
     if (item == tail or item + 1 != tail)
         return nullptr;
 
@@ -110,7 +111,7 @@ INLINE const Element* Opt_Extract_Dual_If_Undecayed_Bedrock(const Value* v) {
 // need for bedrock PARAMETER! to be a "hole" made that term confusing.
 //
 
-INLINE bool Is_Bedrock_Dual_A_Drain(const Stable* dual) {
+INLINE bool Is_Bedrock_Dual_A_Drain(const Dual* dual) {
     assert(Is_Dualized_Bedrock(dual));
     return Is_Space(dual);  // maybe no faster than Is_Dual_Drain()?
 }
@@ -118,11 +119,11 @@ INLINE bool Is_Bedrock_Dual_A_Drain(const Stable* dual) {
 #define Is_Drain_Core(cell, lift_byte) \
     Is_Cell_Space_With_Lift_Sigil((cell), (lift_byte), SIGIL_0)
 
-#define Is_Cell_A_Bedrock_Drain(slot) \
-    Is_Drain_Core(known(Slot*, slot), BEDROCK_0)
+#define Is_Cell_A_Bedrock_Drain(cell) \
+    Is_Drain_Core(Possibly_Bedrock(cell), BEDROCK_0)
 
-#define Is_Dual_Drain(v) \
-    Is_Drain_Core(known(Stable*, v), NOQUOTE_3)
+#define Is_Dual_Drain(dual) \
+    Is_Drain_Core(Known_Dual(dual), NOQUOTE_3)
 
 INLINE Slot* Init_Bedrock_Drain(Init(Slot) out) {
     Init_Space(out);
@@ -131,7 +132,7 @@ INLINE Slot* Init_Bedrock_Drain(Init(Slot) out) {
 }
 
 INLINE bool Is_Undecayed_Drain(const Value* v) {  // ~(_)~ PACK!
-    const Element* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
+    const Dual* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
     return dual and Is_Dual_Drain(dual);
 }
 
@@ -234,7 +235,7 @@ INLINE bool Is_Hot_Potato_With_Id_Core(
 // can set to anything (the decision to decay or not is done before the
 // alias is written or read from).
 
-INLINE bool Is_Bedrock_Dual_An_Alias(const Stable* dual) {
+INLINE bool Is_Bedrock_Dual_An_Alias(const Dual* dual) {
     assert(Is_Dualized_Bedrock(dual));
     return (
         KIND_BYTE(dual) == Kind_From_Sigil_And_Heart(SIGIL_META, TYPE_WORD)
@@ -250,14 +251,14 @@ INLINE bool Is_Alias_Core(const Cell* cell, LiftByte lift_byte) {
     );
 }
 
-#define Is_Cell_A_Bedrock_Alias(slot) \
-    Is_Alias_Core(known(Slot*, slot), BEDROCK_0)
+#define Is_Cell_A_Bedrock_Alias(cell) \
+    Is_Alias_Core(Possibly_Bedrock(cell), BEDROCK_0)
 
-#define Is_Dual_Alias(v) \
-    Is_Alias_Core(known(Stable*, v), NOQUOTE_3)
+#define Is_Dual_Alias(dual) \
+    Is_Alias_Core(Known_Dual(dual), NOQUOTE_3)
 
 INLINE bool Is_Undecayed_Alias(const Value* v) {  // ~(^meta)~ PACK!
-    const Element* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
+    const Dual* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
     return dual and Is_Dual_Alias(dual);
 }
 
@@ -268,7 +269,7 @@ INLINE bool Is_Undecayed_Alias(const Value* v) {  // ~(^meta)~ PACK!
 // assignmetns via GET and SET (or GET-WORD/SET-WORD).
 //
 
-INLINE bool Is_Bedrock_Dual_An_Accessor(const Stable* dual) {
+INLINE bool Is_Bedrock_Dual_An_Accessor(const Dual* dual) {
     assert(Is_Dualized_Bedrock(dual));
     return KIND_BYTE(dual) == Kind_From_Sigil_And_Heart(SIGIL_0, TYPE_FRAME);
 }
@@ -276,13 +277,13 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Stable* dual) {
 #define Is_Accessor_Core(cell,lift_byte) \
     Cell_Has_Lift_Sigil_Heart((cell), (lift_byte), SIGIL_0, TYPE_FRAME)
 
-#define Is_Cell_A_Bedrock_Accessor(slot) \
-    Is_Accessor_Core(known(Slot*, slot), BEDROCK_0)
+#define Is_Cell_A_Bedrock_Accessor(cell) \
+    Is_Accessor_Core(Possibly_Bedrock(cell), BEDROCK_0)
 
-#define Is_Dual_Accessor(v) \
-    Is_Accessor_Core(known(Stable*, v), NOQUOTE_3)
+#define Is_Dual_Accessor(dual) \
+    Is_Accessor_Core(Known_Dual(dual), NOQUOTE_3)
 
-#define Is_Dual_Word_Named_Signal(dual)  Is_Word(dual)
+#define Is_Dual_Word_Named_Signal(dual)  Is_Word(Known_Dual(dual))
 
 
 //=//// DUAL PICKING //////////////////////////////////////////////////////=//
@@ -315,7 +316,7 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Stable* dual) {
 
 #define Is_Pick_Absent_Signal(cell)  Is_Nulled(cell)
 
-#define Is_Dual_Nulled_Pick_Signal(dual)  Is_Nulled(dual)
+#define Is_Tweak_Nulled_Pick_Signal(dual)  Is_Nulled(dual)
 #define Init_Dual_Nulled_Pick_Signal(dual)  Init_Nulled(dual)
 
 #define OUT_UNLIFTED_DUAL_INDIRECT_PICK \
@@ -346,7 +347,7 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Stable* dual) {
 #define NULL_OUT_NO_WRITEBACK \
     x_cast(Bounce, Init_Nulled_No_Writeback_Signal(OUT))
 
-#define Is_Dual_Nulled_No_Writeback_Signal(dual)  Is_Nulled(dual)
+#define Is_Nulled_No_Writeback_Signal(cell)  Is_Nulled(cell)
 
 #define OUT_UNLIFTED_DUAL_INDIRECT_POKE \
     (assert(not Any_Lifted(OUT)), x_cast(Bounce, OUT))  // e.g. ALIAS, SETTER
