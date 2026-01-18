@@ -282,12 +282,6 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Stable* dual) {
 #define Is_Dual_Accessor(v) \
     Is_Accessor_Core(known(Stable*, v), NOQUOTE_3)
 
-INLINE bool Is_Undecayed_Accessor(const Value* v) {  // ~(action!)~ PACK!
-    const Element* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
-    return dual and Is_Dual_Accessor(dual);
-}
-
-
 #define Is_Dual_Word_Named_Signal(dual)  Is_Word(dual)
 
 
@@ -362,7 +356,7 @@ INLINE bool Is_Undecayed_Accessor(const Value* v) {  // ~(action!)~ PACK!
 // SET/TWEAK code.  Also, it's not clear if this should just be Is_Ghost().
 //
 INLINE bool Is_Non_Meta_Assignable_Unstable_Antiform(const Value* v)
-  { return Is_Ghost(v) or Is_Trash(v); }
+  { return Is_Ghost(v) or Is_Trash(v) or Is_Action(v); }
 
 INLINE bool Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(const Stable* v)
- { return Is_Lifted_Ghost(v) or Is_Lifted_Trash(v); }
+ { return Is_Lifted_Ghost(v) or Is_Lifted_Trash(v) or Is_Lifted_Action(v); }

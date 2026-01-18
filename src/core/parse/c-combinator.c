@@ -234,7 +234,7 @@ DECLARE_NATIVE(COMBINATOR)
     if (bounce)
         return bounce;
 
-    assert(Is_Possibly_Unstable_Value_Action(OUT));
+    assert(Is_Action(OUT));
     LIFT_BYTE(OUT) = NOQUOTE_3;  // now it's known to not be antiform
 
     return OUT;
@@ -247,8 +247,8 @@ DECLARE_NATIVE(COMBINATOR)
 // This service routine does a faster version of something like:
 //
 //     Api(Stable*) result = rebStable("apply", rebQ(ARG(PARSER)), "[",
-//         ":input", rebQ(ARG(INPUT)),  // quote avoids becoming const
-//         ":remainder @", ARG(REMAINDER),
+//         "input:", rebQ(ARG(INPUT)),  // quote avoids becoming const
+//         "remainder: @", ARG(REMAINDER),
 //     "]");
 //
 // But it only works on parsers that were created from specializations of
@@ -258,11 +258,11 @@ DECLARE_NATIVE(COMBINATOR)
 void Push_Parser_Sublevel(
     Value* out,
     const Stable* remainder,
-    const Stable* parser,
+    const Value* parser,
     const Stable* input
 ){
     assert(Any_Series(input));
-    assert(Is_Frame(parser));
+    assert(Is_Action(parser));
 
     ParamList* ctx = Make_Varlist_For_Action(
         parser,
@@ -307,7 +307,7 @@ void Push_Parser_Sublevel(
 //  "If parser fails, succeed and return GHOST without advancing the input"
 //
 //      return: [ghost! any-stable?]
-//      parser [action!]
+//      ^parser [action!]
 //      {remainder}  ; !!! no longer separate output, review
 //  ]
 //
@@ -318,7 +318,7 @@ DECLARE_NATIVE(OPT_COMBINATOR)
     Stable* remainder = ARG(REMAINDER);  // output (combinator implicit)
 
     Stable* input = ARG(INPUT);  // combinator implicit
-    Stable* parser = ARG(PARSER);
+    Value* parser = ARG(PARSER);
 
     enum {
         ST_OPT_COMBINATOR_INITIAL_ENTRY = STATE_0,
@@ -424,7 +424,7 @@ DECLARE_NATIVE(TEXT_X_COMBINATOR)
 //  "Must run at least one match, return result of last parser call"
 //
 //      return: [any-stable?]
-//      parser [action!]
+//      ^parser [action!]
 //      {remainder}  ; !!! no longer separate output, review
 //  ]
 //
@@ -433,7 +433,7 @@ DECLARE_NATIVE(SOME_COMBINATOR)
     INCLUDE_PARAMS_OF_SOME_COMBINATOR;
 
     Stable* remainder = ARG(REMAINDER);
-    Stable* parser = ARG(PARSER);
+    Value* parser = ARG(PARSER);
     Stable* input = ARG(INPUT);
 
     Stable* state = ARG(STATE);
@@ -511,7 +511,7 @@ DECLARE_NATIVE(SOME_COMBINATOR)
 //  "Pass through the result only if the input was advanced by the rule"
 //
 //      return: [any-stable?]
-//      parser [action!]
+//      ^parser [action!]
 //      {remainder}  ; !!! no longer separate output, review
 //  ]
 //
@@ -521,7 +521,7 @@ DECLARE_NATIVE(FURTHER_COMBINATOR)
 
     Stable* remainder = ARG(REMAINDER);
     Stable* input = ARG(INPUT);
-    Stable* parser = ARG(PARSER);
+    Value* parser = ARG(PARSER);
     UNUSED(ARG(STATE));
 
     enum {
@@ -563,7 +563,7 @@ DECLARE_NATIVE(FURTHER_COMBINATOR)
 struct CombinatorParamStateStruct {
     VarList* ctx;
     Level* level_;
-    Stable* rule_end;
+    Init(Slot) rule_end;
 };
 typedef struct CombinatorParamStateStruct CombinatorParamState;
 
@@ -600,7 +600,7 @@ static bool Combinator_Param_Hook(
         return true;  // keep iterating the parameters.
     }
 
-    Stable* var = Stable_Slot_Hack(Varlist_Slots_Head(s->ctx) + offset);
+    Init(Slot) var = Slot_Init_Hack(Varlist_Slots_Head(s->ctx) + offset);
 
     if (symid == SYM_STATE) {  // the "state" is currently the UPARSE frame
         Copy_Cell(var, ARG(STATE));
@@ -654,7 +654,8 @@ static bool Combinator_Param_Hook(
         }
         break; }
 
-      case PARAMCLASS_NORMAL: {
+      case PARAMCLASS_NORMAL:
+      case PARAMCLASS_META: {  // ^parser received undecayed
         //
         // Need to make PARSIFY a native!  Work around it for now...
         //
@@ -677,8 +678,8 @@ static bool Combinator_Param_Hook(
             if (rebRunThrows(SPARE, "let temp"))
                 assert(!"LET failed");
             Element* temp = As_Element(SPARE);
-            Api(Stable*) parser = rebStable(
-                "[_", temp, "]: parsify", rebQ(ARG(STATE)), ARG(RULES)
+            Api(Value*) parser = rebUndecayed(
+                "[{^}", temp, "]: parsify", rebQ(ARG(STATE)), ARG(RULES)
             );
             require (
               Get_Var(

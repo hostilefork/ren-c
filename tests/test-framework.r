@@ -179,7 +179,7 @@ run-test-cluster: proc [
 ;
 process-tests: proc [
     test-sources [block!]
-    handler [action!]
+    handler [frame!]
 ][
     let flags
     let value
@@ -189,7 +189,7 @@ process-tests: proc [
     parse3 test-sources [
         opt some [
             flags: block! value: block! (
-                handler flags value  ; flags ignored atm
+                /handler flags value  ; flags ignored atm
             )
                 |
             test-file: file! (

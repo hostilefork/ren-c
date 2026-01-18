@@ -226,7 +226,7 @@ make-scheme: proc [
     if not scheme.name [cause-error 'access 'no-scheme-name scheme]
 
     ; If actor is block build a non-contextual actor object:
-    if block? scheme.actor [
+    if block? ^scheme.actor [
         scheme.actor: inside def scheme.actor  ; in future, scheme.$actor
         let actor: make object! (length of scheme.actor) / 4
         for-each [name op args body] scheme.actor [
@@ -246,7 +246,7 @@ make-scheme: proc [
         scheme.actor: actor
     ]
 
-    match [object! action!] scheme.actor else [
+    typecheck:meta [object! action!] ^scheme.actor else [
         panic [
             "Scheme actor" scheme.name "can't be" to word! type of scheme.actor
         ]

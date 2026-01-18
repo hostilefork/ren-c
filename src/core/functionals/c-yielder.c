@@ -450,7 +450,7 @@ bool Yielder_Details_Querier(
 //
 //  "Produce generator function that can YIELD multiple values until DONE"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec [block! datatype!]
 //      @(body) [<const> block! fence!]
 //      ; :resettable  ; should yielders offer a reset facility?
@@ -476,14 +476,14 @@ DECLARE_NATIVE(YIELDER)
     if (bounce)
         return bounce;
 
-    Details* details = Ensure_Frame_Details(As_Stable(OUT));
+    Details* details = Ensure_Frame_Details(OUT);
 
     assert(Is_Block(Details_At(details, IDX_YIELDER_BODY)));
     Init_Nulled(Details_At(details, IDX_YIELDER_ORIGINAL_FRAME));
     Init_Nulled(Details_At(details, IDX_YIELDER_PLUG));
     Init_Nulled(Details_At(details, IDX_YIELDER_YIELDED_LIFTED));
 
-    return Packify_Action(OUT);
+    return OUT;
 }
 
 
@@ -599,13 +599,13 @@ DECLARE_NATIVE(DEFINITIONAL_YIELD)
         or Is_Hot_Potato(v)
         or ARG(FINAL)
     ){
-        Stable* spare = Init_Action(
+        Element* frame = Init_Frame(
             SPARE,  // use as label for throw
             Frame_Phase(LIB(DEFINITIONAL_YIELD)),
             CANON(YIELD),
             Level_Varlist(yielder_level)
         );
-        Init_Thrown_With_Label(LEVEL, v, spare);
+        Init_Thrown_With_Label(LEVEL, v, frame);
         return BOUNCE_THROWN;
     }
 

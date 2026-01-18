@@ -14,7 +14,7 @@ Rebol [
 decorated-words-of: func [
     "Get the decorated parameters as a block (useful for testing)"
     return: [block!]
-    frame [<unrun> frame!]
+    frame [frame!]
 ][
     return map-each [key param] (parameters of frame) [
         decorate param key
@@ -80,7 +80,7 @@ print-general-help: proc [] [
 
 
 help-action: proc [
-    frame [<unrun> frame!]
+    frame [frame!]
     :name [word! tuple! path!]
 ][
     name: default [label of frame]
@@ -372,7 +372,7 @@ help: func [
 source: proc [
     "Prints the source code for an ACTION! (if available)"
 
-    @arg [<unrun> word! path! frame! tag!]
+    @arg [frame! word! path! tag!]
 ][
     let name
     let f

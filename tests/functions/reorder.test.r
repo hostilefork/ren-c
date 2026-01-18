@@ -97,8 +97,8 @@
 ; Weird demo taking advantage of the ignored parameters with a reversing
 ; inliner, to implement something along the lines of Haskell FLIP.
 [
-    (flip: inliner ['name [word!] {frame}] [
-        frame: unrun ensure [action!] get name
+    (flip: inliner [@name [word!] {frame}] [
+        frame: unrun ensure [action!] get meta name
         spread reduce [reorder frame (reverse words of frame)]
     ]
     true)

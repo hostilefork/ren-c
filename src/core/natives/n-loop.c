@@ -591,7 +591,7 @@ static Bounce Loop_Number_Common(
 //      start [any-series? any-number?]
 //      end [any-series? any-number?]
 //      bump [any-number?]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(CFOR)
@@ -671,7 +671,7 @@ DECLARE_NATIVE(CFOR)
 //          [_ word! ^word! $word! 'word! '^word! '$word!]
 //      series [<cond> <opt> any-series?]
 //      skip [<cond> integer!]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(FOR_SKIP)
@@ -844,7 +844,7 @@ void Add_Definitional_Stop(
 //  "Evaluate branch endlessly until BREAK gives NULL or a STOP gives a result"
 //
 //      return: [<null> any-stable?]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(CYCLE)
@@ -952,7 +952,9 @@ struct Reb_Enum_Series {
 typedef struct Reb_Enum_Series ESER;
 
 typedef struct {
-    Stable* data;  // possibly API handle if converted from sequence
+    Element* data;  // possibly API handle if converted from sequence
+    Value* generator;  // Action to generate data (if applicable)
+
     const Flex* flex;  // Flex being enumerated (if applicable)
     union {
         EVARS evars;
@@ -965,26 +967,54 @@ typedef struct {
 //
 //  Init_Loop_Each_May_Alias_Data: C
 //
-// 1. Iterating sequences is currently rare, so rather than trying to figure
-//    out how to iterate the various optimized forms just turn them into
-//    a BLOCK!.  This builds on top of the AS aliasing code, which may be
-//    able to reuse an Array if the sequence is uncompressed.  Note that
-//    each iteration of the same optimized series would create a new block,
-//    so it may be that AS aliasing should deoptimize the sequences (though
-//    this would break the invariant that sequences that could be optimized
-//    are optimized).
-//
-Element* Init_Loop_Each_May_Alias_Data(Sink(Element) iterator, Stable* data)
-{
-    assert(not Is_Api_Value(data));  // used to be cue to free, but not now
-
-    if (Is_Quoted(data)) {
-        Morph_Quoted_To_Block(As_Element(data));
-    }
+Element* Init_Loop_Each_May_Alias_Data(
+    Sink(Element) iterator,
+    Value* data_arg
+){
+    assert(not Is_Api_Value(data_arg));  // used to be cue to free, but not now
 
     require (
       LoopEachState *les = Alloc_On_Heap(LoopEachState)
     );
+
+    Element* data = nullptr;
+
+  handle_action: {
+
+  // The value is generated each time by calling the data action.  Actions
+  // are antiform FRAME!, and frame enumeration is distinct from this, so
+  // the unstable antiform status has to be distinguished.  We don't want
+  // handling `les->data` to be awkward due to being possibly unstable, so
+  // put the generator in a separate field.
+
+    if (Is_Action(data_arg)) {
+        les->took_hold = false;
+        les->more_data = true;  // !!! Needs to do first call
+        les->flex = nullptr;
+        les->generator = data_arg;
+
+        data = nullptr;
+        goto return_iterator;
+    }
+
+    data = As_Element(data_arg);
+    les->generator = nullptr;
+
+} convert_quoted_to_block: {
+
+    if (Is_Quoted(data))
+        Morph_Quoted_To_Block(data);
+
+} convert_sequence_to_block: {
+
+  // Iterating sequences is currently rare, so rather than trying to figure
+  // out how to iterate the various optimized forms just turn them into
+  // a BLOCK!.  This builds on top of the AS aliasing code, which may be
+  // able to reuse an Array if the sequence is uncompressed.  Note that
+  // each iteration of the same optimized series would create a new block,
+  // so it may be that AS aliasing should deoptimize the sequences (though
+  // this would break the invariant that sequences that could be optimized
+  // are optimized).
 
     if (Any_Sequence(data)) {  // alias paths, chains, tuples as BLOCK!
         DECLARE_ELEMENT (temp);
@@ -994,55 +1024,65 @@ Element* Init_Loop_Each_May_Alias_Data(Sink(Element) iterator, Stable* data)
         Copy_Cell(data, temp);
     }
 
-    if (Is_Action(data)) {
-        //
-        // The value is generated each time by calling the data action.
-        // Assign values to avoid compiler warnings.
-        //
-        les->took_hold = false;
-        les->more_data = true;  // !!! Needs to do first call
-        les->flex = nullptr;
+} handle_any_series: {
+
+    if (Any_Series(data)) {
+        les->flex = Cell_Flex(data);
+        les->u.eser.index = Series_Index(data);
+        les->u.eser.len = Series_Len_Head(data);  // has HOLD, won't change
+        goto take_hold_and_continue;
+    }
+
+} handle_module: {
+
+    if (Is_Module(data)) {
+        les->flex = EMPTY_ARRAY;  // !!! workaround, not a Flex
+        Init_Evars(&les->u.evars, data);
+        goto take_hold_and_continue;
+    }
+
+} handle_any_context: {
+
+    if (Any_Context(data)) {
+        les->flex = Varlist_Array(Cell_Varlist(data));
+        Init_Evars(&les->u.evars, data);
+        goto take_hold_and_continue;
+    }
+
+} handle_map: {
+
+    if (Is_Map(data)) {
+        les->flex = MAP_PAIRLIST(VAL_MAP(data));
+        les->u.eser.index = 0;
+        les->u.eser.len = Flex_Used(les->flex);  // immutable--has HOLD
+        goto take_hold_and_continue;
+    }
+
+    crash ("Illegal type passed to Loop_Each()");
+
+} take_hold_and_continue: {
+
+  // HOLD so length can't change
+
+    les->took_hold = Not_Flex_Flag(les->flex, FIXED_SIZE);
+    if (les->took_hold)
+        Set_Flex_Flag(les->flex, FIXED_SIZE);
+
+    if (Any_Context(data)) {
+        les->more_data = Try_Advance_Evars(&les->u.evars);
     }
     else {
-        if (Any_Series(data)) {
-            les->flex = Cell_Flex(data);
-            les->u.eser.index = Series_Index(data);
-            les->u.eser.len = Series_Len_Head(data);  // has HOLD, won't change
-        }
-        else if (Is_Module(data)) {
-            les->flex = EMPTY_ARRAY;  // !!! workaround, not a Flex
-            Init_Evars(&les->u.evars, As_Element(data));
-        }
-        else if (Any_Context(data)) {
-            les->flex = Varlist_Array(Cell_Varlist(data));
-            Init_Evars(&les->u.evars, As_Element(data));
-        }
-        else if (Is_Map(data)) {
-            les->flex = MAP_PAIRLIST(VAL_MAP(data));
-            les->u.eser.index = 0;
-            les->u.eser.len = Flex_Used(les->flex);  // immutable--has HOLD
-        }
-        else
-            crash ("Illegal type passed to Loop_Each()");
-
-        // HOLD so length can't change
-
-        les->took_hold = Not_Flex_Flag(les->flex, FIXED_SIZE);
-        if (les->took_hold)
-            Set_Flex_Flag(les->flex, FIXED_SIZE);
-
-        if (Any_Context(data)) {
-            les->more_data = Try_Advance_Evars(&les->u.evars);
-        }
-        else {
-            les->more_data = (les->u.eser.index < les->u.eser.len);
-        }
+        les->more_data = (les->u.eser.index < les->u.eser.len);
     }
+
+    goto return_iterator;
+
+  return_iterator: { /////////////////////////////////////////////////////////
 
     les->data = data;  // shorter to use plain `data` above
 
     return Init_Handle_Cdata(iterator, les, sizeof(les));
-}
+}}}
 
 
 // Common to FOR-EACH, MAP-EACH, and EVERY.  This takes an enumeration state
@@ -1089,8 +1129,9 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
             goto maybe_lift_and_continue;
         }
 
-        if (Is_Action(les->data)) {
-            Value* generated = rebUndecayed(rebRUN(les->data));
+        if (les->generator) {
+            assert(not les->data);
+            Value* generated = rebUndecayed(rebRUN(les->generator));
             if (not generated)
                 Init_Nulled(SPARE);
             else
@@ -1122,13 +1163,13 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
 
       switch_on_heart: {
 
-        Heart heart = Heart_Of_Builtin_Fundamental(As_Element(les->data));
+        Heart heart = Heart_Of_Builtin_Fundamental(les->data);
 
         if (Any_List_Type(heart)) {
             Element* spare_element = Copy_Cell_May_Bind(
                 SPARE,
                 Array_At(cast(Array*, les->flex), les->u.eser.index),
-                List_Binding(As_Element(les->data))
+                List_Binding(les->data)
             );
             trap (
               Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare_element)
@@ -1302,10 +1343,10 @@ void Shutdown_Loop_Each(Stable* iterator)
 //      ]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
-//      data "The series to traverse"
+//      ^data "The series to traverse"
 //          [<cond> <opt> any-series? any-context? map! any-sequence?
 //           action! quoted!]  ; action support experimental, e.g. generators
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -1314,7 +1355,7 @@ DECLARE_NATIVE(FOR_EACH)
     INCLUDE_PARAMS_OF_FOR_EACH;
 
     Element* vars = Element_ARG(VARS);  // becomes context on initial_entry
-    Option(Stable*) data = ARG(DATA);
+    Option(Value*) data = ARG(DATA);
     Element* body = Element_ARG(BODY);  // bound to vars on initial_entry
 
     Element* iterator;  // holds Loop_Each_State, all paths must cleanup!
@@ -1440,8 +1481,8 @@ DECLARE_NATIVE(FOR_EACH)
 //      ]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
-//      data [<cond> <opt> any-series? any-context? map! action!]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      ^data [<cond> <opt> any-series? any-context? map! action!]
+//      body [<cond> <const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -1450,7 +1491,7 @@ DECLARE_NATIVE(EVERY)
     INCLUDE_PARAMS_OF_EVERY;
 
     Element* vars = Element_ARG(VARS);  // becomes context on initial_entry
-    Option(Stable*) data = ARG(DATA);
+    Option(Value*) data = ARG(DATA);
     Element* body = Element_ARG(BODY);  // bound to vars on initial_entry
 
     Stable* iterator;  // holds Loop_Each_State, all paths must cleanup!
@@ -1584,7 +1625,7 @@ DECLARE_NATIVE(EVERY)
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      data "The series to traverse (modified)"
 //          [<cond> <opt> any-series?]  ; !!! can't do QUOTED!
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(REMOVE_EACH)
@@ -1943,7 +1984,7 @@ DECLARE_NATIVE(REMOVE_EACH)
 //      return: [<null> block!]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
-//      data "The series to traverse"
+//      ^data "The series to traverse"
 //          [
 //              <cond>
 //              <opt>
@@ -1951,7 +1992,7 @@ DECLARE_NATIVE(REMOVE_EACH)
 //              any-series? any-sequence? any-context?
 //              action!
 //          ]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -1971,7 +2012,7 @@ DECLARE_NATIVE(MAP_EACH)
     if (not ARG(DATA))  // same as empty list
         return Init_Block(OUT, Make_Source_Managed(0));
 
-    Stable* data = unwrap ARG(DATA);
+    Value* data = unwrap ARG(DATA);
     if (not Is_Action(data))
         Quote_Cell(As_Element(data));  // dialect, in theory [1]
 
@@ -1994,9 +2035,9 @@ DECLARE_NATIVE(MAP_EACH)
 //      return: [<null> block!]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
-//      data "The series to traverse (only QUOTED? BLOCK! at the moment...)"
+//      ^data "The series to traverse (only QUOTED? BLOCK! at the moment...)"
 //          [<cond> <opt> quoted! action!]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -2005,7 +2046,7 @@ DECLARE_NATIVE(MAP)
     INCLUDE_PARAMS_OF_MAP;
 
     Element* vars = Element_ARG(VARS);  // becomes context on initial_entry
-    Option(Stable*) data_arg = ARG(DATA);  // action invokes, frame enumerates
+    Option(Value*) data_arg = ARG(DATA);  // action invokes, frame enumerates
     Element* body = Element_ARG(BODY);  // bound to vars on initial_entry
 
     Stable* iterator;  // holds Loop_Each_State, all paths must cleanup!
@@ -2028,24 +2069,25 @@ DECLARE_NATIVE(MAP)
 
     Add_Definitional_Break_Again_Continue(body, level_);
 
-    Stable* data = unwrap data_arg;
-
-    if (Is_Action(data)) {
+    if (Is_Action(unwrap data_arg)) {
         // treat as a generator
     }
-    else if (
-        not Is_Quoted(data)
-        or Quotes_Of(As_Element(data)) != 1
-        or not (
-            Any_Series(Unquote_Cell(As_Element(data)))  // <= UNQUOTIFY here!
-            or Is_Path(data)  // has been unquoted
-            or Any_Context(data)
-            or Any_Sequence(data)
-        )
-    ){
-        panic (
-            "MAP only supports one-level QUOTED? series/path/context ATM"
-        );
+    else {
+        Element* data = As_Element(unwrap data_arg);
+        if (
+            not Is_Quoted(data)
+            or Quotes_Of(data) != 1
+            or not (
+                Any_Series(Unquote_Cell(data))  // <= UNQUOTIFY here!
+                or Is_Path(data)  // has been unquoted
+                or Any_Context(data)
+                or Any_Sequence(data)
+            )
+        ){
+            panic (
+                "MAP only supports one-level QUOTED? series/path/context ATM"
+            );
+        }
     }
 
     require (
@@ -2054,7 +2096,7 @@ DECLARE_NATIVE(MAP)
 
     Remember_Cell_Is_Lifeguard(Init_Object(ARG(VARS), varlist));
 
-    iterator = Init_Loop_Each_May_Alias_Data(LOCAL(ITERATOR), data);
+    iterator = Init_Loop_Each_May_Alias_Data(LOCAL(ITERATOR), unwrap data_arg);
     STATE = ST_MAP_INITIALIZED_ITERATOR;
     Enable_Dispatcher_Catching_Of_Throws(LEVEL);  // need to finalize_map
 
@@ -2181,7 +2223,7 @@ DECLARE_NATIVE(MAP)
 //      ]
 //      count "Repetitions (true loops infinitely, false doesn't run)"
 //          [<opt> any-number? logic!]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(REPEAT)
@@ -2283,8 +2325,8 @@ DECLARE_NATIVE(REPEAT)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      value "Maximum number or series to traverse"
-//          [<cond> any-number? any-sequence? quoted! block! action!]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//          [<cond> any-number? any-sequence? quoted! block!]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(FOR)
@@ -2394,6 +2436,8 @@ DECLARE_NATIVE(FOR)
       Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare)
     );
 
+    goto invoke_loop_body;
+
 } invoke_loop_body: { ////////////////////////////////////////////////////////
 
     assert(STATE == ST_FOR_RUNNING_BODY);
@@ -2408,7 +2452,7 @@ DECLARE_NATIVE(FOR)
 //  "Evaluates the body until it produces a non-NULL (and non-VOID) value"
 //
 //      return: [<null> any-stable?]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(INSIST)
@@ -2600,8 +2644,8 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 //  "So long as a condition is truthy, evaluate the body"
 //
 //      return: [<null> any-stable?]
-//      condition [<unrun> <const> block! frame!]  ; literals not allowed, [1]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      condition [<const> block! frame!]  ; literals not allowed, [1]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(WHILE)
@@ -2624,8 +2668,8 @@ DECLARE_NATIVE(WHILE)
 //  "So long as a condition is falsey, evaluate the body"
 //
 //      return: [<null> any-stable?]
-//      condition [<unrun> <const> block! frame!]  ; literals not allowed, [1]
-//      body [<cond> <unrun> <const> block! frame!]  ; [A]
+//      condition [<const> block! frame!]  ; literals not allowed, [1]
+//      body [<cond> <const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(UNTIL)

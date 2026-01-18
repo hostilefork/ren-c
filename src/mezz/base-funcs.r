@@ -24,7 +24,7 @@ assert: vanishable func [
     conditions "Block of conditions to evaluate and test for logical truth"
         [block!]
     :handler "Optional code to run if the assertion fails, receives condition"
-        [<unrun> block! frame!]
+        [block! frame!]
 ][
     ; ASSERT has no default implementation, but can be HIJACKed by a debug
     ; mode with a custom validation or output routine.
@@ -135,14 +135,14 @@ change-dir: func [  ; This can be HIJACK'd by a "smarter" version
 redescribe: func [
     "Mutate action description with new title and/or new argument notes"
 
-    return: [~(action!)~ frame!]
+    return: [action! frame!]
     spec "Either a string description, or a spec block"
         [block!]
-    action "(modified) Action whose description is to be updated"
-        [<unrun> frame!]  ; should be active or inactive based on input
+    ^action "(modified) Action whose description is to be updated"
+        [action! frame!]  ; should be active or inactive based on input
 ][
     ; !!! This needs to be completely rethought
-    return runs action
+    return ^action
 ]
 
 
@@ -529,7 +529,7 @@ drain: does [~(_)~]
 accessor: lambda [
     "Returns bedrock state storable in variable giving it GET/SET behavior"
     []: [bedrock?]  ; [accessor?]
-    frame [<unrun> frame!]
+    frame [frame!]
 ][
     unlift quasi reduce $(frame)
 ]

@@ -214,7 +214,7 @@ bool Inliner_Details_Querier(
 //
 //  "Makes function that generates code to splice into the execution stream"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec [block! datatype!]
 //      @(body) [<const> block! fence!]
 //  ]
@@ -233,8 +233,10 @@ DECLARE_NATIVE(INLINER)
     if (bounce)
         return bounce;
 
-    return Packify_Action(OUT);
-}
+  make_interpreted_action_finished: {  // stopped making eval bounce requests
+
+    return OUT;
+}}
 
 
 //

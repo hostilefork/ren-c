@@ -439,7 +439,7 @@ typedef struct {
     Jump* jump_list;  // Saved state for RECOVER_SCOPE
 
     Value thrown_arg;
-    Stable thrown_label;
+    Element thrown_label;
     Level* unwind_level;
 
     Flags signal_flags;  // signal flags (Rebol signals, not unix ones!)

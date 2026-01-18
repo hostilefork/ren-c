@@ -1099,16 +1099,16 @@ generator-class: make object! [
         return switch cmd.class [
             #cmd-create [
                 apply any [
-                    get $.gen-cmd-create
-                    get $target-platform/gen-cmd-create
+                    get meta $.gen-cmd-create
+                    get meta $target-platform/gen-cmd-create
                 ][
                     cmd
                 ]
             ]
             #cmd-delete [
                 apply any [
-                    get $.gen-cmd-delete
-                    get $target-platform/gen-cmd-delete
+                    get meta $.gen-cmd-delete
+                    get meta $target-platform/gen-cmd-delete
                 ][
                     cmd
                 ]

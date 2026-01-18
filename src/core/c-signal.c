@@ -140,7 +140,10 @@ bool Do_Signals_Throws(Level* L)
         Clear_Trampoline_Flag(HALT);
         g_ts.signal_mask = saved_sigmask;
 
-        Init_Thrown_With_Label(L, LIB(NULL), Stable_LIB(HALT));
+        DECLARE_ELEMENT(label_halt_frame);
+        Copy_Plain_Cell(label_halt_frame, LIB(HALT));
+
+        Init_Thrown_With_Label(L, LIB(NULL), label_halt_frame);
         return true; // thrown
     }
 

@@ -137,20 +137,18 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Port)
 
     VarList* ctx = Cell_Varlist(port);
 
-    Sink(Stable) spare_actor = SPARE;
-
     require (
-      Read_Slot(
-        spare_actor,
+      Read_Slot_Meta(
+        SPARE,
         Varlist_Slot(ctx, STD_PORT_ACTOR)
     ));
 
     // If actor is an ACTION!, it should be an OLDGENERIC Dispatcher for PORT!
     //
-    if (Is_Action(spare_actor)) {
+    if (Is_Action(SPARE)) {
         level_->u.action.label = verb;  // legacy hack, used by Level_Verb()
 
-        Details* details = Ensure_Frame_Details(spare_actor);
+        Details* details = Ensure_Frame_Details(SPARE);
         Dispatcher* dispatcher = Details_Dispatcher(details);
         Bounce b = opt Irreducible_Bounce(
             LEVEL,
@@ -165,31 +163,30 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Port)
         goto post_process_output;
     }
 
-    if (not Is_Object(spare_actor))
+    if (not Is_Possibly_Unstable_Value_Object(SPARE))
         panic (Error_Invalid_Actor_Raw());
+
+    Element* actor = As_Element(SPARE);
 
     // Dispatch object function:
 
     const bool strict = false;
-    Option(Ordinal) n = Find_Symbol_In_Context(
-        As_Element(spare_actor), verb, strict
-    );
+    Option(Ordinal) n = Find_Symbol_In_Context(actor, verb, strict);
 
-    Sink(Stable) scratch_action = SCRATCH;
     if (not n)
-        Init_Nulled(scratch_action);
+        Init_Nulled(SCRATCH);
     else {
         require (
-          Read_Slot(
-            scratch_action,
-            Varlist_Slot(Cell_Varlist(spare_actor), unwrap n)
+          Read_Slot_Meta(
+            SCRATCH,
+            Varlist_Slot(Cell_Varlist(actor), unwrap n)
         ));
     }
 
-    if (not Is_Action(scratch_action))
+    if (not Is_Action(SCRATCH))
         panic (Error_No_Port_Action_Raw(verb));
 
-    Push_Redo_Action_Level(OUT, level_, scratch_action);
+    Push_Redo_Action_Level(OUT, level_, SCRATCH);
 
     STATE = ST_TYPE_PORT_RUNNING_ACTOR;
     return CONTINUE_SUBLEVEL(TOP_LEVEL);

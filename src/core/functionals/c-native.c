@@ -193,7 +193,7 @@ Result(Details*) Make_Native_Dispatch_Details_May_Update_Spec(
 //
 //  "(Internal Function) Create a native, using compiled C code"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec [block!]
 //      :combinator "This native is an implementation of a PARSE keyword"
 //      :intrinsic "This native can be called without building a frame"
@@ -225,11 +225,11 @@ DECLARE_NATIVE(NATIVE)
 
     if (g_current_uses_librebol) {
         UNUSED(native_type);  // !!! no :INTRINSIC, but what about :COMBINATOR?
-        Stable* action = Known_Stable_Api(rebFunctionCore(
+        Api(Value*) action = rebFunctionCore(
             cast(RebolContext*, g_currently_loading_module),
             spec,
             f_cast(RebolActionCFunction*, cfunc)
-        ));
+        );
         Copy_Cell(OUT, action);
         rebRelease(action);
     }
@@ -244,7 +244,7 @@ DECLARE_NATIVE(NATIVE)
         Init_Action(OUT, details, ANONYMOUS, UNCOUPLED);
     }
 
-    return Packify_Action(OUT);
+    return OUT;
 }
 
 
@@ -689,10 +689,10 @@ void Startup_Natives(const Element* boot_natives)
     g_currently_loading_module = nullptr;
 
   #if RUNTIME_CHECKS  // ensure a couple of functions can be looked up by ID
-    if (not Is_Possibly_Unstable_Value_Action(LIB(FOR_EACH)))
+    if (not Is_Action(LIB(FOR_EACH)))
         crash (LIB(FOR_EACH));
 
-    if (not Is_Possibly_Unstable_Value_Action(LIB(PARSE_REJECT)))
+    if (not Is_Action(LIB(PARSE_REJECT)))
         crash (LIB(PARSE_REJECT));
 
     Count num_append_args = Phase_Num_Params(Frame_Phase(LIB(APPEND)));

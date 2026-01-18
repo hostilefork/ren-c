@@ -18,7 +18,7 @@ verify: vanishable func [
     conditions "Conditions to check"
         [block!]
     :handler "Optional code to run if the assertion fails, receives condition"
-        [<unrun> block! frame!]
+        [block! frame!]
     {pos result}
 ][
     while [[{pos} ^result]: evaluate:step conditions else [return ()]] [
@@ -77,13 +77,12 @@ native-assert: hijack assert/ verify/
 
 delta-time: func [
     "Returns the time it takes to evaluate the block"
-    block [block!]
+    block [block!]  ; callsite FENCE! evaluates to BLOCK!, wrapped
 ][
-    let timer: unrun now:precise/  ; Note: NOW comes from an Extension
     let results: reduce reduce [  ; resolve word lookups first, run fetched
-        timer
-        (unrun elide/) (unrun eval/) block
-        timer
+        now:precise/
+        elide/ (as group! block)
+        now:precise/
     ]
     return difference results.2 results.1
 ]

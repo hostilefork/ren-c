@@ -325,6 +325,8 @@ load: ~#[Use LOAD3 in Bootstrap (:HEADER returns BLOCK! with OBJECT!)]#~
 
 tie: lambda3 [word [word!]] [to rune! word]
 
+meta: lambda3 [word [word! path!]] [word]  ; for GET META to work
+
 quasiform!: word!  ; conflated, but can work in a very limited sense
 quasi?: func3 [v <local> spelling] [
     if not word? v [return null]

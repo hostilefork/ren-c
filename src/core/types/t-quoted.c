@@ -541,25 +541,20 @@ DECLARE_NATIVE(ALIAS)
 //
 //  "Turn frame or action into antiform in PACK!, allows SET-WORD! assignment"
 //
-//      return: [~(action!)~]
-//      frame [frame! action!]
+//      return: [action!]
+//      ^value [frame! action!]
 //  ]
 //
 DECLARE_NATIVE(RUNS)
-//
-// See definition of Packify_Action() macro for more information.
 {
     INCLUDE_PARAMS_OF_RUNS;
 
-    Stable* frame = ARG(FRAME);
+    Copy_Cell(OUT, ARG(VALUE));
 
-    if (Is_Action(frame))
-        return Packify_Action(Copy_Cell(OUT, frame));
+    if (Is_Action(OUT))
+        return OUT;
 
-    Stably_Antiformize_Unbound_Fundamental(frame);
-    assert(Is_Action(frame));
-
-    return Packify_Action(Copy_Cell(OUT, frame));
+    return Activate_Frame(OUT);
 }
 
 
@@ -569,15 +564,14 @@ DECLARE_NATIVE(RUNS)
 //  "Give back a frame! for action! input"
 //
 //      return: [frame!]
-//      action [<cond> <unrun> frame!]
+//      action [<cond> frame!]
 //  ]
 //
 DECLARE_NATIVE(UNRUN)
 {
     INCLUDE_PARAMS_OF_UNRUN;
 
-    Stable* action = ARG(ACTION);  // may or may not be antiform
-    LIFT_BYTE(action) = NOQUOTE_3;  // now it's known to not be antiform
+    Stable* action = ARG(ACTION);  // decayed on input
     return COPY_TO_OUT(action);
 }
 

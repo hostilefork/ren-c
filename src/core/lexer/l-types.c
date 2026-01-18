@@ -260,7 +260,7 @@ DECLARE_NATIVE(OFFSET_OF)
 //  "Get the memory address of a type's data (low-level, beware!)"
 //
 //      return: [<null> integer!]
-//      value [<cond> <unrun> fundamental?]
+//      value [<cond> fundamental?]
 //  ]
 //
 DECLARE_NATIVE(ADDRESS_OF)
@@ -389,7 +389,9 @@ DECLARE_NATIVE(OF)
 } have_sym_of: { /////////////////////////////////////////////////////////////
 
     heeded (Init_Word(SCRATCH, sym_of));
+    Metafy_Cell(As_Element(SCRATCH));
     heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
@@ -398,7 +400,7 @@ DECLARE_NATIVE(OF)
       Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
     );
 
-    if (not Is_Possibly_Unstable_Value_Action(OUT))
+    if (not Is_Action(OUT))
         panic ("OF looked up to a value that wasn't an ACTION!");
 
     Flags flags = FLAG_STATE_BYTE(ST_STEPPER_REEVALUATING);
@@ -406,8 +408,8 @@ DECLARE_NATIVE(OF)
     require (
       Level* sub = Make_Level(&Stepper_Executor, level_->feed, flags)
     );
-    Copy_Lifted_Cell(Evaluator_Level_Current(sub), As_Stable(OUT));
-    LIFT_BYTE(Evaluator_Level_Current(sub)) = NOQUOTE_3;  // plain FRAME!
+    Copy_Plain_Cell(Evaluator_Level_Current(sub), OUT);
+    assert(Is_Frame(Evaluator_Level_Current(sub)));
     Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
 
     Push_Level_Erase_Out_If_State_0(OUT, sub);

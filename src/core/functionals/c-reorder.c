@@ -112,8 +112,8 @@ bool Reorderer_Details_Querier(
 //
 //  "Create variation of a frame with its parameters reordered"
 //
-//      return: [~(action!)~]
-//      original [<unrun> frame!]
+//      return: [action! frame!]
+//      ^original [action! frame!]
 //      ordering "Parameter WORD!s, all required parameters must be mentioned"
 //          [block!]
 //  ]
@@ -128,7 +128,7 @@ DECLARE_NATIVE(REORDER)
     //
     Option(Error*) error = SUCCESS;
 
-    Element* original = Element_ARG(ORIGINAL);
+    Value* original = ARG(ORIGINAL);
     Phase* reorderee = Frame_Phase(ARG(ORIGINAL));
     Option(const Symbol*) label  = Frame_Label_Deep(ARG(ORIGINAL));
 
@@ -264,10 +264,15 @@ DECLARE_NATIVE(REORDER)
         MAX_IDX_REORDERER
     );
 
-    Copy_Cell(Details_At(details, IDX_REORDERER_REORDEREE), original);
+    Copy_Plain_Cell(Details_At(details, IDX_REORDERER_REORDEREE), original);
 
     Drop_Data_Stack_To(STACK_BASE);  // !!! None of this works ATM.
 
-    Init_Action(OUT, details, label, UNCOUPLED);
-    return Packify_Action(OUT);
+    Init_Frame(OUT, details, label, UNCOUPLED);
+
+    if (Is_Action(original))
+        return Activate_Frame(OUT);
+
+    assert(Is_Possibly_Unstable_Value_Frame(OUT));
+    return OUT;
 }}

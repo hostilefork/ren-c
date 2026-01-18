@@ -267,8 +267,6 @@ Bounce Group_Branch_Executor(Level* const L)
     if (Is_Group(scratch_branch))
         panic (Error_Bad_Branch_Type_Raw());  // stop recursions (good?)
 
-    Deactivate_If_Action(scratch_branch);  // FRAME! is legal branch type
-
     if (Is_Antiform(scratch_branch))
         panic (Error_Bad_Antiform(scratch_branch));
 
@@ -623,6 +621,8 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
 } process_condition: { ///////////////////////////////////////////////////////
 
+    Copy_Cell(OUT, SPARE);  // not GHOST!; save for return before decay
+
     require (
       Stable* stable_condition = Decay_If_Unstable(condition)
     );
@@ -634,13 +634,13 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
     switch (which) {
       case NATIVE_IS_ANY:
         if (logic)
-            goto return_spare;  // successful ANY clause returns the value
+            goto return_out;  // successful ANY clause returns the value
         break;
 
       case NATIVE_IS_ALL:
         if (not logic)
             goto return_null;  // failed ALL clause returns null
-        Move_Cell(OUT, SPARE);  // leaves SPARE as fresh...good for next step
+        Erase_Cell(SPARE);  // freshen SPARE for next step
         break;
 
       case NATIVE_IS_NONE_OF:
@@ -696,10 +696,9 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
         crash (nullptr);
     }
 
-} return_spare: { ////////////////////////////////////////////////////////////
+} return_out: { //////////////////////////////////////////////////////////////
 
     Drop_Level(SUBLEVEL);
-    Move_Cell(OUT, SPARE);
     return Force_Cell_Heavy(OUT);  // see LEVEL_FLAG_FORCE_HEAVY_BRANCH notes
 
 } return_null: { /////////////////////////////////////////////////////////////
@@ -717,8 +716,8 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 //      return: [<null> ghost! any-stable?]
 //      block "Block of expressions, @[block] will be treated inertly"
 //          [block! @block!]
-//      :predicate "Test for whether an evaluation passes (default is DID)"
-//          [<unrun> frame!]
+//      :predicate "Test applied to each eval step (default is LOGICAL)"
+//          [frame!]
 //  ]
 //
 DECLARE_NATIVE(ALL)
@@ -735,8 +734,8 @@ DECLARE_NATIVE(ALL)
 //      return: [<null> ghost! any-stable?]
 //      block "Block of expressions, @[block] will be treated inertly"
 //          [block! @block!]
-//      :predicate "Test for whether an evaluation passes (default is DID)"
-//          [<unrun> frame!]
+//      :predicate "Test applied to each eval step (default is LOGICAL)"
+//          [frame!]
 //  ]
 //
 DECLARE_NATIVE(ANY)
@@ -753,8 +752,8 @@ DECLARE_NATIVE(ANY)
 //      return: [<null> ghost! any-stable?]
 //      block "Block of expressions, @[block] will be treated inertly"
 //          [block! @block!]
-//      :predicate "Test for whether an evaluation passes (default is DID)"
-//          [<unrun> frame!]
+//      :predicate "Test applied to each eval step (default is LOGICAL)"
+//          [frame!]
 //  ]
 //
 DECLARE_NATIVE(NONE_OF)
@@ -772,8 +771,8 @@ DECLARE_NATIVE(NONE_OF)
 //      cases "Conditions followed by branches"
 //          [block!]
 //      :all "Do not stop after finding first logically true case"
-//      :predicate "Unary case-processing action (default is DID)"
-//          [<unrun> frame!]
+//      :predicate "Unary case-processing action (default is LOGICAL)"
+//          [frame!]
 //  ]
 //
 DECLARE_NATIVE(CASE)
@@ -961,7 +960,7 @@ DECLARE_NATIVE(CASE)
 //      :all "Evaluate all matches (not just first one)"
 //      :type "Match based on type constraints, not equality"
 //      :predicate "Binary switch-processing action (default is EQUAL?)"
-//          [<unrun> frame!]
+//          [frame!]
 //  ]
 //
 DECLARE_NATIVE(SWITCH)
@@ -1091,8 +1090,8 @@ DECLARE_NATIVE(SWITCH)
     );
 
     if (ARG(TYPE)) {
-        if (not Is_Datatype(spare) and not Is_Action(spare))
-            panic ("switch:type conditions must be DATATYPE! or ACTION!");
+        if (not Is_Datatype(spare) and not Is_Frame(spare))
+            panic ("switch:type conditions must be DATATYPE! or FRAME!");
 
         if (not Typecheck_Uses_Spare_And_Scratch(  // *sublevel*'s SPARE!
             SUBLEVEL, left, spare, SPECIFIED  // ...so passing L->spare ok

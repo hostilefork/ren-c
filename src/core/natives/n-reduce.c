@@ -98,13 +98,13 @@ DECLARE_NATIVE(DRAIN_Q)
 //
 //  reduce: native [
 //
-//  "Evaluates expressions, keeping each result (EVAL only gives last result)"
+//  "Evaluates expressions, keeping each result in a block, discards voids"
 //
 //      return: [<null> element?]
 //      value "Lists evaluate each item, single values evaluate"
 //          [<cond> element?]
 //      :predicate "Applied after evaluation, default is IDENTITY"
-//          [<unrun> frame!]
+//          [frame!]
 //  ]
 //
 DECLARE_NATIVE(REDUCE)

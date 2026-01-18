@@ -101,7 +101,7 @@ enum {
 //     mfoo: func [a :b c] [...]  =>  bar: func [:b d e] [...]
 //                     foo:b 1 2  =>  bar:b 1 2
 //
-void Push_Redo_Action_Level(Value* out, Level* L1, const Stable* run)
+void Push_Redo_Action_Level(Value* out, Level* L1, const Value* run)
 {
     Source* normals = Make_Source(Level_Num_Args(L1));  // max, e.g. no refines
 
@@ -211,7 +211,9 @@ Bounce Hijacker_Dispatcher(Level* const L)
 
     Details* details = Ensure_Level_Details(L);
 
-    Stable* hijacker_frame = Details_At(details, IDX_HIJACKER_FRAME);
+    Element* hijacker_frame = As_Element(
+        Details_At(details, IDX_HIJACKER_FRAME)
+    );
 
     Phase* hijacker = Frame_Phase(hijacker_frame);
     Option(VarList*) hijacker_coupling = Frame_Coupling(hijacker_frame);
@@ -288,11 +290,11 @@ DECLARE_NATIVE(UNIMPLEMENTED)
 //
 //  "Make victim references run another frame, return new identity for victim"
 //
-//      return: [~(action!)~ frame!]
-//      victim "Frame whose inherited instances are to be affected"
+//      return: [action! frame!]
+//      ^victim "Frame whose inherited instances are to be affected"
 //          [action! frame!]
-//      hijacker "The frame to run in its place (void to leave TBD)"
-//          [<opt> <unrun> frame!]
+//      hijacker "The frame to run in its place (NONE to leave TBD)"
+//          [<opt> frame!]
 //  ]
 //
 DECLARE_NATIVE(HIJACK)
@@ -354,14 +356,12 @@ DECLARE_NATIVE(HIJACK)
     assert(CELL_FRAME_PAYLOAD_1_PHASE(victim_archetype) == victim);
     CELL_FRAME_PAYLOAD_1_PHASE(victim_archetype) = proxy;  // adjust for swap
 
-    Stable* out;
-
     if (victim_unimplemented) {
         assert(Get_Cell_Flag(LIB(UNIMPLEMENTED), PROTECTED));
-        out = Copy_Plain_Cell(OUT, LIB(UNIMPLEMENTED));
+        Copy_Plain_Cell(OUT, LIB(UNIMPLEMENTED));
     }
     else {
-        out = Init_Frame(
+        Init_Frame(
             OUT,
             proxy,  // after Swap_Stub_Content(), new identity for victim
             Frame_Label(ARG(VICTIM)),
@@ -369,9 +369,9 @@ DECLARE_NATIVE(HIJACK)
         );
     }
 
-    if (Is_Frame(ARG(VICTIM)))
-        return OUT;
+    if (Is_Action(ARG(VICTIM)))
+        return Activate_Frame(OUT);
 
-    Actionify(out);
-    return Packify_Action(OUT);
+    assert(Is_Possibly_Unstable_Value_Frame(OUT));
+    return OUT;
 }

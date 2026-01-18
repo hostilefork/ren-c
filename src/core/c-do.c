@@ -296,10 +296,10 @@ bool Pushed_Continuation(
         require (
           Stable* got = Get_Var(out, NO_STEPS, branch, binding)
         );
-        if (not (Is_Action(got) or Is_Frame(got)))
-            panic ("Only ACTION! or FRAME! result from PATH! BRANCH allowed");
+        if (not Is_Frame(got))
+            panic ("Only FRAME! result from PATH! BRANCH allowed");
 
-        branch = Deactivate_If_Action(got);
+        branch = As_Element(got);
         goto handle_frame; }
 
       default:

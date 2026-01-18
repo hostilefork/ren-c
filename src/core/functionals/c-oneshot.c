@@ -147,7 +147,7 @@ DECLARE_NATIVE(DO_BRANCH)
 //
 //  "Create an EVAL variant that executes what it's given for N times"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      n "Number of times to execute before being a no-op"
 //          [integer!]
 //  ]
@@ -166,6 +166,5 @@ DECLARE_NATIVE(N_SHOT)
     );
     Init_Integer(Details_At(details, IDX_ONESHOT_COUNTER), n);
 
-    Init_Action(OUT, details, ANONYMOUS, UNCOUPLED);
-    return Packify_Action(OUT);
+    return Init_Action(OUT, details, ANONYMOUS, UNCOUPLED);
 }

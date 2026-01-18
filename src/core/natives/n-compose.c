@@ -601,8 +601,8 @@ Bounce Composer_Executor(Level* const L)
 //          [<cond> any-list? any-sequence? any-word? any-utf8?]
 //      :deep "Compose deeply into nested lists and sequences"
 //      :conflate "Let illegal sequence compositions produce lookalike WORD!s"
-//      :predicate "Function to run on composed slots"
-//          [<unrun> frame!]
+//      :predicate "Function to run on slots (default is EVALUATE AS GROUP!)"
+//          [frame!]
 //  ]
 //
 //  ; Note: :INTO is intentionally no longer supported

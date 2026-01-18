@@ -278,15 +278,6 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
         else if (0 == CT_Utf8(item, g_tag_const, strict)) {
             flags |= PARAMETER_FLAG_CONST;
         }
-        else if (0 == CT_Utf8(item, g_tag_unrun, strict)) {
-            flags |= PARAMETER_FLAG_UNRUN;
-        }
-        else if (0 == CT_Utf8(item, g_tag_divergent, strict)) {
-            //
-            // !!! Currently just commentary so we can find the divergent
-            // functions.  Review what the best notation or functionality
-            // concept is.
-        }
         else if (0 == CT_Utf8(item, g_tag_null, strict)) {
             flags |= PARAMETER_FLAG_NULL_DEFINITELY_OK;
         }
@@ -383,6 +374,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
   //    should be optimizing for if that happens.
 
     assert(Is_Word(As_Element(SCRATCH)));
+    Metafy_Cell(As_Element(SCRATCH));  // want unstable lookup (ACTION!, etc)
 
     if (Not_Parameter_Checked_Or_Coerced(TOP_ELEMENT))
         goto cant_optimize;  // Typecheck will work, but slowly [2]
@@ -394,16 +386,9 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
       Get_Var_In_Scratch_To_Out(L, NO_STEPS)
     );
 
-    if (Not_Cell_Stable(OUT))
-        panic ("Parameter spec words must be bound to stable values");
-
-    Stable* fetched = As_Stable(OUT);
-
-    Option(Type) type = Type_Of(fetched);
-
   handle_datatype: {
 
-    if (type == TYPE_DATATYPE) {
+    if (Is_Possibly_Unstable_Value_Datatype(OUT)) {
         if (not Is_Word(item)) {
             assert(Any_Sequence(item));
             goto cant_optimize;
@@ -412,7 +397,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
         if (optimized == optimized_tail)
             goto cant_optimize;
 
-        Option(Type) datatype_type = Datatype_Type(fetched);
+        Option(Type) datatype_type = Datatype_Type(As_Stable(OUT));
         if (not datatype_type)
             goto cant_optimize;
 
@@ -438,13 +423,13 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
 } handle_action: {
 
-    if (type == TYPE_ACTION) {
+    if (Is_Action(OUT)) {
         if (not Is_Word(item)) {
             assert(Any_Sequence(item));
             goto cant_optimize;  // no optimizations for `/word!:` etc. ATM
         }
 
-        Details* details = opt Try_Frame_Details(fetched);
+        Details* details = opt Try_Frame_Details(OUT);
         if (
             not details
             or Not_Details_Flag(details, CAN_DISPATCH_AS_INTRINSIC)

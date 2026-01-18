@@ -8,7 +8,7 @@
 [(
 onlify: func [
     return: [action!]
-    frame [<unrun> frame!]
+    frame [frame!]
     :param [word!]
 ][
     param: default ['value]

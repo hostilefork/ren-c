@@ -53,7 +53,6 @@ INLINE bool Is_Stable_Antiform_Heart(Heart heart) {
         heart == TYPE_WORD  // Is_Logic()
         or heart == TYPE_BLOCK  // Is_Splice()
         or heart == TYPE_FENCE  // Is_Datatype()
-        or heart == TYPE_FRAME  // Is_Action()
     );
 }
 

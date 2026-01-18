@@ -21,9 +21,9 @@
 
         return: [any-stable? pack!]
         pos [any-series?]
-        parser1 "Pending contributions kept if successful, even if not max"
+        ^parser1 "Pending contributions kept if successful, even if not max"
             [action!]
-        parser2 "Pending contributions kept if successful, even if not max"
+        ^parser2 "Pending contributions kept if successful, even if not max"
             [action!]
         {warning1 warning2 ^result1 ^result2 remainder1 remainder2}
     ][
@@ -201,9 +201,9 @@
         return: [any-stable? pack!]
         pos [any-series?]
         {pending}: [none? quoted! block!]
-        parser1 "Pending contributions rolled back if not max, even on success"
+        ^parser1 "Pending contributions rolled back if not max, even on success"
             [action!]
-        parser2 "Pending contributions rolled back if not max, even on success"
+        ^parser2 "Pending contributions rolled back if not max, even on success"
             [action!]
         {
             ^result1 ^result2

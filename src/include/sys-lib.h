@@ -82,6 +82,6 @@ INLINE Sink(Value) Sink_Lib_Value(SymId id) {
 #define Mutable_LIB(name)  Mutable_Lib_Value(SYM_##name)
 
 #define Protect_LIB(name) /* careful: preprocessor NULL could become SYM_0 */ \
-    Protect_Cell(Mutable_Lib_Stable(SYM_##name))  // PROTECT more things [A]
+    Protect_Cell(Mutable_Lib_Value(SYM_##name))  // PROTECT more things [A]
 
 #define EMPTY_ARRAY  Cell_Array(LIB(EMPTY_BLOCK))

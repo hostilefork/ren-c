@@ -127,7 +127,7 @@ Result(None) Get_Var_In_Scratch_To_Out(
 // Uses TOP_LEVEL to do its work; has to save fields it corrupts.
 //
 Result(None) Get_Word_Or_Tuple(
-    Sink(Stable) out,
+    Sink(Value) out,
     const Element* var,
     Context* context
 ){
@@ -158,6 +158,7 @@ Result(None) Get_Word_Or_Tuple(
         var,  // have to do before SPARE erase, in case (v = SPARE)
         context
     ));
+    Metafy_Cell(As_Element(SCRATCH));
 
     Force_Erase_Cell(SPARE);  // clears protection bit
 
@@ -170,13 +171,6 @@ Result(None) Get_Word_Or_Tuple(
         // still need to restore state and scratch
         error = e;
     }
-    else {
-        require (
-            Stable* stable = Decay_If_Unstable(OUT)
-        );
-        if (out != OUT)
-            Copy_Cell(out, stable);
-    }
 
     Restore_Level_Scratch_Spare(L, saved_state);
 
@@ -184,7 +178,7 @@ Result(None) Get_Word_Or_Tuple(
         if (error)
             Corrupt_If_Needful(out);  // propagate corruption (can't copy)
         else
-            Copy_Cell(out, As_Stable(OUT));
+            Copy_Cell(out, OUT);
         Force_Blit_Cell(OUT, TOP);
         DROP();
     }
@@ -207,15 +201,24 @@ Result(None) Get_Word(
     Context* context
 ){
     assert(Is_Word(word));
-    return Get_Word_Or_Tuple(out, word, context);
+
+    trap (
+        Get_Word_Or_Tuple(u_cast(Value*, out), word, context)
+    );
+
+    require (
+      Decay_If_Unstable(u_cast(Value*, out))
+    );
+
+    return none;
 }
 
 
 //
 //  Get_Chain_Push_Refinements: C
 //
-Result(Stable*) Get_Chain_Push_Refinements(
-    Sink(Stable) out,
+Result(Value*) Get_Chain_Push_Refinements(
+    Sink(Value) out,
     const Element* chain,
     Context* context
 ){
@@ -233,10 +236,6 @@ Result(Stable*) Get_Chain_Push_Refinements(
     if (Is_Group(head)) {  // historical Rebol didn't allow group at head
         if (Eval_Value_Throws(atom_out, head, derived))
             panic (Error_No_Catch_For_Throw(TOP_LEVEL));
-
-        require (
-          Decay_If_Unstable(atom_out)
-        );
     }
     else if (Is_Word(head) or Is_Tuple(head)) {  // .member:refinement is legal
         require (  // must panic on error
@@ -251,10 +250,8 @@ Result(Stable*) Get_Chain_Push_Refinements(
 
     if (Is_Action(out))
         NOOP;  // it's good
-    else if (Is_Antiform(out))
-        return fail (Error_Bad_Antiform(out));
-    else if (Is_Frame(out))
-        Actionify(out);
+    else if (Is_Possibly_Unstable_Value_Frame(out))
+        Activate_Frame(out);
     else
         panic ("Head of CHAIN! did not evaluate to an ACTION!");
 
@@ -364,6 +361,9 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
             error = e;
             goto return_error;
         }
+        require (
+          Decay_If_Unstable(OUT)
+        );
         Copy_Cell(spare_left, As_Stable(OUT));
     }
     else if (Is_Chain(at)) {
@@ -374,8 +374,8 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
             goto return_error;
         }
         Get_Chain_Push_Refinements(
-            u_cast(Init(Stable), OUT),
-            cast(Element*, at),
+            OUT,
+            at,
             Derive_Binding(binding, at)
         )
         except (Error* e) {
@@ -411,10 +411,8 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
   handle_context_on_left_of_at: {
 
     if (Is_Chain(at)) {  // lib/append:dup
-        Sink(Stable) out = OUT;
-
         Get_Chain_Push_Refinements(
-            out,
+            OUT,
             at,
             Cell_Context(spare_left)  // need to find head of chain in object
         )
@@ -457,13 +455,11 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
 
 }} ensure_out_is_action: { ///////////////////////////////////////////////////
 
-    Stable* out = As_Stable(OUT);
-
-    if (Is_Action(out))
+    if (Is_Action(OUT))
         goto return_success;
 
-    if (Is_Frame(out)) {
-        Actionify(out);
+    if (Is_Possibly_Unstable_Value_Frame(OUT)) {
+        Activate_Frame(OUT);
         goto return_success;
     }
 
@@ -483,7 +479,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
   // mean "try the result of the function invoked by the path"?  e.g. TRY
   // on a PATH! that ends in slash?
 
-    assert(Is_Action(As_Stable(OUT)));
+    assert(Is_Action(OUT));
 
     assert(not error);
     goto finalize_and_return;
@@ -564,16 +560,15 @@ Result(Value*) Meta_Get_Var(
         if (error)
             return fail (unwrap error);
 
-        assert(Is_Possibly_Unstable_Value_Action(out));
+        assert(Is_Action(out));
 
         if (TOP_INDEX != base) {
-            DECLARE_STABLE (action);
-            Move_Cell(action, As_Stable(out));
-            Deactivate_If_Action(action);
+            DECLARE_VALUE (frame);
+            Move_Cell(frame, Deactivate_Action(out));
 
             Option(Element*) def = nullptr;  // !!! why not LIB(EMPTY_BLOCK) ?
             bool threw = Specialize_Action_Throws(  // costly, try to avoid [1]
-                out, action, def, base
+                out, frame, def, base
             );
             assert(not threw);  // can only throw if `def`
             UNUSED(threw);
@@ -816,6 +811,8 @@ DECLARE_NATIVE(DEFINED_Q)
     INCLUDE_PARAMS_OF_DEFINED_Q;
 
     heeded (Copy_Cell(SCRATCH, Element_ARG(TARGET)));
+    Metafy_Cell(As_Element(SCRATCH));
+
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     STATE = 1;

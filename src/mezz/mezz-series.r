@@ -55,7 +55,7 @@ array: func [
     return: [<null> block!]
     size "Size or block of sizes for each dimension"
         [<cond> integer! block!]
-    :initial "Initial value (will be called each time if action)"
+    :^initial "Initial value (will be called each time if action)"
         [element? action!]
     {rest block}  ; rest: null
 ][
@@ -102,8 +102,8 @@ replace: func [
         [<cond> any-series?]
     pattern "Value to be replaced (converted if necessary)"
         [<cond> <opt> element? splice!]
-    replacement "Value to replace with (called each time if action)"
-        [<cond> <unrun> element? splice! frame!]
+    ^replacement "Value to replace with (called each time if action)"
+        [<cond> element? splice! action!]
 
     :one "Replace one (or zero) occurrences"
     :case "Case-sensitive replacement"  ; !!! Note this aliases CASE native!
@@ -122,7 +122,7 @@ replace: func [
         pattern
         case: case_REPLACE
     ]][
-        if frame? replacement [
+        if action? ^replacement [
             ;
             ; If arity-0 action, pos and tail discarded
             ; If arity-1 action, pos will be argument to replacement
@@ -131,7 +131,7 @@ replace: func [
             ; They are passed as const so that the replacing function answers
             ; merely by providing the replacement.
             ;
-            ^value: apply:relax replacement [const pos, const tail]
+            ^value: replacement // [const pos, const tail]
         ] else [
             value: replacement
         ]

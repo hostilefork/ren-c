@@ -40,8 +40,8 @@
 //  "Process an evaluated argument *inline* as an evaluator step would"
 //
 //      return: [any-value?]
-//      value "BLOCK! passes-thru, ACTION! runs, SET-WORD! assigns..."
-//          [<unrun> element?]
+//      value "BLOCK! passes-thru, FRAME! runs, SET-WORD! assigns..."
+//          [element?]
 //      expressions "Depending on VALUE, more expressions may be consumed"
 //          [<opt> element? <variadic>]
 //  ]
@@ -152,8 +152,6 @@ DECLARE_NATIVE(SHOVE)
     else
         Copy_Cell(shovee, right);
 
-    Deactivate_If_Action(shovee);  // allow ACTION! to be run
-
     Option(InfixMode) infix_mode;
     if (Is_Frame(shovee)) {
         if (not label)
@@ -262,7 +260,7 @@ DECLARE_NATIVE(SHOVE)
 //          block!  "always 'void suppression' semantics, :STEP ok"
 //          fence!  "WRAP semantics, produces BLOCK!, :STEP ok"
 //          group!  "must eval to end, only suppress voids after value seen"
-//          <unrun> frame!  "invoke the frame (no arguments, see RUN)"
+//          frame!  "invoke the frame (no arguments, see RUN and APPLY)"
 //          error!  "panic on the error (prefer PANIC)"
 //          varargs!  "simulates as if BLOCK! is being executed"
 //      ]
@@ -602,7 +600,7 @@ DECLARE_NATIVE(EVAL_FREE)
 //  "Invoke an ACTION! with all required arguments specified"
 //
 //      return: [any-value?]
-//      operation [<unrun> frame!]
+//      operation [frame!]
 //      def "Frame definition block (will be bound and evaluated)"
 //          [block!]
 //      {frame}  ; GC-safe cell for frame
@@ -680,8 +678,11 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 {
     INCLUDE_PARAMS_OF_APPLY;
 
-    Stable* op = ARG(OPERATION);
-    assert(Is_Action(op) or Is_Frame(op));
+    Value* op = LOCAL(OPERATION);
+    assert(
+        Is_Possibly_Unstable_Value_Frame(op)  // APPLY's expectation
+        or Is_Action(op)  // loosen requirement for other callers
+    );
 
     Element* args = Element_ARG(ARGS);
 
@@ -971,7 +972,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 //  "Invoke an action with all required arguments specified"
 //
 //      return: [any-value?]
-//      operation [<cond> <unrun> frame!]
+//      operation [<cond> frame!]
 //      args "Arguments and Refinements, e.g. [arg1 arg2 ref: refine1]"
 //          [block!]
 //      :relax "Don't worry about too many arguments to the APPLY"
@@ -1013,7 +1014,7 @@ DECLARE_NATIVE(APPLY)
 //  "Infix version of APPLY with name of thing to apply literally on left"
 //
 //      return: [any-value?]
-//      @(operation) [<unrun> word! tuple! chain! path! frame! action!]
+//      @(operation) [word! tuple! chain! path! frame! action!]
 //      args "Arguments and Refinements, e.g. [arg1 arg2 :ref refine1]"
 //          [block!]
 //      :relax "Don't worry about too many arguments to the APPLY"
@@ -1046,7 +1047,7 @@ DECLARE_NATIVE(_S_S)  // [_s]lash [_s]lash (see TO-C-NAME)
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     require (
-      Stable* out = Get_Var(
+      Meta_Get_Var(
         OUT,
         NO_STEPS,
         operation,
@@ -1054,12 +1055,18 @@ DECLARE_NATIVE(_S_S)  // [_s]lash [_s]lash (see TO-C-NAME)
       )
     );
 
-    if (not Is_Action(out) and not Is_Frame(out))
-        panic (out);
+    if (Is_Action(OUT)) {
+        Copy_Plain_Cell(ARG(OPERATION), OUT);  // APPLY expects FRAME!
+    }
+    else {
+        require (
+          Stable* stable_out = Decay_If_Unstable(OUT)
+        );
+        if (not Is_Frame(stable_out))
+            panic (stable_out);
 
-    Deactivate_If_Action(out);  // APPLY has <unrun> on ARG(OPERATION)
-
-    Copy_Cell(ARG(OPERATION), out);
+        Copy_Cell(ARG(OPERATION), As_Element(stable_out));
+    }
 
     STATE = STATE_0;  // reset state for APPLY so it looks like initial entry
     Set_Level_Flag(LEVEL, _S_S_DELEGATING);  // [2]
@@ -1102,7 +1109,7 @@ DECLARE_NATIVE(_S_S)  // [_s]lash [_s]lash (see TO-C-NAME)
 //  "Invoke code inline as if it had been invoked via a WORD!"
 //
 //      return: [any-value?]
-//      frame [<unrun> frame!]
+//      frame [frame!]
 //      args [any-stable? <variadic>]
 //  ]
 //

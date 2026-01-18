@@ -249,21 +249,24 @@ INLINE Element* Init_Frame_Untracked(
 //     == [1 <even> 3 <even> 5]  ; no actual EVEN? antiforms can be in block
 //
 
-INLINE Stable* Actionify(Stable* val) {
-    assert(Is_Frame(val));
-    Stably_Antiformize_Unbound_Fundamental(val);
+INLINE Value* Activate_Frame_Core(Value* val) {
+    assert(Is_Possibly_Unstable_Value_Frame(val));
+    Unstably_Antiformize_Unbound_Fundamental(val);
     assert(Is_Action(val));
     return val;
 }
 
-INLINE Stable* Init_Action_By_Phase(
-    Sink(Stable) out,
+#define Activate_Frame(v) \
+    Activate_Frame_Core(known(Value*, (v)))
+
+INLINE Value* Init_Action_By_Phase(
+    Sink(Value) out,
     Phase* phase,
     Option(const Symbol*) label,
     Option(VarList*) coupling
 ){
     Init_Frame(out, phase, label, coupling);
-    Stably_Antiformize_Unbound_Fundamental(out);
+    Unstably_Antiformize_Unbound_Fundamental(out);
     assert(Is_Action(out));
     return out;
 }
@@ -272,46 +275,10 @@ INLINE Stable* Init_Action_By_Phase(
     Init_Action_By_Phase((out), x_cast_known(Phase*, (identity)), \
         (label), (coupling))
 
-INLINE Element* Deactivate_If_Action(Value* v) {
-    if (Is_Possibly_Unstable_Value_Action(v))
-        LIFT_BYTE(v) = NOQUOTE_3;
+INLINE Element* Deactivate_Action(Exact(Value*) v) {
+    assert(Is_Action(v));
+    LIFT_BYTE(v) = NOQUOTE_3;
     return As_Element(v);
-}
-
-
-//=//// PACK!ed ACTIONS FOR SAFE SET-WORD ASSIGNMENTS /////////////////////=//
-//
-// Traditionally Redbol was very permissive about SET-WORD being able to
-// assign active functions.  It was easy to write code that thinks it's just
-// assigning an inert variable when, it's assigning something that will invoke
-// a function if referenced.
-//
-//     rebol2>> foo: get $bar
-//
-//     rebol2>> if foo [print "my secret"]
-//     MUHAHAHA I AM WHAT WAS STORED IN BAR AND I TRICKED YOU!
-//     I see your BLOCK! it was my PARAMETER!  [print "my secret"]
-//
-// Writing "safe" code created a sort of "pox" where :GET-WORD access had to
-// be used to dodge the default function-calling behavior of WORD! access, in
-// case a variable might wind up holding an active function.
-//
-// Ren-C's has one level of safety with word-active ACTION!s as antiforms,
-// so you won't accidentally find them while enumerating over lists.  But it
-// adds another level of safety by making SET-WORD assignments require any
-// action assigns to come from a PACK! containing the action.  This unstable
-// state isn't returned by things like PICK, but comes back from generators...
-// and you can turn any ACTION! into an ACTION-PACK! using the RUNS native.
-//
-// This means the "approval" state for purposes of SET-WORD assigns is
-// persistable with LIFT, and can be manipulated consciously in usermode.
-//
-
-INLINE Value* Packify_Action(Value* v) {  // put ACTION! in a PACK! [1]
-    assert(Is_Action(As_Stable(v)));
-    Source *a = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
-    Copy_Lifted_Cell(Stub_Cell(a), v);
-    return Init_Pack(v, a);
 }
 
 
@@ -345,9 +312,9 @@ INLINE bool Is_Frame_Infix(const Cell* c) {  // faster than != PREFIX_0
 // you generally want to mirror its vanishable status.
 //
 
-INLINE void Copy_Vanishability(Cell* to, const Cell* from) {
-    assert(Is_Possibly_Unstable_Value_Action(to) or Is_Possibly_Unstable_Value_Frame(to));
-    assert(Is_Possibly_Unstable_Value_Action(from) or Is_Possibly_Unstable_Value_Frame(from));
+INLINE void Copy_Vanishability(Value* to, const Value* from) {
+    assert(Is_Action(to) or Is_Possibly_Unstable_Value_Frame(to));
+    assert(Is_Action(from) or Is_Possibly_Unstable_Value_Frame(from));
 
     if (Get_Cell_Flag(from, WEIRD_VANISHABLE))
         Set_Cell_Flag(to, WEIRD_VANISHABLE);

@@ -126,8 +126,10 @@
 (0.0.0 = any [0.0.0])
 (null? any [null])
 ('a = any ['a])
-; two values
+
 ((unrun abs/) = any [null unrun abs/])
+(abs/ = any [null abs/])
+
 (
     a-value: #{}
     same? a-value any [null a-value]

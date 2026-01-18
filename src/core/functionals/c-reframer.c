@@ -173,7 +173,7 @@ Result(None) Init_Invokable_From_Feed(
     if (not first)  // nothing passed in, so we used a feed value
         Fetch_Next_In_Feed(feed);  // we've seen it now
 
-    if (not Is_Action(out)) {
+    if (not Is_Frame(out)) {
         Quote_Cell(As_Element(out));
         return none;
     }
@@ -182,15 +182,15 @@ Result(None) Init_Invokable_From_Feed(
     // It probably shouldn't, but since it does we need the action afterward
     // to put the phase back.
     //
-    DECLARE_STABLE (action);
-    Move_Cell(action, out);
-    Push_Lifeguard(action);
+    DECLARE_ELEMENT (frame);
+    Move_Cell(frame, As_Element(out));
+    Push_Lifeguard(frame);
 
-    Option(VarList*) coupling = Frame_Coupling(action);
+    Option(VarList*) coupling = Frame_Coupling(frame);
 
     Level* L = Make_Pushed_Level_From_Action_Feed_May_Throw(
         out,
-        action,
+        frame,
         feed,
         base,
         error_on_deferred
@@ -198,7 +198,7 @@ Result(None) Init_Invokable_From_Feed(
 
     if (Is_Throwing(L)) {  // signals threw
         Drop_Level(L);
-        Drop_Lifeguard(action);
+        Drop_Lifeguard(frame);
         panic (Error_No_Catch_For_Throw(L));
     }
 
@@ -206,19 +206,18 @@ Result(None) Init_Invokable_From_Feed(
     // managed, but Push_Action() does not use ordinary series creation to
     // make its nodes, so manual ones don't wind up in the tracking list.
     //
-    assert(Level_Coupling(L) == Frame_Coupling(action));
-
+    assert(Level_Coupling(L) == Frame_Coupling(frame));
     assert(Not_Base_Managed(L->varlist));
 
     ParamList* varlist = cast(ParamList*, L->varlist);  // executor is nullptr
     L->varlist = nullptr;  // don't let Drop_Level() free varlist (we want it)
     Tweak_Misc_Runlevel(varlist, nullptr);  // disconnect from L
     Drop_Level(L);
-    Drop_Lifeguard(action);
+    Drop_Lifeguard(frame);
 
     Set_Base_Managed_Bit(varlist);  // can't use Manage_Stub
 
-    ParamList* lens = Phase_Paramlist(Frame_Phase(action));
+    ParamList* lens = Phase_Paramlist(Frame_Phase(frame));
     Init_Lensed_Frame(out, varlist, lens, coupling);
 
     return none;
@@ -411,9 +410,9 @@ Details* Alloc_Action_From_Exemplar(
 //
 //  "Make a function that manipulates an invocation at the callsite"
 //
-//      return: [~(action!)~]
-//      shim "The action that has a FRAME! (or QUOTED?) argument to supply"
-//          [<unrun> frame!]
+//      return: [action! frame!]
+//      ^shim "The action that has a FRAME! (or QUOTED?) argument to supply"
+//          [action! frame!]
 //      :parameter "Shim parameter receiving the frame--defaults to last"
 //          [word!]  ; parameter not checked for FRAME! type compatibility [1]
 //  ]
@@ -428,26 +427,16 @@ DECLARE_NATIVE(REFRAMER)
 //    to use, so it used this invocation Level's frame...but that forced it
 //    managed, which had cost.  The check was removed and so if you pick a
 //    parameter that doesn't accept frames you'll just find out at call time.
-//
-// 2. We need the dispatcher to be willing to start the reframing step even
-//    though the frame to be processed isn't ready yet.  So we have to
-//    specialize the argument with something that type checks.  It wants a
-//    FRAME!, so temporarily fill it with the exemplar frame itself.
-//
-//    !!! We could set CELL_FLAG_PARAM_NOTE_TYPECHECKED on the argument and
-//    have it be some other placeholder.  See also SPECIALIZE:RELAX:
-//
-//      https://forum.rebol.info/t/generalized-argument-removal/2297
 {
     INCLUDE_PARAMS_OF_REFRAMER;
 
-    Phase* shim = Frame_Phase(ARG(SHIM));
-    Option(const Symbol*) label = Frame_Label_Deep(ARG(SHIM));
+    Value* shim = ARG(SHIM);
+    Option(const Symbol*) label = Frame_Label_Deep(shim);
 
     DECLARE_BINDER (binder);
     Construct_Binder(binder);
     ParamList* exemplar = Make_Varlist_For_Action_Push_Partials(
-        ARG(SHIM),
+        shim,
         STACK_BASE,
         binder,
         nullptr  // no placeholder, leave parameter! antiforms
@@ -471,14 +460,27 @@ DECLARE_NATIVE(REFRAMER)
         param = cast(Param*, Varlist_Slot(exemplar, param_index));
     }
     else {
-        param = Last_Unspecialized_Param(&key, shim);
-        param_index = param - Phase_Params_Head(shim) + 1;
+        Phase* phase = Frame_Phase(shim);
+        param = Last_Unspecialized_Param(&key, phase);
+        param_index = param - Phase_Params_Head(phase) + 1;
     }
 
     Destruct_Binder(binder);
 
+  specialize_dummy_argument: {
+
+  // 1. We need the dispatcher to be willing to start the reframing step even
+  //    though the frame to be processed isn't ready yet.  So we have to
+  //    specialize the argument with something that type checks.  It wants a
+  //    FRAME!, so temporarily fill it with the exemplar frame itself.
+  //
+  //    !!! We could set CELL_FLAG_PARAM_NOTE_TYPECHECKED on the argument and
+  //    have it be some other placeholder.  See also SPECIALIZE:RELAX:
+  //
+  //      https://forum.rebol.info/t/generalized-argument-removal/2297
+
     Stable* var = Stable_Slot_Hack(
-        Varlist_Slot(exemplar, param_index)  // "specialize" slot [2]
+        Varlist_Slot(exemplar, param_index)  // "specialize" slot [1]
     );
     assert(Is_Parameter(var));
     Copy_Cell(var, Varlist_Archetype(exemplar));
@@ -492,9 +494,19 @@ DECLARE_NATIVE(REFRAMER)
         MAX_IDX_REFRAMER  // details array capacity => [shim, param_index]
     );
 
-    Copy_Cell(Details_At(details, IDX_REFRAMER_SHIM), Element_ARG(SHIM));
+    if (Is_Action(shim))
+        Copy_Plain_Cell(Details_At(details, IDX_REFRAMER_SHIM), shim);
+    else {
+        assert(Is_Possibly_Unstable_Value_Frame(shim));
+        Copy_Cell(Details_At(details, IDX_REFRAMER_SHIM), As_Element(shim));
+    }
     Init_Integer(Details_At(details, IDX_REFRAMER_PARAM_INDEX), param_index);
 
-    Init_Action(OUT, details, label, UNCOUPLED);
-    return Packify_Action(OUT);
-}
+    Init_Frame(OUT, details, label, UNCOUPLED);
+
+    if (Is_Action(shim))
+        return Activate_Frame(OUT);
+
+    assert(Is_Possibly_Unstable_Value_Frame(OUT));
+    return OUT;
+}}

@@ -256,14 +256,13 @@ INLINE Count Noquotify(Element* elem) {
 INLINE bool Is_Lifted_Unstable_Antiform(const Value* v) {  // costs more [3]
     unnecessary(Ensure_Readable(v));  // assume Is_Antiform() checked readable
 
+    if (LIFT_BYTE(v) != QUASIFORM_4)
+        return false;  // not quasiform so not lifted unstable
+
     possibly(0 != (v->header.bits & CELL_MASK_SIGIL));  // quasi sigils ok
 
-    uintptr_t mask = v->header.bits & CELL_MASK_HEART_AND_SIGIL_AND_LIFT;
-    return (
-        mask == (FLAG_HEART(TYPE_ERROR) | FLAG_LIFT_BYTE(QUASIFORM_4))
-        or mask == (FLAG_HEART(TYPE_COMMA) | FLAG_LIFT_BYTE(QUASIFORM_4))
-        or mask == (FLAG_HEART(TYPE_GROUP) | FLAG_LIFT_BYTE(QUASIFORM_4))
-    );
+    Heart heart = unwrap Heart_Of(v);  // no quasiform extended types
+    return Not_Stable_Antiform_Heart(heart);
 }
 
 #if NO_RUNTIME_CHECKS

@@ -865,7 +865,8 @@ Bounce JavaScript_Dispatcher(Level* const L)
         //
         Clear_Trampoline_Flag(HALT);
 
-        Init_Thrown_With_Label(LEVEL, LIB(NULL), LIB(HALT));
+        Element* label_halt_frame = Copy_Plain_Cell(SPARE, LIB(HALT));
+        Init_Thrown_With_Label(LEVEL, LIB(NULL), label_halt_frame);
         return BOUNCE_THROWN;
     }
 
@@ -907,7 +908,7 @@ bool Javascript_Details_Querier(
 //
 //  "Create ACTION! from textual JavaScript code"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec "Function specification (similar to the one used by FUNCTION)"
 //          [block!]
 //      source "JavaScript code as a text string" [text!]
@@ -1103,8 +1104,7 @@ DECLARE_NATIVE(JS_NATIVE)
         &Js_Object_Handle_Cleaner
     );
 
-    Init_Action(OUT, details, ANONYMOUS, UNCOUPLED);
-    return Packify_Action(OUT);
+    return Init_Action(OUT, details, ANONYMOUS, UNCOUPLED);
 }
 
 

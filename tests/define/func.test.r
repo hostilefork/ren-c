@@ -23,7 +23,7 @@
 ; DATATYPE!s and type checking work...)
 [
 (
-    describe: lambda [f [<unrun> frame!]] [
+    describe: lambda [f [frame!]] [
         collect [
             let m: adjunct-of f
             keep reify all [m, m.description]

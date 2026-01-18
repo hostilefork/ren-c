@@ -261,7 +261,7 @@ bool Cascader_Details_Querier(
 //
 //  "Create a processing pipeline of actions, each consuming the last result"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      pipeline "Block of ACTION!s to apply (will be LOCKed)"
 //          [block!]
 //  ]
@@ -299,7 +299,5 @@ DECLARE_NATIVE(CASCADE_P)  // see extended CASCADE in %base-defs.r
         pipeline
     );
 
-    Init_Action(OUT, details, Frame_Label_Deep(first), UNCOUPLED);
-
-    return Packify_Action(OUT);
+    return Init_Action(OUT, details, Frame_Label_Deep(first), UNCOUPLED);
 }

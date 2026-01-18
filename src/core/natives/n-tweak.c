@@ -225,7 +225,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     if (Is_Lifted_Antiform(SPARE))
         return Error_User("TWEAK* cannot be used on antiforms");
 
-    Value* spare_location_dual = SPARE;
+    Stable* spare_location_dual = As_Stable(SPARE);
 
     require (
       Push_Action(sub, LIB(TWEAK_P), PREFIX_0)
@@ -304,6 +304,21 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         if (not Any_Lifted(TOP_ELEMENT))
             continue;  // dual signal, do not lift dual
 
+        if (Is_Lifted_Action(TOP_ELEMENT)) {  // !!! must generalize all sets
+            if (Is_Word(picker_arg)) {
+                Update_Frame_Cell_Label(  // !!! is this a good idea?
+                    TOP_ELEMENT, Word_Symbol(picker_arg)
+                );
+            }
+            continue;
+        }
+
+        if (Get_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
+            return Error_User(
+                "/word: and /obj.field: assignments need ACTION!"
+            );
+        }
+
         if (Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(TOP_ELEMENT))
             continue;  // (x: ()) works, (x: ~()~ doesn't), (x: ~) works
 
@@ -331,34 +346,6 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
             return e;
         };
         Copy_Lifted_Cell(TOP_ELEMENT, sub_spare);
-
-        if (Is_Lifted_Action(TOP_ELEMENT)) {
-            //
-            // !!! SURPRISING ACTION ASSIGNMENT DETECTION WOULD GO HERE !!!
-            // Current concept is that actions-in-a-pack would be how the
-            // "unsurprising" bit is encoded.  This is the last gasp of that
-            // particular form of safety--if that doesn't work, I give up.
-            //
-            if (
-                not was_singular_pack
-                and Not_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION)
-            ){
-                return Error_Surprising_Action_Raw(picker_arg);
-            }
-
-            if (Is_Word(picker_arg)) {
-                Update_Frame_Cell_Label(  // !!! is this a good idea?
-                    TOP_ELEMENT, Word_Symbol(picker_arg)
-                );
-            }
-        }
-        else {
-            if (Get_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
-                return Error_User(
-                    "/word: and /obj.field: assignments need ACTION!"
-                );
-            }
-        }
     }
     then {  // not quoted...
         Clear_Cell_Sigil(As_Element(picker_arg));  // drop any sigils
@@ -663,7 +650,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
     Flags flags = LEVEL_MASK_NONE;  // reused, top level, no keepalive needed
 
-    Sink(Value) spare_location_dual = SPARE;
+    Sink(Stable) spare_location_dual = SPARE;
 
     StackIndex stackindex_top;
 
@@ -789,6 +776,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
             Heart_Of_Unsigiled_Isotopic(spare_location_dual)
         )
         and not Is_Lifted_Hot_Potato(spare_location_dual)  // allow e.g. VETO
+        and not Is_Lifted_Action(spare_location_dual) // temporarily allow
         // allow GHOST, also?
     ){
         return Error_User("PICK result cannot be unstable unless metaform");
@@ -957,12 +945,12 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //          ]
 //      dual "Ordinary GET or SET with lifted value (unlifts), else dual"
 //          [
-//              <opt> "act as a raw GET of the dual state"
-//              <unrun> frame! "store a GETTER/SETTER function in dual band"
-//              word! "special instructions (e.g. PROTECT, UNPROTECT)"
-//              ^word! ^tuple! "store an alias to another variable"
-//              space? "store a 'drain', which erases all assignments"
-//              quasiform! quoted! "store unlifted values as a normal SET"
+//              <opt>  "act as a raw GET of the dual state"
+//              frame!  "store a GETTER/SETTER function in dual band"
+//              word!  "special instructions (e.g. PROTECT, UNPROTECT)"
+//              ^word! ^tuple!  "store an alias to another variable"
+//              space?  "store a 'drain', which erases all assignments"
+//              quasiform! quoted!  "store unlifted values as a normal SET"
 //          ]
 //      :groups "Allow GROUP! Evaluations"
 //      :steps "Return evaluation steps for reproducible access"

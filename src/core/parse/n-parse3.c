@@ -1722,9 +1722,10 @@ DECLARE_NATIVE(SUBPARSE)
                 else
                     panic ("PARSE3 ACCEPT only works with GROUP! and <here>");
 
-                Init_Thrown_With_Label(
-                    LEVEL, thrown_arg, Stable_LIB(PARSE_ACCEPT)
+                Element* label_accept_frame = Copy_Plain_Cell(
+                    SPARE, LIB(PARSE_ACCEPT)
                 );
+                Init_Thrown_With_Label(LEVEL, thrown_arg, label_accept_frame);
                 goto return_thrown; }
 
               case SYM_BREAK: {
@@ -1736,18 +1737,20 @@ DECLARE_NATIVE(SUBPARSE)
                 DECLARE_VALUE (thrown_arg);
                 Init_Integer(thrown_arg, P_POS);
 
-                Init_Thrown_With_Label(
-                    LEVEL, thrown_arg, Stable_LIB(PARSE_BREAK)
+                Element* label_break_frame = Copy_Plain_Cell(
+                    SPARE, LIB(PARSE_BREAK)
                 );
+                Init_Thrown_With_Label(LEVEL, thrown_arg, label_break_frame);
                 goto return_thrown; }
 
               case SYM_REJECT: {
                 //
                 // Similarly, this is a break/continue style "throw"
                 //
-                Init_Thrown_With_Label(
-                    LEVEL, LIB(NULL), Stable_LIB(PARSE_REJECT)
+                Element* label_reject_frame = Copy_Plain_Cell(
+                    SPARE, LIB(PARSE_REJECT)
                 );
+                Init_Thrown_With_Label(LEVEL, LIB(NULL), label_reject_frame);
                 goto return_thrown; }
 
               case SYM_PARSE_VETO:  // skip to next alternate
@@ -1858,14 +1861,13 @@ DECLARE_NATIVE(SUBPARSE)
     }
     else if (Is_Path(rule)) {
         require (
-          Stable* spare = Get_Var(SPARE, NO_STEPS, rule, P_RULE_BINDING)
+          Meta_Get_Var(SPARE, NO_STEPS, rule, P_RULE_BINDING)
         );
 
-        if (not Is_Action(spare))
+        if (not Is_Action(SPARE))
             panic ("PATH! in PARSE3 must be an ACTION!");
 
-        LIFT_BYTE(spare) = NOQUOTE_3;
-        rule = Copy_Cell(P_SAVE, As_Element(spare));
+        rule = Copy_Plain_Cell(P_SAVE, SPARE);
     }
     else if (Is_Set_Tuple(rule)) {
       handle_set:

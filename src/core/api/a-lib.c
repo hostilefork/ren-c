@@ -2900,9 +2900,7 @@ RebolBaseInternal* API_rebRUN(const void* p)
       Stable* stable = Decay_If_Unstable(v)
     );
 
-    if (Is_Action(stable))
-        LIFT_BYTE(stable) = NOQUOTE_3;
-    else if (not Is_Frame(stable))
+    if (not Is_Frame(stable))
         panic ("rebRUN() requires FRAME! or actions (aka FRAME! antiforms)");
 
     return cast(RebolBaseInternal*, stub);  // cast needed in C

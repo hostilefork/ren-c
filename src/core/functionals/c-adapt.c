@@ -168,8 +168,8 @@ bool Adapter_Details_Querier(
 //
 //  "Create a variant of an action that preprocesses its arguments"
 //
-//      return: [~(action!)~ frame!]
-//      original "Code to be run after the prelude is complete"
+//      return: [action! frame!]
+//      ^original "Code to be run after the prelude is complete"
 //          [action! frame!]
 //      prelude "Code to run in constructed frame before adaptee runs"
 //          [block!]
@@ -189,7 +189,7 @@ DECLARE_NATIVE(ADAPT)
 {
     INCLUDE_PARAMS_OF_ADAPT;
 
-    Stable* adaptee = ARG(ORIGINAL);
+    Value* adaptee = ARG(ORIGINAL);
     Element* prelude = Element_ARG(PRELUDE);
 
     Details* details = Make_Dispatch_Details(
@@ -211,12 +211,12 @@ DECLARE_NATIVE(ADAPT)
     );
     Tweak_Cell_Binding(rebound, List_Binding(prelude));
 
-    Stable* out = Init_Frame(OUT, details, Frame_Label_Deep(adaptee), UNCOUPLED);
-    Copy_Vanishability(out, adaptee);
+    Init_Frame(OUT, details, Frame_Label_Deep(adaptee), UNCOUPLED);
+    Copy_Vanishability(OUT, adaptee);
 
-    if (Is_Frame(adaptee))
-        return OUT;
+    if (Is_Action(adaptee))
+        return Activate_Frame(OUT);
 
-    Actionify(out);
-    return Packify_Action(OUT);
+    assert(Is_Possibly_Unstable_Value_Frame(OUT));
+    return OUT;
 }

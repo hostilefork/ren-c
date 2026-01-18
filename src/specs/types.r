@@ -185,10 +185,10 @@ parameter!  "function parameter description"
                 (payload1 payload2)
                 [any-inert?]
 
-    frame!      "arguments and locals of a function state"
-    ~action!~   "will trigger function execution from words"
-                (:payload1)
-                [any-branch?]
+    frame!          "arguments and locals of a function state"
+    ~action!~:U     "will trigger function execution from words"
+                    (:payload1)
+                    [any-branch?]
 
     let!        "context containing a single variable"
                 (payload1)

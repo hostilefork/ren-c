@@ -233,9 +233,9 @@ bind construct [
         ])
 
         return: lambda block! [[^value] compose2:deep '{} [  ; ()-composing
-            {unrun return/} pack [
+            {return/} pack [
                 ^value except (e -> [
-                    {unrun return/} fail e
+                    {return/} fail e  ; Review: TRAP/RETURN binding issue
                 ])
                 {input-name}
                 pending  ; can't change PENDING name at this time
@@ -271,19 +271,19 @@ bind construct [
 ; !!! Used to check for INPUT and STATE, but then combinators were allowed
 ; to call their inputs whatever they wanted, so just checks STATE.
 ;
-combinator?: func [
+combinator?: lambda [
     "Crude test to try and determine if an ACTION! is a combinator"
-    return: [logic!]
-    frame [<unrun> frame!]
+    []: [logic!]
+    frame [frame!]
 ][
-    return did all [has frame 'state]
+    did all [has frame 'state]
 ]
 
-negatable-parser?: func [
-    return: [logic!]
-    frame [<unrun> frame!]
+negatable-parser?: lambda [
+    []: [logic!]
+    frame [frame!]
 ][
-    return did find words of frame 'negated
+    did find words of frame 'negated
 ]
 
 ; An un-lens'd combinator has the input in position 2, but we don't know
@@ -327,7 +327,7 @@ default-combinators: make map! [
         "If the parser argument is negatable, invoke it in the negated sense"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         :negated
     ][
         if negated [  ; NOT NOT, e.g. call parser without negating it
@@ -345,7 +345,7 @@ default-combinators: make map! [
         "If parser's synthesized result is null, skip to next alternate"
         return: [any-stable?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result}
     ][
         [^result input]: trap parser input  ; non-matching parser, no match
@@ -376,7 +376,7 @@ default-combinators: make map! [
         "If parser fails, succeed and return NULL; don't advance input"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result remainder}
     ][
         [^result remainder]: parser input except (e -> [
@@ -390,7 +390,7 @@ default-combinators: make map! [
         "If parser fails, succeed and return GHOST; don't advance input"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result remainder}
     ][
         [^result remainder]: parser input except (e -> [
@@ -404,7 +404,7 @@ default-combinators: make map! [
         "If parser fails, succeed and return NONE; don't advance input"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result remainder}
     ][
         [^result remainder]: parser input except (e -> [
@@ -418,7 +418,7 @@ default-combinators: make map! [
         "Return splice antiform group for list arguments"
         return: [<null> <void> element? splice!]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result}
     ][
         [^result input]: trap parser input
@@ -433,7 +433,7 @@ default-combinators: make map! [
         "Leave the parse position at the same location, but fail if no match"
         return: [any-value? ~#not~]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         :negated
     ][
         if negated [
@@ -449,7 +449,7 @@ default-combinators: make map! [
         "Pass through the result only if the input was advanced by the rule"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result pos}
     ][
         [^result pos]: trap parser input  ; TRAP propagates fail if no match
@@ -480,7 +480,7 @@ default-combinators: make map! [
         "Run parser in a loop, require at least one match; return last result"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result}
     ][
         append state.loops binding of $return
@@ -502,8 +502,8 @@ default-combinators: make map! [
         "Run parser in a loop as long as condition matches; return last result"
         return: [any-value?]
         input [any-series?]
-        condition-parser [action!]
-        body-parser [action!]
+        ^condition-parser [action!]
+        ^body-parser [action!]
         {^result}
     ][
         append state.loops binding of $return
@@ -529,8 +529,8 @@ default-combinators: make map! [
         "Run parser in a loop, until condition matches; return last result"
         return: [any-value?]
         input [any-series?]
-        condition-parser [action!]
-        body-parser [action!]
+        ^condition-parser [action!]
+        ^body-parser [action!]
         {^result}
     ][
         append state.loops binding of $return
@@ -557,7 +557,7 @@ default-combinators: make map! [
         "Run parser continuously in a loop until return STOP result (or BREAK)"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result}
     ][
         append state.loops binding of $return
@@ -575,7 +575,7 @@ default-combinators: make map! [
         "Iterate a rule and count the number of times it matches (can be 0)"
         return: [integer!]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {count (0)}
     ][
         append state.loops binding of $return
@@ -608,7 +608,7 @@ default-combinators: make map! [
         "Break an iterated construct like SOME or REPEAT, succeeding the match"
         return: []
         input [any-series?]
-        parser [<end> action!]
+        ^parser [<end> action!]
         {f ^result}
     ][
         ^result: ~  ; default `[stop]` returns trash (tripwire)
@@ -641,7 +641,7 @@ default-combinators: make map! [
         "Return a value explicitly from the parse, terminating early"
         return: []
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^value}
     ][
         [^value _]: trap parser input  ; returning, don't need to update input
@@ -690,7 +690,7 @@ default-combinators: make map! [
         "Synthesize the length of a matched portion of content in series units"
         return: [integer!]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {start end remainder}
     ][
         start: index of input
@@ -722,8 +722,8 @@ default-combinators: make map! [
         "Substitute a match with new data"
         return: [trash!]
         input [any-series?]
-        parser [action!]
-        replacer [action!]  ; !!! How to say result is used here?
+        ^parser [action!]
+        ^replacer [action!]  ; !!! How to say result is used here?
         {^replacement remainder}
     ][
         [^ remainder]: trap parser input  ; first find end position
@@ -740,7 +740,7 @@ default-combinators: make map! [
         "Remove data that matches a parse rule"
         return: [trash!]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {remainder}
     ][
         [^ remainder]: trap parser input  ; first find end position
@@ -753,7 +753,7 @@ default-combinators: make map! [
         "Insert literal data into the input series"
         return: [trash!]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^insertion}
     ][
         [^insertion _]: trap parser input  ; remainder ignored
@@ -768,7 +768,7 @@ default-combinators: make map! [
         "Match up TO position before parser success; return parser's result"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result}
     ][
         cycle [
@@ -789,7 +789,7 @@ default-combinators: make map! [
         "Match up THRU position after parser success; return parser's result"
         return: [any-value?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result remainder}
     ][
         cycle [
@@ -810,7 +810,7 @@ default-combinators: make map! [
         "SEEK to another position in INPUT, synthesize that series position"
         return: [any-series?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {where remainder}
     ][
         [^where remainder]: trap parser input
@@ -837,8 +837,8 @@ default-combinators: make map! [
         "Synthesize a copy of INPUT after LEFT parser and before RIGHT"
         return: [any-series?]
         input [any-series?]
-        parser-left [action!]
-        parser-right [action!]
+        ^parser-left [action!]
+        ^parser-right [action!]
         {start limit remainder}
     ][
         [^ start]: trap parser-left input
@@ -918,7 +918,7 @@ default-combinators: make map! [
         "Synthesize copied series from current parse position through a rule"
         return: [any-series?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {start}
     ][
         start: input
@@ -989,8 +989,8 @@ default-combinators: make map! [
         "Recursion into other data with a rule, result of rule if match"
         return: [any-value?]
         input [any-series?]
-        parser [action!]  ; !!! Easier expression of value-bearing parser?
-        subparser [action!]
+        ^parser [action!]  ; !!! Easier expression of value-bearing parser?
+        ^subparser [action!]
         :match "Return input on match, not synthesized value"
         :relax "Don't have to match input completely, just don't mismatch"
         {subseries subremainder ^result}
@@ -1037,7 +1037,7 @@ default-combinators: make map! [
         "Arity-1 variation of SUBPARSE (presumes current position as input)"
         return: [any-value?]
         input [any-list?]
-        subparser [action!]
+        ^subparser [action!]
         :match "Return input on match, not synthesized value"
         :relax "Don't have to match input completely, just don't mismatch"
         {subseries subremainder ^result}
@@ -1104,7 +1104,7 @@ default-combinators: make map! [
         return: [block!]
         input [any-series?]
         {pending}: [none? quoted! block!]
-        parser [action!]
+        ^parser [action!]
         {collected result}
     ][
         [^ input pending]: trap parser input
@@ -1135,7 +1135,7 @@ default-combinators: make map! [
         return: [any-value?]  ; piped result most useful [3]
         input [any-series?]
         {pending}: [none? quoted! block!]
-        parser [action!]
+        ^parser [action!]
         {^result decayed}
     ][
         [^result input pending]: trap parser input
@@ -1173,7 +1173,7 @@ default-combinators: make map! [
         "Accumulate values, synonym for [collect [opt some keep ...]]"
         return: [block!]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {collected}
     ][
         collected: copy []
@@ -1215,7 +1215,7 @@ default-combinators: make map! [
         return: [object!]
         input [any-series?]
         {pending}: [none? quoted! block!]
-        parser [action!]
+        ^parser [action!]
         {obj result}
     ][
         [^ input pending]: trap parser input
@@ -1242,11 +1242,11 @@ default-combinators: make map! [
 
     'emit combinator [
         "Emit object field for GATHER with name and value; synthesize value"
-        return: [any-stable?]
+        return: [any-value?]
         input [any-series?]
         {pending}: [none? quoted! block!]
         @target [set-word? set-group?]
-        parser [action!]
+        ^parser [action!]
         {^result}
     ][
         if set-group? target [
@@ -1289,7 +1289,7 @@ default-combinators: make map! [
         return: [any-stable?]
         input [any-series?]
         value [set-word? set-tuple? set-group?]
-        parser "If assignment, failed parser means target will be unchanged"
+        ^parser "If assignment, failed parser means target will be unchanged"
             [action!]
         {^result var}
     ][
@@ -1526,7 +1526,7 @@ default-combinators: make map! [
         return: [any-value?]
         input [any-series?]
         {pending}: [none? quoted! block!]
-        parser [action!]
+        ^parser [action!]
         {^result}
     ][
         [^result input pending]: trap parser input
@@ -1585,7 +1585,7 @@ default-combinators: make map! [
         input [any-series?]
         {pending}: [none? quoted! block!]   ; we retrigger combinator; it may KEEP, etc.
 
-        parser [action!]
+        ^parser [action!]
         {^r comb subpending}
     ][
         [^r input pending]: parser input except (e -> [
@@ -1793,8 +1793,8 @@ default-combinators: make map! [
         "Calling PARSER the number of times the TIMES-PARSER synthesizes"
         return: [any-value?]
         input [any-series?]
-        times-parser [action!]
-        parser "Last parser result is the overall result"
+        ^times-parser [action!]
+        ^parser "Last parser result is the overall result"
             [action!]
         {^times min max ^result}
     ][
@@ -2065,7 +2065,7 @@ default-combinators: make map! [
         "Transform a result-bearing combinator into one that has no result"
         return: [ghost!]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
     ][
         [^ input]: trap parser input
         return ()
@@ -2084,7 +2084,7 @@ default-combinators: make map! [
         "Skip integral number of items, and synthesize position after the skip"
         return: [any-series?]
         input [any-series?]
-        parser [action!]
+        ^parser [action!]
         {^result}
     ][
         [^result _]: trap parser input
@@ -2182,7 +2182,7 @@ default-combinators: make map! [
             if not param.optional [
                 ensure frame! parsers.1
 
-                f.(key): [{_} input subpending]: trap run parsers.1 input
+                f.(key): [{^} input subpending]: trap run parsers.1 input
 
                 glom $pending subpending
                 parsers: next parsers
@@ -2851,7 +2851,7 @@ parsify: func [
         ]
 
         (path? r) and (space? first r) [  ; "action combinator" [5]
-            if not frame? let gotten: unrun get resolve r [
+            if not frame? let gotten: unrun get meta resolve r [
                 return fail "PARSE PATH starting in / must be action or frame"
             ]
             if not comb: select state.combinators action! [
@@ -2860,13 +2860,13 @@ parsify: func [
                 )
             ]
 
-            comb: unrun adapt (augment comb inside [] collect [
+            comb: adapt (augment comb bind1 collect [
                 let n: 1
                 for-each 'key (words of gotten) [
                     let param: select gotten key
                     if not param.optional [
                         keep spread compose [
-                            (to word! unspaced ["param" n]) [action!]
+                            (meta join 'param n) [action!]
                         ]
                         n: n + 1
                     ]
@@ -2883,7 +2883,7 @@ parsify: func [
                 for-each 'key (words of value) [
                     let param: select value key
                     if not param.optional [
-                        append parsers unrun f.(join 'param [n])/
+                        append parsers unrun f.(join 'param n)/
                         n: n + 1
                     ]
                 ]
@@ -2893,7 +2893,7 @@ parsify: func [
         ]
 
         (path? r) and (space? last r) [  ; type constraint combinator
-            let ^action: get resolve r  ; ^ to not store ACTION as label
+            let ^action: get meta resolve r  ; ^ to not store ACTION as label
             comb: state.combinators.match
             return combinatorize:value comb rules state unrun action/
         ]
@@ -3003,7 +3003,7 @@ parse*: func [
     :part "FAKE :PART FEATURE - runs on a copy of the series!"
         [integer! any-series?]
     :hook "Call a hook on dispatch of each combinator"
-        [<unrun> frame!]
+        [frame!]
 
     {
         loops  ; block of FRAME!s representing stack of iterations in effect

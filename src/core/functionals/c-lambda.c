@@ -232,7 +232,7 @@ bool Lambda_Details_Querier(
 //
 //  "Make an anonymous function that doesn't define a local RETURN"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec [block! datatype!]
 //      @(body) [<const> block! fence!]
 //  ]
@@ -252,6 +252,8 @@ DECLARE_NATIVE(LAMBDA)
 {
     INCLUDE_PARAMS_OF_LAMBDA;
 
+    possibly(STATE != STATE_0);
+
     Bounce bounce = opt Irreducible_Bounce(LEVEL, Make_Interpreted_Action(
         LEVEL,
         SYM_DUMMY1,  // cue look for []: in the paramlist for return spec [1]
@@ -262,15 +264,17 @@ DECLARE_NATIVE(LAMBDA)
     if (bounce)
         return bounce;
 
-    Details* details = Ensure_Frame_Details(As_Stable(OUT));
+  make_interpreted_action_finished: {  // stopped making eval bounce requests
+
+    Details* details = Ensure_Frame_Details(OUT);
 
     Pop_Unpopped_Return(  // SYM_DUMMY1 parameter was not popped
         Details_At(details, IDX_LAMBDA_RESULT_PARAM),
         STACK_BASE
       );
 
-    return Packify_Action(OUT);
-}
+    return OUT;
+}}
 
 
 //
@@ -278,7 +282,7 @@ DECLARE_NATIVE(LAMBDA)
 //
 //  "Declares divergent function (will PANIC if it reaches the end of body)"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec [block! datatype!]
 //      @(body) [<const> block! fence!]
 //  ]
@@ -297,9 +301,11 @@ DECLARE_NATIVE(DIVERGER)
     if (bounce)
         return bounce;
 
-    Details* details = Ensure_Frame_Details(As_Stable(OUT));
+  make_interpreted_action_finished: {  // stopped making eval bounce requests
+
+    Details* details = Ensure_Frame_Details(OUT);
 
     Init_Space(Details_At(details, IDX_LAMBDA_RESULT_PARAM));  // panic signal
 
-    return Packify_Action(OUT);
-}
+    return OUT;
+}}

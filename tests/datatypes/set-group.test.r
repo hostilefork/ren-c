@@ -61,9 +61,9 @@
 
 ; Example of an interesting use of the void case
 [
-    (returnproxy: lambda [frame [<unrun> frame!]] [
+    (returnproxy: lambda [frame [frame!]] [
         enclose (augment frame [:return [word!]]) f -> [
-            (opt f.return): eval-free f
+            (cond f.return): eval-free f
         ]
     ], ok)
 
@@ -83,7 +83,7 @@
         wrapper: returnproxy test/
 
         y: ~
-        f: make frame! unrun wrapper/
+        f: make frame! wrapper/
         f.x: 20
         f.return: $y
 

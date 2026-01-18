@@ -294,12 +294,12 @@ bool Typecheck_Pack_Uses_Scratch_And_Spare(  // scratch and spare used [1]
 //
 bool Predicate_Check_Spare_Uses_Scratch(
     Level* const L,
-    const Stable* predicate,
+    const Value* predicate,
     Option(const Symbol*) label
 ){
     USE_LEVEL_SHORTHANDS (L);
 
-    assert(Is_Action(predicate) or Is_Frame(predicate));
+    assert(Is_Action(predicate) or Is_Possibly_Unstable_Value_Frame(predicate));
 
     bool result;
 
@@ -704,7 +704,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
       Get_Word(test, temp_item_word, binding)
     );
 
-    if (Is_Action(test)) {
+    if (Is_Frame(test)) {
         if (Predicate_Check_Spare_Uses_Scratch(L, test, label))
             goto test_succeeded;
         goto test_failed;
@@ -883,9 +883,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
 
     switch (opt Type_Of(tests)) {
       case TYPE_DATATYPE:
-        if (not Is_Cell_Stable(v))
-            return false;
-        return Type_Of(As_Stable(v)) == Datatype_Type(tests);
+        return Type_Of_Maybe_Unstable(v) == Datatype_Type(tests);
 
       case TYPE_BLOCK:
         at = List_At(&tail, tests);
@@ -908,6 +906,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
         match_all = true;
         break;
 
+      case TYPE_FRAME:
       case TYPE_ACTION:
         Copy_Cell(SPARE, v);
         return Predicate_Check_Spare_Uses_Scratch(
@@ -1000,40 +999,28 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     if (coerced)
         goto return_false;  // only coerce once
 
-} do_coercion: {  ////////////////////////////////////////////////////////////
-
-    if (
-        Is_Possibly_Unstable_Value_Action(v)
-        and Get_Parameter_Flag(param, UNRUN)
-    ){
-        LIFT_BYTE(v) = NOQUOTE_3;
-        possibly(coerced);  // this may be a coercion after decay...
-        coerced = true;
-        goto call_typecheck;
-    }
+    if (Is_Cell_Stable(v))
+        goto return_false;
 
     if (Is_Failure(v))
         goto return_false;
 
     if (Is_Ghost(v))
-        goto return_false;  // comma antiforms
-
-    if (Is_Cell_Stable(v))
         goto return_false;
 
-    trap (
-        Decay_If_Unstable(v)
-    );
-    assert(not coerced);  // should only decay once...
-    coerced = true;
+    if (Is_Trash(v))
+        goto return_false;
 
-    if (
-        Is_Possibly_Unstable_Value_Action(v)
-        and Get_Parameter_Flag(param, UNRUN)
-    ){
-        LIFT_BYTE(v) = NOQUOTE_3;
+    if (Is_Action(v)) {
+        Deactivate_Action(v);
+    }
+    else {
+        trap (
+          Decay_If_Unstable(v)
+        );
     }
 
+    coerced = true;
     goto call_typecheck;
 
 } return_false: { ////////////////////////////////////////////////////////////
@@ -1131,7 +1118,7 @@ Result(Value*) Init_Typechecker(
 //
 //  "Make a function for checking types (generated function gives LOGIC!)"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      types [datatype! block!]
 //  ]
 //
@@ -1155,7 +1142,7 @@ DECLARE_NATIVE(TYPECHECKER)
     require (
       Init_Typechecker(LEVEL, OUT, ARG(TYPES))
     );
-    return Packify_Action(OUT);
+    return OUT;
 }
 
 
@@ -1165,7 +1152,7 @@ DECLARE_NATIVE(TYPECHECKER)
 //  "Same typechecking as function arguments"
 //
 //      return: [logic! failure!]  ; returns error vs. panic [1]
-//      test [block! datatype! parameter! action!]
+//      test [block! datatype! parameter! frame!]
 //      ^value [any-value?]
 //      :meta "Don't pre-decay argument (match ^META argument mode)"
 //  ]
@@ -1207,7 +1194,7 @@ DECLARE_NATIVE(TYPECHECK)
 //  "Same typechecking as function arguments, but return value on success"
 //
 //      return: [<null> any-stable?]
-//      test [block! datatype! parameter! action!]
+//      test [block! datatype! parameter! frame!]
 //      value "Won't pass thru NULL (use TYPECHECK for a LOGIC? answer)"
 //          [<cond> any-stable?]
 //  ]
@@ -1237,8 +1224,8 @@ DECLARE_NATIVE(MATCH)
 //
 //  "Make a specialization of the MATCH function for a fixed type argument"
 //
-//      return: [~(action!)~]
-//      test [block! datatype! parameter! action!]
+//      return: [action!]
+//      test [block! datatype! parameter! frame!]
 //  ]
 //
 DECLARE_NATIVE(MATCHER)
@@ -1272,5 +1259,5 @@ DECLARE_NATIVE(MATCHER)
     if (Specialize_Action_Throws(OUT, LIB(MATCH), block_in_spare, STACK_BASE))
         return THROWN;
 
-    return Packify_Action(OUT);
+    return OUT;
 }

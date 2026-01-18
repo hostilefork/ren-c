@@ -1026,7 +1026,7 @@ DECLARE_NATIVE(PROXY_EXPORTS)
 //  "non-null if a function that gets first argument before the call"
 //
 //      return: [logic!]
-//      frame [<unrun> frame!]
+//      frame [frame!]
 //  ]
 //
 DECLARE_NATIVE(INFIX_Q)
@@ -1041,10 +1041,10 @@ DECLARE_NATIVE(INFIX_Q)
 //
 //  infix: native [
 //
-//  "For functions that gets 1st argument from left, e.g (/+: infix get $add)"
+//  "For functions that gets 1st argument from left, e.g (+: infix add/)"
 //
-//      return: [~(action!)~ frame!]
-//      action [action! frame!]
+//      return: [action! frame!]
+//      ^value [action! frame!]
 //      :off "Give back a non-infix version of the passed in function"
 //      :defer "Allow one full expression on the left to evaluate"
 //      :postpone "Allow arbitrary numbers of expressions on left to evaluate"
@@ -1054,28 +1054,25 @@ DECLARE_NATIVE(INFIX)
 {
     INCLUDE_PARAMS_OF_INFIX;
 
-    Stable* out = Copy_Cell(OUT, ARG(ACTION));
+    Copy_Cell(OUT, ARG(VALUE));
 
     if (ARG(OFF)) {
         if (ARG(DEFER) or ARG(POSTPONE))
             panic (Error_Bad_Refines_Raw());
-        Tweak_Frame_Infix_Mode(out, PREFIX_0);
+        Tweak_Frame_Infix_Mode(OUT, PREFIX_0);
     }
     else if (ARG(DEFER)) {  // not OFF, already checked
         if (ARG(POSTPONE))
             panic (Error_Bad_Refines_Raw());
-        Tweak_Frame_Infix_Mode(out, INFIX_DEFER);
+        Tweak_Frame_Infix_Mode(OUT, INFIX_DEFER);
     }
     else if (ARG(POSTPONE)) {  // not OFF or DEFER, we checked
-        Tweak_Frame_Infix_Mode(out, INFIX_POSTPONE);
+        Tweak_Frame_Infix_Mode(OUT, INFIX_POSTPONE);
     }
     else
-        Tweak_Frame_Infix_Mode(out, INFIX_TIGHT);
+        Tweak_Frame_Infix_Mode(OUT, INFIX_TIGHT);
 
-    if (Is_Frame(out))
-        return OUT;
-
-    return Packify_Action(OUT);
+    return OUT;
 }
 
 
@@ -1084,8 +1081,8 @@ DECLARE_NATIVE(INFIX)
 //
 //  "Make function's invocation not turn GHOST! results to empty PACK!"
 //
-//      return: [~(action!)~ frame!]
-//      action [action! frame!]
+//      return: [action! frame!]
+//      ^value [action! frame!]
 //      :off "Give back non-vanishable version of the passed in function"
 //  ]
 //
@@ -1093,15 +1090,12 @@ DECLARE_NATIVE(VANISHABLE)
 {
     INCLUDE_PARAMS_OF_VANISHABLE;
 
-    Stable* out = Copy_Cell(OUT, ARG(ACTION));
+    Copy_Cell(OUT, ARG(VALUE));
 
     if (ARG(OFF))
-        Clear_Cell_Flag(out, WEIRD_VANISHABLE);
+        Clear_Cell_Flag(OUT, WEIRD_VANISHABLE);
     else
-        Set_Cell_Flag(out, WEIRD_VANISHABLE);
-
-    if (Is_Action(out))
-        return Packify_Action(OUT);
+        Set_Cell_Flag(OUT, WEIRD_VANISHABLE);
 
     return OUT;
 }
@@ -1113,7 +1107,7 @@ DECLARE_NATIVE(VANISHABLE)
 //  "Return if a function naturally suppresses GHOST! to HEAVY VOID conversion"
 //
 //      return: [logic!]
-//      action [<unrun> frame!]
+//      action [frame!]
 //  ]
 //
 DECLARE_NATIVE(VANISHABLE_Q)

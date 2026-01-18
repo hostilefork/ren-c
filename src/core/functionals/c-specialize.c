@@ -73,10 +73,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
 
     Tweak_Bonus_Keylist_Shared(a, Phase_Keylist(phase));
 
-    assert(
-        Is_Possibly_Unstable_Value_Action(action)
-        or Is_Possibly_Unstable_Value_Frame(action)
-    );
+    assert(Is_Action(action) or Is_Possibly_Unstable_Value_Frame(action));
     Cell* rootvar = Flex_Head_Dynamic(Element, a);
     Copy_Cell(rootvar, action);
     LIFT_BYTE(rootvar) = NOQUOTE_3;  // make sure it's a plain FRAME!
@@ -210,7 +207,7 @@ ParamList* Make_Varlist_For_Action(
 // has :DUP at TOP, and :PART under it.  List stops at lowest_stackindex.
 //
 bool Specialize_Action_Throws(
-    Sink(Stable) out,
+    Sink(Value) out,
     const Value* specializee,
     Option(Element*) def,  // !!! REVIEW: binding modified directly, not copied
     StackIndex lowest_stackindex
@@ -396,7 +393,9 @@ bool Specialize_Action_Throws(
     }
 
     Init_Frame(out, exemplar, label, coupling);
-    Actionify(out);
+
+    if (Is_Action(specializee))
+        Activate_Frame(out);
 
     Tweak_Frame_Infix_Mode(out, infix_mode);
     Copy_Vanishability(out, specializee);
@@ -413,8 +412,8 @@ bool Specialize_Action_Throws(
 //
 //  "Create a new action through partial or full specialization of another"
 //
-//      return: [~(action!)~ frame!]
-//      operation [action! frame!]
+//      return: [action! frame!]
+//      ^operation [action! frame!]
 //      args "Arguments and Refinements, e.g. [arg1 arg2 ref: refine1]"
 //          [block!]
 //      :relax "Don't worry about too many arguments to the SPECIALIZE"
@@ -457,20 +456,20 @@ DECLARE_NATIVE(SPECIALIZE)
 
 } finished_filling_frame: { //////////////////////////////////////////////////
 
-    Stable* specializee = ARG(OPERATION);
+    Value* specializee = ARG(OPERATION);
 
     Option(InfixMode) infix_mode = Frame_Infix_Mode(specializee);
 
-    Stable* out = Copy_Cell(OUT, Element_LOCAL(FRAME));
+    Copy_Cell(OUT, Element_LOCAL(FRAME));
 
-    Tweak_Frame_Infix_Mode(out, infix_mode);
-    Copy_Vanishability(out, specializee);
+    Tweak_Frame_Infix_Mode(OUT, infix_mode);
+    Copy_Vanishability(OUT, specializee);
 
-    if (Is_Frame(specializee))
-        return OUT;
+    if (Is_Action(specializee))
+        return Activate_Frame(OUT);
 
-    Actionify(out);
-    return Packify_Action(OUT);
+    assert(Is_Possibly_Unstable_Value_Frame(OUT));
+    return OUT;
 }}
 
 

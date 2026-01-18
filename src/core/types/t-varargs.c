@@ -77,22 +77,19 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
         // Look ahead, and if actively bound see if it's to an infix function
         // and the rules apply.
 
-        Sink(Stable) out_value = out;
-        Get_Word(out_value, look, binding) except (Error* e) {
+        Meta_Get_Var(out, NO_STEPS, look, binding) except (Error* e) {
             // !!! this code tolerated with `not e`, review right answer
             UNUSED(e);
         }
-        else {
-            if (Is_Action(out_value)) {
-                Option(InfixMode) infix_mode = Frame_Infix_Mode(out_value);
-                if (infix_mode) {
-                    if (
-                        pclass == PARAMCLASS_NORMAL or
-                        infix_mode == INFIX_DEFER
-                    ){
-                        Init_For_Vararg_End(out, op);
-                        return true;
-                    }
+        else if (Is_Action(out)) {
+            Option(InfixMode) infix_mode = Frame_Infix_Mode(out);
+            if (infix_mode) {
+                if (
+                    pclass == PARAMCLASS_NORMAL or
+                    infix_mode == INFIX_DEFER
+                ){
+                    Init_For_Vararg_End(out, op);
+                    return true;
                 }
             }
         }
@@ -701,7 +698,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
 //  "Returns TRUE if a frame may take a variable number of arguments"
 //
 //      return: [logic!]
-//      frame [<unrun> frame!]
+//      frame [frame!]
 //  ]
 //
 DECLARE_NATIVE(VARIADIC_Q)

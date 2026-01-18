@@ -61,7 +61,7 @@ DECLARE_NATIVE(TRY)
 //
 //      return: [error! quoted! quasiform!]
 //      code "Code to sandbox, intercept errors at any depth (including typos)"
-//          [<unrun> frame! any-list?]
+//          [frame! any-list?]
 //      :relax "Allow non-erroring premature exits (THROW, RETURN, etc.)"
 //  ]
 //
@@ -299,6 +299,8 @@ DECLARE_NATIVE(TRAP)
 
     Element* return_word = Init_Word(SCRATCH, CANON(RETURN));
     Bind_Cell_If_Unbound(return_word, Feed_Binding(LEVEL->feed));
+    Metafy_Cell(return_word);  // want to get ACTION!s (unstable)
+
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     STATE = 1;
@@ -307,12 +309,12 @@ DECLARE_NATIVE(TRAP)
       Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
     );
 
-    if (not Is_Possibly_Unstable_Value_Action(OUT))
+    if (not Is_Action(OUT))
         panic ("TRAP can't find RETURN in scope to tunnel FAILURE! to");
 
     Element* lifted_error = Lift_Cell(v);
 
-    return rebDelegate(rebRUN(As_Stable(OUT)), lifted_error);
+    return rebDelegate(rebRUN(OUT), lifted_error);
 }
 
 
@@ -376,6 +378,25 @@ DECLARE_NATIVE(TRASH_Q)
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     return LOGIC_OUT(Is_Trash(v));
+}
+
+
+//
+//  action?: native:intrinsic [
+//
+//  "Tells you if argument is an ACTION! antiform"
+//
+//      return: [logic!]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(ACTION_Q)
+{
+    INCLUDE_PARAMS_OF_ACTION_Q;
+
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    return LOGIC_OUT(Is_Action(v));
 }
 
 

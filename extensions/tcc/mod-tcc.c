@@ -322,7 +322,7 @@ static bool Pending_Native_Details_Querier(
 //
 //  "Make ACTION! from C source, compiled on-demand or by COMPILE function"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec "Rebol parameter definitions (similar to FUNCTION's spec)"
 //          [block!]
 //      source "C source of the native implementation"
@@ -400,8 +400,7 @@ DECLARE_NATIVE(MAKE_NATIVE)
 
     Init_Space(Details_At(details, IDX_TCC_PRENATIVE_STATE));  // no state, yet
 
-    Init_Action(OUT, details, ANONYMOUS, UNCOUPLED);
-    return Packify_Action(OUT);
+    return Init_Action(OUT, details, ANONYMOUS, UNCOUPLED);
 }
 
 

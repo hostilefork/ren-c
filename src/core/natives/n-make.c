@@ -35,7 +35,7 @@
 //      type "The datatype or parent context to construct from"
 //          [<cond> datatype! any-context?]
 //      def "Definition or size of the new value (binding may be modified)"
-//          [<cond> <unrun> element?]  ; <unrun> action for FRAME!
+//          [<cond> element?]  ; !!! ACTION! decays to FRAME!, should it?
 //  ]
 //
 DECLARE_NATIVE(MAKE)

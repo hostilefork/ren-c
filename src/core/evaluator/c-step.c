@@ -424,14 +424,14 @@ Bounce Stepper_Executor(Level* L)
         Erase_Cell(OUT);
 
         if (
-            not Is_Possibly_Unstable_Value_Action(L_next_gotten_raw)
+            not Is_Action(L_next_gotten_raw)
             or not (
-                infix_mode = Frame_Infix_Mode(As_Stable(L_next_gotten_raw))
+                infix_mode = Frame_Infix_Mode(L_next_gotten_raw)
             )
         ){
             goto give_up_backward_quote_priority;
         }
-        infixed = Frame_Phase(As_Stable(L_next_gotten_raw));
+        infixed = Frame_Phase(L_next_gotten_raw);
         break; }
 
       case TYPE_CHAIN:
@@ -949,7 +949,7 @@ Bounce Stepper_Executor(Level* L)
 } case TYPE_FRAME: { //// FRAME! /////////////////////////////////////////////
 
     // If a FRAME! makes it to the SWITCH statement, that means it is either
-    // literally a frame in the array (eval compose [(unrun :add) 1 2]) or
+    // literally a frame in the array (eval compose [(unrun add/) 1 2]) or
     // is being retriggered via REEVAL.
     //
     // Most FRAME! evaluations come from the antiform ("actions") triggered
@@ -1001,6 +1001,8 @@ Bounce Stepper_Executor(Level* L)
 
     assert(not Sigil_Of(CURRENT));
 
+    Metafy_Cell(CURRENT);  // now needed for unstable lookup (ACTION!)
+
     heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
@@ -1014,20 +1016,24 @@ Bounce Stepper_Executor(Level* L)
     if (Is_Hot_Potato(OUT))
         goto lookahead;  // legal e.g. for VETO
 
-    assert(Is_Cell_Stable(OUT));  // plain WORD!, FAILURE! is only unstable
-    Stable* out = cast(Stable*, OUT);
-
-    if (Is_Action(out))  // check first [1]
+    if (Is_Action(OUT))  // check first [1]
         goto run_action_in_out;
+
+    if (Is_Trash(OUT))  // checked second [1]
+        panic (Error_Bad_Word_Get(CURRENT, OUT));
+
+    if (Not_Cell_Stable(OUT)) {
+        Clear_Cell_Sigil(CURRENT);  // clear ^META we put on for fetch
+        panic (Error_Unstable_Non_Meta_Raw(CURRENT));
+    }
+
+    Stable* out = As_Stable(OUT);
 
     if (Get_Cell_Flag(CURRENT, CURRENT_NOTE_RUN_WORD)) {
         if (Is_Frame(out))
             goto run_action_in_out;
         panic ("Leading slash means execute FRAME! or ACTION! only");
     }
-
-    if (Is_Trash(OUT))  // checked second [1] -- !!! REVIEW, out not unstable!
-        panic (Error_Bad_Word_Get(CURRENT, OUT));
 
     goto lookahead;
 
@@ -1073,9 +1079,7 @@ Bounce Stepper_Executor(Level* L)
   //    So pushing *before* we set the flags means the FLAG_STATE_BYTE() will
   //    be 0, and we get clearing.
 
-   Stable* out = cast(Stable*, OUT);
-
-    Option(InfixMode) infix_mode = Frame_Infix_Mode(out);
+    Option(InfixMode) infix_mode = Frame_Infix_Mode(OUT);
 
     if (infix_mode) {
         if (infix_mode != INFIX_TIGHT) {  // defer or postpone
@@ -1095,7 +1099,7 @@ Bounce Stepper_Executor(Level* L)
     }
 
   #if (! DEBUG_DISABLE_INTRINSICS)
-    Details* details = opt Try_Frame_Details(out);
+    Details* details = opt Try_Frame_Details(OUT);
     if (
         not infix_mode  // too rare a case for intrinsic optimization
         and details
@@ -1103,7 +1107,7 @@ Bounce Stepper_Executor(Level* L)
         and Not_Level_At_End(L)  // can't do <end>, fallthru to error
         and not SPORADICALLY(10)  // checked builds sometimes bypass
     ){
-        Copy_Plain_Cell(CURRENT, out);
+        Copy_Plain_Cell(CURRENT, OUT);
 
         Param* param = Phase_Param(details, 1);
         Flags flags = EVAL_EXECUTOR_FLAG_FULFILLING_ARG;
@@ -1135,10 +1139,10 @@ Bounce Stepper_Executor(Level* L)
   #endif
 
     require (
-      Level* sub = Make_Action_Sublevel(out)
+      Level* sub = Make_Action_Sublevel(OUT)
     );
     require (
-      Push_Action(sub, out, infix_mode)  // before OUT erased [2]
+      Push_Action(sub, OUT, infix_mode)  // before OUT erased [2]
     );
     Erase_Cell(OUT);  // want OUT clear, even if infix_mode sets state nonzero
     Push_Level_Erase_Out_If_State_0(OUT, sub);
@@ -1217,30 +1221,28 @@ Bounce Stepper_Executor(Level* L)
     }
 
     require (
-      Stable* out = Get_Chain_Push_Refinements(
+      Get_Chain_Push_Refinements(
         OUT,  // where to write action
         CURRENT,
         L_binding
     ));
 
-    assert(Is_Action(out));
+    assert(Is_Action(OUT));
 
-    if (Is_Frame_Infix(out)) {  // too late, left already evaluated
+    if (Is_Frame_Infix(OUT)) {  // too late, left already evaluated
         Drop_Data_Stack_To(STACK_BASE);
         panic ("Use `->-` to shove left infix operands into CHAIN!s");
     }
 
 } handle_action_in_out_with_refinements_pushed: {
 
-    Stable* out = cast(Stable*, OUT);
-
     require (
-      Level* sub = Make_Action_Sublevel(out)
+      Level* sub = Make_Action_Sublevel(OUT)
     );
     sub->baseline.stack_base = STACK_BASE;  // refinements
 
     require (
-      Push_Action(sub, out, PREFIX_0)
+      Push_Action(sub, OUT, PREFIX_0)
     );
     Push_Level_Erase_Out_If_State_0(OUT, sub);  // not infix, sub state is 0
     goto process_action;
@@ -1441,24 +1443,21 @@ Bounce Stepper_Executor(Level* L)
         possibly(slash_at_tail);  // ...or, exception for arity-0? [2]
         panic (e);  // don't FAIL, PANIC [1]
     }
-
-    Stable* out = As_Stable(OUT);
-    assert(Is_Action(out));
+    assert(Is_Action(OUT));
 
     if (slash_at_tail) {  // do not run action, just return it [3]
         if (TOP_INDEX != base) {
             if (Specialize_Action_Throws(
-                SPARE, out, nullptr, base
+                SPARE, OUT, nullptr, base
             )){
                 goto return_thrown;
             }
             Move_Cell(OUT, SPARE);
         }
-        Packify_Action(OUT);  // foo/ is always ACTION!
         goto lookahead;
     }
 
-    if (Is_Frame_Infix(out)) {  // too late, left already evaluated [4]
+    if (Is_Frame_Infix(OUT)) {  // too late, left already evaluated [4]
         Drop_Data_Stack_To(STACK_BASE);
         panic ("Use `->-` to shove left infix operands into PATH!s");
     }
@@ -1752,11 +1751,11 @@ Bounce Stepper_Executor(Level* L)
         or (
             not (
                 Is_Word(L_next)
-                and Is_Possibly_Unstable_Value_Action(L_next_gotten_raw)
+                and Is_Action(L_next_gotten_raw)
             )
             and not Is_Frame(L_next)
         )
-        or not (infix_mode = Frame_Infix_Mode(As_Stable(L_next_gotten_raw)))
+        or not (infix_mode = Frame_Infix_Mode(L_next_gotten_raw))
     ){
       lookback_quote_too_late: // run as if starting new expression
 
@@ -1897,7 +1896,7 @@ Bounce Stepper_Executor(Level* L)
       Level* sub = Make_Action_Sublevel(L_next_gotten_raw)
     );
     require (
-      Push_Action(sub, As_Stable(L_next_gotten_raw), infix_mode)
+      Push_Action(sub, L_next_gotten_raw, infix_mode)
     );
     Fetch_Next_In_Feed(L->feed);
 

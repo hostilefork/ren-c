@@ -350,7 +350,7 @@ void Set_Location_Of_Error(
     Level* L = where;
     for (; L != BOTTOM_LEVEL; L = L->prior) {
         if (Get_Level_Flag(L, DISPATCHING_INTRINSIC)) {  // [1]
-            Stable* frame = As_Stable(Level_Scratch(L));
+            Value* frame = Level_Scratch(L);
             possibly(Is_Action(frame));
             Option(const Symbol*) label = Frame_Label_Deep(frame);
             if (label)

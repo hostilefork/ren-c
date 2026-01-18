@@ -90,7 +90,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
       case TYPE_FRAME: {  // ACTION! (coerced most frequently?)
         if (Frame_Lens(elem))
             Tweak_Frame_Lens_Or_Label(elem, ANONYMOUS);  // show only inputs
-        LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // [1]
+        LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // [1]
         break; }
 
       case TYPE_BLOCK: {  // SPLICE! (second most frequent?)
@@ -225,6 +225,11 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
         if (not want_value)
             goto finished_no_value;
 
+        if (Is_Action(v)) {
+            Deactivate_Action(v);
+            goto finished;
+        }
+
         if (Is_Ghost(v))
             return fail ("Cannot decay GHOST! to a stable value");
 
@@ -278,20 +283,28 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
     if (not want_value)
         goto finished_no_value;
 
-    if (Is_Lifted_Pack(first))  // don't decay first slot [2]
-        return fail ("PACK! cannot decay PACK! in first slot");
+    if (Is_Lifted_Unstable_Antiform(first)) {  // don't decay first slot [2]
+        if (Is_Lifted_Pack(first))
+            return fail ("PACK! cannot decay PACK! in first slot");
 
-    if (Is_Lifted_Ghost(first))
-        return fail ("PACK! cannot decay GHOST! in first slot");
+        if (Is_Lifted_Ghost(first))
+            return fail ("PACK! cannot decay GHOST! in first slot");
 
-    if (Is_Lifted_Trash(first))
-        return fail ("PACK! cannot decay TRASH! in first slot");
+        if (Is_Lifted_Trash(first))
+            return fail ("PACK! cannot decay TRASH! in first slot");
+
+        assert(Is_Lifted_Action(first));
+        return fail ("PACK! cannot decay ACTION! in first slot");
+    }
 
     assert(not Is_Lifted_Failure(first));  // we ruled these out already
 
     if (Is_Dual_Alias(first)) {
         trap (
             Get_Word_Or_Tuple(v, first, SPECIFIED)
+        );
+        require (
+          Decay_If_Unstable(v)
         );
     }
     else {

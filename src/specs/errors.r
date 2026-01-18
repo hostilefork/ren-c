@@ -127,8 +127,6 @@ no-binding:         "Couldn't get binding for $1"
 ambiguous-infix:    "Ambiguous infix expression--use GROUP! to clarify"
 literal-left-path:  "Use ->- to pass literal left PATH! parameters right"
 
-surprising-action:  "Surprising ACTION! assign to $1 (use /NAME: if meant)"
-
 sequence-too-short: "PATH!, CHAIN!, and TUPLE! must have more than 2 items"
 conflated-sequence: "Sequence would conflate with $1 -- $2"
 bad-sequence-space: "SPACE only legal at head and tail of sequence"

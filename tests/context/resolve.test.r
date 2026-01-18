@@ -20,7 +20,7 @@
         @branch "If target needs default, this is evaluated and stored there"
             [any-branch?]
         :predicate "Test for what's considered empty (default is null + void)"
-            [<unrun> frame!]
+            [frame!]
         {steps}
     ][
         unlift (

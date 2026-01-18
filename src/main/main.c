@@ -268,7 +268,7 @@ int main(int argc, char *argv_ansi[])
     );
 
     Value* main_startup = rebValue(
-        "ensure action! eval inside lib transcode", rebR(startup_bin)
+        "ensure:meta action! eval inside lib transcode", rebR(startup_bin)
     );
 
   run_startup_code_to_get_its_evaluation_requests: {

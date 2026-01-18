@@ -324,38 +324,31 @@ export emit-include-params-macro: func [
 
             let ctype  ; underlying type (Element, Stable, Value)
             let copt  ; refinement or <opt>
-            if param.class = 'meta [
-                ctype: 'Value
-                copt: 'false
+            case [
+                param.class = 'meta [ctype: 'Value]
+                param.class = 'literal [ctype: 'Element]
+                (find [  ; !!! bad way of doing this...think of better
+                    [frame!]
+                    [element?]
+                    [<cond> <const> block! frame!]
+                    [<cond> <opt> element?]
+                ] cond spec) [ctype: 'Element]
             ] else [
-                any [  ; save you from saying Element_ARG()
-                    param.class = 'literal
-                    find [  ; !!! bad way of doing this...think of better
-                        [<unrun> frame!]
-                        [element?]
-                        [<cond> <unrun> <const> block! frame!]
-                        [<cond> <opt> element?]
-                    ] cond spec
-                ]
-                then [
-                    ctype: 'Element
-                ]
-                else [
-                    ctype: 'Stable
-                ]
+                ctype: 'Stable
+            ]
 
-                case [
-                    param.refinement or (find cond spec <opt>) [
-                        copt: 'true
-                    ]
-                    param.class = 'local [
-                        assert [not param.refinement]
-                        copt: 'false
-                    ]
-                ] else [
+            case [
+                param.refinement or (find cond spec <opt>) [
+                    copt: 'true
+                ]
+                param.class = 'local [
+                    assert [not param.refinement]
                     copt: 'false
                 ]
+            ] else [
+                copt: 'false
             ]
+
 
             let cwrap: switch copt [
                 'true ['Option]

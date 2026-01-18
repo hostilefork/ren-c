@@ -101,9 +101,9 @@ static Result(None) Push_Keys_And_Params_For_Fence(
             return fail (Error_No_Catch_For_Throw(sub));
         }
 
-        if (meta) {
-            if (Is_Failure(OUT))  // don't want to quietly store errors
-                return fail (Cell_Error(OUT));
+        if (meta or Is_Non_Meta_Assignable_Unstable_Antiform(SPARE)) {
+            if (Is_Failure(SPARE))  // don't want to quietly store errors
+                return fail (Cell_Error(SPARE));
 
             Move_Cell(PUSH(), SPARE);
         }
@@ -112,10 +112,16 @@ static Result(None) Push_Keys_And_Params_For_Fence(
               Stable* decayed = Decay_If_Unstable(SPARE)
             );
 
-            if (must_be_action and not Is_Action(decayed))
-                return fail ("Assignment using /FOO must be an action");
-
             Move_Cell(PUSH(), decayed);
+
+            if (must_be_action) {
+                if (not Is_Frame(TOP_ELEMENT))
+                    return fail (
+                        "Assignment using /FOO must be an action or frame"
+                    );
+
+                Activate_Frame(TOP);
+            }
         }
 
         Reset_Evaluator_Erase_Out(sub);
@@ -858,7 +864,7 @@ Details* Make_Dispatch_Details(
     assert(Heart_Of(exemplar) == TYPE_FRAME);
     assert(
         LIFT_BYTE(exemplar) == NOQUOTE_3
-        or LIFT_BYTE(exemplar) == STABLE_ANTIFORM_2  // allow action antiform
+        or LIFT_BYTE(exemplar) == UNSTABLE_ANTIFORM_1  // allow action antiform
     );
 
     assert(0 == (flags & (~ (  // make sure no stray flags passed in
@@ -994,7 +1000,7 @@ DetailsQuerier* Details_Querier(Details *details) {
 //  "Associate an ACTION! with OBJECT! to use for `.field` member references"
 //
 //      return: [action! frame!]
-//      frame [action! frame!]
+//      ^value [action! frame!]
 //      coupling [<opt> object! frame!]
 //  ]
 //
@@ -1005,22 +1011,22 @@ DECLARE_NATIVE(COUPLE)
 {
     INCLUDE_PARAMS_OF_COUPLE;
 
-    Stable* action_or_frame = ARG(FRAME);  // could also be a ACTION!
+    Copy_Cell(OUT, ARG(VALUE));
 
-    Details* details = Phase_Details(Frame_Phase(action_or_frame));
+    Details* details = Phase_Details(Frame_Phase(OUT));
     if (Not_Details_Flag(details, METHODIZED))
         return fail ("FRAME! is not methodized, cannot COUPLE it");
 
     Option(Stable*) coupling = ARG(COUPLING);
 
     if (not coupling)
-        Tweak_Frame_Coupling(action_or_frame, nullptr);
+        Tweak_Frame_Coupling(OUT, nullptr);
     else {
         assert(Is_Object(unwrap coupling) or Is_Frame(unwrap coupling));
-        Tweak_Frame_Coupling(action_or_frame, Cell_Varlist(unwrap coupling));
+        Tweak_Frame_Coupling(OUT, Cell_Varlist(unwrap coupling));
     }
 
-    return COPY_TO_OUT(action_or_frame);
+    return OUT;
 }
 
 
@@ -1029,20 +1035,17 @@ DECLARE_NATIVE(COUPLE)
 //
 //  "Disassociate an ACTION from OBJECT!"
 //
-//      return: [~(action!)~]
-//      action [<unrun> frame!]
+//      return: [action! frame!]
+//      ^action [action! frame!]
 //  ]
 //
 DECLARE_NATIVE(UNCOUPLE)
 {
     INCLUDE_PARAMS_OF_UNCOUPLE;
 
-    Stable* action_or_frame = ARG(ACTION);  // could also be a FRAME!
-
-    assert(Heart_Of(action_or_frame) == TYPE_FRAME);
+    Value* action_or_frame = ARG(ACTION);
 
     Tweak_Frame_Coupling(action_or_frame, UNCOUPLED);
 
-    Actionify(Copy_Cell(OUT, action_or_frame));
-    return Packify_Action(OUT);
+    return COPY_TO_OUT(action_or_frame);
 }

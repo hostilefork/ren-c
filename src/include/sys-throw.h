@@ -63,7 +63,7 @@ INLINE bool Is_Throwing(Level* level_) {
 
 #define THROWING Is_Throwing(level_)
 
-INLINE const Stable* VAL_THROWN_LABEL(Level* level_) {
+INLINE const Element* VAL_THROWN_LABEL(Level* level_) {
     UNUSED(level_);
     assert(Is_Cell_Readable(&g_ts.thrown_label));
     return &g_ts.thrown_label;
@@ -76,7 +76,7 @@ INLINE const Stable* VAL_THROWN_LABEL(Level* level_) {
 INLINE void Init_Thrown_With_Label(  // assumes `arg` in g_ts.thrown_arg
     Level* L,
     const Value* arg,
-    const Stable* label
+    const Element* label
 ){
     possibly(label == L->out);
     possibly(arg == L->out);
@@ -88,7 +88,6 @@ INLINE void Init_Thrown_With_Label(  // assumes `arg` in g_ts.thrown_arg
 
     assert(Not_Cell_Readable(&g_ts.thrown_label));
     Copy_Cell(&g_ts.thrown_label, label);
-    Deactivate_If_Action(&g_ts.thrown_label);
 
     Erase_Cell(L->out);
 

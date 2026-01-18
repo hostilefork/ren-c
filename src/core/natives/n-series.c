@@ -484,7 +484,7 @@ DECLARE_NATIVE(REVERSE_OF)
 //      :skip "Treat the series as records of fixed size"
 //          [integer!]
 //      :compare "Comparator offset, block or action"
-//          [<unrun> integer! block! frame!]
+//          [integer! block! frame!]
 //      :part "Sort only part of a series (by length or position)"
 //          [any-number? any-series?]
 //      :all "Compare all fields"
@@ -576,7 +576,7 @@ DECLARE_NATIVE(AT)
 //          <null> "if not found"
 //      ]
 //      series [<cond> any-series?]
-//      pattern "What to find, if an action call as a predicate on each item"
+//      ^pattern "What to find, if an action call as a predicate on each item"
 //          [<cond> element? splice! action! datatype!]
 //      :part "Limits the search to a given length or position"
 //          [any-number? any-series? pair!]

@@ -17,7 +17,7 @@
         append stuff x
     ]
 
-    producer: proc [sentence [text!] next-coroutine [action!]] [
+    producer: proc [sentence [text!] ^next-coroutine [action!]] [
         log <start-producing>
         let tokens: split sentence space
         for-each 'token tokens [
@@ -28,7 +28,7 @@
         log <end-producing>
     ]
 
-    pattern-filter: lambda [next-coroutine [action!] :pattern [text!]] [
+    pattern-filter: lambda [^next-coroutine [action!] :pattern [text!]] [
         pattern: default ["ing"]
 
         yielder [token [null? text!]] [

@@ -77,7 +77,7 @@ extreme-of: func [
     return: [any-series?]
     series [any-series?]
     comparator "Comparator to use, e.g. LESSER? for MINIMUM-OF"
-        [<unrun> frame!]
+        [frame!]
     :skip "Treat the series as records of fixed size"
         [integer!]
 ][

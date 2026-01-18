@@ -467,7 +467,7 @@ Bounce Make_Interpreted_Action(
 //
 //  "Generates an ACTION! with RETURN capability"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec [block! datatype!]
 //      @(body) [<const> block! fence!]
 //  ]
@@ -488,7 +488,7 @@ DECLARE_NATIVE(FUNCTION)
     if (bounce)
         return bounce;
 
-    return Packify_Action(OUT);
+    return OUT;
 }
 
 
@@ -497,7 +497,7 @@ DECLARE_NATIVE(FUNCTION)
 //
 //  "Variation of FUNCTION that will always return TRASH"
 //
-//      return: [~(action!)~]
+//      return: [action!]
 //      spec [block! datatype!]
 //      @(body) [<const> block! fence!]
 //  ]
@@ -520,7 +520,7 @@ DECLARE_NATIVE(PROCEDURE)
 
   tweak_unconstrained_parameter_to_auto_trash: {
 
-    Details* details = Ensure_Frame_Details(As_Stable(OUT));
+    Details* details = Ensure_Frame_Details(OUT);
 
     Element* param = m_cast(Element*, Quoted_Returner_Of_Paramlist(
         Phase_Paramlist(details), SYM_RETURN
@@ -547,7 +547,7 @@ DECLARE_NATIVE(PROCEDURE)
     else if (Not_Parameter_Flag(param, AUTO_TRASH))
         panic ("If PROCEDURE has RETURN:, it must be [return: ~]");
 
-    return Packify_Action(OUT);
+    return OUT;
 }}
 
 
@@ -566,8 +566,8 @@ Bounce Init_Thrown_Unwind_Value(
     const Value* value,
     Level* target // required if level is INTEGER! or ACTION!
 ) {
-    DECLARE_STABLE (label);
-    Copy_Cell(label, Stable_LIB(UNWIND));
+    DECLARE_ELEMENT (label_unwind_frame);
+    Copy_Plain_Cell(label_unwind_frame, LIB(UNWIND));
 
     if (Is_Frame(seek) and Is_Frame_On_Stack(Cell_Varlist(seek))) {
         g_ts.unwind_level = Level_Of_Varlist_If_Running(Cell_Varlist(seek));
@@ -616,7 +616,7 @@ Bounce Init_Thrown_Unwind_Value(
         }
     }
 
-    Init_Thrown_With_Label(level_, value, label);
+    Init_Thrown_With_Label(level_, value, label_unwind_frame);
     return BOUNCE_THROWN;
 }
 
@@ -759,11 +759,11 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
             Init_Trash_Named_From_Level(v, target_level);
         }
 
-        DECLARE_STABLE (label);
-        Copy_Cell(label, Stable_LIB(UNWIND)); // see Make_Thrown_Unwind_Value
+        DECLARE_ELEMENT (label_unwind_frame);
+        Copy_Plain_Cell(label_unwind_frame, LIB(UNWIND));
         g_ts.unwind_level = target_level;
 
-        Init_Thrown_With_Label(LEVEL, v, label);
+        Init_Thrown_With_Label(LEVEL, v, label_unwind_frame);
         return BOUNCE_THROWN;
     }
 
@@ -788,7 +788,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
     ){
         gather_args = Stable_LIB(NULL);
     }
-    else if (Is_Action(stable) or Is_Frame(stable)) {  // just reuse Level
+    else if (Is_Frame(stable)) {  // just reuse Level
         gather_args = stable;
         Release_Feed(target_level->feed);
         target_level->feed = return_level->feed;
@@ -802,7 +802,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
     // will identify for that behavior.
     //
     Copy_Cell(SPARE, LIB(DEFINITIONAL_REDO));
-    Element* frame = Deactivate_If_Action(SPARE);
+    Element* frame = Deactivate_Action(SPARE);
     Tweak_Frame_Coupling(  // comment said "may have changed"?
         frame,
         Varlist_Of_Level_Force_Managed(target_level)

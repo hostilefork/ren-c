@@ -229,12 +229,10 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
 
     Copy_Cell(&L->feed->gotten, OUT);
 
-    if (not Is_Possibly_Unstable_Value_Action(&L->feed->gotten))
+    if (not Is_Action(&L->feed->gotten))
         return false;
 
-    Option(InfixMode) infix_mode = Frame_Infix_Mode(
-        As_Stable(&L->feed->gotten)
-    );
+    Option(InfixMode) infix_mode = Frame_Infix_Mode(&L->feed->gotten);
     if (not infix_mode)
         return false;
 
@@ -1150,7 +1148,7 @@ Bounce Action_Executor(Level* L)
 //
 Result(None) Push_Action(
     Level* L,
-    const Value* frame,
+    const Value* frame,  // can be ACTION! or FRAME!
     Option(InfixMode) infix_mode
 ){
     assert(L->executor == &Action_Executor);

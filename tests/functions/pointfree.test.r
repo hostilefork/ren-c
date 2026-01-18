@@ -34,7 +34,7 @@
         "Specialize by example: https://en.wikipedia.org/wiki/Tacit_programming"
 
         return: [action!]
-        frame [<unrun> frame!]
+        frame [frame!]
         block "Invocation by example (SPACE slots are unspecialized)"
             [block!]
         {e}

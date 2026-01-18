@@ -1351,7 +1351,8 @@ DECLARE_NATIVE(WAIT_P)  // See wrapping function WAIT in usermode code
     if (Get_Trampoline_Flag(HALT)) {
         Clear_Trampoline_Flag(HALT);
 
-        Init_Thrown_With_Label(LEVEL, LIB(NULL), Stable_LIB(HALT));
+        Element* label_halt_frame = Copy_Plain_Cell(SPARE, LIB(HALT));
+        Init_Thrown_With_Label(LEVEL, LIB(NULL), label_halt_frame);
         return BOUNCE_THROWN;
     }
 

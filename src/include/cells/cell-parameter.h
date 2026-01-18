@@ -299,19 +299,9 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
     FLAG_LEFT_BIT(21)
 
 
-//=//// PARAMETER_FLAG_UNRUN //////////////////////////////////////////////=//
+//=//// PARAMETER_FLAG_22 /////////////////////////////////////////////////=//
 //
-// At one time, any slot accepting a FRAME! would automatically take an
-// ACTION! through coercion.  This led to problems, because some functions
-// intend to have distinct behavior for contexts vs. actions... and you can
-// be confused if you meant an ACTION!.  One case was MAP-EACH, which had
-// support for `map-each [key val] any-context [...]` but didn't take action!
-// so that `map-each 'item generator [yield 1] [...]` would try to iterate
-// over the nonexistent exposed parameters of the generator.
-//
-// Due to bugs of this nature, `<unrun>` is needed to ask for the coercion.
-//
-#define PARAMETER_FLAG_UNRUN \
+#define PARAMETER_FLAG_22 \
     FLAG_LEFT_BIT(22)
 
 

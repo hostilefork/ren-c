@@ -314,7 +314,7 @@ REBINT Find_In_Array(
 
     // Apply predicates to items in block
 
-    if (Is_Possibly_Unstable_Value_Action(pattern)) {
+    if (Is_Action(pattern)) {
         *len = 1;
 
         for (; index >= start and index < end; index += skip) {
@@ -583,12 +583,12 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_List)
             if (id == SYM_SELECT)
                 panic ("Cannot SELECT with antiforms on lists");
 
-            if (Is_Datatype(As_Stable(pattern))) {
+            if (Is_Possibly_Unstable_Value_Datatype(pattern)) {
                 require (  // out = in is okay
                     Init_Typechecker(LEVEL, pattern, As_Stable(pattern))
                 );
             }
-            else if (Is_Possibly_Unstable_Value_Action(pattern)) {
+            else if (Is_Action(pattern)) {
                 // treat as FIND function
             }
             else
@@ -1417,12 +1417,12 @@ IMPLEMENT_GENERIC(SORT, Any_List)
 
   set_up_comparator: {
 
-    if (not ARG(COMPARE)) {
+    Element* cmp = As_Element(opt ARG(COMPARE));
+    if (not cmp) {
         info.comparator = LIB(LESSER_Q);
         info.offset = 0;
     }
     else {
-        Element* cmp = Deactivate_If_Action(unwrap ARG(COMPARE));
         if (Heart_Of(cmp)) {
             info.comparator = cmp;
             info.offset = 0;

@@ -605,7 +605,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Object)
 //  "Get a reference to the 'adjunct' context associated with a value"
 //
 //      return: [<null> any-context?]
-//      value [<unrun> <cond> frame! any-context?]
+//      value [<cond> frame! any-context?]
 //  ]
 //
 DECLARE_NATIVE(ADJUNCT_OF)
@@ -639,7 +639,7 @@ DECLARE_NATIVE(ADJUNCT_OF)
 //  "Set 'adjunct' object associated with all references to a value"
 //
 //      return: [<null> any-context?]
-//      value [<unrun> frame! any-context?]
+//      value [frame! any-context?]
 //      adjunct [<opt> any-context?]
 //  ]
 //
@@ -1332,11 +1332,11 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
     if (  // !!! BUGGY, new system needed
         KIND_BYTE(OUT) == TYPE_FRAME
-        and LIFT_BYTE_RAW(OUT) == STABLE_ANTIFORM_2
-        and Frame_Coupling(As_Stable(OUT)) == UNCOUPLED
+        and LIFT_BYTE_RAW(OUT) == UNSTABLE_ANTIFORM_1
+        and Frame_Coupling(OUT) == UNCOUPLED
         and Stub_Flavor(c) == FLAVOR_VARLIST
     ){
-        Tweak_Frame_Coupling(As_Stable(OUT), cast(VarList*, c));
+        Tweak_Frame_Coupling(OUT, cast(VarList*, c));
     }
 
     Lift_Cell(OUT);  // lift the cell to indicate "normal" state
@@ -1411,7 +1411,7 @@ IMPLEMENT_GENERIC(LENGTH_OF, Any_Context)
 //  "Get the keys of a context or map (should be KEYS-OF)"
 //
 //      return: [<null> block!]
-//      value [<cond> <unrun> fundamental?]
+//      value [<cond> fundamental?]
 //  ]
 //
 DECLARE_NATIVE(WORDS_OF)
@@ -1531,7 +1531,7 @@ IMPLEMENT_GENERIC(COPY, Is_Frame)
 //  "Get the unspecialized PARAMETER! descriptions for a FRAME! or ACTION?"
 //
 //      return: [frame!]
-//      frame [<unrun> frame!]
+//      frame [frame!]
 //  ]
 //
 DECLARE_NATIVE(PARAMETERS_OF)
@@ -1557,7 +1557,7 @@ DECLARE_NATIVE(PARAMETERS_OF)
 //  "Get the return parameter specification of a frame"
 //
 //      return: [parameter!]  ; always returns parameter!, not null [1]
-//      frame [<unrun> frame!]
+//      frame [frame!]
 //  ]
 //
 DECLARE_NATIVE(RETURN_OF)
@@ -1587,7 +1587,7 @@ DECLARE_NATIVE(RETURN_OF)
 //  "Get a loose representation of a function's implementation"
 //
 //      return: [block! failure!]
-//      frame [<unrun> frame!]
+//      frame [frame!]
 //  ]
 //
 DECLARE_NATIVE(BODY_OF)  // !!! should this be SOURCE-OF ?
@@ -1621,7 +1621,7 @@ DECLARE_NATIVE(BODY_OF)  // !!! should this be SOURCE-OF ?
 //          <null>  "if method but uncoupled"
 //          failure!  "if non-method"
 //      ]
-//      frame [<unrun> frame!]
+//      frame [frame!]
 //  ]
 //
 DECLARE_NATIVE(COUPLING_OF)
@@ -1646,10 +1646,10 @@ DECLARE_NATIVE(COUPLING_OF)
 //
 //  label-of: native [
 //
-//  "Get the cached name a FRAME! or ACTION? was last referred to by"
+//  "Get the cached name a frame was last referred to by"
 //
 //      return: [<null> word!]
-//      frame [<unrun> frame!]
+//      frame [frame!]
 //  ]
 //
 DECLARE_NATIVE(LABEL_OF)
@@ -1777,7 +1777,7 @@ IMPLEMENT_GENERIC(LINE_OF, Is_Frame)
 //  "Get the near information for an executing frame"
 //
 //      return: [<null> block!]
-//      frame [<cond> <unrun> frame!]
+//      frame [<cond> frame!]
 //  ]
 //
 DECLARE_NATIVE(NEAR_OF)
@@ -1801,7 +1801,7 @@ DECLARE_NATIVE(NEAR_OF)
 //  "Get the frame corresponding to the parent of a frame"
 //
 //      return: [<null> frame!]
-//      frame [<cond> <unrun> frame!]
+//      frame [<cond> frame!]
 //  ]
 //
 DECLARE_NATIVE(PARENT_OF)

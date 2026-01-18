@@ -346,11 +346,10 @@ DECLARE_NATIVE(UNLOAD_EXTENSION)
        true
    );
    if (shutdown_slot) {
-        Sink(Stable) spare_shutdown = SPARE;
         require (
-          Read_Slot(spare_shutdown, shutdown_slot)
+          Read_Slot_Meta(SPARE, shutdown_slot)
         );
-        rebElide(rebRUN(spare_shutdown));
+        rebElide(rebRUN(SPARE));
    }
 
 } unregister_extension: {
@@ -365,11 +364,10 @@ DECLARE_NATIVE(UNLOAD_EXTENSION)
        true
    );
    if (unregister_slot) {
-        Sink(Stable) spare_unregister = SPARE;
         require (
-          Read_Slot(spare_unregister, unregister_slot)
+          Read_Slot_Meta(SPARE, unregister_slot)
         );
-        rebElide(rebRUN(spare_unregister));
+        rebElide(rebRUN(SPARE));
    }
 
 } unload_dll_if_applicable: { ////////////////////////////////////////////////

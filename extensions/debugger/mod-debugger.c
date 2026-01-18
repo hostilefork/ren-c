@@ -66,7 +66,10 @@ bool Do_Breakpoint_Throws(
     Element* inst = As_Element(rebValue("debug-console"));
 
     if (Is_Integer(inst)) {
-        Init_Thrown_With_Label(TOP_LEVEL, inst, Stable_LIB(QUIT));
+        DECLARE_ELEMENT (label_quit_frame);
+        Copy_Plain_Cell(label_quit_frame, LIB(QUIT));
+
+        Init_Thrown_With_Label(TOP_LEVEL, inst, label_quit_frame);
         rebRelease(inst);
         return true;
     }
@@ -199,9 +202,9 @@ DECLARE_NATIVE(RESUME)
     // We throw with :NAME as identity of the RESUME function.  (Note: there
     // is no NATIVE() variant for extensions yet.  Extract from current level.)
     //
-    DECLARE_STABLE (resume);
+    DECLARE_ELEMENT (label_resume_frame);
     Init_Frame(
-        resume,
+        label_resume_frame,
         Level_Phase(LEVEL),
         Level_Label(LEVEL),
         Level_Coupling(LEVEL)
@@ -211,7 +214,7 @@ DECLARE_NATIVE(RESUME)
     // this stack level--and it failed or threw--we'd stay stuck in the
     // breakpoint's sandbox.  We throw it as-is and it gets evaluated later.
     //
-    Init_Thrown_With_Label(LEVEL, expr, resume);
+    Init_Thrown_With_Label(LEVEL, expr, label_resume_frame);
     return BOUNCE_THROWN;
 }
 
