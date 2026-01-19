@@ -237,9 +237,34 @@ e-types: make-emitter "Datatype Definitions" (
 )
 
 e-types/emit [--[
-    /* Tables generated from %types.r for builtin typesets */
+    /*
+     * === TABLES GENERATED FROM %types.r FOR BUILTIN TYPESETS ===
+     */
+
     extern TypesetFlags const g_typesets[];  // up to 255 allowed
-    extern uint_fast32_t const g_sparse_memberships[MAX_TYPEBYTE_ELEMENT + 1];
+
+    /*
+     * NOTE: GCC (at least 13.3.0) has in the past gotten some false positives
+     * on array bounds warnings with `g_sparse_memberships`.  The code was
+     * changed in ways that worked around it, but if it happens again the
+     * trick was to export the array under another const pointer where the
+     * compiler couldn't see the array bounds:
+     *
+     *     extern uint_fast32_t const * const g_memberships_hack;
+     *
+     * AI explains why the spurious warnings are not uncommon:
+     *
+     * "False positives for -Warray-bounds remain common in high optimization
+     * levels (-O2 and -O3) because of Value Range Propagation (VRP). When the
+     * compiler unrolls a loop or inlines a function, it may create a "phantom"
+     * path where it believes an index could exceed the bounds, even if your
+     * logic prevents it. Using a pointer cast is the most common 'silent' fix
+     * for this issue."
+     */
+    extern uint_fast32_t const g_sparse_memberships[MAX_TYPEBYTE + 1];
+
+    #define Sparse_Memberships(t) \
+        g_sparse_memberships[u_cast(Byte, known(Option(Type), (t)))]
 ]--]
 
 e-types/emit [--[
@@ -348,9 +373,8 @@ e-types/emit newline
 
 for-each [ts-name types] sparse-typesets [
     e-types/emit [propercase-of ts-name --[
-        INLINE bool Any_${propercase-of Ts-Name}_Type(Option(Type) t) {
-            return did (g_sparse_memberships[cast(Byte, (t))] & TYPESET_FLAG_${TS-NAME});
-        }
+        #define Any_${propercase-of Ts-Name}_Type(t) \
+            (did (Sparse_Memberships(t) & TYPESET_FLAG_${TS-NAME}))
 
         #define Any_${propercase-of Ts-Name}(cell) \
             Any_${propercase-of Ts-Name}_Type(Type_Of(cell))
@@ -553,6 +577,10 @@ max-type: ~
 
 for-each-datatype 't [  ; now generate bytes for antiforms
     if t.antiname [
+        append memberships cscape [t
+            --[/* $<t.antiname> - $<index> */  (0)]--
+        ]
+
         append pseudotypes cscape [t
             --[ENUM_TYPE_${T.ANTINAME} = $<index>]--
         ]
@@ -581,6 +609,10 @@ for-each-datatype 't [  ; now generate bytes for antiforms
             TYPESET_FLAG_0_RANGE | FLAG_THIRD_BYTE($<index>) | FLAG_FOURTH_BYTE($<index>)
         ]--]
     ] else [
+        append memberships cscape [t
+            --[/* $<index> */  (0)]--
+        ]
+
         append pseudotypes cscape [t --[ENUM_TYPE_$<index> = $<index>]--]
 
         append typedefines cscape [t
@@ -710,7 +742,7 @@ e-typesets/emit [--[
      * to 31 of those TYPESET_FLAG_XXX flags in this model (avoids dependency
      * on 64-bit integers, which we are attempting to excise from the system).
      */
-    uint_fast32_t const g_sparse_memberships[MAX_TYPEBYTE_ELEMENT + 1] = {
+    uint_fast32_t const g_sparse_memberships[MAX_TYPEBYTE + 1] = {
         /* 0 - <ExtraHeart> */  0,
         $(Memberships),
     };
