@@ -1109,6 +1109,11 @@ Result(None) Clonify_And_Bind_Relative(
 // it is doing that it puts a cache in any unbound words of whether or not
 // that words can be found in the function's frame.
 //
+// !!! This function was once used for function bodies; now they are just
+// shallow copied.  Further questions are if they should not be copied at
+// all, or only copied if functions take GROUP! bodies vs. literal FENCE!
+// or blocks.  Code kept temporarily for possible future study.
+//
 Source* Copy_And_Bind_Relative_Deep_Managed(
     const Stable* body,
     Details* relative,

@@ -180,12 +180,7 @@ DECLARE_NATIVE(ADAPT)
 // 1. The adaptee is in the Details[0] slot, so we don't need a separate
 //    place to put it.
 //
-// 2. We copy the given block, and relativize it against the inputs.  However,
-//    for technical reasons we can't make the Level's varlist what is used
-//    as the binding of the evaluation, because we cannot uniquely take over
-//    the NextVirtual slot of something that will have that slot filled when
-//    the final step of the adaptee is run.  Therefore this relativization
-//    may not be doing anything useful beyond just making a copy...review.
+// 2. We copy the given block shallowly (should we?)
 {
     INCLUDE_PARAMS_OF_ADAPT;
 
@@ -199,10 +194,9 @@ DECLARE_NATIVE(ADAPT)
         MAX_IDX_ADAPTER
     );
 
-    Source* prelude_copy = Copy_And_Bind_Relative_Deep_Managed(  // copy [2]
-        prelude,
-        details,
-        LENS_MODE_INPUTS  // adapted code should not see adaptee locals
+    Source* prelude_copy = Copy_Array_At_Shallow(  // copy [2]
+        Cell_Array(prelude),
+        Series_Index(prelude)
     );
 
     Element* rebound = Init_Block(

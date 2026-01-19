@@ -435,10 +435,9 @@ Bounce Make_Interpreted_Action(
         details_capacity  // we fill in details[0], caller fills any extra
     );
 
-    Source* copy = Copy_And_Bind_Relative_Deep_Managed(
-        body,  // new copy has locals bound relatively to the new action
-        details,
-        LENS_MODE_ALL_UNSEALED // we created exemplar, see all!
+    Source* copy = Copy_Array_At_Shallow(
+        Cell_Array(body),
+        Series_Index(body)
     );
 
     Option(const Strand*) filename;
