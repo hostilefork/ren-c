@@ -682,7 +682,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
   do_stack_thing: {
 
-    OnStack(Element) at = Data_Stack_At(Element, stackindex);
+    OnStack(Element*) at = Data_Stack_At(Element, stackindex);
     Copy_Cell(spare_location_dual, at);  // dual protocol, leave lifted
     if (not Any_Lifted(spare_location_dual)) {
         error = Error_User("First Element in STEPS must be lifted");

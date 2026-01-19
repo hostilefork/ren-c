@@ -3070,7 +3070,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
   // quasiform, we are able to unambiguously interpret `~abc~.~def~` or
   // similar.  It may be useful, so enabling it for now.
 
-    OnStack(Element) head = Data_Stack_At(Element, stackindex_path_head);
+    OnStack(Element*) head = Data_Stack_At(Element, stackindex_path_head);
 
     quotes_before = Quotes_Of(head);
     sigil_before = Cell_Underlying_Sigil(head);

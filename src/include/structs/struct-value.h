@@ -36,9 +36,9 @@
 // to use.  Then you have to cast, e.g. VAL_DECIMAL(cast(Stable*, stackval)).
 //
 #if (! DEBUG_EXTANT_STACK_POINTERS)
-    #define OnStack(T)  T*
+    #define OnStack(T)  T
 #else
     template<typename T>
     struct OnStackPointer;
-    #define OnStack(T)  OnStackPointer<T*>
+    #define OnStack(T)  OnStackPointer<T>
 #endif

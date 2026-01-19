@@ -7,7 +7,7 @@
 //=////////////////////////////////////////////////////////////////////////=//
 //
 // Copyright 2012 REBOL Technologies
-// Copyright 2012-2018 Ren-C Open Source Contributors
+// Copyright 2012-2026 Ren-C Open Source Contributors
 // REBOL is a trademark of REBOL Technologies
 //
 // See README.md and CREDITS.md for more information
@@ -41,17 +41,16 @@
 // necessary to balance the stack in the case of calling a `panic`--because
 // it is restored to where it was by the mechanics of RECOVER_SCOPE.
 //
-// To speed pushes and pops to the stack while also making sure that each
-// push is tested to see if an expansion is needed, a trick is used.  This
-// trick is to grow the stack in blocks, and always maintain that the block
-// has an END marker at its point of capacity--and ensure that there are no
-// end markers between the TOP_INDEX and that capacity.  This way, if a push
-// runs up against an END it knows to do an expansion.
+// To making sure each push incorporates a fast check for if an expansion is
+// a trick is used.  This trick is to grow the stack in blocks, and always
+// maintain that the block has a marker Cell at its point of capacity--and
+// ensure that there are no markers between the TOP_INDEX and that capacity.
+// This way, if a push sees a marker it knows to do an expansion.
 //
 //=// NOTES ///////////////////////////////////////////////////////////////=//
 //
-// * Do not store the result of a PUSH() directly into a Stable* variable.
-//   Instead, use the OnStack(Stable) type, which makes sure that you don't try
+// * Do not store the result of a PUSH() directly into a Cell* variable.
+//   Instead, use the OnStack(Cell*) type, which makes sure that you don't try
 //   to hold a pointer into the stack across another push or an evaluation.
 //
 // * The data stack is limited in size, and this means code that uses it may
@@ -66,7 +65,7 @@
 //   memory-pooled levels and stacklessness (see %c-trampoline.c)
 //
 
-// The result of PUSH() and TOP is not Value*, but OnStack(Value).  In an
+// The result of PUSH() and TOP is not Value*, but OnStack(Value*).  In an
 // unchecked build this is just Value*, but with DEBUG_EXTANT_STACK_POINTERS
 // it becomes a checked C++ wrapper class...which keeps track of how many
 // such stack values are extant.  If the number is not zero, then you will
@@ -98,6 +97,17 @@
 //    Thus for Sink(Element*) to be willing to receive OnStackPointer(Value*)
 //    we go through void*: `x_cast(Element*, x_cast(void*, onstackpointer))`
 //
+// 2. The wrapped type T may be a wrapper, and its by-value semantics may be
+//    strange and corrupt data (see Sink(T) and Init(T)).  So we use reference
+//    semantics in things like the -> operator.  But when implicit casting,
+//    we can do that direct to the fully unwrapped type--which should not have
+//    any weird semantics (e.g. Element*, Stable*, Value*, Slot*...)
+//
+// 3. C++ doesn't allow templated conversion operators, so the best we can do
+//    is to build cast operations that do their own logic and then use casting
+//    to void as an escape hatch: `x_cast(Cell*, x_cast(void*, ...))`.  This
+//    is useful when you've figured out by other means the cast is good.
+//
 
 #if ! DEBUG_EXTANT_STACK_POINTERS
 
@@ -112,22 +122,22 @@
     #define Assert_No_DataStack_Pointers_Extant() \
         do { if (g_ds.num_refs_extant != 0) { \
             if (not g_gc.disabled or g_ds.movable_top == g_ds.movable_tail) \
-                assert(!"PUSH() while OnStack(Cell) pointers are extant"); \
+                assert(!"PUSH() while OnStack(Cell*) pointers are extant"); \
         } } while (0)
 
-    template<typename TP>
+    template<typename T>
     struct OnStackPointer {
-        using T = typename std::remove_pointer<TP>::type;
+        using W = typename needful::UnwrappedIfWrappedType<T>::type;
 
-        static_assert(std::is_base_of<Cell, T>::value,
-            "OnStack(T) must be used with a Cell-derived type");
+        static_assert(std::is_convertible<T, const Cell*>::value,
+            "OnStack(T) must be used with a Cell*-convertible type");
 
-        NEEDFUL_DECLARE_WRAPPED_FIELD (TP, p);
+        NEEDFUL_DECLARE_WRAPPED_FIELD (T, p);
 
         template <
             typename U,
             typename std::enable_if<
-                std::is_convertible<U, T*>::value
+                std::is_convertible<U, T>::value
             >::type* = nullptr
         >
         OnStackPointer (const U& u) : p (u) {
@@ -135,14 +145,38 @@
             ++g_ds.num_refs_extant;
         }
 
+        template <  // allow sibling Cell* types (e.g. Slot*) via x_cast()
+            typename U,
+            typename std::enable_if<
+                std::is_convertible<U, const Cell*>::value
+                and not std::is_convertible<U, T>::value
+                and not std::is_convertible<W, U>::value
+            >::type* = nullptr
+        >
+        explicit OnStackPointer (const U& u) : p (x_cast(W, u)) {
+            assert(p != nullptr);
+            ++g_ds.num_refs_extant;
+        }
+
         template <  // explicit casting, strictly for sinks/contravariance
             typename U,
             typename std::enable_if<
-                std::is_convertible<T*, U>::value
-                and not std::is_same<T*, U>::value
+                std::is_convertible<W, U>::value
+                and not std::is_same<W, U>::value
             >::type* = nullptr
         >
-        explicit OnStackPointer (const U& u) : p (x_cast(T*, u)) {
+        explicit OnStackPointer (const U& u) : p (x_cast(W, u)) {
+            assert(p != nullptr);
+            ++g_ds.num_refs_extant;
+        }
+
+        template <
+            typename U,
+            typename std::enable_if<
+                std::is_convertible<U, T>::value
+            >::type* = nullptr
+        >
+        OnStackPointer (const OnStackPointer<U> &stk) : p (stk.p) {
             assert(p != nullptr);
             ++g_ds.num_refs_extant;
         }
@@ -151,6 +185,7 @@
             assert(p != nullptr);
             ++g_ds.num_refs_extant;
         }
+
         ~OnStackPointer() {
             assert(p != nullptr);
             --g_ds.num_refs_extant;
@@ -161,12 +196,13 @@
             return *this;
         }
 
-        operator T* () const { return p; }
-        operator Exact(const T*) () const { return p; }
+        operator W () const { return p; }  // implict cast UNWRAPPED type! [2]
 
-        operator void* () const { return p; }  // for Sink/Init [3]
+        const T& operator->() const { return p; }  // wrapped, REFERENCE! [2]
 
-        T* operator->() const { return p; }
+        explicit operator void* () const {  // escape hatch [3]
+            return x_cast(void*, p);  // let p's conversion do the work
+        }
 
         bool operator==(const OnStackPointer &other)
             { return this->p == other.p; }
@@ -176,7 +212,7 @@
             { return this->p < other.p; }
         bool operator<=(const OnStackPointer &other)
             { return this->p <= other.p; }
-       bool operator>(const OnStackPointer &other)
+        bool operator>(const OnStackPointer &other)
             { return this->p > other.p; }
         bool operator>=(const OnStackPointer &other)
             { return this->p >= other.p; }
@@ -219,13 +255,16 @@
 // TOP is the most recently pushed item.
 //
 #define TOP_STABLE \
-    cast(OnStack(Stable), As_Stable(g_ds.movable_top))
+    cast(OnStack(Stable*), As_Stable(g_ds.movable_top))
 
 #define TOP_ELEMENT \
-    cast(OnStack(Element), As_Element(g_ds.movable_top))
+    cast(OnStack(Element*), As_Element(g_ds.movable_top))
 
 #define TOP \
-    cast(OnStack(Value), g_ds.movable_top)  // assume valid
+    cast(OnStack(Value*), g_ds.movable_top)  // assume valid
+
+#define TOP_SLOT \
+    cast(OnStack(Slot*), g_ds.movable_top)  // assume valid
 
 
 // 1. Use the fact that the data stack is always dynamic to avoid having to
@@ -260,7 +299,7 @@ INLINE Cell* Data_Stack_Cell_At(StackIndex i) {
 }
 
 #define Data_Stack_At(T,i)  /* may be erased cell */ \
-    cast(OnStack(T), u_cast(T*, Data_Stack_Cell_At(i)))  // u_cast() needed
+    cast(OnStack(T*), u_cast(T*, Data_Stack_Cell_At(i)))  // u_cast() needed
 
 #if RUNTIME_CHECKS
     #define IN_DATA_STACK_DEBUG(v) \
@@ -279,7 +318,7 @@ INLINE Cell* Data_Stack_Cell_At(StackIndex i) {
 
 // Note: g_ds.movable_top is just TOP, but accessing TOP asserts on ENDs
 //
-INLINE OnStack(Value) PUSH(void) {
+INLINE OnStack(Value*) PUSH(void) {
     Assert_No_DataStack_Pointers_Extant();
 
     ++g_ds.index;
