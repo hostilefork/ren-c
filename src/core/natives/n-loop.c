@@ -1698,29 +1698,36 @@ DECLARE_NATIVE(REMOVE_EACH)
         const Slot* slot_tail;
         Fixed(Slot*) slot = Varlist_Fixed_Slots(&slot_tail, varlist);
         for (; slot != slot_tail; ++slot) {
-            Stable* var = Stable_Slot_Hack(slot);
-            if (index == len) {
-                Init_Nulled(var);  // Y on 2nd step of remove-each [x y] "abc"
+            if (index == len) {  // Y on 2nd step of remove-each [x y] "abc"
+                Init_Nulled(SPARE);
+                require (
+                  Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
+                );
                 continue;  // the `for` loop setting variables
             }
 
-            if (Any_List(data))
+            if (Any_List(data)) {
                 Copy_Cell_May_Bind(
-                    var,
+                    SPARE,
                     Array_At(Cell_Array(data), index),
                     List_Binding(data)
                 );
+            }
             else if (Is_Blob(data)) {
                 Binary* b = cast(Binary*, flex);
-                Init_Integer(var, cast(REBI64, Binary_Head(b)[index]));
+                Init_Integer(SPARE, cast(REBI64, Binary_Head(b)[index]));
             }
             else {
                 assert(Any_String(data));
                 Init_Char_Unchecked(
-                    var,
+                    SPARE,
                     Get_Strand_Char_At(cast(Strand*, flex), index)
                 );
             }
+            require (
+              Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
+            );
+
             ++index;
         }
 
