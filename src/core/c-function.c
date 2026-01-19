@@ -821,7 +821,7 @@ void Pop_Unpopped_Return(Sink(Element) out, StackIndex base)
     assert(TOP_INDEX == base + 3);
 
     Copy_Cell(out, TOP_ELEMENT);
-    Unquotify_Parameter_Local(out);;
+    Unquotify_Parameter_Local(out);
     DROP();
 
     assert(Word_Id(TOP) == SYM_RETURN or Word_Id(TOP) == SYM_DUMMY1);

@@ -192,14 +192,7 @@ requote: reframer func [
 
 ; https://forum.rebol.info/t/for-lightweight-lambda-arrow-functions/2172
 ;
-[->]: infix lambda [
-    @(words) "Names of arguments (will not be type checked)"
-        [<end> _ word! 'word! ^word! :word! block! group!]
-    @(body) "Code to execute (will not be deep copied)"
-        [block! fence!]
-][
-    arrow any [words []] (body)
-]
+[->]: infix arrow/
 
 ; Particularly helpful for annotating when a branch result is used.
 ; https://forum.rebol.info/t/2165/

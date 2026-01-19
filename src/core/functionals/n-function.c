@@ -398,6 +398,13 @@ Bounce Make_Interpreted_Action(
 
 } process_spec_and_block_or_fence_body: { ////////////////////////////////////
 
+  // 1. It would be possible for this code to be faster for arrow functions
+  //    when you write things like (x -> [x + 1]), by allowing LAMBDA to take
+  //    WORD!s or other standalone elements, vs making `->` build a block to
+  //    act as the spec.  This isn't necessarily a terrible idea, but it
+  //    complicates the interface and is difficult to maintain.  There are
+  //    higher priority things to worry about, so punt on that for now.
+
     Element* spec = Element_ARG(SPEC);
     Element* body = Element_ARG(BODY);
     assert(Is_Block(spec));

@@ -334,7 +334,11 @@ export emit-include-params-macro: func [
                     [<cond> <opt> element?]
                 ] cond spec) [ctype: 'Element]
             ] else [
-                ctype: 'Stable
+                if find cond spec <end> [
+                    ctype: 'Value
+                ] else [
+                    ctype: 'Stable
+                ]
             ]
 
             case [

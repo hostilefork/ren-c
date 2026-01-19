@@ -155,6 +155,7 @@
 
 %functions/accessor.test.r
 %functions/adapt.test.r
+%functions/arrow.test.r
 %functions/augment.test.r
 %functions/cascade.test.r
 %functions/does.test.r
