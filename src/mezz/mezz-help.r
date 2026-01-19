@@ -130,7 +130,7 @@ help-action: proc [
     let print-args: [list :indent-words] -> [
         for-each 'key list [
             let param: select frame key
-            print [____ @(decorate param key) @(? param.spec)]
+            print [____ @(decorate param key) @(cond param.spec)]
             if param.text [
                 print [____ ____ param.text]
             ]
@@ -417,18 +417,18 @@ source: proc [
 
     let r-param: return of f
     let spec: collect [
-        keep:line (? r-param.text)
+        keep:line (cond r-param.text)
 
         if r-param and (r-param.spec) [
             keep spread compose [
-                (? r-param.spec)
+                (cond r-param.spec)
             ]
         ]
 
         for-each [key param] f [
             keep spread compose [
-                (decorate param key) (? param.spec)
-                    (? param.text)
+                (decorate param key) (cond param.spec)
+                    (cond param.text)
             ]
         ]
     ]
