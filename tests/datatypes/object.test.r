@@ -216,3 +216,26 @@
     ]
     obj/foo = obj
 )
+
+(
+    all {
+        x: 30 y: 40
+        obj: make object! [x: 10 y: 20]
+        words: words of obj  ; tip bound, words unbound
+        [x y] = words
+        10 = get words.1
+        20 = get pick words 2
+        30 = get $ words.'1
+        words: unbind words
+        40 = get $ words.2
+    }
+)
+
+; !!! VALUES-OF was always a bit questionable, but in the isotopic age at
+; least lifted values offer an answer for what to do with antiforms.  It
+; just means the values are lifted.  Review the usefulness.
+;
+(
+    obj: make object! [x: null y: 1020]
+    [~null~ '1020] = values of obj
+)

@@ -918,66 +918,28 @@ VarList* Make_Varlist_Detect_Managed(
 
 
 //
-//  Context_To_Array: C
+//  Unbound_Words_Of_Context: C
 //
-// Return a block containing words, values, or set-word: value
-// pairs for the given object. Note: words are bound to original
-// object.
+// We do not set the bindings on the words to the context, because it's more
+// flexible if the bindings are set on the containing list when doing things
+// like WORDS OF.  This makes it easier to use the words as either raw material
+// or bound words depending on your needs.
 //
-// Modes:
-//     1 for word
-//     2 for value
-//     3 for words and values
-//
-Result(Source*) Context_To_Array(const Element* context, REBINT mode)
+Source* Unbound_Words_Of_Context(const Element* context)
 {
-    assert(!(mode & 4));
-
     StackIndex base = TOP_INDEX;
 
     EVARS e;
     Init_Evars(&e, context);
 
     while (Try_Advance_Evars(&e)) {
-        if (mode & 1) {
-            assert(e.n != 0);
-            Init_Word(PUSH(), Key_Symbol(e.key));
-            if (mode & 2) {
-                trap (
-                  Setify(TOP_ELEMENT)
-                );
-            }
-            if (Is_Module(context)) {
-                Tweak_Cell_Binding(TOP_ELEMENT, e.ctx);
-            }
-            else {
-                Tweak_Cell_Binding(TOP_ELEMENT, e.ctx);
-                Tweak_Word_Index(TOP_ELEMENT, e.n);
-            }
-
-            if (mode & 2)
-                Set_Cell_Flag(TOP_ELEMENT, NEWLINE_BEFORE);
-        }
-
-        if (mode & 2) {
-            //
-            // Context might have antiforms, which cannot be put in blocks.
-            // This whole idea needs review.
-            //
-            if (Is_Antiform(Slot_Hack(e.slot)))
-                return fail (Error_Anti_Object_Block_Raw());
-
-            Copy_Cell(PUSH(), Slot_Hack(e.slot));
-        }
+        assert(e.n != 0);
+        Init_Word(PUSH(), Key_Symbol(e.key));
     }
 
     Shutdown_Evars(&e);
 
-    Source* a = Pop_Source_From_Stack(base);
-    if (mode & 2)
-        Set_Source_Flag(a, NEWLINE_AT_TAIL);
-
-    return a;
+    return Pop_Source_From_Stack(base);
 }
 
 

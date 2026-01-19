@@ -1423,22 +1423,30 @@ DECLARE_NATIVE(WORDS_OF)
 }
 
 
+// 1. Though the words in the returned block are unbound, we bind the returned
+//    block at the tip to the context.  This gives flexibility to use the
+//    words as raw material or bound, as needed.
+//
 IMPLEMENT_GENERIC(WORDS_OF, Any_Context)
 {
     INCLUDE_PARAMS_OF_WORDS_OF;
 
-    Element* context = Element_ARG(VALUE);
-    require (
-      Source* array = Context_To_Array(context, 1)
-    );
-    return Init_Block(OUT, array);
+    Element* v= Element_ARG(VALUE);
+
+    Source* words = Unbound_Words_Of_Context(v);
+
+    Element* block_out = Init_Block(OUT, words);
+    assert(Cell_Binding(block_out) == UNBOUND);  // tip bind words [1]
+    Tweak_Cell_Binding(block_out, Cell_Context(v));
+
+    return OUT;
 }
 
 
 //
 //  values-of: native:generic [
 //
-//  "Get the values of a context or map (may panic if context has antiforms)"
+//  "Get the values of a context or map (in lifted form)"
 //
 //      return: [<null> block!]
 //      value [<cond> fundamental?]
@@ -1454,15 +1462,22 @@ DECLARE_NATIVE(VALUES_OF)
 
 IMPLEMENT_GENERIC(VALUES_OF, Any_Context)
 {
-    INCLUDE_PARAMS_OF_WORDS_OF;
+    INCLUDE_PARAMS_OF_VALUES_OF;
 
-    Element* context = Element_ARG(VALUE);
-    require (
-      Source* array = Context_To_Array(context, 1)
-    );
+    Element* v = Element_ARG(VALUE);
+
+    EVARS e;
+    Init_Evars(&e, v);
+
+    while (Try_Advance_Evars(&e))
+        Copy_Lifted_Cell(PUSH(), Slot_Hack(e.slot));
+
+    Shutdown_Evars(&e);
+
+    Source* array = Pop_Source_From_Stack(STACK_BASE);
+
     return Init_Block(OUT, array);
 }
-
 
 
 //
@@ -1904,11 +1919,9 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Frame)
         Append_Codepoint(mo->strand, ' ');
     }
 
-    require (
-      Array* parameters = Context_To_Array(v, 1)
-    );
-    Mold_Array_At(mo, parameters, 0, "[]");
-    Free_Unmanaged_Flex(parameters);
+    Source* words = Unbound_Words_Of_Context(v);
+    Mold_Array_At(mo, words, 0, "[]");
+    Free_Unmanaged_Flex(words);
 
     // !!! Previously, ACTION! would mold the body out.  This created a large
     // amount of output, and also many function variations do not have
