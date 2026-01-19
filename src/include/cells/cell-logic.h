@@ -115,7 +115,7 @@ INLINE Stable* Init_Logic_Untracked(Init(Stable) out, bool logic) {
 
 #define Init_Nulled(out) /* name helps avoid confusion [B] */ \
     TRACK(Init_Word_Untracked( \
-        (out), \
+        Possibly_Antiform(out), \
         FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | (not CELL_FLAG_LOGIC_IS_OKAY),  \
         CANON(NULL)))
 
@@ -128,7 +128,7 @@ INLINE Stable* Init_Logic_Untracked(Init(Stable) out, bool logic) {
 
 #define Init_Okay(out) \
     TRACK(Init_Word_Untracked( \
-        (out), \
+        Possibly_Antiform(out), \
         FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) \
             | CELL_FLAG_LOGIC_IS_OKAY,  \
         CANON(OKAY)))
