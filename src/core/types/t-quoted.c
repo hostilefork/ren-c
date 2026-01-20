@@ -406,13 +406,12 @@ DECLARE_NATIVE(UNANTI)
 //
 //      return: [
 //          splice! "note that splices carry no bindings"
-//          <void> <null> "void/none and null pass through"
+//          <null>
 //      ]
-//      ^value [
+//      value [
+//          <cond>
 //          any-list? "plain lists become splices"
-//          none? "empty splices pass through as empty splice"  ; [1]
-//          quasiform! "automatic DEGRADE quasiform lists to splice"  ; [2]
-//          <void> <null> "void/none and null pass through"
+//          <opt> "void gives empty splice"
 //      ]
 //  ]
 //
@@ -420,34 +419,16 @@ DECLARE_NATIVE(SPREAD)
 //
 // SPREAD is chosen as the verb instead of SPLICE, because SPLICE! is the
 // "noun" for a group antiform representing a splice.
-//
-// 1. BLANK? is considered EMPTY? and hence legal to use with spread, though
-//    it is already a splice.  This may suggest in general that spreading a
-//    splice should be a no-op, but more investigation is needed.
-//
-// 2. Generally speaking, functions are not supposed to conflate quasiforms
-//    with their antiforms.  But it seems like being willing to DEGRADE a
-//    ~()~ or a ~null~ here instead of erroring helps more than it hurts.
-//    Should it turn out to be bad for some reason, this might be dropped.
 {
     INCLUDE_PARAMS_OF_SPREAD;
 
-    if (Any_Void(ARG(VALUE)))
-        return GHOST_OUT;  // void is a no-op, so just pass it through
+    if (not ARG(VALUE))
+        return Init_None(OUT);
 
-    Stable* v = As_Stable(ARG(VALUE));
-
-    if (Is_Nulled(v))
-        return Init_Nulled(OUT);
+    Stable* v = unwrap ARG(VALUE);
 
     if (Any_List(v))  // most common case
         return COPY_TO_OUT(Splicify(v));
-
-    if (Is_None(v))
-        return GHOST_OUT;  // immutable empty array makes problems for GLOM [3]
-
-    if (Is_Nulled(v) or Is_Quasi_Null(v))  // quasi ok [2]
-        return Init_Nulled(OUT);  // pass through [1]
 
     panic (PARAM(VALUE));
 }

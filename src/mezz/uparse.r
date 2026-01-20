@@ -339,9 +339,9 @@ default-combinators: make map! [
         return [{^} input]: trap parser:negated input
     ]
 
-    === WHEN COMBINATOR ===
+    === CONDITIONAL (COND) COMBINATOR ===
 
-    'when combinator [
+    'conditional combinator [
         "If parser's synthesized result is null, skip to next alternate"
         return: [any-stable?]
         input [any-series?]
@@ -356,7 +356,7 @@ default-combinators: make map! [
         if null? ^result [
             return fail "WHEN combinator received NULL antiform result"
         ]
-        return ^result  ; can say e.g. [x: when (next var)] if you like
+        return ^result  ; can say e.g. [x: cond (next var)] if you like
     ]
 
     === VETO COMBINATOR ===
@@ -386,7 +386,7 @@ default-combinators: make map! [
         return ^result  ; return successful parser result
     ]
 
-    'conditional combinator [
+    'optional combinator [
         "If parser fails, succeed and return GHOST; don't advance input"
         return: [any-value?]
         input [any-series?]
@@ -395,20 +395,6 @@ default-combinators: make map! [
     ][
         [^result remainder]: parser input except (e -> [
             return ()  ; succeed w/void on parse fail, don't advance input
-        ])
-        input: remainder  ; advance input
-        return ^result  ; return successful parser result
-    ]
-
-    'optional combinator [
-        "If parser fails, succeed and return NONE; don't advance input"
-        return: [any-value?]
-        input [any-series?]
-        ^parser [action!]
-        {^result remainder}
-    ][
-        [^result remainder]: parser input except (e -> [
-            return none  ; succeed w/none on parse fail, don't advance input
         ])
         input: remainder  ; advance input
         return ^result  ; return successful parser result

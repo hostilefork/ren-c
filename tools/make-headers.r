@@ -197,7 +197,7 @@ handle-item: proc [
     ]
 
     proto-parser.emit-proto: emit-proto/
-    proto-parser.file: to file! unspaced [cond dir, file]
+    proto-parser.file: to file! unspaced [opt dir, file]
     proto-parser.emit-directive: emit-directive/
     proto-parser/process (as text! read proto-parser.file)
 ]
@@ -215,7 +215,7 @@ parse3 file-base.core [some [
     ]
     |
     name: [tuple! | path! | file!] options: try block! (
-        handle-item name none opt options
+        handle-item name () opt options
     )
 ]]
 

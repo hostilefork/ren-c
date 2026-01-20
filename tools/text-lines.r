@@ -164,7 +164,7 @@ text-line-of: func [
         opt some [
             to newline cursor: <here>
 
-            when (lesser? index of cursor idx)
+            cond (lesser? index of cursor idx)
 
             advance-rule
         ]
@@ -200,7 +200,7 @@ text-location-of: func [
         opt some [
             to newline cursor: <here>
 
-            when (lesser? index of cursor idx)
+            cond (lesser? index of cursor idx)
 
             advance-rule
         ]

@@ -246,11 +246,17 @@ Bounce Stepper_Executor(Level* L)
         Details* details = Ensure_Frame_Details(CURRENT);
 
         Param* param = Phase_Params_Head(details);
-        if (Get_Parameter_Flag(param, CONDITIONAL) and Any_Void(SPARE)) {
+        if (
+            Get_Parameter_Flag(param, CONDITIONAL)
+            and Is_Cell_A_Veto_Hot_Potato(SPARE)
+        ){
             Init_Nulled(OUT);
             goto lookahead;
         }
-        if (Parameter_Class(param) != PARAMCLASS_META) {
+        if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(SPARE)) {
+            Init_Nulled(SPARE);
+        }
+        else if (Parameter_Class(param) != PARAMCLASS_META) {
           require (
             Decay_If_Unstable(SPARE)  // decay may eval, do before intrinsic
           );

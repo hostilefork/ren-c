@@ -58,21 +58,21 @@
 #include "sys-core.h"
 
 
-// Shared helper for CONDITIONAL, OPTIONAL, and WHEN.
+// Shared helper for CONDITIONAL or OPTIONAL.
 //
-// !!! Because this decays it means COND, OPT, and WHEN can't be intrinsics.
-// It's probably worth it to figure out how to make them intrinsics by adding
+// !!! Because this decays it means COND and OPT can't be intrinsics.  It's
+// probably worth it to figure out how to make them intrinsics by adding
 // special support for their needs.
 //
-// 1. We want things like (opt if ...) or (opt switch ...) to work, with the
+// 1. We want things like (cond if ...) or (cond switch ...) to work, with the
 //    idea that you effectively adapt the GHOST!-returning control structure
-//    to be a NONE-returning control structure (without needing to come up
+//    to be a VETO-returning control structure (without needing to come up
 //    with a different name).  It's worth the slight impurity of "reacting
-//    to GHOST! conditionally".  If OPT does it, they all might as well.
+//    to GHOST! conditionally".
 //
-// 2. false makes GHOST! if COND, NONE if OPT, VETO if WHEN
+// 2. false makes GHOST! if OPT, VETO if COND
 //
-static Result(bool) Return_Out_For_Conditional_Optional_Or_When(Level* level_)
+static Result(bool) Return_Out_For_Conditional_Or_Optional(Level* level_)
 {
     INCLUDE_PARAMS_OF_CONDITIONAL;  // WHEN and OPTIONAL must be compatible
 
@@ -95,11 +95,11 @@ static Result(bool) Return_Out_For_Conditional_Optional_Or_When(Level* level_)
 
 
 //
-//  conditional: native [  ; cant be intrinsic (we need to decay
+//  conditional: native [  ; cant be intrinsic (we need to decay)
 //
-//  "If argument is NULL, make it GHOST!, else passthru"
+//  "If VALUE is NULL or VOID, make it VETO, else passthru"
 //
-//      return: [any-value? ghost!]
+//      return: [any-value? veto?]
 //      ^value '[any-value?]
 //  ]
 //
@@ -108,21 +108,21 @@ DECLARE_NATIVE(CONDITIONAL)  // usually used via its alias of COND
     INCLUDE_PARAMS_OF_CONDITIONAL;
 
     trap (
-      bool return_out = Return_Out_For_Conditional_Optional_Or_When(LEVEL)
+      bool return_out = Return_Out_For_Conditional_Or_Optional(LEVEL)
     );
     if (return_out)
         return OUT_BRANCHED;
 
-    return GHOST_OUT_UNBRANCHED;
+    return Copy_Cell(OUT, Lib_Value(SYM_VETO));
 }
 
 
 //
-//  optional: native [  ; can't be intrinsic, needs to decay :-( [1]
+//  optional: native [  ; cant be intrinsic (we need to decay)
 //
-//  "If VALUE is NULL (or GHOST!), make it an empty SPLICE! antiform (NONE)"
+//  "If VALUE is NULL or VOID, make it GHOST! else passthru"
 //
-//      return: [any-value? none?]
+//      return: [any-value? ghost!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -131,35 +131,12 @@ DECLARE_NATIVE(OPTIONAL)
     INCLUDE_PARAMS_OF_OPTIONAL;
 
     trap (
-      bool return_out = Return_Out_For_Conditional_Optional_Or_When(LEVEL)
+      bool return_out = Return_Out_For_Conditional_Or_Optional(LEVEL)
     );
     if (return_out)
         return OUT;
 
-    return Init_None(OUT);
-}
-
-
-//
-//  when: native [  ; decays, can't be intrinsic!
-//
-//  "If argument is null make it VETO, else passthru"
-//
-//      return: [any-value? veto?]
-//      ^value '[any-value?]
-//  ]
-//
-DECLARE_NATIVE(WHEN)
-{
-    INCLUDE_PARAMS_OF_WHEN;
-
-    trap (
-      bool return_out = Return_Out_For_Conditional_Optional_Or_When(LEVEL)
-    );
-    if (return_out)
-        return OUT;
-
-    return Copy_Cell(OUT, Lib_Value(SYM_VETO));
+    return GHOST_OUT_UNBRANCHED;
 }
 
 

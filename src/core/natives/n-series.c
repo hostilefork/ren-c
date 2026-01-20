@@ -165,7 +165,7 @@ static REBLEN Guess_Part_Len_For_Change_May_Coerce(
 //      series "At position (modified)"
 //          [<cond> any-series? port! map! object! bitset! port!]
 //      value "What to insert (antiform groups will splice, e.g. SPREAD)"
-//          [<cond> element? splice!]
+//          [<cond> <opt> element? splice!]
 //      :part "Limits to a given length or position"
 //          [any-number? any-series? pair!]
 //      :dup "Duplicates the insert a specified number of times"
@@ -187,7 +187,7 @@ DECLARE_NATIVE(INSERT)  // Must be frame-compatible with CHANGE [A]
     bool limit_zero = Part_Limit_Append_Insert(ARG(PART));
     Count dups = not ARG(DUP) ? 1 : VAL_UINT32(unwrap ARG(DUP));
 
-    if (limit_zero or dups == 0 or Is_None(ARG(VALUE)))
+    if (limit_zero or dups == 0 or not ARG(VALUE))
         return COPY_TO_OUT(series);  // don't panic on read only for noops
 
     Copy_Cell(LOCAL(LIMIT), LOCAL(PART));  // :PART acts as CHANGE's LIMIT
@@ -212,7 +212,7 @@ DECLARE_NATIVE(INSERT)  // Must be frame-compatible with CHANGE [A]
 //      series "Any position (modified)"
 //          [<cond> any-series? port! map! object! module! bitset!]
 //      value "What to append (antiform groups will splice, e.g. SPREAD)"
-//          [<cond> element? splice!]
+//          [<cond> <opt> element? splice!]
 //      :part "Limits to a given length or position"
 //          [any-number? any-series? pair!]
 //      :dup "Duplicates the insert a specified number of times"
@@ -235,7 +235,7 @@ DECLARE_NATIVE(APPEND)
     Count dups = not ARG(DUP) ? 1 : VAL_UINT32(unwrap ARG(DUP));
     Index index = SERIES_INDEX_UNBOUNDED(series);
 
-    if (limit_zero or dups == 0 or Is_None(ARG(VALUE))) {
+    if (limit_zero or dups == 0 or not ARG(VALUE)) {
         Copy_Cell(OUT, series);
         goto return_original_position;
     }
@@ -285,7 +285,7 @@ DECLARE_NATIVE(APPEND)
 //      series "At position (modified)"
 //          [<cond> any-series? port!]
 //      value "The new value (antiform groups will splice, e.g. SPREAD)"
-//          [<cond> element? splice!]
+//          [<cond> <opt> element? splice!]
 //      :part "Limits the amount to change to a given length or position"
 //          [any-number? any-series? pair!]
 //      :dup "Duplicates the change a specified number of times"
@@ -312,7 +312,9 @@ DECLARE_NATIVE(CHANGE)  // Must be frame-compatible with APPEND, INSERT [A]
     if (dups == 0)
         return COPY_TO_OUT(series);  // Treat CHANGE as no-op if zero dups [1]
 
-    Stable* v = ARG(VALUE);  // CHANGE to NONE isn't a no-op (erases data)
+    Stable* v = Stable_LOCAL(VALUE);  // CHANGE to void is not no-op (erases)
+    if (Is_Nulled(v))
+        Init_None(v);  // CHANGE with no value synonym for NONE
 
     Length len;
     if (ARG(PART))

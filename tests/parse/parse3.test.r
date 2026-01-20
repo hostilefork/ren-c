@@ -488,14 +488,14 @@
     parse3 "ab" ["a" null "b"]
 )
 (
-    parse3 "ab" ["a" when (1 = 1) "b"]
+    parse3 "ab" ["a" cond (1 = 1) "b"]
     ok
 )
 (
-    not try parse3 "ab" ["a" when (1 = 2) "b"]
+    not try parse3 "ab" ["a" cond (1 = 2) "b"]
 )
 ~???~ !! (
-    parse3 "ab" ["a" when (opt 1 = 2) "b"]
+    parse3 "ab" ["a" cond (opt 1 = 2) "b"]
     ok
 )
 

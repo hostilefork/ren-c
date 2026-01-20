@@ -233,11 +233,12 @@ empty?: lambda [
     "OKAY if none or void, if empty, or if index is at or beyond its tail"
     []: [logic!]
     container [
-        <cond> <opt> any-series? any-sequence? object! port! bitset! map!
+        <cond> <opt> none? any-series? any-sequence? object! port! bitset! map!
     ]
 ][
     any [
-        not container  ; e.g. input was none (empty splice)
+        not container  ; e.g. input was void
+        none? container  ; empty splice (should all splices be testable?)
         0 = length of container  ; sequences always have > 0 length, not empty
     ]
 ]

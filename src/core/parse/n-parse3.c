@@ -179,10 +179,9 @@ enum parse_flags {
     PF_LOOPING = 1 << 12,
     PF_FURTHER = 1 << 13,  // must advance parse input to count as a match
     PF_OPTIONAL = 1 << 14,  // want NONE (not no-op) if no matches
-    PF_CONDITIONAL = 1 << 15,  // want GHOST! (not no-op) if no matches
-    PF_TRY = 1 << 16,  // want NULL (not no-op) if no matches
+    PF_TRY = 1 << 15,  // want NULL (not no-op) if no matches
 
-    PF_ONE_RULE = 1 << 17,  // signal to only run one step of the parse
+    PF_ONE_RULE = 1 << 16,  // signal to only run one step of the parse
 
     PF_MAX = PF_ONE_RULE
 };
@@ -1488,13 +1487,6 @@ DECLARE_NATIVE(SUBPARSE)
                 FETCH_NEXT_RULE(L);
                 goto pre_rule;
 
-              case SYM_COND:
-              case SYM_CONDITIONAL:
-                P_FLAGS |= PF_CONDITIONAL;
-                mincount = 0;
-                FETCH_NEXT_RULE(L);
-                goto pre_rule;
-
               case SYM_TRY:
                 P_FLAGS |= PF_TRY;
                 mincount = 0;
@@ -1673,7 +1665,8 @@ DECLARE_NATIVE(SUBPARSE)
 
                 goto reparse_rule; }
 
-              case SYM_WHEN: {
+              case SYM_COND:  // e.g. [cond (1 = 2)] skips to next alternate
+              case SYM_CONDITIONAL: {
                 FETCH_NEXT_RULE(L);
                 if (P_AT_END)
                     panic (Error_Parse3_End());
@@ -2332,8 +2325,6 @@ DECLARE_NATIVE(SUBPARSE)
                     if (P_FLAGS & PF_TRY)  // don't just leave alone
                         Init_Nulled(OUT);
                     else if (P_FLAGS & PF_OPTIONAL)
-                        Init_None(OUT);
-                    else if (P_FLAGS & PF_CONDITIONAL)
                         Init_Ghost_For_Unset(OUT);
                 }
                 else if (Stub_Holds_Cells(P_INPUT)) {

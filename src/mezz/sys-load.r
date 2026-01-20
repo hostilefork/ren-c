@@ -531,7 +531,7 @@ bind construct [
     ]
 
     let name: select cond hdr 'name
-    (select system.modules opt name) then (cached -> [
+    (select system.modules cond name) then (cached -> [
         return pack [cached 'cached]
     ])
 

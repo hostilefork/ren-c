@@ -48,7 +48,6 @@ Rebol [
     optional
     cond
     conditional
-    when
     try
     repeat
     further  ; https://forum.rebol.info/t/1593

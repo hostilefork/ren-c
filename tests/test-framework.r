@@ -128,7 +128,7 @@ run-test-cluster: proc [
     ; could put service functions that tests could use there, e.g. such as
     ; specialized versions of assert.
     ;
-    let isolate: module none inside lib '[
+    let isolate: module () inside lib '[
         print: lambda [x] [
             panic:blame "Don't use PRINT in tests" $x
         ]

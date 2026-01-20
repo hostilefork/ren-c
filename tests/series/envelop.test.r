@@ -14,7 +14,7 @@
         a: 1020
         [(a)] = block: envelop '[()] 'a  ; no binding passed in, so unbound
         e: sys.util/recover [eval block]
-        e.id = 'not-bound
+        e.id = 'no-binding
     }
 )
 

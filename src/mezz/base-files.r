@@ -189,8 +189,8 @@ file-type?: lambda [
     file [file! url!]
 ][
     all [
-        let pos: find system.options.file-types opt suffix-of file
-        first opt find pos word?/
+        let pos: find system.options.file-types cond suffix-of file
+        first cond find pos word?/
     ]
 ]
 

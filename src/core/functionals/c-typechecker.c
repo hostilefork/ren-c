@@ -43,7 +43,7 @@
 //
 //      return: '[logic!]
 //      value "Value to test"
-//          '[<cond> any-stable?]
+//          '[<opt> any-stable?]
 //      :type "Test a concrete type, (integer?:type integer!) passes"
 //      :quoted
 //      :quasiform
@@ -337,9 +337,17 @@ bool Predicate_Check_Spare_Uses_Scratch(
         and not SPORADICALLY(100)
     ){
         Param* param = Phase_Params_Head(details);
-        if (Get_Parameter_Flag(param, CONDITIONAL) and Any_Void(SPARE))
+        if (
+            Get_Parameter_Flag(param, CONDITIONAL)
+            and Is_Cell_A_Veto_Hot_Potato(SPARE)
+        ){
             goto test_failed;
-        if (Parameter_Class(param) != PARAMCLASS_META) {
+        }
+
+        if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(SPARE)) {
+            Init_Nulled(SPARE);
+        }
+        else if (Parameter_Class(param) != PARAMCLASS_META) {
           require (
             Decay_If_Unstable(SPARE)  // decay may eval, do before intrinsic
           );
@@ -972,11 +980,11 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     if (Get_Parameter_Flag(param, CONST))
         Set_Cell_Flag(v, CONST);  // mutability override? [1]
 
-    if (Get_Parameter_Flag(param, CONDITIONAL)) {
-        assert(not Any_Void(v));  // should have bypassed this check
-        if (Is_Light_Null(v))
-            return false;  // can never run an opt-out with nulled arg
-    }
+    if (Get_Parameter_Flag(param, CONDITIONAL))  // veto handled before here
+        assert(not Is_Cell_A_Veto_Hot_Potato(v));
+
+    if (Get_Parameter_Flag(param, UNDO_OPT))
+        assert(not Any_Void(v));  // shouldn't get here
 
     if (Not_Cell_Stable(v) and Parameter_Class(param) != PARAMCLASS_META) {
         if (Is_Endlike_Ghost(v)) {  // non-^META endable parameters can be void

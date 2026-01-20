@@ -721,7 +721,7 @@ main-startup: func [
     ;
     ;     r3 --do "eval %script1.r" --do "eval %script2.r"
     ;
-    if match [file! url!] opt o.script [
+    if match [file! url!] cond o.script [
         emit [
             (do:args (<*> o.script) (<*> script-args)) except (e -> [
                 quit e.exit-code

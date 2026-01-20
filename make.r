@@ -765,7 +765,7 @@ gen-obj: func [
     ; to build the requested object file.
     ;
     return make rebmake.object-file-class compose [
-        source: to file! unspaced [cond dir, file]
+        source: to file! unspaced [opt dir, file]
         output: to-obj-path file
         cflags: either empty? flags [_] [flags]
         definitions: D
@@ -1700,7 +1700,7 @@ for-each 'ext extensions [
         ]
 
         includes: collect [
-            for-each 'inc cond ext.includes [
+            for-each 'inc opt ext.includes [
                 ensure file! inc
                 if inc.1 = #"/" [  ; absolute path
                     keep inc

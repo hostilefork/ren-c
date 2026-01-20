@@ -63,7 +63,7 @@
 [
     (returnproxy: lambda [frame [frame!]] [
         enclose (augment frame [:return [word!]]) f -> [
-            (cond f.return): eval-free f
+            (opt f.return): eval-free f
         ]
     ], ok)
 

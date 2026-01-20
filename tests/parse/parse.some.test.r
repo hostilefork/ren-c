@@ -198,14 +198,14 @@
         ok
     )
     (#{06} = parse #{020406} [
-        opt some [x: across one elide when (even? first x)]
+        opt some [x: across one elide cond (even? first x)]
     ])
 
     ~parse-mismatch~ !! (
-        parse #{01} [x: across one elide when (even? first x)]
+        parse #{01} [x: across one elide cond (even? first x)]
     )
     ~parse-mismatch~ !! (
-        parse #{0105} [some [x: across one elide when (even? first x)]]
+        parse #{0105} [some [x: across one elide cond (even? first x)]]
     )
 
     (^ghost = parse #{} [opt some #{0A}])

@@ -905,7 +905,7 @@ Bounce Action_Executor(Level* L)
         Value* arg = As_Value(ARG);
 
         if (Get_Parameter_Flag(param, CONDITIONAL)) {  // <cond> param
-            if (Any_Void(arg)) {
+            if (Is_Cell_A_Veto_Hot_Potato(arg)) {
                 Set_Action_Executor_Flag(L, TYPECHECK_ONLY);
                 Mark_Typechecked(ARG);
                 Init_Nulled(OUT);
@@ -914,10 +914,7 @@ Bounce Action_Executor(Level* L)
         }
 
         if (Get_Parameter_Flag(param, UNDO_OPT)) {
-            require (
-                Stable* stable = Decay_If_Unstable(arg)
-            );
-            if (Is_None(stable)) {
+            if (Any_Void(arg)) {  // accepts empty pack -or- ghost
                 Init_Nulled(ARG);
                 Mark_Typechecked(ARG);  // null rejected
                 continue;

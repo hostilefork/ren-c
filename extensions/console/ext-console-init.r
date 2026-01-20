@@ -430,8 +430,8 @@ bind construct [
     ; %console-skin.r if in system.options.resources
 
     let skin-file: case [
-        file? cond skin [skin]
-        object? cond skin [null]
+        file? opt skin [skin]
+        object? opt skin [null]
     ] else [%console-skin.r]
 
     loud-print "Starting console..."

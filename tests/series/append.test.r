@@ -130,7 +130,7 @@
 
     ([a b c '[3 d e]] = append [a b c] lift compose [(1 + 2) d e])
 
-    ([a b c ~()~] = append [a b c] lift ^ghost)
+    ([a b c ~,~] = append [a b c] lift ^ghost)
 
     (
         [a b c ~null~] = append [a b c] lift null
@@ -174,28 +174,26 @@
 ;
 ("abcdef" = append:part "abc" #defghi 3)
 
-; Appending to a void returns null
+; Appending to a VETO returns null
 [
-    (null = append ^ghost "abc")
-    (null = append heavy () "abc")
+    (null = append veto "abc")
+    (null = append cond null "abc")
 
-    (null = append "abc" ())
-    (null = append "abc" pack [])
+    (null = append "abc" veto)
+    (null = append "abc" cond null)
 ]
 
 [
     ('~()~ = lift if ok [])
     (ghost? if null [<a>])
-    (null = append [a b c] if null [])
-    ([a b c] = append [a b c] opt if null [<a>])
+    ([a b c] = append [a b c] if null [<a>])
+    (null = append [a b c] cond if null [<a>])
 ]
 
-; BLANK acts like an empty block when passed to SPREAD
 [
     ([a b] = append [a b] spread second [c []])
-    ([a b] = append [a b] spread degrade second [c ~[]~])
 
-    ~bad-value~ !! (
+    ~expect-arg~ !! (
         [a b] = append [a b] spread second [c ~]
     )
 ]

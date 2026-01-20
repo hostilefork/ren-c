@@ -1533,7 +1533,7 @@ DECLARE_NATIVE(GROUPIFY)
 //      return: [<null> any-list?]
 //      example "Example's binding (or lack of) will be used"
 //          [datatype! any-list?]
-//      content [<cond> element? splice!]
+//      content [<cond> <opt> element? splice!]
 //  ]
 //
 DECLARE_NATIVE(ENVELOP)
@@ -1543,7 +1543,7 @@ DECLARE_NATIVE(ENVELOP)
     INCLUDE_PARAMS_OF_ENVELOP;
 
     Stable* example = ARG(EXAMPLE);
-    const Stable* content = ARG(CONTENT);
+    Option(Stable*) content = ARG(CONTENT);
 
     Element* copy;
 
@@ -1559,8 +1559,8 @@ DECLARE_NATIVE(ENVELOP)
     Length len;
     if (
         not content or (
-            Is_Splice(content)
-            and (List_Len_At(&len, content), len == 0)
+            Is_Splice(unwrap content)
+            and (List_Len_At(&len, unwrap content), len == 0)
         )
     ){
         return copy;
@@ -1571,7 +1571,7 @@ DECLARE_NATIVE(ENVELOP)
         const Element* tail;
         Element* at = List_At_Known_Mutable(&tail, temp);
         if (at == tail) {  // empty list, just append
-            rebElide(CANON(APPEND), rebQ(temp), rebQ(content));
+            rebElide(CANON(APPEND), rebQ(temp), rebQ(unwrap content));
             return copy;
         }
         if (Any_List(at)) {  // content should be inserted deeper
@@ -1579,7 +1579,7 @@ DECLARE_NATIVE(ENVELOP)
             continue;
         }
         SERIES_INDEX_UNBOUNDED(temp) += 1;  // just skip first item
-        rebElide(CANON(INSERT), rebQ(temp), rebQ(content));
+        rebElide(CANON(INSERT), rebQ(temp), rebQ(unwrap content));
         SERIES_INDEX_UNBOUNDED(temp) -= 1;  // put back if copy = temp for head
         return copy;
     }
