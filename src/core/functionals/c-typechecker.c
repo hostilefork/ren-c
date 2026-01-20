@@ -795,9 +795,11 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
 bool Typecheck_Uses_Spare_And_Scratch(
     Level* const L,
     const Value* v,
-    const Stable* tests,
+    const Cell* tests,
     Context* tests_binding
 ){
+    possibly(LIFT_BYTE(tests) == BEDROCK_0);  // ParamList slot, unspecialized
+
     USE_LEVEL_SHORTHANDS (L);
 
     Corrupt_Cell_If_Needful(SCRATCH);  // SCRATCH/SPARE used as workspaces [1]
@@ -813,7 +815,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
 
   handle_parameter: {
 
-    const Stable* param = tests;
+    const Cell* param = tests;
 
     const Array* array = opt Parameter_Spec(tests);
     if (array == nullptr) {
@@ -881,9 +883,9 @@ bool Typecheck_Uses_Spare_And_Scratch(
 
 }} handle_non_parameter: {
 
-    switch (opt Type_Of(tests)) {
+    switch (opt Type_Of(As_Stable(tests))) {
       case TYPE_DATATYPE:
-        return Type_Of_Maybe_Unstable(v) == Datatype_Type(tests);
+        return Type_Of_Maybe_Unstable(v) == Datatype_Type(As_Stable(tests));
 
       case TYPE_BLOCK:
         at = List_At(&tail, tests);
@@ -911,7 +913,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
         Copy_Cell(SPARE, v);
         return Predicate_Check_Spare_Uses_Scratch(
             L,
-            tests,
+            As_Value(tests),
             Frame_Label(tests)
         );
 
@@ -939,9 +941,11 @@ bool Typecheck_Uses_Spare_And_Scratch(
 //
 Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     Level* const L,
-    const Element* param,
+    const Cell* param,
     Value* v  // not `const Value*` -- coercion needs mutability
 ){
+    possibly(LIFT_BYTE(param) == BEDROCK_0);  // ParamList slot, unspecialized
+
     USE_LEVEL_SHORTHANDS (L);
 
     Corrupt_Cell_If_Needful(SCRATCH);  // always corrupt...

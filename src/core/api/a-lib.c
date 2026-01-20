@@ -2729,7 +2729,7 @@ const RebolBaseInternal* API_rebQUOTING(const void* p)
     ENTER_API;
 
     if (p == nullptr)
-        return cast(RebolBaseInternal*, g_quasi_null);
+        return cast(RebolBaseInternal*, LIB(QUASI_NULL));
 
     Stub* stub;
 
@@ -2744,7 +2744,7 @@ const RebolBaseInternal* API_rebQUOTING(const void* p)
         const Value* at = cast(const Value*, p);
         if (Is_Light_Null(at)) {
             assert(not Is_Api_Value(at));  // only internals use nulled cells
-            return cast(RebolBaseInternal*, g_quasi_null);
+            return cast(RebolBaseInternal*, LIB(QUASI_NULL));
         }
 
         Value* v = Alloc_Value();
@@ -3371,7 +3371,7 @@ Bounce Api_Function_Dispatcher(Level* const L)
 
 } typecheck_out: { ///////////////////////////////////////////////////////////
 
-    const Element* param = Quoted_Returner_Of_Paramlist(
+    const Element* param = Returnlike_Parameter_In_Paramlist(
         Phase_Paramlist(details), SYM_RETURN
     );
 
@@ -3401,7 +3401,7 @@ bool Api_Function_Details_Querier(
     switch (property) {
       case SYM_RETURN_OF: {
         ParamList* paramlist = Phase_Paramlist(details);
-        Extract_Paramlist_Returner(out, paramlist, SYM_RETURN);
+        Extract_Returnlike_Parameter(out, paramlist, SYM_RETURN);
         return true; }
 
       default:

@@ -267,8 +267,7 @@ void Push_Parser_Sublevel(
     ParamList* ctx = Make_Varlist_For_Action(
         parser,
         TOP_INDEX,
-        nullptr,
-        nullptr  // leave unspecialized slots with parameter! antiforms
+        nullptr
     );
 
     const Key* remainder_key = Varlist_Key(ctx, IDX_COMBINATOR_PARAM_REMAINDER);
@@ -760,8 +759,7 @@ DECLARE_NATIVE(COMBINATORIZE)
     ParamList* paramlist = Make_Varlist_For_Action(
         combinator,
         TOP_INDEX,
-        nullptr,
-        nullptr  // leave unspecialized slots with parameter! antiforms
+        nullptr
     );
     CombinatorParamState s;
     s.ctx = paramlist;

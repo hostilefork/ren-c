@@ -471,8 +471,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Frame)
     ParamList* exemplar = Make_Varlist_For_Action(
         arg,  // being used here as input (e.g. the ACTION!)
         lowest_stackindex,  // will weave in any refinements pushed
-        nullptr,  // no binder needed, not running any code
-        g_tripwire  // use COPY UNRUN FRAME! for parameters vs. nothing
+        nullptr  // no binder needed, not running any code
     );
 
     ParamList* lens = Phase_Paramlist(Frame_Phase(arg));
@@ -1354,7 +1353,10 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
         return NULL_OUT_NO_WRITEBACK;  // VarList* in cell not changed
     }
 
-    if (Is_Bedrock(slot)) {  // CASE 2: Writing non-bedrock into bedrock slot
+    if (
+        Is_Bedrock(slot)
+        and not Is_Cell_A_Bedrock_Hole(slot)
+    ){  // CASE 2: Writing non-bedrock into bedrock slot
         Copy_Cell_Core(OUT, slot, CELL_MASK_COPY);  // fetch for return
         LIFT_BYTE(OUT) = NOQUOTE_3;
         return OUT_UNLIFTED_DUAL_INDIRECT_POKE;  // alias, setter, drain...
@@ -1528,8 +1530,7 @@ IMPLEMENT_GENERIC(COPY, Is_Frame)
     ParamList* copy = Make_Varlist_For_Action(
         frame,
         TOP_INDEX,
-        nullptr,  // no binder
-        nullptr  // no placeholder, use parameters
+        nullptr  // no binder
     );
 
     return Init_Lensed_Frame(

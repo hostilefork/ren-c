@@ -158,7 +158,7 @@ namespace needful {
     template<typename T> struct NeedWrapper;
     template<typename T> struct OptionWrapper;
 
-    template<typename U, typename T>
+    template<typename U, typename T, typename = void>
     struct AllowSinkConversion : std::false_type {};
 
     template<typename T> struct SinkWrapper;

@@ -424,8 +424,8 @@ typedef struct {
 typedef struct {
     Array* array;
     StackIndex index;
-    Value* movable_top;
-    const Value* movable_tail;
+    Slot* movable_top;
+    const Slot* movable_tail;
 
   #if DEBUG_EXTANT_STACK_POINTERS
     Count num_refs_extant;  // # of Data_Stack_At()/TOP refs extant
@@ -669,6 +669,8 @@ INLINE Error* Cell_Error(const Cell* c);
 
 #include "cells/cell-map.h"
 
+#include "cells/cell-dual.h"
+
 #include "cells/cell-parameter.h"
 #include "cells/cell-varargs.h"
 
@@ -680,8 +682,6 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "cells/cell-sequence.h"  // needs Copy_Cell_May_Bind()
 
 //=//// ISOTOPE COERCION AND DECAY ////////////////////////////////////////=//
-
-#include "cells/cell-dual.h"
 
 #include "sys-isotope.h"
 

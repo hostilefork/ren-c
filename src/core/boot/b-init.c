@@ -347,28 +347,11 @@ static void Init_Root_Vars(void)
 
     Tweak_Non_Frame_Varlist_Rootvar(a, TYPE_OBJECT);
 
-} make_heavy_null: {
-
-  // keep array alive via stable API handle (META PACK, not PACK)
-
-    Source* a = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
-    Init_Quasi_Null(u_cast(Element*, Stub_Cell(a)));
-    Freeze_Source_Deep(a);
-    known_nullptr(g_1_quasi_null_array) = a;
-    known_nullptr(g_lifted_heavy_null) = Init_Lifted_Pack(Alloc_Value(), a);
-    Force_Value_Frozen_Deep(g_lifted_heavy_null);
-
 } make_other_things: {
 
     known_nullptr(g_feed_null_substitute) = Init_Lifted_Null(Alloc_Value());
     Set_Cell_Flag(g_feed_null_substitute, FEED_HINT_ANTIFORM);
     Protect_Cell(g_feed_null_substitute);
-
-    known_nullptr(g_quasi_null) = Init_Lifted_Null(Alloc_Value());
-    Protect_Cell(g_quasi_null);
-
-    known_nullptr(g_tripwire) = Init_Tripwire(Alloc_Value());
-    Protect_Cell(g_tripwire);
 
     require (
       known_nullptr(g_dispatcher_table) = Make_Flex(
@@ -390,11 +373,7 @@ static void Shutdown_Root_Vars(void)
     Erase_Bounce_Wild(g_bounce_delegation);
     Erase_Bounce_Wild(g_bounce_suspend);
 
-    rebReleaseAndNull(&g_lifted_heavy_null);
-    g_1_quasi_null_array = nullptr;
     rebReleaseAndNull(&g_feed_null_substitute);
-    rebReleaseAndNull(&g_quasi_null);
-    rebReleaseAndNull(&g_tripwire);
 }
 
 

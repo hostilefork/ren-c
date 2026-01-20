@@ -88,8 +88,7 @@ DECLARE_NATIVE(DOES)
     ParamList* exemplar = Make_Varlist_For_Action(
         LIB(EVALUATE),
         TOP_INDEX,  // lower stackindex would be if wanting to add refinements
-        nullptr,  // don't set up a binder; just poke specializee in frame
-        nullptr  // leave unspecialized slots with parameter! antiforms
+        nullptr  // don't set up a binder; just poke specializee in frame
     );
     assert(Is_Base_Managed(exemplar));
 

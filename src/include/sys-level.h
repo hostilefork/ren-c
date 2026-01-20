@@ -1063,7 +1063,7 @@ INLINE void Inject_Definitional_Returner(
     assert(Is_Base_Managed(L->varlist));
 
     Value* returner = Level_Arg(L, slot_num);  // should start out specialized
-    Assert_Quotified_Parameter(returner);
+    assert(Is_Possibly_Unstable_Value_Parameter(returner));
 
     Init_Action(
         returner,

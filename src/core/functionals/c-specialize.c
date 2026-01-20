@@ -60,8 +60,7 @@
 ParamList* Make_Varlist_For_Action_Push_Partials(
     const Value* action,  // need ->binding, so can't just be a Phase*
     StackIndex lowest_stackindex,  // caller can add refinements
-    Option(Binder*) binder,
-    Option(const Value*) placeholder
+    Option(Binder*) binder
 ){
     StackIndex highest_stackindex = TOP_INDEX;
 
@@ -102,19 +101,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
           continue_unspecialized:
 
             Erase_Cell(arg);
-            if (placeholder == g_tripwire) {
-                if (Get_Parameter_Flag(param, REFINEMENT))
-                    Init_Nulled(Slot_Init_Hack(arg));
-                else
-                    Init_Unspecialized_Ghost(Slot_Init_Hack(arg));
-            }
-            else if (placeholder == g_quasi_null) {
-                Init_Unspecialized_Ghost(Slot_Init_Hack(arg));
-            }
-            else {
-                assert(placeholder == nullptr);
-                Copy_Cell_Core(arg, param, CELL_MASK_COPY);
-            }
+            Copy_Cell_Core(arg, param, CELL_MASK_COPY);
 
             if (binder)
                 Add_Binder_Index(unwrap binder, symbol, n);
@@ -177,14 +164,12 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
 ParamList* Make_Varlist_For_Action(
     const Value* action, // need ->binding, so can't just be a Phase*
     StackIndex lowest_stackindex,
-    Option(Binder*) binder,
-    Option(const Value*) placeholder
+    Option(Binder*) binder
 ){
     ParamList* exemplar = Make_Varlist_For_Action_Push_Partials(
         action,
         lowest_stackindex,
-        binder,
-        placeholder
+        binder
     );
 
     Manage_Stub(exemplar);  // !!! was needed before, review
@@ -228,8 +213,7 @@ bool Specialize_Action_Throws(
     ParamList* exemplar = Make_Varlist_For_Action_Push_Partials(
         specializee,
         lowest_stackindex,
-        nullptr,  // no binder
-        g_quasi_null  // !!! random hack, signal now weird
+        nullptr  // no binder
     );
     Manage_Stub(exemplar);  // destined to be managed, guarded
 
@@ -284,19 +268,10 @@ bool Specialize_Action_Throws(
     Option(InfixMode) infix_mode = Frame_Infix_Mode(specializee);
 
     for (; key != tail; ++key, ++param, ++slot) {
-        Value* arg = Slot_Hack(slot);
-
-        if (Is_Specialized(param)) {  // was specialized in underlying phase
-            if (not Is_Unspecialized_Ghost(arg))  // v-- couldn't change
-                assert(not Is_Possibly_Unstable_Value_Parameter(arg));
+        if (Is_Specialized(param))  // was specialized in underlying phase
             continue;
-        }
 
-        if (Is_Unspecialized_Ghost(arg)) {  // no assignments in specialization
-          #if DEBUG_POISON_UNINITIALIZED_CELLS
-            Poison_Cell(slot);
-          #endif
-            Blit_Param_Unmarked(slot, param);
+        if (Is_Cell_A_Bedrock_Hole(slot)) {  // no specialized assignment
             if (first_param)
                 first_param = false;  // leave infix as is
             continue;
@@ -311,6 +286,8 @@ bool Specialize_Action_Throws(
         heeded (Corrupt_Cell_If_Needful(Level_Scratch(TOP_LEVEL)));
         heeded (Corrupt_Cell_If_Needful(Level_Spare(TOP_LEVEL)));
 
+        Value* arg = Slot_Hack(slot);
+
         require (
           bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
             TOP_LEVEL, Known_Unspecialized(param), arg
@@ -321,7 +298,7 @@ bool Specialize_Action_Throws(
             panic (Error_Arg_Type(label, key, param, As_Stable(arg)));
         }
 
-        Mark_Typechecked(cast(Param*, arg));
+        Mark_Typechecked(u_cast(Param*, arg));
 
         if (first_param) {
             first_param = false;
@@ -361,10 +338,10 @@ bool Specialize_Action_Throws(
                 panic (Error_Bad_Parameter_Raw(ordered));
             }
 
-            Value* ordered_slot = Slot_Hack(
+            Param* ordered_slot = u_cast(Param*,
                 Varlist_Slot(exemplar, VAL_WORD_INDEX(ordered))
             );
-            if (not Is_Specialized(cast(Param*, ordered_slot))) {
+            if (not Is_Specialized(ordered_slot)) {
                 //
                 // It's still partial...
                 //

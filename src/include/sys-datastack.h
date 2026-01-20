@@ -318,7 +318,7 @@ INLINE Cell* Data_Stack_Cell_At(StackIndex i) {
 
 // Note: g_ds.movable_top is just TOP, but accessing TOP asserts on ENDs
 //
-INLINE OnStack(Value*) PUSH(void) {
+INLINE OnStack(Init(Slot)) PUSH(void) {
     Assert_No_DataStack_Pointers_Extant();
 
     ++g_ds.index;

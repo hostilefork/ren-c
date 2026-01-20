@@ -639,8 +639,7 @@ DECLARE_NATIVE(APPLIQUE)
     ParamList* exemplar = Make_Varlist_For_Action_Push_Partials(  // [1]
         op,
         STACK_BASE,  // lowest_stackindex of refinements to weave in
-        nullptr,  // no binder needed
-        g_tripwire  // fill all slots with nothing to start
+        nullptr  // no binder needed
     );
     Manage_Stub(exemplar);
     Init_Lensed_Frame(
@@ -689,7 +688,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     Element* frame;
     Stable* iterator;  // HANDLE! or NULLED (once initialized)
 
-    Value* var;  // may come from evars iterator or found by index
+    Slot* slot;  // may come from evars iterator or found by index
     Param* param;  // (same)
 
     if (STATE != ST_FRAME_FILLER_INITIAL_ENTRY)
@@ -711,8 +710,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     ParamList* exemplar = Make_Varlist_For_Action_Push_Partials(  // [1]
         op,
         STACK_BASE,  // lowest_stackindex of refinements to weave in
-        nullptr,  // doesn't use a Binder [2]
-        nullptr  // leave unspecialized slots as antiform parameter!
+        nullptr  // doesn't use a Binder [2]
     );
     Manage_Stub(exemplar); // Putting into a frame
     frame = Init_Frame(
@@ -825,12 +823,10 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     if (not n)
         panic (Error_Bad_Parameter_Raw(at));
 
-    var = u_cast(Value*,
-        u_cast(Cell*, Varlist_Slot(Cell_Varlist(frame), unwrap n))
-    );
+    slot = Varlist_Slot(Cell_Varlist(frame), unwrap n);
     param = Phase_Param(Frame_Phase(op), unwrap n);
 
-    if (not Is_Parameter(u_cast(Stable*, var)))
+    if (not Is_Cell_A_Bedrock_Hole(slot))
         panic (Error_Bad_Parameter_Raw(at));
 
     Sink(Stable) lookback = SCRATCH;  // for error
@@ -873,7 +869,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
         if (Get_Parameter_Flag(e->param, REFINEMENT))
             continue;
 
-        if (Is_Parameter(Stable_Slot_Hack(e->slot))) {
+        if (Is_Cell_A_Bedrock_Hole(e->slot)) {
             param = e->param;
             break;
         }
@@ -905,9 +901,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 
     Index index = VAL_UINT32(ARG(INDEX));
 
-    var = u_cast(Value*,
-        u_cast(Cell*, Varlist_Slot(Cell_Varlist(frame), index))
-    );
+    slot = Varlist_Slot(Cell_Varlist(frame), index);
     param = Phase_Param(Frame_Phase(op), index);
 
     goto copy_spare_to_var_in_frame;
@@ -916,25 +910,27 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 
     EVARS *e = Cell_Handle_Pointer(EVARS, iterator);
 
-    var = u_cast(Value*, u_cast(Cell*, e->slot));
+    slot = e->slot;
     param = e->param;
 
     goto copy_spare_to_var_in_frame;
 
 } copy_spare_to_var_in_frame: {  /////////////////////////////////////////////
 
-    possibly(param == cast(Param*, var));  // don't write until meta test done
+    possibly(  // don't write until meta test done
+        u_cast(Cell*, param) == u_cast(Cell*, slot)
+    );
 
     if (/* param and */ Parameter_Class(param) != PARAMCLASS_META)
-        Move_Cell(var, SPARE);
+        Move_Cell(Slot_Init_Hack(slot), SPARE);
     else {
-        if (Any_Void(SPARE))
-            Init_Ghost(var);
+        if (Is_Ghost(SPARE))
+            Init_Ghost(Slot_Init_Hack(slot));
         else {
-            Move_Cell(var, SPARE);
             require (
-              Decay_If_Unstable(var)
+              Decay_If_Unstable(SPARE)
             );
+            Move_Cell(Slot_Init_Hack(slot), SPARE);
         }
     }
 

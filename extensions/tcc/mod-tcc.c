@@ -301,7 +301,8 @@ static bool Pending_Native_Details_Querier(
 ){
     switch (property) {
       case SYM_RETURN_OF: {
-        Extract_Paramlist_Returner(out, Phase_Paramlist(details), SYM_RETURN);
+        ParamList* paramlist = Phase_Paramlist(details);
+        Extract_Returnlike_Parameter(out, paramlist, SYM_RETURN);
         return true; }
 
       case SYM_BODY_OF: {

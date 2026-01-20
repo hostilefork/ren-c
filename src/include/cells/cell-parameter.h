@@ -444,12 +444,9 @@ INLINE bool Not_Parameter_Checked_Or_Coerced(const Cell* cell) {
 // of the public interface of the function.
 //
 INLINE bool Is_Specialized(const Param* p) {
-    if (
-        Is_Possibly_Unstable_Value_Parameter(p)
-        and Not_Cell_Flag(p, PARAM_NOTE_TYPECHECKED)
-    ){
-        if (Get_Cell_Flag_Unchecked(p, VAR_MARKED_HIDDEN))
-            assert(!"Unspecialized parameter is marked hidden!");
+    if (Is_Cell_A_Bedrock_Hole(p)) {
+        assert(Not_Cell_Flag(p, PARAM_NOTE_TYPECHECKED));
+        assert(Not_Cell_Flag(p, VAR_MARKED_HIDDEN));
         return false;
     }
     return true;
@@ -457,9 +454,9 @@ INLINE bool Is_Specialized(const Param* p) {
 
 #define Not_Specialized(v)      (not Is_Specialized(v))
 
-INLINE const Element* Known_Unspecialized(const Param* p) {
+INLINE const Slot* Known_Unspecialized(const Param* p) {
     assert(Not_Specialized(p));
-    return cast(const Element*, p);
+    return u_cast(Slot*, p);
 }
 
 
@@ -580,6 +577,11 @@ INLINE bool Is_Parameter_Divergent(const Cell* v) {
     return Array_Len(unwrap spec) == 0;  // e.g. `[]`, no legal return types
 }
 
+INLINE Param* Unspecialize_Parameter(Cell* p) {
+    assert(Heart_Of(p) == TYPE_PARAMETER and LIFT_BYTE(p) == NOQUOTE_3);
+    LIFT_BYTE(p) = BEDROCK_0;
+    return u_cast(Param*, p);
+}
 
 // When it came to literal parameters that could be escaped, R3-Alpha and Red
 // consider GROUP!, GET-WORD!, and GET-PATH! to be things that at the callsite
@@ -605,3 +607,42 @@ INLINE bool Is_Parameter_Divergent(const Cell* v) {
 INLINE bool Is_Soft_Escapable_Group(const Element* e) {
     return Is_Group(e);  // should escape other groups, e.g. ('foo): -> foo:
 }
+
+
+//=//// STORE RETURN PARAMETER! SPEC IN A "LOCAL" /////////////////////////=//
+//
+// There's a minor compression used by FUNC and YIELDER which stores the type
+// information for RETURN as a plain PARAMETER! in the archetypal paramlist
+// slot that defines the cell where the DEFINITIONAL-RETURN will be put in
+// the instantiation.  (A similar tactic is used for a method's implicit `.`)
+//
+// Because it is a plain PARAMETER! (and not a BEDROCK_0 PARAMETER!, a.k.a.
+// a "HOLE") the function machinery won't try to gather it as an argument at
+// the callsite...since it thinks it is "specialized".  The dispatcher for
+// the function will overwrite the cell with an actual ACTION! that does the
+// returning before the body runs.
+//
+
+INLINE void Regularize_Parameter_Local(Param* param) {
+    assert(Is_Cell_A_Bedrock_Hole(param));
+    LIFT_BYTE(param) = NOQUOTE_3;
+}
+
+INLINE const Element* Returnlike_Parameter_In_Paramlist(
+    ParamList* paramlist,
+    SymId id
+){
+    Index slot_num = Get_Flavor_Flag(
+        VARLIST,
+        Varlist_Array(paramlist),
+        METHODIZED
+    ) ? 2 : 1;
+    assert(Key_Id(Varlist_Key(paramlist, slot_num)) == id);
+    UNUSED(id);
+    Stable* param = Stable_Slot_Hack(Varlist_Slot(paramlist, slot_num));
+    assert(Is_Parameter(param));
+    return As_Element(param);
+}
+
+#define Extract_Returnlike_Parameter(out,paramlist,id) \
+    Copy_Cell((out), Returnlike_Parameter_In_Paramlist((paramlist), (id)))

@@ -831,7 +831,7 @@ Bounce JavaScript_Dispatcher(Level* const L)
 
     // Need to typecheck the result.
 
-    const Element* param = Quoted_Returner_Of_Paramlist(
+    const Element* param = Returnlike_Parameter_In_Paramlist(
         Phase_Paramlist(details), SYM_RETURN
     );
 
@@ -887,7 +887,8 @@ bool Javascript_Details_Querier(
 ){
     switch (property) {
       case SYM_RETURN_OF: {
-        Extract_Paramlist_Returner(out, Phase_Paramlist(details), SYM_RETURN);
+        ParamList* paramlist = Phase_Paramlist(details);
+        Extract_Returnlike_Parameter(out, paramlist, SYM_RETURN);
         return true; }
 
       case SYM_BODY_OF: {

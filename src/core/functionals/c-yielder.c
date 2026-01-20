@@ -434,7 +434,8 @@ bool Yielder_Details_Querier(
     // exhausted (how to add this legitimately?)
 
       case SYM_RETURN_OF: {
-        Extract_Paramlist_Returner(out, Phase_Paramlist(details), SYM_YIELD);
+        ParamList* paramlist = Phase_Paramlist(details);
+        Extract_Returnlike_Parameter(out, paramlist, SYM_YIELD);
         return true; }
 
       default:

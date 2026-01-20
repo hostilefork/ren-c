@@ -111,12 +111,6 @@ PVAR Element* g_tag_dot_1;  // <.> used for methodized functions
 
 PVAR Element* g_tag_here;  // https://forum.rebol.info/t/1558/5
 
-PVAR Element* g_quasi_null;  // ~null~ quasiform !!! replace w/LIB(QUASI_NULL)
-PVAR Value* g_tripwire;  // ~ antiform !!! replace w/LIB(TRIPWIRE)
-PVAR Source* g_1_quasi_null_array;  // used by heavy nulls ~(~null~)~
-
-PVAR Stable* g_lifted_heavy_null;  // keeps g_1_quasi_null_array alive
-
 PVAR Element* g_feed_null_substitute;  // flagged with FEED_HINT_ANTIFORM
 
 PVAR Stub PG_Inaccessible_Stub;  // GC canonizes all inaccessible stubs to this

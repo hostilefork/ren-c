@@ -166,7 +166,7 @@ DECLARE_NATIVE(PICK)
 //      return: [
 //          <null>  "no writeback needed"
 //          quoted! quasiform!  "lifted cell for bits to update in container"
-//          frame! ^word! ^tuple! space?  "request indirect writeback"
+//          frame! ^word! ^tuple! space? parameter! "indirect writeback"
 //      ]
 //      location [<cond> fundamental?]  ; can't poke a quoted/quasi
 //      picker [<cond> element?]

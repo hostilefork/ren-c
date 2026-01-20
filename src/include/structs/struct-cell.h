@@ -743,6 +743,19 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
     memset(x_cast(char*, (dst)), (byte), (size))  // [4]
 
 
+//=//// "Param" SUBCLASS OF "Slot" ////////////////////////////////////////=//
+//
+// The datatype ParamList holds a list of PARAMETER! values with LIFT_BYTE()
+// of BEDROCK_0 for unspecialized arguments.  Then any Value* (possibly
+// unstable) for specialized args and locals.
+//
+// The Cells in the list are subtyped as `Param`.  They could have used
+// an existing subclass like `Slot`, however calling it Param helps indicate
+// a cell uses CELL_FLAG_NOTE for CELL_FLAG_PARAM_NOTE_TYPECHECKED (for
+// example).
+//
+
+
 //=//// CELL SUBCLASSES FOR QUARANTINING STABLE/UNSTABLE ANTIFORMS ////////=//
 //
 // Systemically, we want to stop antiforms from being put into the array
@@ -779,10 +792,12 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
 //
 #if DONT_CHECK_CELL_SUBCLASSES
     typedef struct RebolValueStruct Cell;
+    typedef struct RebolValueStruct Param;
     typedef struct RebolValueStruct Stable;
     typedef struct RebolValueStruct Element;
 #else
-    struct RebolValueStruct : public Cell {};  // can hold unstable antiforms
+    struct Param : public Cell {};  // like a Slot, but with no init checks
+    struct RebolValueStruct : public Param {};  // can hold unstable antiforms
     struct Stable : public RebolValueStruct {};  // can't hold unstable forms
     struct Element : public Stable {};  // can't hold any antiforms
 #endif
@@ -806,7 +821,7 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
 //
 // There is one exception: an Init(Slot) e.g. what you get from adding a
 // fresh variable to a context, is able to be initialized by any routine
-// that could do an Init(Value/Stable*/Element).
+// that could do an Init(Param/Value/Stable/Element).
 //
 
 #if DONT_CHECK_CELL_SUBCLASSES
@@ -816,6 +831,9 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
 
   #if NEEDFUL_SINK_USES_WRAPPER
   namespace needful {
+    template<>
+    struct AllowSinkConversion<Slot*, Param> : std::true_type {};
+
     template<>
     struct AllowSinkConversion<Slot*, Value> : std::true_type {};
 
@@ -845,24 +863,6 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
     typedef struct RebolValueStruct Dual;
 #else
     struct Dual : public Element {};
-#endif
-
-
-//=//// "Param" SUBCLASS OF "Value" ///////////////////////////////////////=//
-//
-// The datatype ParamList holds a list of PARAMETER! values for unspecialized
-// arguments, and then any Value* (possibly unstable) for specialized args
-// and locals.
-//
-// Thes elements in the list are subtyped as `Param`.  They could have used
-// an existing subclass like `Slot`, however calling it Param helps indicate
-// a cell uses CELL_FLAG_NOTE for CELL_FLAG_PARAM_NOTE_TYPECHECKED (for
-// example).
-//
-#if DONT_CHECK_CELL_SUBCLASSES
-    typedef Value Param;
-#else
-    struct Param : public Value {};
 #endif
 
 

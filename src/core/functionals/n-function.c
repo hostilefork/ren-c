@@ -237,7 +237,7 @@ Bounce Func_Dispatcher(Level* const L)
   //    would mean people writing custom loop generators would have to use
   //    LAMBDA instead of FUNC.)
 
-    const Element* param = Quoted_Returner_Of_Paramlist(
+    const Element* param = Returnlike_Parameter_In_Paramlist(
         Phase_Paramlist(details), SYM_RETURN
     );
 
@@ -267,7 +267,8 @@ bool Func_Details_Querier(
   //=//// RETURN //////////////////////////////////////////////////////////=//
 
       case SYM_RETURN_OF: {
-        Extract_Paramlist_Returner(out, Phase_Paramlist(details), SYM_RETURN);
+        ParamList* paramlist = Phase_Paramlist(details);
+        Extract_Returnlike_Parameter(out, paramlist, SYM_RETURN);
         return true; }
 
   //=//// BODY ////////////////////////////////////////////////////////////=//
@@ -528,7 +529,7 @@ DECLARE_NATIVE(PROCEDURE)
 
     Details* details = Ensure_Frame_Details(OUT);
 
-    Element* param = m_cast(Element*, Quoted_Returner_Of_Paramlist(
+    Param* param = m_cast(Param*, Returnlike_Parameter_In_Paramlist(
         Phase_Paramlist(details), SYM_RETURN
     ));
 
@@ -540,7 +541,8 @@ DECLARE_NATIVE(PROCEDURE)
         const Strand* notes = opt Parameter_Strand(param);
         Copy_Cell(param, g_auto_trash_param);
         Set_Parameter_Strand(param, notes);
-        Quotify_Parameter_Local(param);
+        Unspecialize_Parameter(param);  // we immediately undo...
+        Regularize_Parameter_Local(param);  // ...but this points out callsite
         Set_Cell_Flag(param, PARAM_NOTE_TYPECHECKED);
 
         assert(Get_Parameter_Flag(param, TRASH_DEFINITELY_OK));
@@ -668,14 +670,14 @@ DECLARE_NATIVE(UNWIND)
 //
 Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
     Level* L,  // Level whose spare/scratch used (not necessarily return level)
-    const Element* param,  // parameter for the RETURN (may be quoted)
+    const Cell* param,  // parameter for the RETURN (may be quoted)
     Value* v  // not `const Value*` -- coercion needs mutability
 ){
     assert(  // for specialized slot, RETURN can't be a plain PARAMETER!
         Heart_Of(param) == TYPE_PARAMETER
         and (
-            LIFT_BYTE(param) == NOQUOTE_3
-            or LIFT_BYTE(param) == ONEQUOTE_NONQUASI_5
+            LIFT_BYTE(param) == BEDROCK_0  // "holes" in ParamLists
+            or LIFT_BYTE(param) == NOQUOTE_3  // plain PARAMETER!
         )
     );
 
@@ -745,7 +747,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
     Level* target_level = Level_Of_Varlist_May_Panic(unwrap coupling);
     Details* target_details = Ensure_Level_Details(target_level);
 
-    const Element* param = Quoted_Returner_Of_Paramlist(
+    const Element* param = Returnlike_Parameter_In_Paramlist(
         Phase_Paramlist(target_details), SYM_RETURN
     );
 

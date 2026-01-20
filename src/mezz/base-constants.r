@@ -54,6 +54,7 @@ empty-blob: #""
 
 null: ~null~
 quasi-null: '~null~
+^heavy-null: ~(~null~)~
 
 ok: okay: ~okay~
 quasi-okay: '~okay~

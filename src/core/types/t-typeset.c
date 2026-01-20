@@ -112,13 +112,13 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
     StateByte saved_state = STATE;
     STATE = 1;
 
-    assert(not Parameter_Spec(TOP_ELEMENT));
-    possibly(Parameter_Strand(TOP_ELEMENT));
+    assert(not Parameter_Spec(TOP_SLOT));
+    possibly(Parameter_Strand(TOP_SLOT));
 
-    ParamClass pclass = Parameter_Class(TOP_ELEMENT);
+    ParamClass pclass = Parameter_Class(TOP_SLOT);
     assert(pclass != PARAMCLASS_0);  // must have class
 
-    Flags flags = CELL_PARAMETER_PAYLOAD_2_FLAGS(TOP_ELEMENT);
+    Flags flags = CELL_PARAMETER_PAYLOAD_2_FLAGS(TOP_SLOT);
     if (flags & PARAMETER_FLAG_REFINEMENT)
         assert(flags & PARAMETER_FLAG_NULL_DEFINITELY_OK);
 
@@ -136,7 +136,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
                 "Only one level of quote to suppress checking of types in spec"
             );
 
-        Set_Cell_Flag(TOP_ELEMENT, PARAM_NOT_CHECKED_OR_COERCED);
+        Set_Cell_Flag(TOP_SLOT, PARAM_NOT_CHECKED_OR_COERCED);
     }
 
 } copy_derelativized_spec_array: {
@@ -171,8 +171,8 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
         dont(Clear_Cell_Flag(dest, NEWLINE_BEFORE));  // assume significant [1]
     }
 
-    CELL_PARAMETER_PAYLOAD_1_SPEC(TOP_ELEMENT) = copy;  // GC-protects copy
-    Clear_Cell_Flag(TOP_ELEMENT, DONT_MARK_PAYLOAD_1);  // sync flag
+    CELL_PARAMETER_PAYLOAD_1_SPEC(TOP_SLOT) = copy;  // GC-protects copy
+    Clear_Cell_Flag(TOP_SLOT, DONT_MARK_PAYLOAD_1);  // sync flag
 
 } process_parameter_spec: {
 
@@ -376,7 +376,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
     assert(Is_Word(As_Element(SCRATCH)));
     Metafy_Cell(As_Element(SCRATCH));  // want unstable lookup (ACTION!, etc)
 
-    if (Not_Parameter_Checked_Or_Coerced(TOP_ELEMENT))
+    if (Not_Parameter_Checked_Or_Coerced(TOP_SLOT))
         goto cant_optimize;  // Typecheck will work, but slowly [2]
 
     heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), spec_binding));
@@ -480,8 +480,8 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
     Freeze_Source_Shallow(copy);  // !!! copy and freeze should likely be deep
 
-    assert(Not_Cell_Flag(TOP_ELEMENT, VAR_MARKED_HIDDEN));
-    CELL_PARAMETER_PAYLOAD_2_FLAGS(TOP_ELEMENT) = flags;
+    assert(Not_Cell_Flag(TOP_SLOT, VAR_MARKED_HIDDEN));
+    CELL_PARAMETER_PAYLOAD_2_FLAGS(TOP_SLOT) = flags;
 
     STATE = saved_state;
 

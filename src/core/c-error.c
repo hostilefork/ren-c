@@ -88,9 +88,7 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
         if (not Is_Action_Level(TOP_LEVEL))
             return Error_Bad_Value(v);
 
-        const Value* head = cast(Value*,
-            Phase_Params_Head(Level_Phase(TOP_LEVEL))
-        );
+        const Param* head = Phase_Params_Head(Level_Phase(TOP_LEVEL));
         REBLEN num_params = Phase_Num_Params(Level_Phase(TOP_LEVEL));
 
         if (v >= head and v < head + num_params) {  // PARAM() error [3]

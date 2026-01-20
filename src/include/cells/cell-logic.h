@@ -269,10 +269,10 @@ INLINE bool Is_Lifted_Null(const Value* v) {
 //
 
 #define Init_Heavy_Null_Untracked(out) \
-    Init_Pack_Untracked((out), g_1_quasi_null_array)
+    Init_Pack_Untracked((out), Cell_Array(LIB(HEAVY_NULL)))
 
 #define Init_Heavy_Null(out) \
-    Init_Pack((out), g_1_quasi_null_array)
+    Init_Pack((out), Cell_Array(LIB(HEAVY_NULL)))
 
 INLINE bool Is_Heavy_Null(const Value* v) {
     if (not Is_Pack(v))

@@ -216,6 +216,35 @@ INLINE bool Is_Hot_Potato_With_Id_Core(
     Is_Hot_Potato_With_Id((v), SYM_DONE)  // [2]
 
 
+//=//// HOLE BEDROCK: PARAMETER! //////////////////////////////////////////-//
+//
+// A hole is a PARAMETER! slot that has not been specialized yet.  So long
+// as specialization has not occurred, the parameter specification is there
+// including the types that are legal.
+//
+// Assignmnents to a HOLE should probably typecheck; but traditionally this
+// typechecking is forgotten after the assignment.
+//
+// To things like DEFAULT, HOLE looks like the variable is not set.
+//
+
+INLINE bool Is_Bedrock_Dual_A_Hole(const Dual* dual) {
+    assert(Is_Dualized_Bedrock(dual));
+    return (
+        KIND_BYTE(dual) == Kind_From_Sigil_And_Heart(SIGIL_0, TYPE_PARAMETER)
+    );
+}
+
+#define Is_Hole_Core(cell,lift_byte) \
+    Cell_Has_Lift_Sigil_Heart((cell), (lift_byte), SIGIL_0, TYPE_PARAMETER)
+
+#define Is_Cell_A_Bedrock_Hole(cell) \
+    Is_Hole_Core(Possibly_Bedrock(cell), BEDROCK_0)
+
+#define Is_Dual_Hole(dual) \
+    Is_Hole_Core(Known_Dual(dual), NOQUOTE_3)
+
+
 //=//// ALIAS BEDROCK: META-WORD!, META-TUPLE! ////////////////////////////-//
 //
 // An alias lets one variable act as another.

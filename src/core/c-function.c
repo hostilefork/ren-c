@@ -184,6 +184,7 @@ static Result(None) Push_Keys_And_Params_Core(
             PUSH(),
             FLAG_PARAMCLASS_BYTE(PARAMCLASS_META)
         );
+        Unspecialize_Parameter(TOP_SLOT);
         returner_index = TOP_INDEX;
     }
 
@@ -219,7 +220,7 @@ static Result(None) Push_Keys_And_Params_Core(
         );
     }
 
-    if (not Is_Parameter(TOP_ELEMENT))
+    if (not Is_Cell_A_Bedrock_Hole(TOP_SLOT))
         return fail (
             "Text strings must describe parameters, not locals"
         );
@@ -229,7 +230,7 @@ static Result(None) Push_Keys_And_Params_Core(
     );
     Manage_Stub(strand);
     Freeze_Flex(strand);
-    Set_Parameter_Strand(TOP_ELEMENT, strand);
+    Set_Parameter_Strand(TOP_SLOT, strand);
     goto next_spec_item;
 
 } handle_block_of_types_for_typeset: { ///////////////////////////////////////
@@ -242,7 +243,7 @@ static Result(None) Push_Keys_And_Params_Core(
         );
     }
 
-    if (Parameter_Spec(TOP_ELEMENT))  // `func [x [word!] [word!]]`
+    if (Parameter_Spec(TOP_SLOT))  // `func [x [word!] [word!]]`
         return fail (Error_Bad_Func_Def_Raw(v));  // too many blocks
 
     Context* derived = Derive_Binding(Level_Binding(L), v);
@@ -290,6 +291,7 @@ static Result(None) Push_Keys_And_Params_Core(
             methodization,
             FLAG_PARAMCLASS_BYTE(PARAMCLASS_NORMAL)
         );
+        Unspecialize_Parameter(methodization);
         goto next_spec_item;
     }
 
@@ -311,12 +313,13 @@ static Result(None) Push_Keys_And_Params_Core(
             "Quasar (~) must be used to indicate function return spec"
         );
 
-    if (Parameter_Spec(TOP_ELEMENT))  // `func [return: [integer!] ~]`
+    if (Parameter_Spec(TOP_SLOT))  // `func [return: [integer!] ~]`
         return fail (Error_Bad_Func_Def_Raw(v));
 
-    const Strand* notes = opt Parameter_Strand(TOP_ELEMENT);
-    Copy_Cell(TOP_ELEMENT, g_auto_trash_param);
-    Set_Parameter_Strand(TOP_ELEMENT, notes);
+    const Strand* notes = opt Parameter_Strand(TOP_SLOT);
+    Copy_Cell(TOP_SLOT, g_auto_trash_param);
+    Set_Parameter_Strand(TOP_SLOT, notes);
+    Unspecialize_Parameter(TOP_SLOT);
 
     goto next_spec_item;
 
@@ -483,6 +486,7 @@ static Result(None) Push_Keys_And_Params_Core(
                 | (quoted ? PARAMETER_FLAG_UNBIND_ARG : 0)
         );
     }
+    Unspecialize_Parameter(TOP_SLOT);
 
     // Non-annotated arguments allow all parameter types.
 
@@ -498,7 +502,7 @@ static Result(None) Push_Keys_And_Params_Core(
 }} finished: {
 
     if (returner_index)  // plain param would gather arg, trick is to quote it
-        Quotify_Parameter_Local(Data_Stack_At(Element, returner_index));
+        Regularize_Parameter_Local(Data_Stack_At(Param, returner_index));
 
     return none;
 }}
@@ -645,7 +649,7 @@ Result(ParamList*) Pop_Paramlist(
 
     const Symbol* duplicate = nullptr;
 
-    Stable* rootvar = Flex_Head(Stable, paramlist);
+    Param* rootvar = Flex_Head(Param, paramlist);
     if (prior)
         Init_Frame(rootvar, unwrap prior, ANONYMOUS, prior_coupling);
     else
@@ -656,14 +660,13 @@ Result(ParamList*) Pop_Paramlist(
             UNCOUPLED
         );
 
-    Stable* param = 1 + rootvar;
+    Param* param = 1 + rootvar;
     Key* key = Flex_Head(Key, keylist);
 
     if (methodization) {  // put dot first if applicable (find it fastest...)
         *key = CANON(DOT_1);
         Copy_Cell(param, unwrap methodization);
-        assert(Is_Parameter(param));
-        Quotify_Parameter_Local(As_Element(param));
+        Regularize_Parameter_Local(param);
         Set_Cell_Flag(param, PARAM_NOTE_TYPECHECKED);
         ++key;
         ++param;
@@ -707,7 +710,7 @@ Result(ParamList*) Pop_Paramlist(
             CELL_MASK_COPY
                 | CELL_FLAG_VAR_MARKED_HIDDEN
         );
-        if (Is_Parameter(param))
+        if (Is_Cell_A_Bedrock_Hole(param))
             Set_Parameter_Flag(param, FINAL_TYPECHECK);
         else
             Set_Cell_Flag(param, PARAM_NOTE_TYPECHECKED);  // locals "checked"
@@ -723,7 +726,7 @@ Result(ParamList*) Pop_Paramlist(
         ++param;
     }
 
-    assert(param == Array_Tail(paramlist));
+    assert(param == Flex_Tail(Param, paramlist));
 
     Manage_Stub(paramlist);
 
@@ -820,14 +823,14 @@ void Pop_Unpopped_Return(Sink(Element) out, StackIndex base)
 {
     assert(TOP_INDEX == base + 3);
 
+    assert(Is_Parameter(TOP_ELEMENT));
     Copy_Cell(out, TOP_ELEMENT);
-    Unquotify_Parameter_Local(out);
     DROP();
 
     assert(Word_Id(TOP) == SYM_RETURN or Word_Id(TOP) == SYM_DUMMY1);
     DROP();
 
-    assert(Is_Quasar(TOP_ELEMENT) or Is_Parameter(TOP_ELEMENT));
+    assert(Is_Cell_A_Bedrock_Hole(TOP_SLOT) or Is_Quasar(TOP_ELEMENT));
     DROP();  // pop methodization storage cell
 
     UNUSED(base);

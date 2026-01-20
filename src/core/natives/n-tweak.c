@@ -204,6 +204,11 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
         goto return_without_unbinding;
     }
 
+    if (Is_Bedrock_Dual_A_Hole(dual_spare)) {  // unspecialized cell
+        Init_Lifted_Ghost(SPARE);
+        goto return_without_unbinding;
+    }
+
     return Error_User("TWEAK* returned unknown dualized bedrock element");
 
 }} possibly_unbind_spare_and_return: { ///////////////////////////////////////
@@ -937,7 +942,9 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //  "Low-level variable setter, that can assign within the dual band"
 //
 //      return: [
-//          <null> frame! word! quasiform! quoted! ^word! ^tuple! space?
+//          <null>
+//          quasiform! quoted!
+//          frame! word! ^word! ^tuple! space? parameter!
 //          failure!  "Passthru even if it skips the assign"
 //      ]
 //      target "Word or tuple, or calculated sequence steps (from GET)"

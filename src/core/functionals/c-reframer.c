@@ -249,8 +249,7 @@ Result(None) Init_Frame_From_Feed(
     ParamList* exemplar = Make_Varlist_For_Action(
         LIB(IDENTITY),
         TOP_INDEX,
-        nullptr,
-        nullptr  // leave unspecialized slots with parameter! antiforms
+        nullptr
     );
 
     Stable* var = Stable_Slot_Hack(Varlist_Slot(exemplar, 2));
@@ -438,8 +437,7 @@ DECLARE_NATIVE(REFRAMER)
     ParamList* exemplar = Make_Varlist_For_Action_Push_Partials(
         shim,
         STACK_BASE,
-        binder,
-        nullptr  // no placeholder, leave parameter! antiforms
+        binder
     );
 
     REBLEN param_index = 0;
@@ -479,11 +477,9 @@ DECLARE_NATIVE(REFRAMER)
   //
   //      https://forum.rebol.info/t/generalized-argument-removal/2297
 
-    Stable* var = Stable_Slot_Hack(
-        Varlist_Slot(exemplar, param_index)  // "specialize" slot [1]
-    );
-    assert(Is_Parameter(var));
-    Copy_Cell(var, Varlist_Archetype(exemplar));
+    Slot* slot = Varlist_Slot(exemplar, param_index);  // "specialize" slot [1]
+    assert(Is_Cell_A_Bedrock_Hole(slot));
+    Copy_Cell(Slot_Init_Hack(slot), Varlist_Archetype(exemplar));
 
     Manage_Stub(exemplar);
 

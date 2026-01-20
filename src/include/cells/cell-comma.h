@@ -98,6 +98,9 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
 #define Init_Ghost(out) \
     TRACK(Init_Ghost_Untracked(out))
 
+#define Init_Lifted_Ghost(out) \
+    Lift_Cell(Init_Ghost(out))
+
 #define CELL_FLAG_OUT_NOTE_SCARY_GHOST  CELL_FLAG_NOTE  // turn into pack [1]
 
 #define CELL_MASK_SCARY_GHOST \
