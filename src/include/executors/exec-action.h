@@ -217,11 +217,7 @@ typedef struct {
     // are moved in sync.  This movement can be done for typechecking or
     // fulfillment, see In_Typecheck_Mode()
     //
-    // While ultimately the arguments will be Stable* and not able to hold
-    // unstable isotopes arguments, the process of argument fulfillment will
-    // hold unstable isotopes temporarily.
-    //
-    Value* arg;
+    Arg* arg;
 
     // The param can either be a definition of a parameter and its types to
     // be fulfilled, or if it has been specialized with a value already then
@@ -243,20 +239,6 @@ enum {
     //
     ST_ACTION_INITIAL_ENTRY_INFIX,
     ST_ACTION_FULFILLING_INFIX_FROM_OUT,
-
-    // <end>-able functions get GHOST! when a comma or end of list is hit:
-    //
-    //    bar: func [^y [ghost! integer!]] [...]
-    //
-    //    (bar,)  ; panics when comma is hit
-    //    (bar)  ; also panics
-    //
-    //    foo: func [x [integer! <end>]] [...]
-    //
-    //    (foo,)  ; receives a GHOST!
-    //    (foo)  ; also recieves a GHOST!
-    //
-    ST_ACTION_BARRIER_HIT,
 
     ST_ACTION_TYPECHECKING
 

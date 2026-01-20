@@ -908,7 +908,15 @@ Bounce Stepper_Executor(Level* L)
   //
   //   https://forum.rebol.info/t/1387/6
   //
-  // 1. We depend on EVAL:STEP only returning NULL when it's given the tail
+  // 1. In argument fulfillment, we want to treat COMMA! the same as reaching
+  //    the end of a block.  That means leaving a "hole" in the argument slot
+  //    which is BEDROCK_0... it *acts* like a GHOST!, but is beneath ghost
+  //    as it is not a value that can be a product of evaluation.  Hence by
+  //    definition we cannot write it into the OUT parameter--the action
+  //    executor has to preemptively notice commas in the feed and not call
+  //    an evaluation step for them.
+  //
+  // 2. We depend on EVAL:STEP only returning NULL when it's given the tail
   //    of a block, to indicate no synthesized value (not even GHOST!).  If
   //    we "just skipped" commas in this case, we'd have to create some
   //    other notion of how to detect Is_Level_At_End() that counted commas
@@ -916,26 +924,21 @@ Bounce Stepper_Executor(Level* L)
   //
   //    So there's no getting around the fact that [,] produces GHOST!.
   //
-  // 2. The cleanest model of COMMA! behavior would be for it to always step
+  // 3. The cleanest model of COMMA! behavior would be for it to always step
   //    over it and produce a GHOST! on each step over a comma.  But this
   //    risks being costly enough that people might avoid using commas even
   //    if they liked the visual separation.  For now, exercise both options:
   //    a high-performance "just skip it", and a slower "debug" mode.
 
-    if (Get_Eval_Executor_Flag(L, FULFILLING_ARG)) {
-        require (
-          Handle_Barrier_Hit(OUT, L->prior)
-        );
-        goto finished;
-    }
+    assert(Not_Eval_Executor_Flag(L, FULFILLING_ARG));  // handles before [1]
 
-    if (Is_Level_At_End(L)) {  // [,] always has to make a GHOST! [1]
+    if (Is_Level_At_End(L)) {  // [,] always has to make a GHOST! [2]
         Init_Ghost(OUT);
         dont(Set_Cell_Flag(OUT, OUT_NOTE_SCARY_GHOST));
         goto finished;
     }
 
-    if (In_Debug_Mode(64)) {  // simulate GHOST! generation, sometimes [2]
+    if (In_Debug_Mode(64)) {  // simulate GHOST! generation, sometimes [3]
         Init_Ghost(OUT);
         dont(Set_Cell_Flag(OUT, OUT_NOTE_SCARY_GHOST));
         goto finished;

@@ -322,7 +322,7 @@ INLINE Option(const Symbol*) Level_Label(Level* L) {
 // 1-based indexing into the arglist (0 slot is for FRAME! value)
 
 #define Level_Args_Head(L) \
-    (u_cast(Value*, (L)->rootvar) + 1)
+    (u_cast(Arg*, (L)->rootvar) + 1)
 
 
 INLINE void* Level_Arg_Core(Level* L, REBLEN n, bool optional) {
@@ -521,13 +521,16 @@ INLINE void Push_Level_Dont_Inherit_Interruptibility(
     assert(L->alloc_value_list == L);
 }
 
-INLINE void Push_Level_Erase_Out_If_State_0(  // inherits uninterruptibility [4]
-    Exact(Value*) out,  // prohibit passing Element/Stable/Slot as output [1]
+INLINE void Push_Level_Erase_Out_If_State_0_Core(  // inherit interrupt [4]
+    Contra(Value) out,  // prohibit passing Element/Stable/Slot as output [1]
     Level* L
 ){
     Push_Level_Dont_Inherit_Interruptibility(out, L);
     L->flags.bits |= L->prior->flags.bits & LEVEL_FLAG_UNINTERRUPTIBLE;  // [4]
 }
+
+#define Push_Level_Erase_Out_If_State_0(out,L) \
+    Push_Level_Erase_Out_If_State_0_Core(Possibly_Unstable(out), (L))
 
 INLINE void Update_Expression_Start(Level* L) {
     assert(
@@ -1086,7 +1089,7 @@ INLINE void Inject_Methodization_If_Any(Level* L)
 
     assert(Key_Id(Phase_Keys_Head(L->varlist)) == SYM_DOT_1);
 
-    Value* methodization = Level_Args_Head(L);
+    Arg* methodization = Level_Args_Head(L);
 
     Context* coupling = opt Level_Coupling(L);
 

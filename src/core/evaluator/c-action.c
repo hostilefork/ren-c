@@ -242,17 +242,32 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
 }
 
 
+// When the end of a feed is hit, we need an indicator that is distinct from
+// GHOST! (because a GHOST! could be a normal by-product of an evaluation).
+// e.g. you should be able to tell between:
 //
-//  Handle_Barrier_Hit: C
+//     >> endable-function ()
+//     ENDABLE-FUNCTION received a GHOST!
 //
-Result(None) Handle_Barrier_Hit(Sink(Value) out, Level* L) {
-    assert(Is_Action_Level(L));
-
-    if (Not_Parameter_Flag(PARAM, ENDABLE))
-        return fail (Error_No_Arg(Level_Label(L), Key_Symbol(KEY)));
-
-    Init_Ghost_For_End(out);
-    return none;
+//     >> endable-function
+//     ENDABLE-FUNCTION received a HOLE
+//
+// However, we want COMMA! to be symmetric (also symmetric in terms of any
+// errors):
+//
+//     >> endable-function,
+//     ENDABLE-FUNCTION received a HOLE
+//
+// This is why we put a "bedrock hole" cell in the frame.  It's out of band
+// in terms of "Value" results that can be produced by an EVAL, so we can't
+// call `Stepper_Executor()` to produce it...and need to check the feed for
+// an end or a COMMA! before calling the stepper.  Hence if a COMMA! is seen
+// it will stay as a COMMA! in the feed until the action has acquired all
+// its arguments.
+//
+static void Handle_Barrier_Hit(Sink(Param) out, Level* L) {
+    assert(Is_Cell_A_Bedrock_Hole(PARAM));
+    Copy_Cell(out, PARAM);
 }
 
 
@@ -392,7 +407,7 @@ Bounce Action_Executor(Level* L)
                 possibly(  // need to use u_cast() due to this possibility
                     ARG == Level_Args_Head(L) and Is_Cell_Poisoned(ARG)
                 );
-                REBLEN offset = ARG - u_cast(Value*, Level_Args_Head(L));
+                REBLEN offset = ARG - Level_Args_Head(L);
                 Tweak_Word_Index(ordered, offset + 1);
                 if (Is_Stub_Details(L->u.action.original))  // !!!
                     Tweak_Cell_Relative_Binding(
@@ -472,13 +487,6 @@ Bounce Action_Executor(Level* L)
     //    sorted out to communicate "don't add binding" here yet.  Give a
     //    first-cut approximation by unbinding.
 
-        if (STATE == ST_ACTION_BARRIER_HIT) {
-            require (
-              Handle_Barrier_Hit(ARG, L)
-            );
-            goto continue_fulfilling;
-        }
-
         if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT) {
             STATE = ST_ACTION_FULFILLING_ARGS;
 
@@ -496,9 +504,7 @@ Bounce Action_Executor(Level* L)
                     goto continue_fulfilling;
                 }
 
-                require (
-                    Handle_Barrier_Hit(ARG, L)
-                );
+                Handle_Barrier_Hit(ARG, L);
                 goto continue_fulfilling;
             }
 
@@ -630,9 +636,7 @@ Bounce Action_Executor(Level* L)
   //=//// ERROR ON END MARKER, BAR! IF APPLICABLE /////////////////////////=//
 
         if (Is_Level_At_End(L)) {
-            require (
-              Handle_Barrier_Hit(ARG, L)
-            );
+            Handle_Barrier_Hit(ARG, L);
             goto continue_fulfilling;
         }
 
@@ -642,6 +646,11 @@ Bounce Action_Executor(Level* L)
 
           case PARAMCLASS_NORMAL:
           case PARAMCLASS_META: {
+            if (Is_Feed_At_End(L->feed) or Is_Comma(At_Feed(L->feed))) {
+                Handle_Barrier_Hit(ARG, L);
+                goto continue_fulfilling;
+            }
+
             Flags flags = EVAL_EXECUTOR_FLAG_FULFILLING_ARG;
 
             require (
@@ -794,7 +803,7 @@ Bounce Action_Executor(Level* L)
         // But +1 is okay, because we want the slots after the refinement.
         //
         REBINT offset =
-            VAL_WORD_INDEX(TOP) - (ARG - cast(Value*, Level_Args_Head(L))) - 1;
+            VAL_WORD_INDEX(TOP) - (ARG - Level_Args_Head(L)) - 1;
         KEY += offset;
         ARG += offset;
         PARAM += offset;
@@ -875,7 +884,7 @@ Bounce Action_Executor(Level* L)
     PARAM = Phase_Params_Head(Level_Phase(L));
 
     for (; KEY != KEY_TAIL; ++KEY, ++PARAM, ++ARG) {
-        if (Is_Typechecked(u_cast(Param*, ARG)))
+        if (Is_Typechecked(ARG))
             continue;
 
         Phase* phase = Level_Phase(L);
@@ -883,15 +892,22 @@ Bounce Action_Executor(Level* L)
         while (Is_Specialized(param)) {
             Element* archetype = Phase_Archetype(phase);
             phase = Frame_Phase(archetype);
-            param = Phase_Param(phase, ARG - cast(Value*, L->rootvar));
+            param = Phase_Param(phase, (ARG - Level_Args_Head(L)) + 1);
+        }
+
+        if (Is_Cell_A_Bedrock_Hole(ARG)) {
+            if (Not_Parameter_Flag(param, ENDABLE))
+                panic (Error_No_Arg(Level_Label(L), Key_Symbol(KEY)));
+            continue;
         }
 
         assert(LIFT_BYTE(ARG) != BEDROCK_0);  // not a tripwire
+        Value* arg = As_Value(ARG);
 
         if (Get_Parameter_Flag(param, CONDITIONAL)) {  // <cond> param
-            if (Any_Void(ARG)) {
+            if (Any_Void(arg)) {
                 Set_Action_Executor_Flag(L, TYPECHECK_ONLY);
-                Mark_Typechecked(u_cast(Param*, ARG));
+                Mark_Typechecked(ARG);
                 Init_Nulled(OUT);
                 continue;
             }
@@ -899,18 +915,18 @@ Bounce Action_Executor(Level* L)
 
         if (Get_Parameter_Flag(param, UNDO_OPT)) {
             require (
-                Stable* stable = Decay_If_Unstable(ARG)
+                Stable* stable = Decay_If_Unstable(arg)
             );
             if (Is_None(stable)) {
                 Init_Nulled(ARG);
-                Mark_Typechecked(u_cast(Param*, ARG));  // null rejected
+                Mark_Typechecked(ARG);  // null rejected
                 continue;
             }
         }
 
         if (Get_Parameter_Flag(param, VARIADIC)) {  // can't check now [2]
             require (
-                Stable* stable = Decay_If_Unstable(ARG)
+                Stable* stable = Decay_If_Unstable(arg)
             );
             if (not Is_Varargs(stable))
                 panic (Error_Not_Varargs(L, KEY, param, stable));
@@ -929,13 +945,13 @@ Bounce Action_Executor(Level* L)
 
         require (
           bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
-            L, Known_Unspecialized(param), ARG
+            L, Known_Unspecialized(param), arg
           )
         );
         if (not check)
-            panic (Error_Phase_Arg_Type(L, KEY, param, ARG));
+            panic (Error_Phase_Arg_Type(L, KEY, param, arg));
 
-        Mark_Typechecked(u_cast(Param*, ARG));
+        Mark_Typechecked(ARG);
     }
 
     Tweak_Level_Phase(L, Phase_Details(Level_Phase(L)));  // ensure Details [4]

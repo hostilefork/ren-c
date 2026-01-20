@@ -1062,14 +1062,13 @@ const RebolBaseInternal* API_rebArgR(
 
     const Key* tail;
     const Key* key = Phase_Keys(&tail, phase);
-    Value* arg = Level_Args_Head(L);
+    Arg* arg = Level_Args_Head(L);
     for (; key != tail; ++key, ++arg) {
         if (Are_Synonyms(Key_Symbol(key), symbol)) {
-            if (Not_Cell_Stable(arg))
-                panic ("rebArg() called on non-stable argument");
+            Value* v = As_Value(arg);
             return cast(
                 RebolBaseInternal*,
-                Nullptr_If_Nulled(arg)
+                Nullptr_If_Nulled(v)
             );
         }
     }

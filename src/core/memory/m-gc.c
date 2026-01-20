@@ -848,7 +848,7 @@ static void Mark_Level(Level* L) {
         key_tail = L->u.action.key + 1;  // don't mark uninitialized bits [2]
     }
 
-    Value* arg = Level_Args_Head(L);
+    Arg* arg = Level_Args_Head(L);
     for (; key != key_tail; ++key, ++arg) {  // key_tail may be truncated [2]
         if (Is_Cell_Erased(arg)) {
             assert(

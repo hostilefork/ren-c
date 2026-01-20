@@ -82,7 +82,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
     const Key* key = Phase_Keys(&tail, phase);
     const Param* param = Phase_Params_Head(phase);
 
-    Slot* arg = Flex_At(Slot, a, 1);
+    Arg* arg = Flex_At(Arg, a, 1);
 
     Ordinal n = 1;  // used to bind REFINEMENT? cells to parameter slots
 
@@ -135,7 +135,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
             //     >> specialize skip:unbounded/ [unbounded: ok]
             //     ** Error: unbounded not bound
             //
-            Init_Okay(Slot_Init_Hack(arg));
+            Init_Okay(arg);
             goto continue_specialized;
         }
 
@@ -255,7 +255,7 @@ bool Specialize_Action_Throws(
     const Key* key = Phase_Keys(&tail, unspecialized);
     const Param* param = Phase_Params_Head(unspecialized);
 
-    Slot* slot = Varlist_Slots_Head(exemplar);
+    Arg* arg = u_cast(Arg*, Varlist_Slots_Head(exemplar));
 
     StackIndex ordered_stackindex = lowest_stackindex;
 
@@ -267,11 +267,11 @@ bool Specialize_Action_Throws(
     bool first_param = true;
     Option(InfixMode) infix_mode = Frame_Infix_Mode(specializee);
 
-    for (; key != tail; ++key, ++param, ++slot) {
+    for (; key != tail; ++key, ++param, ++arg) {
         if (Is_Specialized(param))  // was specialized in underlying phase
             continue;
 
-        if (Is_Cell_A_Bedrock_Hole(slot)) {  // no specialized assignment
+        if (Is_Cell_A_Bedrock_Hole(arg)) {  // no specialized assignment
             if (first_param)
                 first_param = false;  // leave infix as is
             continue;
@@ -286,19 +286,19 @@ bool Specialize_Action_Throws(
         heeded (Corrupt_Cell_If_Needful(Level_Scratch(TOP_LEVEL)));
         heeded (Corrupt_Cell_If_Needful(Level_Spare(TOP_LEVEL)));
 
-        Value* arg = Slot_Hack(slot);
+        Value* v = As_Value(arg);
 
         require (
           bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
-            TOP_LEVEL, Known_Unspecialized(param), arg
+            TOP_LEVEL, Known_Unspecialized(param), v
           )
         );
         if (not check) {
-            assert(Is_Cell_Stable(arg));  // had to decay before rejecting
-            panic (Error_Arg_Type(label, key, param, As_Stable(arg)));
+            assert(Is_Cell_Stable(v));  // had to decay before rejecting
+            panic (Error_Arg_Type(label, key, param, v));
         }
 
-        Mark_Typechecked(u_cast(Param*, arg));
+        Mark_Typechecked(arg);
 
         if (first_param) {
             first_param = false;
@@ -532,7 +532,7 @@ const Param* Last_Unspecialized_Param(Sink(const Key*) key_out, Phase* act)
 //
 // Helper built on First_Unspecialized_Param(), can also give you the param.
 //
-Value* First_Unspecialized_Arg(Option(const Param* *) param_out, Level* L)
+Arg* First_Unspecialized_Arg(Option(const Param* *) param_out, Level* L)
 {
     Phase* phase = Level_Phase(L);
     const Param* param = First_Unspecialized_Param(nullptr, phase);

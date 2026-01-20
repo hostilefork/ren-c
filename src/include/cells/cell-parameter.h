@@ -475,7 +475,7 @@ INLINE const Slot* Known_Unspecialized(const Param* p) {
 //    slot is being filled on behalf of a running varlist.
 //
 
-INLINE Cell* Blit_Param_Drop_Mark_Untracked(Cell* out, const Param* p) {
+INLINE Param* Blit_Param_Drop_Mark_Untracked(Param* out, const Param* p) {
     Blit_Cell_Untracked(out, p);  // checked build ensures out is poison/erased
     Clear_Cell_Flag(out, VAR_MARKED_HIDDEN);  // sealed params marked [1]
   #if DEBUG_PROTECT_PARAM_CELLS
@@ -487,7 +487,7 @@ INLINE Cell* Blit_Param_Drop_Mark_Untracked(Cell* out, const Param* p) {
 #define Blit_Param_Drop_Mark(out,p) \
     TRACK(Blit_Param_Drop_Mark_Untracked(out,p))
 
-INLINE Cell* Blit_Param_Unmarked_Untracked(Cell* out, const Param* p) {
+INLINE Param* Blit_Param_Unmarked_Untracked(Param* out, const Param* p) {
     assert(Not_Cell_Flag(p, VAR_MARKED_HIDDEN));
     Blit_Cell_Untracked(out, p);  // checked build ensures out is poison/erased
   #if DEBUG_PROTECT_PARAM_CELLS
@@ -499,7 +499,7 @@ INLINE Cell* Blit_Param_Unmarked_Untracked(Cell* out, const Param* p) {
 #define Blit_Param_Unmarked(out,p) \
     TRACK(Blit_Param_Unmarked_Untracked(out,p));
 
-INLINE Cell* Blit_Param_Keep_Mark_Untracked(Cell* out, const Param* p) {
+INLINE Param* Blit_Param_Keep_Mark_Untracked(Param* out, const Param* p) {
     Blit_Cell_Untracked(out, p);
   #if DEBUG_PROTECT_PARAM_CELLS
     Clear_Cell_Flag(out, PROTECTED);

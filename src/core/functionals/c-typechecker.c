@@ -392,7 +392,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
 
     const Key* key = sub->u.action.key;
     const Param* param = sub->u.action.param;
-    Value* arg = sub->u.action.arg;
+    Arg* arg = sub->u.action.arg;
     for (; key != sub->u.action.key_tail; ++key, ++param, ++arg) {
         if (Is_Specialized(param))
             Blit_Param_Drop_Mark(arg, param);
@@ -413,7 +413,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
 
     require (
       bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
-        sub, Known_Unspecialized(param), arg
+        sub, Known_Unspecialized(param), cast(Value*, arg)
       )
     );
     if (not check) {

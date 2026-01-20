@@ -61,6 +61,7 @@
     #define Possibly_Antiform(v)  (v)
     #define Known_Stable(v)       (v)
     #define Possibly_Unstable(v)  (v)
+    #define Known_Value(v)        (v)
     #define Possibly_Bedrock(v)   (v)
 #else
     #define Known_Dual(v)         known(Dual*, (v))
@@ -68,6 +69,7 @@
     #define Possibly_Antiform(v)  known_not(Element*, (v))
     #define Known_Stable(v)       known(Stable*, (v))
     #define Possibly_Unstable(v)  known_not(Stable*, (v))
+    #define Known_Value(v)        known(Value*, (v))
     #define Possibly_Bedrock(v)   known_not(Value*, (v))
 #endif
 

@@ -180,7 +180,7 @@ Bounce Func_Dispatcher(Level* const L)
     L->u.action.key_tail = key_tail;
     Param* param = Phase_Params_Head(details);
     L->u.action.param = param;
-    Value* arg = Level_Args_Head(L);
+    Arg* arg = Level_Args_Head(L);
     L->u.action.arg = arg;
     for (; key != key_tail; ++key, ++arg, ++param) {
         if (Is_Specialized(param)) {  // must reset [1]

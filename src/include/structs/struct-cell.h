@@ -802,6 +802,8 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
     struct Element : public Stable {};  // can't hold any antiforms
 #endif
 
+typedef Param Arg;  // !!! Args are in ParamList too; differentiate?
+
 
 //=//// SLOTS /////////////////////////////////////////////////////////////=//
 //

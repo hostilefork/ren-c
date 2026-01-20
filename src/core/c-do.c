@@ -59,7 +59,7 @@ Result(None) Prep_Action_Level(
 
     const Key* key = L->u.action.key;
     const Param* param = L->u.action.param;
-    Value* arg = L->u.action.arg;
+    Arg* arg = L->u.action.arg;
     for (; key != L->u.action.key_tail; ++key, ++param, ++arg) {
         if (Is_Specialized(param))
             Blit_Param_Drop_Mark(arg, param);
@@ -81,11 +81,11 @@ Result(None) Prep_Action_Level(
             break;
         }
 
-        Copy_Cell(arg, unwrap with);  // do not decay [1]
+        Value* copied = Copy_Cell(arg, unwrap with);  // do not decay [1]
 
         if (Parameter_Class(param) != PARAMCLASS_META) {
             require (
-              Decay_If_Unstable(arg)
+              Decay_If_Unstable(copied)
             );
         }
     }}
@@ -272,7 +272,7 @@ bool Pushed_Continuation(
 
         const Key* key = L->u.action.key;
         const Param* param = L->u.action.param;
-        Value* arg = L->u.action.arg;
+        Arg* arg = L->u.action.arg;
         for (; key != L->u.action.key_tail; ++key, ++param, ++arg) {
             if (Is_Specialized(param))
                 Blit_Param_Drop_Mark(arg, param);
