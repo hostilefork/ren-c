@@ -642,10 +642,10 @@ DECLARE_NATIVE(APPLIQUE)
         nullptr  // no binder needed
     );
     Manage_Stub(exemplar);
-    Init_Lensed_Frame(
+    Init_Frame_Core(
         LOCAL(FRAME),
         exemplar,
-        Frame_Phase(op),
+        Frame_Lens_Or_Label(op),
         Frame_Coupling(op)
     );
 

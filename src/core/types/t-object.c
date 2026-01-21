@@ -131,9 +131,9 @@ void Init_Evars(EVARS *e, const Element* v) {
 
   //=//// FRAME ENUMERATION ///////////////////////////////////////////////=//
 
-    // 1. It makes the most sense for unlensed frames to show the inputs only.
-    //    This is because the Lens slot is used for a label when not lensed,
-    //    common with antiforms.
+  // 1. It makes the most sense for unlensed frames to show the inputs only.
+  //    This is because the Lens slot is used for a label when not lensed,
+  //    common with antiforms.
 
             e->slot = Varlist_Slots_Head(varlist);
 
@@ -474,10 +474,9 @@ IMPLEMENT_GENERIC(MAKE, Is_Frame)
         nullptr  // no binder needed, not running any code
     );
 
-    ParamList* lens = Phase_Paramlist(Frame_Phase(arg));
-    Element* out = Init_Lensed_Frame(OUT, exemplar, lens, coupling);
+    Init_Frame_Core(OUT, exemplar, Frame_Lens_Or_Label(arg), coupling);
 
-    Copy_Vanishability(out, arg);
+    Copy_Vanishability(OUT, arg);
 
     return OUT;
 }
@@ -1533,10 +1532,10 @@ IMPLEMENT_GENERIC(COPY, Is_Frame)
         nullptr  // no binder
     );
 
-    return Init_Lensed_Frame(
+    return Init_Frame_Core(
         OUT,
         copy,
-        Frame_Lens(frame),
+        Frame_Lens_Or_Label(frame),
         Frame_Coupling(frame)
     );
 }

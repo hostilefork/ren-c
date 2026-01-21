@@ -102,6 +102,7 @@ core: [
         d-stats.c
         d-test.c
         d-trace.c
+        d-validate.c
     ]
 
     evaluator/ -> [  ; use #prefer-O2-optimization, see [B]

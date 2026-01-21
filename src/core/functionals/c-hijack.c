@@ -111,7 +111,7 @@ void Push_Redo_Action_Level(Value* out, Level* L1, const Value* run)
     ParamList* lens = Phase_Paramlist(Frame_Phase(Phase_Archetype(varlist)));
 
     DECLARE_ELEMENT (frame1);
-    Init_Lensed_Frame(
+    Init_Frame(
         frame1,
         varlist,
         lens,

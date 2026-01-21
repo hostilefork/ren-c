@@ -377,12 +377,11 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
 
   //=//// VARLIST LOOKUP //////////////////////////////////////////////////=//
 
-  // VarLists are currently very basic, and require us to do a linear search
-  // on the KeyList to see if a Symbol is present.  There aren't any fancy
-  // hashings to accelerate the search by accelerating with some method that
-  // might have some false positives about whether the key is there.  (Symbols
-  // are immutable, and hence there could be some fingerprinting done that is
-  // tested against information stored in KeyLists.)  It's technically not as
+  // VarLists are currently very basic, and require a linear KeyList search
+  // to see if a Symbol is present.  There are no fancy hashings to accelerate
+  // with some method that might have false positives about whether the key is
+  // there.  (Symbols are immutable, and hence there could be fingerprinting
+  // done that is tested against information stored in KeyLists.)  It's not as
   // big a problem as it used to be, because modules are based on SeaOfVars
   // and not VarLists...so VarLists have many fewer keys than they used to.
   //
@@ -397,7 +396,7 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
         if (not lens) {  // want full visibility (Use would have defaulted...)
             lens = cast(Phase*, Phase_Details(cast(ParamList*, vlist)));
         }
-        Init_Lensed_Frame(
+        Init_Frame(
             out, cast(ParamList*, vlist), lens, UNCOUPLED
         );
     }

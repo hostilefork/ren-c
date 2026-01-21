@@ -230,7 +230,7 @@ bool Specialize_Action_Throws(
         require (  // [value: value] will both refer into frame [1]
           Use* use = Alloc_Use_Inherits(List_Binding(unwrap def))
         );
-        Init_Lensed_Frame(Stub_Cell(use), exemplar, unspecialized, coupling);
+        Init_Frame(Stub_Cell(use), exemplar, unspecialized, coupling);
 
         Tweak_Cell_Binding(unwrap def, use);
         Remember_Cell_Is_Lifeguard(Stub_Cell(use));  // protects exemplar

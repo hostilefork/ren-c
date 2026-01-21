@@ -106,7 +106,7 @@ INLINE Option(Details*) Try_Frame_Details(const Cell* c) {
 // an adaptation's frame contains the adaptee's variables, it should not be
 // able to do things like assign its locals).
 //
-// But if the base where a Lens would usually be found is a Symbol* then that
+// But if the Base* where a Lens would usually be found is a Symbol* then that
 // implies there isn't any special Lens besides the action stored by the
 // archetype.  Hence the value cell is storing a name to be used with the
 // action when it is extracted from the frame.  That's why this works:
@@ -122,11 +122,24 @@ INLINE Option(Details*) Try_Frame_Details(const Cell* c) {
 // tough if the sequence contained GROUP!s which were evaluated, and then
 // you'd be storing something that wouldn't be stored otherwise, so it would
 // stop being "cheap".
+//
+// Lenses can be either ParamList* or Details*.  The meaning of Details* is
+// "show only the inputs of the associated ParamList* of this Details
+// implementation".  This is because functions like ADAPT want to share the
+// same ParamList* as the function they are adapting, but not have access
+// to all the variables...hence ParamList* can't mean both "show variables"
+// and "show inputs".
+//
 
 INLINE void Tweak_Frame_Lens(Stable* v, Phase* lens) {
     assert(Heart_Of(v) == TYPE_FRAME);  // may be protected (e.g. archetype)
     assert(Is_Stub_Varlist(lens) or Is_Stub_Details(lens));
     Tweak_Frame_Lens_Or_Label(v, lens);
+}
+
+INLINE Option(Stub*) Frame_Lens_Or_Label(const Cell* c) {
+    assert(Heart_Of(c) == TYPE_FRAME);
+    return cast(Stub*, CELL_FRAME_EXTRA_LENS_OR_LABEL(c));
 }
 
 INLINE Option(Phase*) Frame_Lens(const Cell* c) {
@@ -212,17 +225,18 @@ INLINE Element* Init_Frame_Untracked(
     return Init_Frame_Unchecked_Untracked(out, phase, lens_or_label, coupling);
 }
 
-#define Init_Frame_Unchecked(out,identity,label,coupling) \
+#define Init_Frame_Unchecked(out,phase,lens_or_label,coupling) \
     TRACK(Init_Frame_Unchecked_Untracked( \
-        (out), x_cast_known(Phase*, (identity)), (label), (coupling)))
+        (out), x_cast_known(Phase*, (phase)), (lens_or_label), (coupling)))
 
-#define Init_Frame(out,identity,label,coupling) \
-    TRACK(Init_Frame_Untracked((out), x_cast_known(Phase*, (identity)), \
-        known(Option(const Symbol*), (label)), (coupling)))
+#define Init_Frame(out,phase,lens_or_label,coupling) \
+    TRACK(Init_Frame_Untracked((out), x_cast_known(Phase*, (phase)), \
+        known_any((Option(const Symbol*), Option(ParamList*), \
+            Option(Details*), Option(Phase*)), (lens_or_label)), (coupling)))
 
-#define Init_Lensed_Frame(out,identity,lens,coupling) \
-    TRACK(Init_Frame_Untracked((out), x_cast_known(Phase*, (identity)), \
-        x_cast_known(Option(Phase*), (lens)), (coupling)))
+#define Init_Frame_Core(out,phase,lens_or_label,coupling) \
+    TRACK(Init_Frame_Untracked((out), x_cast_known(Phase*, (phase)), \
+        (lens_or_label), (coupling)))
 
 
 //=//// ACTIONS (FRAME! Antiforms) ////////////////////////////////////////=//
@@ -259,21 +273,11 @@ INLINE Value* Activate_Frame_Core(Value* val) {
 #define Activate_Frame(v) \
     Activate_Frame_Core(known(Value*, (v)))
 
-INLINE Value* Init_Action_By_Phase(
-    Sink(Value) out,
-    Phase* phase,
-    Option(const Symbol*) label,
-    Option(VarList*) coupling
-){
-    Init_Frame(out, phase, label, coupling);
-    Unstably_Antiformize_Unbound_Fundamental(out);
-    assert(Is_Action(out));
-    return out;
-}
 
-#define Init_Action(out,identity,label,coupling) \
-    Init_Action_By_Phase((out), x_cast_known(Phase*, (identity)), \
-        (label), (coupling))
+#define Init_Action(out,phase,lens_or_label,coupling) \
+    Activate_Frame_Core( \
+        Init_Frame(known(Value*, (out)), x_cast_known(Phase*, (phase)), \
+          (lens_or_label), (coupling)))
 
 INLINE Element* Deactivate_Action(Exact(Value*) v) {
     assert(Is_Action(v));

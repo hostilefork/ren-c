@@ -209,7 +209,7 @@ Result(None) Init_Invokable_From_Feed(
     assert(Level_Coupling(L) == Frame_Coupling(frame));
     assert(Not_Base_Managed(L->varlist));
 
-    ParamList* varlist = cast(ParamList*, L->varlist);  // executor is nullptr
+    ParamList* varlist = L->varlist;  // executor is nullptr
     L->varlist = nullptr;  // don't let Drop_Level() free varlist (we want it)
     Tweak_Misc_Runlevel(varlist, nullptr);  // disconnect from L
     Drop_Level(L);
@@ -218,7 +218,7 @@ Result(None) Init_Invokable_From_Feed(
     Set_Base_Managed_Bit(varlist);  // can't use Manage_Stub
 
     ParamList* lens = Phase_Paramlist(Frame_Phase(frame));
-    Init_Lensed_Frame(out, varlist, lens, coupling);
+    Init_Frame(out, varlist, lens, coupling);
 
     return none;
 }

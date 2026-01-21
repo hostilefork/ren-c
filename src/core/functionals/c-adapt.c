@@ -105,7 +105,7 @@ Bounce Adapter_Dispatcher(Level* const L)
     require (
       Use* use = Alloc_Use_Inherits(Cell_Binding(prelude))
     );
-    Init_Lensed_Frame(
+    Init_Frame(
         Stub_Cell(use),
         Level_Varlist(L),
         details,  // make only this action's inputs visible

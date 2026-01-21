@@ -146,7 +146,7 @@ Bounce Encloser_Dispatcher(Level* const L)
     Set_Base_Managed_Bit(varlist);  // can't use Force_Flex_Managed [4]
 
     ParamList* lens = Phase_Paramlist(Frame_Phase(inner));
-    Element* arg = Init_Lensed_Frame(  // the FRAME! passed as an arg [5]
+    Element* arg = Init_Frame(  // the FRAME! passed as an arg [5]
         SPARE,
         cast(ParamList*, varlist),
         lens,

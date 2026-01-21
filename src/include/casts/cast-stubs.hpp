@@ -230,6 +230,58 @@ struct CastHook<const F*, const VarList*> {  // both must be const [B]
 };
 
 
+//=//// cast(ParamList*, ...) /////////////////////////////////////////////=//
+
+// Validate_Paramlist_Bits() depends on CTX_TYPE(), and gcc is picky about
+// using inline functions in templated code before they are defined.  So it
+// is not defined inline.
+
+template<typename F>  // [A]
+struct CastHook<const F*, const ParamList*> {  // both must be const [B]
+  static void Validate_Bits(const F* p) {
+    DECLARE_C_TYPE_LIST(type_list,
+        void, Byte, Base, Stub, Array, Flex, Context, VarList, Phase
+    );
+    STATIC_ASSERT(In_C_Type_List(type_list, F));
+
+    if (not p)
+        return;
+
+    Validate_Paramlist_Bits(u_cast(const Stub*, p));
+  }
+};
+
+
+//=//// cast(Details*, ...) ///////////////////////////////////////////////=//
+
+INLINE void Validate_Details_Bits(const Stub* stub) {
+    if ((stub->header.bits & (
+        (STUB_MASK_DETAILS | STUB_MASK_TASTE)
+            | BASE_FLAG_UNREADABLE
+            | BASE_FLAG_CELL
+    )) !=
+        STUB_MASK_DETAILS
+    ){
+        crash (stub);
+    }
+}
+
+template<typename F>  // [A]
+struct CastHook<const F*, const Details*> {  // both must be const [B]
+  static void Validate_Bits(const F* p) {
+    DECLARE_C_TYPE_LIST(type_list,
+        void, Byte, Base, Stub, Array, Flex, Phase
+    );
+    STATIC_ASSERT(In_C_Type_List(type_list, F));
+
+    if (not p)
+        return;
+
+    Validate_Details_Bits(u_cast(const Stub*, p));
+  }
+};
+
+
 //=//// cast(Phase*, ...) ////////////////////////////////////////////////=//
 
 template<typename F>  // [A]
@@ -245,28 +297,9 @@ struct CastHook<const F*, const Phase*> {  // both must be const [B]
 
     const Stub* stub = u_cast(const Stub*, p);
 
-    if (TASTE_BYTE(stub) == FLAVOR_DETAILS) {
-        if ((stub->header.bits & (
-            (STUB_MASK_DETAILS | STUB_MASK_TASTE)
-                | BASE_FLAG_UNREADABLE
-                | BASE_FLAG_CELL
-        )) !=
-            STUB_MASK_DETAILS
-        ){
-            crash (p);
-        }
-    }
-    else {
-        if ((stub->header.bits & ((
-            (STUB_MASK_LEVEL_VARLIST | STUB_MASK_TASTE)
-                | BASE_FLAG_UNREADABLE
-                | BASE_FLAG_CELL
-            )
-        )) !=
-            STUB_MASK_LEVEL_VARLIST  // maybe no MISC_NEEDS_MARK
-        ){
-            crash (p);
-        }
-    }
+    if (TASTE_BYTE(stub) == FLAVOR_DETAILS)
+        Validate_Details_Bits(stub);
+    else
+        Validate_Paramlist_Bits(stub);
   }
 };

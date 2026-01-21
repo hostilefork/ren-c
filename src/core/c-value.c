@@ -230,7 +230,7 @@ void* Probe_Core_Debug(
             }
             ParamList* paramlist = cast(ParamList*, varlist);
             Phase* lens = cast(Phase*, Phase_Details(paramlist));  // show all
-            Init_Lensed_Frame(elem, paramlist, lens, UNCOUPLED);
+            Init_Frame(elem, paramlist, lens, UNCOUPLED);
         }
         else
             Init_Context_Cell(elem, CTX_TYPE(varlist), varlist);
