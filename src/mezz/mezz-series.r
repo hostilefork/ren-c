@@ -131,7 +131,7 @@ replace: func [
             ; They are passed as const so that the replacing function answers
             ; merely by providing the replacement.
             ;
-            ^value: replacement // [const pos, const tail]
+            ^value: apply:relax replacement/ [const pos, const tail]
         ] else [
             value: replacement
         ]
