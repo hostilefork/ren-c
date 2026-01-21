@@ -69,7 +69,7 @@ compose: specialize compose2/ [pattern: '()]  ; use template binding if not @()
 ; lower-level version CASCADE* that just takes a block of frames.
 ;
 cascade: adapt cascade*/ [
-    pipeline: reduce:predicate pipeline unrun/
+    pipeline: reduce pipeline  ; used UNRUN/ predicate, but ACTION! decays now
 ]
 
 
