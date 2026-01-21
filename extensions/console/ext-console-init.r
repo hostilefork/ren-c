@@ -118,20 +118,20 @@ export console!: make object! [
     ][
         ignore ^last-result: ^v  ; don't decay, suppress FAILURE! propagation
 
-        === HANDLE FAILURE! FIRST ===
+      === HANDLE FAILURE! FIRST ===
 
-        ; Typical type checks (e.g. INTEGER?, VOID? and such) will fail on
-        ; FAILURE!, so test for these first.
-        ;
-        ; Note that this is a definitional error...not a panic/exception, so
-        ; PRINT-ERROR is distinct from PRINT-PANIC.
+      ; Typical type checks (e.g. INTEGER?, VOID? and such) panic on FAILURE!,
+      ; so test for these first.
+      ;
+      ; Note that this is a definitional error...not a panic/exception, so
+      ; PRINT-ERROR is distinct from PRINT-PANIC.
 
         if failure? ^v [
             print-error disarm ^v
             exit
         ]
 
-        === GHOST! ===
+      === GHOST! ===
 
         if ghost? ^v [
             print unspaced [
@@ -139,14 +139,13 @@ export console!: make object! [
             exit
         ]
 
-        === UNPACK FIRST VALUE IN "PACKS" ===
+      === UNPACK FIRST VALUE IN "PACKS" ===
 
-        ; Block antiforms represent multiple returns.  Only the first output
-        ; is printed--but with a comment saying that it
-        ; was in a pack.  This hints the user to do a ^META on the value to
-        ; see the complete pack.
-        ;
-        ; 0-length packs (~()~ antiform, "heavy void") mold like antiforms.
+      ; Block antiforms represent multiple returns.  Only the first output is
+      ; printed--but with a comment saying that it was in a pack.  This hints
+      ; the user to do a ^META on the value to see the complete pack.
+      ;
+      ; 0-length packs (~()~ antiform, "heavy void") mold like antiforms.
 
         if pack? ^v [
             if '~()~ = lift ^v [  ; mold like a regular antiform, for now
@@ -180,35 +179,32 @@ export console!: make object! [
             print ["; first in pack of length" len]
         ]
 
-        === PRINT NO OUTPUT FOR TRASH! (antiform RUNE!) ===
+      === PRINT NO OUTPUT FOR TRASH! (antiform RUNE!) ===
 
-        ; By default, we've decided that some state(s) need to not display in
-        ; the console, to suppress output from things like HELP or PRINT,
-        ; because it's noisy to have `== xxx` produced in that case.
-        ;
-        ; (Of course, a console customization could be done which displayed
-        ; all results...but the default should look somewhat streamlined.)
-        ;
-        ; Whatever doesn't display will be a "lie" in some sense.  The two
-        ; competing lies are VOID (a.k.a. empty block antiform, result of
-        ; things like `eval []`) and TRASH (a.k.a. the antiforms of RUNE!).
-        ;
-        ; The decision has flipped many times, but trash wins:
-        ;
-        ; https://forum.rebol.info/t/console-treatment-of-void-vs-trash/2045
-        ;
-        ; TRASH? can hold arbitrary message content as an antiform RUNE!, but
-        ; the most succinct state of trash is antiform space (TRIPWIRE, whose
-        ; quasiform looks like a single tilde `~`).  Right now we don't show
-        ; any trash, regardless of whether it contains a label or not (esp.
-        ; functions that [return: ~] give back trash with their symbol, as
-        ; a debugging aid for knowing where trashes came from).
+      ; By default, we've decided that some state(s) need to not display in
+      ; the console, to suppress output from things like HELP or PRINT,
+      ; because it's noisy to have `== xxx` produced in that case.
+      ;
+      ; (Of course, a console customization could be done which displayed all
+      ; results...but the default should look somewhat streamlined.)
+      ;
+      ; Whatever doesn't display will be a "lie" in some sense.  The decision
+      ; has flipped many times, but trash wins:
+      ;
+      ; https://forum.rebol.info/t/console-treatment-of-void-vs-trash/2045
+      ;
+      ; TRASH? can hold arbitrary message content as an antiform RUNE!, but
+      ; the most succinct state of trash is antiform space (TRIPWIRE, whose
+      ; quasiform looks like a single tilde `~`).  Right now we don't show
+      ; any trash, regardless of whether it contains a label or not (esp.
+      ; functions that [return: ~] give back trash with their symbol, as
+      ; a debugging aid for knowing where trashes came from).
 
         if trash? ^v [
             exit
         ]
 
-        === EMPTY SPLICE! ("NONE") ===
+      === EMPTY SPLICE! ("NONE") ===
 
         if none? ^v [
             print unspaced [
@@ -217,62 +213,55 @@ export console!: make object! [
             exit
         ]
 
-        === ANTIFORMS (^META v parameter means they are quasiforms) ===
+      === ANTIFORMS (^META v parameter means they are quasiforms) ===
+
+      ; Antiforms don't technically have "a representation", but historical
+      ; console behavior is to add a comment annotation.
+      ;
+      ;     >> eval [~null~]
+      ;     == ~null~  ; antiform
+      ;
+      ; Antiforms are evaluative products only; you won't see the annotation
+      ; for anything you picked out of a block:
+      ;
+      ;     >> first [~something~]
+      ;     == ~something~
 
         if antiform? ^v [
-            ;
-            ; Antiforms don't technically have "a representation", but the
-            ; historical console behavior is to add a comment annotation.
-            ;
-            ;     >> eval [~something~]
-            ;     == ~something~  ; anti
-            ;
-            ; Antiforms are evaluative products only, so you won't see the
-            ; annotation for anything you picked out of a block:
-            ;
-            ;     >> first [~something~]
-            ;     == ~something~
-            ;
             let name: switch type of unanti ^v [
-                ; error and void handled above
-                group! ["splice"]
-                group! ["datatype"]
-                frame! ["action"]
-                word! ["keyword"]
-            ] else ["unknown"]
+                block! ['splice!]
+                fence! ['datatype!]
+                frame! ['action!]
+                word! ['logic!]
+            ] else ['unknown]  ; failure! and ghost! handled above
 
             v: lift ^v  ; turn antiform into quasiform
             print unspaced [
-                result _ "\" mold v "\" _ _ ";" _ "antiform (" name "!)"
+                result _ "\" mold v "\" _ _ ";" _ "antiform (" name ")"
             ]
             exit
         ]
 
-        === "ORDINARY" VALUES (non-antiform) ===
+      === "ORDINARY" VALUES (non-antiform) ===
+
+      ; 1. Molding a freed value would cause an error...which is usually okay
+      ;    (you shouldn't be working with freed series).  But if we didn't
+      ;    special-case it, the error would occur in the console code itself.
+      ;
+      ; 2. PORT!s are returned by many operations on files, to permit chaining.
+      ;    They contain many fields so their molding is excessive, and there's
+      ;    not a ton to learn about them.  Cut down the output.
 
         case [
-            free? v [
-                ;
-                ; Molding a freed value would cause an error...which is
-                ; usually okay (you shouldn't be working with freed series)
-                ; but if we didn't special case it here, the error would seem
-                ; to be in the console code itself.
-                ;
+            free? v [  ; [1]
                 print-panic make error! "Series data unavailable due to FREE"
             ]
 
             port? v [
-                ; PORT!s are returned by many operations on files, to
-                ; permit chaining.  They contain many fields so their
-                ; molding is excessive, and there's not a ton to learn
-                ; about them.  Cut down the output more than the mold:limit.
-                ;
                 print [result "&[port! [...] [...]]"]
             ]
         ]
-        else [
-            ; print the first 20 lines of the first 2048 characters of mold
-            ;
+        else [  ; print first 20 lines of the first 2048 characters of mold
             let molded: mold:limit v 2048
             let pos: molded
             repeat 20 [
@@ -345,33 +334,33 @@ export console!: make object! [
         return read-line stdin except ['~escape~]
     ]
 
-    ; See the Debug console skin for example of binding to the currently
-    ; "focused" FRAME!, or this example on the forum of last value injection:
-    ;
-    ;   https://forum.rebol.info/t/1071
-    ;
-    ; 1. The WRAP* operation will collect the top-level SET-WORD declarations
-    ;    and add them to the passed in context, and then run the block bound
-    ;    into that context.  This allows:
-    ;
-    ;        >> x: 10
-    ;        == 10
-    ;
-    ;    But it does not allow:
-    ;
-    ;        >> (y: 20)
-    ;        ** Error: y is not bound
-    ;
-    ;    See: https://forum.rebol.info/t/2128/6
-    ;
-    ; 2. We know the higher-level WRAP will create a context that inherits
-    ;    from the block it's passed, and then run it.  But with the lower
-    ;    level code working with modules, it's less clear--virtually binding
-    ;    the module via a "USE!" won't get the inheritance, and if we make
-    ;    the module the binding literally then that would have to override
-    ;    whatever binding was on the block.  Leave it open for now, as these
-    ;    unbound block cases aren't the only ones to consider.
-    ;
+  ; See the Debug console skin for example of binding to the currently
+  ; "focused" FRAME!, or this example on the forum of last value injection:
+  ;
+  ;   https://forum.rebol.info/t/1071
+  ;
+  ; 1. The WRAP* operation will collect the top-level SET-WORD declarations
+  ;    and add them to the passed in context, and then run the block bound
+  ;    into that context.  This allows:
+  ;
+  ;        >> x: 10
+  ;        == 10
+  ;
+  ;    But it does not allow:
+  ;
+  ;        >> (y: 20)
+  ;        ** Error: y is not bound
+  ;
+  ;    See: https://forum.rebol.info/t/2128/6
+  ;
+  ; 2. We know the higher-level WRAP will create a context that inherits from
+  ;    the block it's passed, and then run it.  But with the lower level code
+  ;    working with modules, it's less clear--virtually binding the module
+  ;    via a "USE!" won't get the inheritance, and if we make the module the
+  ;    binding literally then that would have to override whatever binding was
+  ;    on the block.  Leave it open for now, as these unbound block cases
+  ;    aren't the only ones to consider.
+
     dialect-hook: func [
         "Receives full code block, bind and process, send back to CONSOLE eval"
         return: [block!]
@@ -470,13 +459,13 @@ bind construct [
 
     system.console: proto-skin
 
-    === HOOK FOR HELP ABOUT LAST ERROR ===
+  === HOOK FOR HELP ABOUT LAST ERROR ===
 
-    ; The WHY command lets the user get help about the last error printed.
-    ; To do so, it has to save the last error.  Adjust the error printing
-    ; hook to save the last error printed.  Also inform people of the
-    ; existence of the WHY function on the first error delivery.
-    ;
+  ; The WHY command lets the user get help about the last error printed.  To
+  ; do so, it has to save the last error.  Adjust the error printing hook to
+  ; save the last error printed.  Also inform people of the existence of the
+  ; WHY function on the first error delivery.
+
     proto-skin.print-panic: adapt proto-skin.print-panic/ [
         if not system.state.last-error [
             system.console/print-info "Info: use WHY for error information"
@@ -485,7 +474,7 @@ bind construct [
         system.state.last-error: e
     ]
 
-    === PRINT BANNER ===
+  === PRINT BANNER ===
 
     if yes? o.about [
         boot-print make-banner boot-banner  ; the fancier banner
@@ -493,7 +482,7 @@ bind construct [
 
     system.console/print-greeting
 
-    === VERBOSE CONSOLE SKINNING MESSAGES ===
+  === VERBOSE CONSOLE SKINNING MESSAGES ===
 
     loud-print [newline "Console skinning:" newline]
     if skin-error [
@@ -542,24 +531,24 @@ console*: func [
         [<opt> object! file!]
     {.}
 ][
-    === HANDLE EXIT CODE ===
+  === HANDLE EXIT CODE ===
 
-    ; We could do some sort of handling or cleanup here if we wanted to.
-    ; Note that for simplicity's sake, the QUIT supplied by the CONSOLE to
-    ; the user context only returns integer exit codes (otherwise we'd have
-    ; to add a parameter for what the QUIT:VALUE was--or multiplex it into
-    ; the result--making this code more complicated for little point.)
+  ; We could do some sort of handling or cleanup here if we wanted to.  Note
+  ; that for simplicity's sake, the QUIT supplied by the CONSOLE to the user
+  ; context only returns integer exit codes (otherwise we'd have to add a
+  ; parameter for what the QUIT:VALUE was--or multiplex it into the result,
+  ; making this code more complicated for little point.)
 
     if integer? opt result [  ; QUIT for console only returns exit statuses
         return result
     ]
 
-    === HOOK RETURN FUNCTION TO GIVE EMITTED INSTRUCTION ===
+  === HOOK RETURN FUNCTION TO GIVE EMITTED INSTRUCTION ===
 
-    ; The C caller can be given a BLOCK! representing an code the console is
-    ; executing on its own behalf, as part of its "skin".  Building these
-    ; blocks is made easier by collaboration between EMIT and a hooked version
-    ; of the underlying RETURN of this function.
+  ; The C caller can be given a BLOCK! representing an code the console is
+  ; executing on its own behalf, as part of its "skin".  Building these blocks
+  ; is made easier by collaboration between EMIT and a hooked version of the
+  ; underlying RETURN of this function.
 
     [.]: construct [
         instruction: copy []
@@ -640,16 +629,13 @@ console*: func [
         ]
     ]
 
-    === DO STARTUP HOOK IF THIS IS THE FIRST TIME THE CONSOLE HAS RUN ===
+  === DO STARTUP HOOK IF THIS IS THE FIRST TIME THE CONSOLE HAS RUN ===
+
+  ; !!! It's probably reasonable to assume if there's anything to be done on a
+  ; first call (printing notice of "you broke into debug" or something like
+  ; that) then whoever broke into the REPL takes care of that.
 
     if not prior [
-        ;
-        ; !!! This was the first call before, and it would do some startup.
-        ; Now it's probably reasonable to assume if there's anything to be
-        ; done on a first call (printing notice of "you broke into debug" or
-        ; something like that) then whoever broke into the REPL takes
-        ; care of that.
-        ;
         assert [not result]
         any [
             unset? $system.console
@@ -662,10 +648,10 @@ console*: func [
 
     assert [result]  ; all other calls should provide a result
 
-    === GATHER DIRECTIVES ===
+  === GATHER DIRECTIVES ===
 
-    ; #directives may be at the head of BLOCK!s the console ran for itself.
-    ;
+  ; #directives may be at the head of BLOCK!s the console ran for itself.
+
     let directives: collect [
         let i
         if block? prior [
@@ -685,9 +671,15 @@ console*: func [
         return <prompt>
     ]
 
-    === HALT handling (e.g. Ctrl-C) ===
+  === HALT handling (e.g. Ctrl-C) ===
 
-    ; Note: Escape is handled during input gathering by a dedicated signal.
+  ; Note: Escape is handled during input gathering by a dedicated signal.
+  ;
+  ; 1. !!! This would add an "unskin if halt" which would stop you from
+  ;    halting the print response to the halt message.  But that was still
+  ;    in effect during <prompt> which is part of the same "transaction" as
+  ;    PRINT-HALTED.  To the extent this is a good idea, it needs to guard
+  ;    -only- the PRINT-HALTED and put the prompt in a new state.
 
     all [
         error? result
@@ -708,25 +700,19 @@ console*: func [
             emit [print mold prior]  ; Might help debug to see what was running
         ]
 
-        ; !!! This would add an "unskin if halt" which would stop you from
-        ; halting the print response to the halt message.  But that was still
-        ; in effect during <prompt> which is part of the same "transaction"
-        ; as PRINT-HALTED.  To the extent this is a good idea, it needs to
-        ; guard -only- the PRINT-HALTED and put the prompt in a new state.
-        ;
-        comment [emit #unskin-if-halt]
+        comment [emit #unskin-if-halt]  ; see [1]
 
         emit [system.console/print-halted]
         return <prompt>
     ]
 
-    === RESUME handling ===
+  === RESUME handling ===
 
-    ; !!! This is based on debugger work-in-progress.  A nested console that
-    ; has been invoked via a breakpoint the console will sandbox most errors
-    ; and throws.  But if it recognizes a special "resume instruction" being
-    ; thrown, it will consider its nested level to be done and yield that
-    ; result so the program can continue.
+  ; !!! This is based on debugger work-in-progress.  A nested console that has
+  ; been invoked via a breakpoint the console will sandbox most errors and
+  ; throws.  But if it recognizes a special "resume instruction" being thrown,
+  ; it will consider its nested level to be done and yield that result so the
+  ; program can continue.
 
     all [
         has lib 'resume
@@ -745,12 +731,13 @@ console*: func [
         return result.arg1
     ]
 
-    if error? result [  ; all other panics
-        ;
-        ; Panics can occur during MAIN-STARTUP, before the system.CONSOLE has
-        ; a chance to be initialized (it may *never* be initialized if the
-        ; interpreter is being called non-interactively from the shell).
-        ;
+  === ALL OTHER PANICS ===
+
+  ; Panics can occur during MAIN-STARTUP, before the system.CONSOLE has a
+  ; chance to be initialized (it may *never* be initialized if the interpreter
+  ; is being called non-interactively from the shell).
+
+    if error? result [
         if object? opt system.console [
             emit [system.console/print-panic (<*> result)]
         ] else [
@@ -800,22 +787,22 @@ console*: func [
         return <prompt>
     ]
 
-    === HANDLE RESULT FROM EXECUTION OF CODE ON USER'S BEHALF ===
+  === HANDLE RESULT FROM EXECUTION OF CODE ON USER'S BEHALF ===
 
     if group? prior [
         emit [system.console/print-result (<*> result)]  ; result is meta
         return <prompt>
     ]
 
-    === HANDLE CONTINUATION THE CONSOLE SENT TO ITSELF ===
+  === HANDLE CONTINUATION THE CONSOLE SENT TO ITSELF ===
+
+  ; `result` of console instruction can be:
+  ;
+  ; GROUP! - code to be run in a sandbox on behalf of the user
+  ; BLOCK! - block of gathered input lines so far, need another one
 
     assert [block? prior]
 
-    ; `result` of console instruction can be:
-    ;
-    ; GROUP! - code to be run in a sandbox on behalf of the user
-    ; BLOCK! - block of gathered input lines so far, need another one
-    ;
     result: unlift result
 
     if group? result [
@@ -826,19 +813,41 @@ console*: func [
         return <bad>
     ]
 
-    === TRY ADDING LINE OF INPUT TO CODE REGENERATED FROM BLOCK ===
+  === TRY ADDING LINE OF INPUT TO CODE REGENERATED FROM BLOCK ===
 
-    ; Note: INPUT-HOOK has already run once per line in this block
+  ; Note: INPUT-HOOK has already run once per line in this block
+  ;
+  ; 1. At one time it had to be Ctrl-D on Windows, as ReadConsole() could not
+  ;    trap escape.  But input was changed to use more granular APIs on
+  ;    Windows, on a keystroke basis vs reading a whole line at a time.
+  ;
+  ; 2. If loading the string gave back an error, check to see if it's the kind
+  ;    of error that comes from having partial input (scan-missing).  If so,
+  ;    CONTINUE and read more data until it's complete (or until an empty line
+  ;    signals to just report the error as-is)
+  ;
+  ; 3. Error message tells you what's missing, not what's open and needs to be
+  ;    closed.  Invert the symbol.
+  ;
+  ; 4. Backslash is used in the second column to help make a pattern that isn't
+  ;    legal in Rebol code, which is also uncommon in program output.  This
+  ;    enables detection of transcripts, potentially to replay them without
+  ;    running program output or evaluation results.
+  ;
+  ;    *Note this is not running in a continuation at present*, so the
+  ;    WRITE-STDOUT can only be done via the EMIT.
+  ;
+  ; 5. Could be an unclosed double quote (unclosed tag?) which more input on a
+  ;    new line cannot legally close ATM.
+  ;
+  ; 6. If the transcode returned [], then it was like (transcode "") or
+  ;    transcode "; some comment".  But rather than have the console print out
+  ;    a note that evaluated to GHOST!, we just cycle the prompt.  This is
+  ;    more pleasing if you just hit enter to see if the console is responding.
 
     assert [not empty? result]  ; should have at least one item
 
-    if '~escape~ = last result [  ; Escape key pressed during READ-LINE
-        ;
-        ; Note: At one time it had to be Ctrl-D on Windows, as ReadConsole()
-        ; could not trap escape.  But input was changed to use more granular
-        ; APIs on windows, on a keystroke-by-keystroke basis vs reading a
-        ; whole line at a time.
-        ;
+    if '~escape~ = last result [  ; Escape key pressed during READ-LINE [1]
         return <prompt>
     ]
 
@@ -846,32 +855,16 @@ console*: func [
         return 0  ; !!! how did this work before?
     ]
 
-  ; 1. If loading the string gave back an error, check to see if it's the kind
-  ;    of error that comes from having partial input (scan-missing).  If so,
-  ;    CONTINUE and read more data until it's complete (or until an empty line
-  ;    signals to just report the error as-is)
-  ;
-  ; 2. Error message tells you what's missing, not what's open and needs to be
-  ;    closed.  Invert the symbol.
-  ;
-  ; 3. Backslash is used in the second column to help make a pattern that isn't
-  ;    legal in Rebol code, which is also uncommon in program output.  This
-  ;    enables detection of transcripts, potentially to replay them without
-  ;    running program output or evaluation results.
-  ;
-  ;    *Note this is not running in a continuation at present*, so the
-  ;    WRITE-STDOUT can only be done via the EMIT.
-
     let code: (
         transcode (delimit newline result)
     ) except (error -> [
-        if error.id = 'scan-missing [  ; [1]
+        if error.id = 'scan-missing [  ; [2]
             switch error.arg1 [
                 #"}" [#"{"]
                 #")" [#"("]
                 #"]" [#"["]
-            ] then (unclosed -> [  ; [2]
-                emit [write stdout unspaced [(<*> unclosed) "\" _ _]]  ; [3]
+            ] then (unclosed -> [  ; [3]
+                emit [write stdout unspaced [(<*> unclosed) "\" _ _]]  ; [4]
 
                 emit [reduce [  ; reduce will runs in sandbox
                     (<*> spread result)  ; splice previous inert literal lines
@@ -882,36 +875,26 @@ console*: func [
             ])
         ]
 
-        ; Could be an unclosed double quote (unclosed tag?) which more input
-        ; on a new line cannot legally close ATM
-        ;
-        emit [system.console/print-panic (<*> error)]
+        emit [system.console/print-panic (<*> error)]  ; [5]
         return <prompt>
     ])
 
-    ; If the transcode returned [], then it was like (transcode "") or
-    ; transcode "; some comment".  But rather than have the console print out
-    ; a note that evaluated to GHOST!, we just cycle the prompt.  This is
-    ; more pleasing if you just hit enter to see if the console is responding.
-    ;
     if [] = code [
         return <prompt>
     ]
 
     assert [block? code]
 
-    === HANDLE CODE THAT HAS BEEN SUCCESSFULLY LOADED ===
+  === HANDLE CODE THAT HAS BEEN SUCCESSFULLY LOADED ===
+
+  ; Shortcuts like `q => [quit 0]`, `d => [dump]`
+  ;
+  ; Help confused user who might not know about the shortcut not panic by
+  ; giving them a message.  Reduce noise for the casual shortcut by only doing
+  ; so when a bound variable exists.
 
     if let shortcut: select system.console.shortcuts cond try code.1 [
-        ;
-        ; Shortcuts like `q => [quit 0]`, `d => [dump]`
-        ;
         if (has sys.contexts.user code.1) and (set? inside code code.1) [
-            ;
-            ; Help confused user who might not know about the shortcut not
-            ; panic by giving them a message.  Reduce noise for the casual
-            ; shortcut by only doing so when a bound variable exists.
-            ;
             emit [system.console/print-warning (<*>
                 spaced [
                     uppercase to text! code.1
@@ -926,8 +909,10 @@ console*: func [
         insert code spread shortcut
     ]
 
-    ; Run the "dialect hook", which can transform the completed code block
-    ;
+  === RUN DIALECT HOOK ===
+
+  ; Run the "dialect hook", which can transform the completed code block
+
     emit #unskin-if-halt  ; Ctrl-C during dialect hook is a problem
     emit [
         comment "not all users may want CONST result, review configurability"
@@ -942,7 +927,6 @@ console*: func [
 ; We can choose to expose certain functionality only in the console prompt,
 ; vs. needing to be added to global visibility.  Adding to the lib context
 ; means these will be seen by scripts, e.g. `do "why"` will work.
-;
 
 export why: proc [
     "Explain the last error in more detail."
