@@ -128,6 +128,13 @@ struct IfOutputConvertible2 {  // used by Init() and Sink()
     using enable = typename std::enable_if<value>;  // not ::type [G]
 };
 
+// Raw pointer construction should only use contravariance, not AllowSinkConversion
+template<typename U, typename T>
+struct IfRawPtrContravariant {
+    static constexpr bool value = IfContravariant<U, T>::value;
+    using enable = typename std::enable_if<value>;  // not ::type [G]
+};
+
 
 //=//// SINK() WRAPPER FOR OUTPUT PARAMETERS //////////////////////////////=//
 //
@@ -160,6 +167,10 @@ struct SinkWrapper {
     using IfSinkConvertible
         = typename IfOutputConvertible2<U, T>::enable::type;
 
+    template<typename U>
+    using IfRawPtrSinkable
+        = typename IfRawPtrContravariant<U, T>::enable::type;
+
     SinkWrapper()  // compiler MIGHT need, see [E]
         : corruption_pending {false}
     {
@@ -178,7 +189,19 @@ struct SinkWrapper {
     {
     }
 
-    template<typename U, IfSinkConvertible<U>* = nullptr>
+    // Raw pointer constructor: contravariance only
+    template<typename U,
+        typename = enable_if_t<not HasWrappedType<U>::value>,
+        IfRawPtrSinkable<U>* = nullptr>
+    SinkWrapper(const U& u) {
+        this->p = x_cast(T*, x_cast(void*, u));  // cast workaround [F]
+        this->corruption_pending = (this->p != nullptr);
+    }
+
+    // Wrapped type constructor: allows AllowSinkConversion
+    template<typename U,
+        typename = enable_if_t<HasWrappedType<U>::value>,
+        IfSinkConvertible<U>* = nullptr>
     SinkWrapper(const U& u) {
         this->p = x_cast(T*, x_cast(void*, u));  // cast workaround [F]
         this->corruption_pending = (this->p != nullptr);
@@ -230,7 +253,7 @@ struct SinkWrapper {
         return *this;
     }
 
-    template<typename U, IfSinkConvertible<U>* = nullptr>
+    template<typename U, IfRawPtrSinkable<U>* = nullptr>
     SinkWrapper& operator=(U ptr) {
         this->p = u_cast(T*, ptr);
         this->corruption_pending = (ptr != nullptr);  // corrupt
@@ -355,10 +378,15 @@ struct SinkWrapper {
 #if DEBUG_CHECK_INIT_SINKS
     #undef NeedfulInit
     #define NeedfulInit(T)  needful::SinkWrapper<T*>  // see notes above
+
+    #error "NeedfulContra needs to be reworked if Init() is Sink()"
 #else
     #undef NeedfulInit
     #define NeedfulInit(T)  needful::InitWrapper<T*>
 #endif
+
+#undef NeedfulContra
+#define NeedfulContra(T)  needful::InitWrapper<T*>  // temp contravariance
 
 template<typename TP>
 struct InitWrapper {
@@ -370,6 +398,10 @@ struct InitWrapper {
     using IfInitConvertible
         = typename IfOutputConvertible2<U, T>::enable::type;
 
+    template<typename U>
+    using IfRawPtrInitable
+        = typename IfRawPtrContravariant<U, T>::enable::type;
+
     InitWrapper() {  // compiler might need, see [E]
         dont(Corrupt_If_Needful(p));  // lightweight behavior vs. Sink()
     }
@@ -377,7 +409,18 @@ struct InitWrapper {
     InitWrapper(std::nullptr_t) : p {nullptr}
         {}
 
-    template<typename U, IfInitConvertible<U>* = nullptr>
+    // Raw pointer constructor: contravariance only
+    template<typename U,
+        typename = enable_if_t<not HasWrappedType<U>::value>,
+        IfRawPtrInitable<U>* = nullptr>
+    InitWrapper(const U& u) {
+        this->p = x_cast(T*, x_cast(void*, u));  // cast workaround [F]
+    }
+
+    // Wrapped type constructor: allows AllowSinkConversion
+    template<typename U,
+        typename = enable_if_t<HasWrappedType<U>::value>,
+        IfInitConvertible<U>* = nullptr>
     InitWrapper(const U& u) {
         this->p = x_cast(T*, x_cast(void*, u));  // cast workaround [F]
     }
@@ -418,7 +461,7 @@ struct InitWrapper {
         return *this;
     }
 
-    template<typename U, IfInitConvertible<U>* = nullptr>
+    template<typename U, IfRawPtrInitable<U>* = nullptr>
     InitWrapper& operator=(U ptr) {
         this->p = u_cast(T*, ptr);
         return *this;

@@ -199,6 +199,25 @@ template<typename T>  // assume wrappers are contravariant by default [1]
 struct IsContravariantWrapper : std::true_type {};
 
 
+// AllowSinkConversion() is used by Sink()/Init() to permit certain otherwise
+// disallowed output conversions (e.g. writing an Element into a fresh Slot).
+//
+// But sinks may be wrapped (OnStackPointer<...>, etc.).  To avoid having to
+// specialize every wrapper combination, lift AllowSinkConversion through
+// contravariant wrappers by recursively delegating to their wrapped_type.
+//
+// This intentionally does *not* apply to wrappers that opt-out via
+// IsContravariantWrapper (e.g. OptionWrapper), since "maybe-null" wrappers
+// shouldn't inherit sink-conversion permissions.
+//
+template<typename U, typename T>
+struct AllowSinkConversion<U, T,
+    typename std::enable_if<
+        HasWrappedType<U>::value && IsContravariantWrapper<U>::value
+    >::type
+> : AllowSinkConversion<typename U::wrapped_type, T> {};
+
+
 template<typename B, typename D, typename = void>
 struct IsCompatibleBase : std::false_type {};
 
@@ -240,10 +259,14 @@ struct IfContravariant<U, T, /* bool IsWrapper = */ true> {  // wrapper [2]
     using WP = typename U::wrapped_type;
     using W = remove_pointer_t<WP>;
 
+    // Recursively unwrap if W is also a wrapper, to handle double-wrapping
+    // like OnStackPointer<InitWrapper<Stable*>> → InitWrapper<Element*>
     static constexpr bool value =
         IsContravariantWrapper<U>::value
-        and std::is_class<W>::value
-        and std::is_class<T>::value
-        and IsCompatibleBase<W, T>::value;
+        and (HasWrappedType<W>::value
+            ? IfContravariant<WP, T>::value  // recurse if still wrapped
+            : (std::is_class<W>::value
+               and std::is_class<T>::value
+               and IsCompatibleBase<W, T>::value));
     using enable = typename std::enable_if<value>;  // not ::type [G]
 };

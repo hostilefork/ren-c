@@ -502,6 +502,7 @@ void Needful_Panic_Abruptly(const char* error) {
 #define NeedfulSink(T)  T *
 #define NeedfulInit(T)  T *
 
+#define NeedfulContra(T)  T *
 #define NeedfulExact(T)  T  // precise type
 
 
@@ -1125,6 +1126,7 @@ void Needful_Panic_Abruptly(const char* error) {
 #if !defined(NEEDFUL_DONT_DEFINE_SINK_SHORTHANDS)
     #define Sink /* (T) */          NeedfulSink
     #define Init /* (T) */          NeedfulInit
+    #define Contra /* (T) */        NeedfulContra
     #define Exact /* (T) */         NeedfulExact
 #endif
 
