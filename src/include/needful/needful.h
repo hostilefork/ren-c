@@ -1141,7 +1141,7 @@ void Needful_Panic_Abruptly(const char* error) {
 
     #define known /* (T,expr) [2] */             needful_lenient_known
     #define known_not /* (T,expr) [2] */         needful_lenient_known_not
-    #define known_any /* ((T,...),expr) */       needful_rigid_known
+    #define known_any /* ((T,...),expr) */       needful_rigid_known_any
 
     #define rigid_x_cast_known /* (T,expr) */    needful_rigid_x_cast_known
     #define lenient_x_cast_known /* (T,expr) */  needful_lenient_x_cast_known
