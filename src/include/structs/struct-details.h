@@ -199,7 +199,7 @@ typedef struct {
 #endif
 
 
-//=//// PHASE IS A WEIRD "TYPESET" OF DETAILS* AND PARAMLIST* ////////////=//
+//=//// DETAILS AND PARAMLIST "MULTIPLY INHERIT" FROM PHASE ///////////////=//
 //
 // We would like to say:
 //
@@ -210,6 +210,10 @@ typedef struct {
 // be accepted.  Except this would lose important properties--like that
 // a ParamList* is actually a Context*.  It makes more sense for ParamList
 // to inherit from VarList.
+//
+// Multiple inheritance in C++ to accomplish this would have to be multiple
+// *virtual* inheritance.  But we need std::is_standard_layout<> to be true
+// for all our structs that use C++ trickery.
 //
 // The Needful library gives us a tool for building compile-time typecheckers
 // that check for a match against a list of arbitrary types:
@@ -225,11 +229,45 @@ typedef struct {
 // with functions that take Phase* in order to get them to take Details* or
 // ParamList*.  But it seems to work.
 //
+
 #if CPLUSPLUS_11
     struct Phase : public Stub {};
 #else
     typedef Stub Phase;
 #endif
+
+#if NEEDFUL_CPP_ENHANCEMENTS
+namespace needful {
+    template<typename From>
+    struct IsConvertibleAsserter<From, const Phase*> {
+        static_assert(
+            needful::IsConvertibleAny<
+                From,
+                ParamList*, Details*, Phase*
+            >::value,
+            "known() failed: Phase* only converts from ParamList* or Details*"
+        );
+        typedef Phase* type;  // e.g. known(Phase*, details) -> Phase*
+    };
+
+  #if NEEDFUL_OPTION_USES_WRAPPER
+    template<typename From>
+    struct IsConvertibleAsserter<From, Option(const Phase*)> {
+        static_assert(
+            needful::IsConvertibleAny<
+                From,
+                Option(ParamList*), Option(Details*), Option(Phase*)
+            >::value,
+            "known() failed: Phase* only converts from ParamList* or Details*"
+        );
+        typedef Phase* type;  // e.g. known(Phase*, details) -> Phase*
+    };
+  #endif
+}
+#endif
+
+#define Known_Phase(p) \
+    x_cast_known(Phase*, (p))  // overload means Details* or Paramlist* ok too
 
 
 // Includes STUB_FLAG_DYNAMIC because an action's paramlist is always

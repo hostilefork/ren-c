@@ -68,51 +68,10 @@
 
 
 
-//=//// MAKE known(Phase*, ...) WORK /////////////////////////////////////=//
-//
-// Phase can be either ParamList or Details, but those types aren't on the
-// same inheritance chain.  This means the usual known() won't work.  BUT
-// Needful allows you to overload it... so we can make a version that can
-// do the validation.  (The C build just thinks these are all Stub*, anyway.)
-//
-// See the definition of Phase for more information.
-//
-
-#if NEEDFUL_CPP_ENHANCEMENTS
-namespace needful {
-    template<typename From>
-    struct IsConvertibleAsserter<From, const Phase*> {
-        static_assert(
-            needful::IsConvertibleAny<
-                From,
-                ParamList*, Details*, Phase*
-            >::value,
-            "known() failed: Phase* only converts from ParamList* or Details*"
-        );
-        typedef Phase* type;  // e.g. known(Phase*, details) -> Phase*
-    };
-
-  #if NEEDFUL_OPTION_USES_WRAPPER
-    template<typename From>
-    struct IsConvertibleAsserter<From, Option(const Phase*)> {
-        static_assert(
-            needful::IsConvertibleAny<
-                From,
-                Option(ParamList*), Option(Details*), Option(Phase*)
-            >::value,
-            "known() failed: Phase* only converts from ParamList* or Details*"
-        );
-        typedef Phase* type;  // e.g. known(Phase*, details) -> Phase*
-    };
-  #endif
-}
-#endif
-
-
 // For performance, all Details and VarList stubs are STUB_FLAG_DYNAMIC.
 //
 #define Phase_Archetype(phase) \
-    Flex_Head_Dynamic(Element, known(Phase*, (phase)))
+    Flex_Head_Dynamic(Element, Known_Phase(phase))
 
 INLINE Details* Phase_Details_Core(Phase* p) {
     while (not Is_Stub_Details(p)) {
@@ -122,7 +81,7 @@ INLINE Details* Phase_Details_Core(Phase* p) {
 }
 
 #define Phase_Details(p) \
-    Phase_Details_Core(x_cast_known(Phase*, (p)))
+    Phase_Details_Core(Known_Phase(p))
 
 
 INLINE bool Is_Frame_Details(const Cell* v) {
@@ -151,7 +110,7 @@ INLINE ParamList* Phase_Paramlist_Core(Phase* p) {
 }
 
 #define Phase_Paramlist(p) \
-    Phase_Paramlist_Core(x_cast_known(Phase*, (p)))
+    Phase_Paramlist_Core(Known_Phase(p))
 
 
 // More optimized version of Bonus_Keylist(Phase_Paramlist(a)),
@@ -172,7 +131,7 @@ INLINE Param* Phase_Params_Head_Core(Phase* p) {
 }
 
 #define Phase_Params_Head(p) \
-    Phase_Params_Head_Core(x_cast_known(Phase*, (p)))
+    Phase_Params_Head_Core(Known_Phase(p))
 
 INLINE Dispatcher* Details_Dispatcher(Details* details)
   { return f_cast(Dispatcher*, LINK_DETAILS_DISPATCHER(details)); }
@@ -360,4 +319,4 @@ INLINE bool Action_Is_Derived_From(Phase* derived, Phase* base) {
 
 
 #define First_Unspecialized_Param(key_out,phase) \
-    First_Unspecialized_Param_Core((key_out), x_cast_known(Phase*, (phase)))
+    First_Unspecialized_Param_Core((key_out), Known_Phase(phase))

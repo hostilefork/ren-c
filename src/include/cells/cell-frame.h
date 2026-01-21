@@ -227,15 +227,15 @@ INLINE Element* Init_Frame_Untracked(
 
 #define Init_Frame_Unchecked(out,phase,lens_or_label,coupling) \
     TRACK(Init_Frame_Unchecked_Untracked( \
-        (out), x_cast_known(Phase*, (phase)), (lens_or_label), (coupling)))
+        (out), Known_Phase(phase), (lens_or_label), (coupling)))
 
 #define Init_Frame(out,phase,lens_or_label,coupling) \
-    TRACK(Init_Frame_Untracked((out), x_cast_known(Phase*, (phase)), \
+    TRACK(Init_Frame_Untracked((out), Known_Phase(phase), \
         known_any((Option(const Symbol*), Option(ParamList*), \
             Option(Details*), Option(Phase*)), (lens_or_label)), (coupling)))
 
 #define Init_Frame_Core(out,phase,lens_or_label,coupling) \
-    TRACK(Init_Frame_Untracked((out), x_cast_known(Phase*, (phase)), \
+    TRACK(Init_Frame_Untracked((out), Known_Phase(phase), \
         (lens_or_label), (coupling)))
 
 
@@ -276,8 +276,7 @@ INLINE Value* Activate_Frame_Core(Value* val) {
 
 #define Init_Action(out,phase,lens_or_label,coupling) \
     Activate_Frame_Core( \
-        Init_Frame(known(Value*, (out)), x_cast_known(Phase*, (phase)), \
-          (lens_or_label), (coupling)))
+        Init_Frame(known(Value*, (out)), (phase), (lens_or_label), (coupling)))
 
 INLINE Element* Deactivate_Action(Exact(Value*) v) {
     assert(Is_Action(v));
