@@ -490,6 +490,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 //          [any-value? pack! failure!]
 //      :groups "Allow GROUP! Evaluations"
 //      :steps "Return evaluation steps for reproducible access"
+//      :dual "Set value as lifted, or unlifted if special 'bedrock' state"
 //  ]
 //
 DECLARE_NATIVE(SET)
@@ -569,9 +570,16 @@ DECLARE_NATIVE(SET)
         );
     }
 
-    Value* dual = Lift_Cell(v);  // make dual for TWEAK [2]
+    Value* dual = v;  // make dual for TWEAK [2]
 
-    STATE = ST_TWEAK_SETTING;
+    if (ARG(DUAL)) {
+        STATE = ST_TWEAK_TWEAKING;
+        assert(not Is_Antiform(dual));
+    }
+    else {
+        STATE = ST_TWEAK_SETTING;
+        Lift_Cell(dual);
+    }
 
     Option(Bounce) b = Irreducible_Bounce(
         LEVEL,
@@ -579,6 +587,11 @@ DECLARE_NATIVE(SET)
     );
     if (b)
         return unwrap b;  // keep bouncing while we couldn't get OUT as answer
+
+    if (ARG(DUAL)) {
+        assert(not Is_Antiform(dual));
+        return COPY_TO_OUT(dual);
+    }
 
     Element* lifted = As_Element(dual);
     assert(Any_Lifted(lifted));

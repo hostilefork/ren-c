@@ -2160,20 +2160,20 @@ default-combinators: make map! [
         ; AUGMENT is used to add param1, param2, param3, etc.
         :parsers "Sneaky argument of parsers collected from arguments"  ; [2]
             [block!]
-        {arg subpending}
+        {f subpending}
     ][
-        let f: make frame! value
-        for-each 'key f [
-            let param: select value key
+        f: make frame! value
+        for-each key f {
+            param: get:dual key
             if not param.optional [
                 ensure frame! parsers.1
 
-                f.(key): [{^} input subpending]: trap run parsers.1 input
+                set meta key [{^} input subpending]: trap run parsers.1 input
 
                 glom $pending subpending
                 parsers: next parsers
             ]
-        ]
+        }
         assert [tail? parsers]
         return eval f
     ]
@@ -2631,8 +2631,8 @@ comment [combinatorize: func [
 
     f: make frame! combinator
 
-    for-each 'key words of f [
-        let param: select f key
+    for-each key f {
+        param: get:dual key
         case [
             key = 'input [
                 ; All combinators should have an input.  But the
@@ -2703,7 +2703,7 @@ comment [combinatorize: func [
                 ]
             ]
         ]
-    ]
+    }
 
     f.rule-end: rules
 
@@ -2848,15 +2848,15 @@ parsify: func [
 
             comb: adapt (augment comb bind1 collect [
                 let n: 1
-                for-each 'key (words of gotten) [
-                    let param: select gotten key
+                for-each key gotten {
+                    param: get:dual key
                     if not param.optional [
                         keep spread compose [
                             (meta join 'param n) [action!]
                         ]
                         n: n + 1
                     ]
-                ]
+                }
             ])[
                 parsers: copy []
 
@@ -2866,13 +2866,13 @@ parsify: func [
                 let f: binding of $param1
 
                 let n: 1
-                for-each 'key (words of value) [
-                    let param: select value key
+                for-each key value {
+                    param: get:dual key
                     if not param.optional [
                         append parsers unrun f.(join 'param n)/
                         n: n + 1
                     ]
-                ]
+                }
             ]
 
             return combinatorize:value comb rules state gotten

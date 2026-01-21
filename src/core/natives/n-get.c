@@ -690,6 +690,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
 //      {dual-ignore}  ; for frame compatibility with TWEAK [1]
 //      :groups "Allow GROUP! Evaluations"
 //      :steps "Return evaluation steps for reproducible access"
+//      :dual "Get value as lifted, or unlifted if special 'bedrock' state"
 //  ]
 //
 DECLARE_NATIVE(GET)
@@ -703,12 +704,12 @@ DECLARE_NATIVE(GET)
 // 2. Conveniently, FRAME! locals default to NULL, so the DUAL parameter is
 //    the right signal for GET to pass to TWEAK to mean GET.
 {
-    INCLUDE_PARAMS_OF_TWEAK;  // !!! must have compatible frame [1]
+    INCLUDE_PARAMS_OF_GET;  // !!! must have compatible frame with TWEAK [1]
 
     Element* target = Element_ARG(TARGET);
 
-    assert(Is_Light_Null(LOCAL(DUAL)));  // "value" (SET uses, GET doesn't) [2]
-    USED(ARG(DUAL));  // NULL is signal for TWEAK to GET
+    assert(Is_Light_Null(LOCAL(DUAL_IGNORE)));  // (SET uses, GET doesn't) [2]
+    USED(ARG(DUAL_IGNORE));  // NULL is signal for TWEAK to GET
 
     USED(ARG(STEPS));  // TWEAK heeds this
     USED(ARG(GROUPS));  // TWEAK heeds this too (but so do we)
@@ -749,7 +750,7 @@ DECLARE_NATIVE(GET)
         return Init_Pack(OUT, a);
     }
 
-    STATE = ST_TWEAK_GETTING;
+    STATE = ARG(DUAL) ? ST_TWEAK_TWEAKING : ST_TWEAK_GETTING;
 
     Option(Bounce) b = Irreducible_Bounce(
         LEVEL,
@@ -760,6 +761,11 @@ DECLARE_NATIVE(GET)
 
     if (Is_Failure(OUT))
         return OUT;  // weird can't pick case, see [A]
+
+    if (ARG(DUAL)) {
+        assert(not Is_Antiform(OUT));
+        return OUT;
+    }
 
     assert(Any_Lifted(OUT));  // should not give back BEDROCK_0 states.
 

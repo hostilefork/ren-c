@@ -6,8 +6,8 @@
 [(
 log: elide/
 
-switch2: lambda [
-    value [any-stable?]
+switch2: func [
+    ^value [any-value?]
     cases [block!]
     :multi
     {more (okay) found (null) ^result condition branch}
@@ -34,12 +34,13 @@ switch2: lambda [
                     log ["Testing condition:" mold condition]
 
                     let f: make frame! make varargs! condition
-                    for-each [key ^val] f [
-                        if unset? $val [
-                            f.(key): value
-                            break
-                        ]
-                    ]
+                    for-each key f {
+                        param: get:dual meta key
+                        if not parameter? param [continue]
+                        if param.optional [continue]
+                        set meta key ^value  ; EVAL will decay if needed
+                        break
+                    }
                     log ["Built frame for condition:" mold f]
 
                     if found: logical eval f [
@@ -74,6 +75,7 @@ switch2: lambda [
             )
         ]
     ]]
+    return ^result
 ]
 ok)
 
@@ -87,4 +89,10 @@ ok)
         match any-stable?/ => [keep <any-stable?>]
     ]
 ])
+
+(
+    1020 = switch2 () [
+        equal? () => [1000 + 20]
+    ]
+)
 ]

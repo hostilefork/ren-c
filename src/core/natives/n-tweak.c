@@ -965,6 +965,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //          ]
 //      :groups "Allow GROUP! Evaluations"
 //      :steps "Return evaluation steps for reproducible access"
+//      {dual-refinement-placeholder}  ; GET and SET have :DUAL refinement
 //  ]
 //
 DECLARE_NATIVE(TWEAK)
