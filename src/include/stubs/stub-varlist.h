@@ -283,7 +283,7 @@ MUTABLE_IF_C(Stable*, INLINE) Stable_Slot_Hack(
 ){
     CONSTABLE(Value*) s = u_cast(Value*, slot);
     assert(LIFT_BYTE(s) != BEDROCK_0);
-    if (LIFT_BYTE(s) <= STABLE_ANTIFORM_2)
+    if (LIFT_BYTE(s) < STABLE_ANTIFORM_2)
         panic ("Stable_Slot_Hack() called on non-Stable slot");
     return As_Stable(s);
 }
