@@ -102,7 +102,7 @@ PVAR Element* g_auto_trash_param;  // holds [trash!] spec used by [return ~]
 
 PVAR Element* g_tag_variadic;  // marks variadic argument <variadic>
 PVAR Element* g_tag_end;  // marks endable argument (NULL if at end of input)
-PVAR Element* g_tag_cond;  // passing void makes action a noop
+PVAR Element* g_tag_veto;  // passing void makes action a noop
 PVAR Element* g_tag_opt;  // passing void turns argument into a null
 PVAR Element* g_tag_const; // pass a CONST version of the input argument
 PVAR Element* g_tag_null;  // nicer looking way to say NULL?

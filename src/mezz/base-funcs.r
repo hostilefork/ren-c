@@ -461,7 +461,7 @@ count-up: func [
     "Loop the body, setting a word from 1 up to the end value given"
     return: [any-value?]
     @(var) [_ word! 'word! $word! '$word!]
-    limit [<cond> integer! rune!]
+    limit [integer! rune!]
     @(body) [block! fence!]
     {start end ^result}
 ][

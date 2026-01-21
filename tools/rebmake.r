@@ -54,7 +54,7 @@ target-platform: null
 
 map-files-to-local: func [
     return: [block!]
-    files [<cond> file! block!]
+    files [file! block!]
 ][
     if not block? files [files: reduce [files]]
     return map-each 'f files [

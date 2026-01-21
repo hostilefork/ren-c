@@ -246,7 +246,7 @@ load: func [
         <null>
     ]
     source "Source of the information being loaded"
-        [<cond> file! url! tag! @word! text! blob!]
+        [file! url! tag! @word! text! blob!]
     :type "E.g. rebol, text, markup, jpeg... (by default, auto-detected)"
         [word!]
 
@@ -324,7 +324,7 @@ load: func [
 
 adjust-url-for-raw: func [
     return: [<null> url!]
-    url [<cond> url!]
+    url [url!]
 ][
     let text: to text! url  ; URL! is immutable, must copy to mutate in parse
 

@@ -247,8 +247,8 @@ Bounce Stepper_Executor(Level* L)
 
         Param* param = Phase_Params_Head(details);
         if (
-            Get_Parameter_Flag(param, CONDITIONAL)
-            and Is_Cell_A_Veto_Hot_Potato(SPARE)
+            Is_Cell_A_Veto_Hot_Potato(SPARE)
+            and Not_Parameter_Flag(param, WANT_VETO)
         ){
             Init_Nulled(OUT);
             goto lookahead;

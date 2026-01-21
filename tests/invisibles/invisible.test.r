@@ -43,7 +43,7 @@
 (
     num-runs: 0
 
-    add-period: func [x [<cond> text!]] [
+    add-period: func [x [text!]] [
         num-runs: me + 1
         return append x "."
     ]

@@ -589,7 +589,7 @@ static Bounce Loop_Number_Common(
 //      start [any-series? any-number?]
 //      end [any-series? any-number?]
 //      bump [any-number?]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(CFOR)
@@ -666,9 +666,9 @@ DECLARE_NATIVE(CFOR)
 //      ]
 //      @(word) "Word to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word!]
-//      series [<cond> <opt> any-series?]
-//      skip [<cond> integer!]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      series [<opt> any-series?]
+//      skip [integer!]
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(FOR_SKIP)
@@ -841,7 +841,7 @@ void Add_Definitional_Stop(
 //  "Evaluate branch endlessly until BREAK gives NULL or a STOP gives a result"
 //
 //      return: [<null> any-stable?]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(CYCLE)
@@ -1341,9 +1341,9 @@ void Shutdown_Loop_Each(Stable* iterator)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      ^data "The series to traverse"
-//          [<cond> <opt> any-series? any-context? map! any-sequence?
+//          [<opt> any-series? any-context? map! any-sequence?
 //           action! quoted!]  ; action support experimental, e.g. generators
-//      body [<cond> <const> block! frame!]  ; [A]
+//      body [<const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -1478,8 +1478,8 @@ DECLARE_NATIVE(FOR_EACH)
 //      ]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
-//      ^data [<cond> <opt> any-series? any-context? map! action!]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      ^data [<opt> any-series? any-context? map! action!]
+//      body [<const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -1621,8 +1621,8 @@ DECLARE_NATIVE(EVERY)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      data "The series to traverse (modified)"
-//          [<cond> <opt> any-series?]  ; !!! can't do QUOTED!
-//      body [<cond> <const> block! frame!]  ; [A]
+//          [<opt> any-series?]  ; !!! can't do QUOTED!
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(REMOVE_EACH)
@@ -1990,13 +1990,12 @@ DECLARE_NATIVE(REMOVE_EACH)
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      ^data "The series to traverse"
 //          [
-//              <cond>
 //              <opt>
 //              quoted!
 //              any-series? any-sequence? any-context?
 //              action!
 //          ]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      body [<const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -2040,8 +2039,8 @@ DECLARE_NATIVE(MAP_EACH)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      ^data "The series to traverse (only QUOTED? BLOCK! at the moment...)"
-//          [<cond> <opt> quoted! action!]
-//      body [<cond> <const> block! frame!]  ; [A]
+//          [<opt> quoted! action!]
+//      body [<const> block! frame!]  ; [A]
 //      {iterator}
 //  ]
 //
@@ -2227,7 +2226,7 @@ DECLARE_NATIVE(MAP)
 //      ]
 //      count "Repetitions (true loops infinitely, false doesn't run)"
 //          [<opt> any-number? logic!]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(REPEAT)
@@ -2329,8 +2328,8 @@ DECLARE_NATIVE(REPEAT)
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
 //      value "Maximum number or series to traverse"
-//          [<cond> any-number? any-sequence? quoted! block!]
-//      body [<cond> <const> block! frame!]  ; [A]
+//          [any-number? any-sequence? quoted! block!]
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(FOR)
@@ -2456,7 +2455,7 @@ DECLARE_NATIVE(FOR)
 //  "Evaluates the body until it produces a non-NULL (and non-VOID) value"
 //
 //      return: [<null> any-stable?]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(INSIST)
@@ -2649,7 +2648,7 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 //
 //      return: [<null> any-stable?]
 //      condition [<const> block! frame!]  ; literals not allowed, [1]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(WHILE)
@@ -2673,7 +2672,7 @@ DECLARE_NATIVE(WHILE)
 //
 //      return: [<null> any-stable?]
 //      condition [<const> block! frame!]  ; literals not allowed, [1]
-//      body [<cond> <const> block! frame!]  ; [A]
+//      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(UNTIL)

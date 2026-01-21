@@ -195,24 +195,21 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
     FLAG_LEFT_BIT(12)
 
 
-//=//// PARAMETER_FLAG_CONDITIONAL ////////////////////////////////////////=//
+//=//// PARAMETER_FLAG_WANT_VETO //////////////////////////////////////////=//
 //
-// If a parameter is marked with the `<cond>` annotation, then that means
-// if the argument is VOID or HEAVY VOID in invocation, the dispatcher for the
-// function won't be run at all; NULL will be returned by the call.
+// If a parameter is marked with the `<veto>` annotation, then that means it
+// wants to receive the VETO hot potato as an argument, as opposed to making
+// the function return NULL after all parameters are gathered and typechecked.
 //
-// This helps avoid the need to take the argument as ^META just to do the
-// test for void, if this is the intent.  Beyond convenience, it doesn't speed
-// natives up all that much, as they could test `Any_Void(arg)` and then
-// `return Init_Nulled(OUT);`...which would be fairly fast.  But it speeds up
-// usermode code much more, considering that `if void? ^arg [return null]`
-// needs several frames and lookups to run.
+// (At one time, you had to explicitly mark parameters as being VETOABLE to
+// get vetoing behavior, due to concern about the semantics of NULL being
+// confusing if logic was an expected result.  e.g. EVEN? being vetoed might
+// seem to imply oddness, vs. veto'd ness.  But having to mark parameters as
+// "opting-in" to vetoability was very noisy, and it's better to use <veto>
+// to signal you're "opting out" of the automatic handling and want the veto
+// hot potato.)
 //
-// Plus the <cond> annotation helps convey the "void-in-null-out" contract
-// more clearly than just being willing to take VOID or HEAVY VOID and *able*
-// to return null, which doesn't connect the two states.
-//
-#define PARAMETER_FLAG_CONDITIONAL \
+#define PARAMETER_FLAG_WANT_VETO \
     FLAG_LEFT_BIT(13)
 
 
@@ -279,10 +276,7 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
 //
 // This is set by the <opt> parameter flag.  It helps avoid the need to
 // make a function take ^META parameters just in order to test if something is
-// a void, so long as there's no need to distinguish it from null.  See also
-// the <cond> parameter flag, which can be used if the only processing
-// for a void would be to return null as the overall function result with
-// no further side-effects.
+// a void, so long as there's no need to distinguish it from null.
 //
 #define PARAMETER_FLAG_UNDO_OPT \
     FLAG_LEFT_BIT(20)

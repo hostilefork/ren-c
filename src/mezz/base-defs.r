@@ -233,7 +233,7 @@ empty?: lambda [
     "OKAY if none or void, if empty, or if index is at or beyond its tail"
     []: [logic!]
     container [
-        <cond> <opt> none? any-series? any-sequence? object! port! bitset! map!
+        <opt> none? any-series? any-sequence? object! port! bitset! map!
     ]
 ][
     any [
@@ -251,10 +251,10 @@ print: func [
 
     return: [
         trash! "result invisible in the console when there was output"
-        <null> "if the input was <cond>, e.g. void passed vs. empty string"
+        <null> "if no output was printed"
     ]
     line "Line of text or block, [] has NO output, CHAR! newline allowed"
-        [<cond> char? text! block! @any-element?]
+        [char? text! block! @any-element?]
 ][
     if char? line [
         if line <> newline [

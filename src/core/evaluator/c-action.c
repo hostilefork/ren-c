@@ -904,13 +904,14 @@ Bounce Action_Executor(Level* L)
         assert(LIFT_BYTE(ARG) != BEDROCK_0);  // not a tripwire
         Value* arg = As_Value(ARG);
 
-        if (Get_Parameter_Flag(param, CONDITIONAL)) {  // <cond> param
-            if (Is_Cell_A_Veto_Hot_Potato(arg)) {
-                Set_Action_Executor_Flag(L, TYPECHECK_ONLY);
-                Mark_Typechecked(ARG);
-                Init_Nulled(OUT);
-                continue;
-            }
+        if (
+            Is_Cell_A_Veto_Hot_Potato(arg)
+            and Not_Parameter_Flag(param, WANT_VETO)
+        ){
+            Set_Action_Executor_Flag(L, TYPECHECK_ONLY);
+            Mark_Typechecked(ARG);
+            Init_Nulled(OUT);
+            continue;
         }
 
         if (Get_Parameter_Flag(param, UNDO_OPT)) {
@@ -1006,7 +1007,7 @@ Bounce Action_Executor(Level* L)
 
     assert(Get_Action_Executor_Flag(L, IN_DISPATCH));
 
-    if (Get_Action_Executor_Flag(L, TYPECHECK_ONLY)) {  // <cond>
+    if (Get_Action_Executor_Flag(L, TYPECHECK_ONLY)) {  // e.g. got VETO
         assert(Is_Light_Null(OUT));
         goto skip_output_check;
     }
@@ -1103,9 +1104,9 @@ Bounce Action_Executor(Level* L)
 
 } skip_output_check: {  //////////////////////////////////////////////////////
 
-  // This is where things get jumped to if you pass a <cond> argument a
-  // VOID and it wants to jump past all the processing and return, or if
-  // a level just wants argument fulfillment and no execution.
+  // This is where things get jumped to if you passsed a VETO argument and it
+  // wants to jump past all the processing and return, or if a level wants
+  // argument fulfillment and no execution.
   //
   // NOTE: Anything that calls panic() must do so before Drop_Action()!
   //

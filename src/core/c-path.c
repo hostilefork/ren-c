@@ -104,9 +104,9 @@ Result(Element*) Init_Any_Sequence_At_Listlike(
 //  "Perform a path picking operation; same code as `(location).(picker)`"
 //
 //      return: [<null> any-stable?]
-//      location [<cond> plain?]  ; can't pick sigil'd/quoted
+//      location [plain?]  ; can't pick sigil'd/quoted
 //      picker "Index offset, symbol, or other value to use as index"
-//          [<cond> any-stable?]
+//          [any-stable?]
 //      {dual}  ; slot in position of DUAL for TWEAK*
 //  ]
 //
@@ -168,8 +168,8 @@ DECLARE_NATIVE(PICK)
 //          quoted! quasiform!  "lifted cell for bits to update in container"
 //          frame! ^word! ^tuple! space? parameter! "indirect writeback"
 //      ]
-//      location [<cond> fundamental?]  ; can't poke a quoted/quasi
-//      picker [<cond> element?]
+//      location [fundamental?]  ; can't poke a quoted/quasi
+//      picker [any-stable?]
 //      dual [
 //          <null>  "pick semantics (vs. poke)"
 //          quoted! quasiform!  "lifted value to poke"
@@ -255,9 +255,9 @@ DECLARE_NATIVE(TWEAK_P_UNCHECKED)
 //
 //      return: [any-value? failure!]
 //      location "(modified)"
-//          [<cond> fundamental?]  ; can't poke a quoted/quasi
+//          [fundamental?]  ; can't poke a quoted/quasi
 //      picker "Index offset, symbol, or other value to use as index"
-//          [<cond> any-stable?]
+//          [any-stable?]
 //      ^value "FAILURE! will be piped through without doing the poke"
 //          [<void> any-stable? failure!]
 //      {store}

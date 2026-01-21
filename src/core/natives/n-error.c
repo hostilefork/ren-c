@@ -32,7 +32,7 @@
 //  "Suppress PANIC escalation from PANIC!s and 'hot potatoes', return NULL"
 //
 //      return: [<null> any-value?]
-//      ^value '[any-value? failure! hot-potato? void?]
+//      ^value '[<veto> any-value? failure! hot-potato? void?]
 //  ]
 //
 DECLARE_NATIVE(TRY)

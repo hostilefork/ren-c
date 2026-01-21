@@ -942,14 +942,12 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //  "Low-level variable setter, that can assign within the dual band"
 //
 //      return: [
-//          <null>
 //          quasiform! quoted!
 //          frame! word! ^word! ^tuple! space? parameter!
 //          failure!  "Passthru even if it skips the assign"
 //      ]
 //      target "Word or tuple, or calculated sequence steps (from GET)"
 //          [
-//              <cond>
 //              word! tuple!
 //              ^word! ^tuple!
 //              @block!

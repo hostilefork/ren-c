@@ -54,7 +54,7 @@ array: func [
 
     return: [<null> block!]
     size "Size or block of sizes for each dimension"
-        [<cond> integer! block!]
+        [integer! block!]
     :^initial "Initial value (will be called each time if action)"
         [element? action!]
     {rest block}  ; rest: null
@@ -99,11 +99,11 @@ replace: func [
 
     return: [<null> any-series?]
     target "Series to replace within (modified)"
-        [<cond> any-series?]
+        [any-series?]
     pattern "Value to be replaced (converted if necessary)"
-        [<cond> <opt> element? splice!]
+        [<opt> element? splice!]
     ^replacement "Value to replace with (called each time if action)"
-        [<cond> element? splice! action!]
+        [element? splice! action!]
 
     :one "Replace one (or zero) occurrences"
     :case "Case-sensitive replacement"  ; !!! Note this aliases CASE native!
@@ -136,7 +136,7 @@ replace: func [
             value: replacement
         ]
 
-        if void? ^value [  ; treat returning void as "skip this replace"
+        if veto? ^value [  ; treat returning VETO as "skip this replace"
             pos: tail
             continue
         ]
@@ -392,7 +392,7 @@ collect*: lambda [
         block!
         <null> "if no KEEPs, prevent nulls with (keep ~[]~)"
     ]
-    body [<cond> block!]
+    body [block!]
     {out}
 ][
     let keep: specialize (  ; SPECIALIZE to hide series argument
@@ -498,10 +498,9 @@ split: func [
 
     return: [<null> block!]
     series "The series to split"
-        [<cond> any-series?]
+        [any-series?]
     dlm "Split size, delimiter(s) (if all integer block), or block rule(s)"
         [
-            <cond>  ; don't split, return null
             <opt>  ; just return input
             block!  ; parse rule
             @block!  ; list of integers for piece lengths

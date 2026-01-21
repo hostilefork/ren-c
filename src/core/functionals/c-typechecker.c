@@ -338,8 +338,8 @@ bool Predicate_Check_Spare_Uses_Scratch(
     ){
         Param* param = Phase_Params_Head(details);
         if (
-            Get_Parameter_Flag(param, CONDITIONAL)
-            and Is_Cell_A_Veto_Hot_Potato(SPARE)
+            Is_Cell_A_Veto_Hot_Potato(SPARE)
+            and Not_Parameter_Flag(param, WANT_VETO)
         ){
             goto test_failed;
         }
@@ -970,8 +970,8 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
   // to have a lot of value.  It wasn't the const bit test they're seeking
   // to avoid paying for.
   //
-  // The <cond> mechanics are handled at a higher level than typechecking,
-  // as typechecking never gets called at all.
+  // VETO mechanics are handled at a higher level than typechecking, as
+  // typechecking never gets called at all.
   //
   // 1. !!! Should explicit mutability override, so people can say things
   //    like (foo: func [...] mutable [...]) ?  This seems bad, because the
@@ -980,7 +980,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     if (Get_Parameter_Flag(param, CONST))
         Set_Cell_Flag(v, CONST);  // mutability override? [1]
 
-    if (Get_Parameter_Flag(param, CONDITIONAL))  // veto handled before here
+    if (Not_Parameter_Flag(param, WANT_VETO))  // veto handled before here
         assert(not Is_Cell_A_Veto_Hot_Potato(v));
 
     if (Get_Parameter_Flag(param, UNDO_OPT))
@@ -1208,7 +1208,7 @@ DECLARE_NATIVE(TYPECHECK)
 //      return: [<null> any-stable?]
 //      test [block! datatype! parameter! frame!]
 //      value "Won't pass thru NULL (use TYPECHECK for a LOGIC? answer)"
-//          [<cond> any-stable?]
+//          [any-stable?]
 //  ]
 //
 DECLARE_NATIVE(MATCH)

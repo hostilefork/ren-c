@@ -25,7 +25,7 @@ description-of: lambda [
     "One-line summary of a value's purpose"
 
     []: [<null> text!]
-    v [<cond> any-stable?]
+    v [any-stable?]
 ][
     switch:type ^v [
         any-list?/ [

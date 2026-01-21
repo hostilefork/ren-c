@@ -646,9 +646,6 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Bitset)
 
     Element* bset = Element_ARG(LOCATION);
 
-    if (Is_Antiform(ARG(PICKER)))
-        panic (PARAM(PICKER));
-
     const Element* picker = Element_ARG(PICKER);
 
     Stable* dual = ARG(DUAL);

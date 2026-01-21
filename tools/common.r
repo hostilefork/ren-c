@@ -39,7 +39,7 @@ export to-c-name: func [
 
     return: [null? text!]
     value "Will be converted to text (via UNSPACED if BLOCK!)"
-        [<cond> text! block! word!]
+        [text! block! word!]
     :scope "[#global #local #prefixed] see http://stackoverflow.com/q/228783/"
         [rune!]
 ][

@@ -40,7 +40,7 @@ info?: func [
 exists?: func [
     "Returns the type of a file or URL if it exists, otherwise null"
     return: [<null> ~[file dir]~]  ; should return logic, FILETYPE OF separate
-    target [<cond> file! url!]
+    target [file! url!]
 ][
     if space? target [return null]  ; https://forum.rebol.info/t/954
 

@@ -315,7 +315,7 @@ main-startup: func [
         "Convert string path to absolute dir! path, null if not found"
 
         []: [<null> file!]
-        dir [<cond> text!]
+        dir [text!]
     ][
         all [
             not empty? dir

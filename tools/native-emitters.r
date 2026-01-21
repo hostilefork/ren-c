@@ -330,8 +330,8 @@ export emit-include-params-macro: func [
                 (find [  ; !!! bad way of doing this...think of better
                     [frame!]
                     [element?]
-                    [<cond> <const> block! frame!]
-                    [<cond> <opt> element?]
+                    [<const> block! frame!]
+                    [<opt> element?]
                 ] cond spec) [ctype: 'Element]
             ] else [
                 if find cond spec <end> [

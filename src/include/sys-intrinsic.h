@@ -49,7 +49,7 @@
 //
 // ** WHEN RUN AS AN INTRINSIC, THE ARG IN THE SPARE CELL CONTAINS A FULLY NON
 // TYPECHECKED META REPRESENTATION, AND THE NATIVE IS RESPONSIBLE FOR ALL
-// ARGUMENT PROCESSING (WITH THE EXCEPTION OF <cond>).**
+// ARGUMENT PROCESSING (WITH THE EXCEPTION OF VETO and <opt>).**
 //
 // Not only that, but the special case of typechecking intrinsics (that
 // return LOGIC_OUT?) is that they can't write to L->out...because if you were
@@ -131,7 +131,7 @@ INLINE Result(Option(Element*)) Typecheck_Element_Intrinsic_Arg(
 // want frameless natives on the stack above an evaluation (which might want
 // to introspect the stack and isn't prepared to see an intrinsic there).
 //
-// If the parameter is <cond> that is handled prior to this as well.
+// If the parameter is VETO that is handled prior to this as well.
 //
 INLINE Stable* Stable_Decayed_Intrinsic_Arg(
     Level* L

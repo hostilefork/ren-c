@@ -2979,7 +2979,7 @@ parse*: func [
         failure! "error if no match"
     ]
     input "Input data"
-        [<cond> any-series? url! any-sequence?]
+        [any-series? url! any-sequence?]
     rules "Block of parse rules"
         [<const> block!]
     :combinators "List of keyword and datatype handlers used for this parse"
@@ -3157,7 +3157,7 @@ parse-furthest: adapt augment parse/ [
 ;
 using: func [
     return: ~  ; should it return a value?  (e.g. the object?)
-    obj [<cond> object!]
+    obj [object!]
 ][
     add-use-object (binding of $obj) obj
     return ~

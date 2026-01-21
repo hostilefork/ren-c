@@ -1281,7 +1281,7 @@ IMPLEMENT_GENERIC(SHUFFLE, Any_List)
 //
 //      return: [file! url! failure!]
 //      value "Typically only ANY-LIST? know their file"
-//          [<cond> element?]
+//          [element?]
 //  ]
 //
 DECLARE_NATIVE(FILE_OF)
@@ -1309,7 +1309,7 @@ IMPLEMENT_GENERIC(FILE_OF, Any_Element)  // generic fallthrough returns error
 //
 //      return: [integer! failure!]
 //      value "Typically only ANY-LIST? know their file"
-//          [<cond> element?]
+//          [element?]
 //  ]
 //
 DECLARE_NATIVE(LINE_OF)
@@ -1471,7 +1471,7 @@ IMPLEMENT_GENERIC(SORT, Any_List)
 //  "If a value isn't already a BLOCK!, enclose it in a block, else return it"
 //
 //      return: [<null> block!]
-//      value [<cond> <opt> element?]
+//      value [<opt> element?]
 //  ]
 //
 DECLARE_NATIVE(BLOCKIFY)
@@ -1501,7 +1501,7 @@ DECLARE_NATIVE(BLOCKIFY)
 //  "If a value isn't already a GROUP!, enclose it in a group, else return it"
 //
 //      return: [group!]
-//      value [<cond> <opt> element?]
+//      value [<opt> element?]
 //  ]
 //
 DECLARE_NATIVE(GROUPIFY)
@@ -1533,7 +1533,7 @@ DECLARE_NATIVE(GROUPIFY)
 //      return: [<null> any-list?]
 //      example "Example's binding (or lack of) will be used"
 //          [datatype! any-list?]
-//      content [<cond> <opt> element? splice!]
+//      content [<opt> element? splice!]
 //  ]
 //
 DECLARE_NATIVE(ENVELOP)

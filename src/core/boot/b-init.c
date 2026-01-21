@@ -235,7 +235,7 @@ static void Init_Action_Spec_Tags(void)
 {
     known_nullptr(g_tag_variadic) = Make_Locked_Tag("variadic");
     known_nullptr(g_tag_end) = Make_Locked_Tag("end");
-    known_nullptr(g_tag_cond) = Make_Locked_Tag("cond");
+    known_nullptr(g_tag_veto) = Make_Locked_Tag("veto");
     known_nullptr(g_tag_opt) = Make_Locked_Tag("opt");
     known_nullptr(g_tag_const) = Make_Locked_Tag("const");
     known_nullptr(g_tag_null) = Make_Locked_Tag("null");
@@ -289,7 +289,7 @@ static void Shutdown_Action_Spec_Tags(void)
 
     rebReleaseAndNull(&g_tag_variadic);
     rebReleaseAndNull(&g_tag_end);
-    rebReleaseAndNull(&g_tag_cond);
+    rebReleaseAndNull(&g_tag_veto);
     rebReleaseAndNull(&g_tag_opt);
     rebReleaseAndNull(&g_tag_const);
     rebReleaseAndNull(&g_tag_null);
@@ -704,7 +704,7 @@ void Startup_Core(void)
   // basic words need to be defined.  For instance: You can't run %sysobj.r
   // unless `null` and `okay` have been added to the g_lib_context--they'd be
   // undefined.  And while analyzing the function specs during the definition
-  // of natives, things like the <cond> tag are needed as a basis for
+  // of natives, things like the <opt> tag are needed as a basis for
   // comparison to see if a usage matches that.
   //
   // These may be used in the system object definition.  At one time code

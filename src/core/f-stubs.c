@@ -579,7 +579,7 @@ Result(Element*) Unsingleheart_Sequence_Preserve_Sigil(Element* seq) {
 //  "If possible, convert a value to a SET-XXX! representation"
 //
 //      return: [<null> element?:]
-//      value [<cond> element?]
+//      value [element?]
 //  ]
 //
 DECLARE_NATIVE(SETIFY)
@@ -603,7 +603,7 @@ DECLARE_NATIVE(SETIFY)
 //  "If possible, convert a value to a GET-XXX! representation"
 //
 //      return: [<null> :element?]
-//      value [<cond> element?]
+//      value [element?]
 //  ]
 //
 DECLARE_NATIVE(GETIFY)
@@ -663,7 +663,7 @@ static Bounce Sigilize_Native_Core(Level* level_, Sigil sigil)
 //  "Convert a value to its ^XXX metaform representation"
 //
 //      return: [failure! ^plain?]
-//      value '[<cond> fundamental?]
+//      value '[fundamental?]
 //      :force "Meta without erroring, even if already metaform/tied/pinned"
 //  ]
 //
@@ -679,7 +679,7 @@ DECLARE_NATIVE(META)
 //  "Convert a value to its @XXX pinned representation"
 //
 //      return: [failure! @plain?]
-//      value '[<cond> fundamental?]
+//      value '[fundamental?]
 //      :force "Pin without erroring, even if already metaform/tied/pinned"
 //  ]
 //
@@ -695,7 +695,7 @@ DECLARE_NATIVE(PIN)
 //  "Convert a value to its $XXX tied representation"
 //
 //      return: [failure! $plain?]
-//      value '[<cond> fundamental?]
+//      value '[fundamental?]
 //      :force "Tie without erroring, even if already metaform/tied/pinned"
 //  ]
 //
@@ -732,7 +732,7 @@ static Bounce Unsigilize_Native_Core(Level* level_, Sigil sigil)
 //  "Convert ^XXX to plain XXX, error if not metaform"
 //
 //      return: [<null> plain? failure!]
-//      value '[<cond> fundamental?]
+//      value '[fundamental?]
 //  ]
 //
 DECLARE_NATIVE(UNMETA)
@@ -747,7 +747,7 @@ DECLARE_NATIVE(UNMETA)
 //  "Convert @XXX to plain XXX, error if not pinned"
 //
 //      return: [<null> plain? failure!]
-//      value '[<cond> fundamental?]
+//      value '[fundamental?]
 //  ]
 //
 DECLARE_NATIVE(UNPIN)
@@ -762,7 +762,7 @@ DECLARE_NATIVE(UNPIN)
 //  "Convert $XXX to plain XXX, error if not tied"
 //
 //      return: [<null> plain? failure!]
-//      value '[<cond> fundamental?]
+//      value '[fundamental?]
 //  ]
 //
 DECLARE_NATIVE(UNTIE)
@@ -777,7 +777,7 @@ DECLARE_NATIVE(UNTIE)
 //  "Convert a value into its plain representation"
 //
 //      return: [<null> plain?]
-//      value '[<cond> element?]
+//      value '[element?]
 //  ]
 //
 DECLARE_NATIVE(PLAIN)
@@ -800,7 +800,7 @@ DECLARE_NATIVE(PLAIN)
 //  "Remove CHAIN!, e.g. leading colon or trailing colon from an element"
 //
 //      return: [<null> element?]
-//      chain [<cond> chain!]
+//      chain [chain!]
 //  ]
 //
 DECLARE_NATIVE(UNCHAIN)
@@ -821,7 +821,7 @@ DECLARE_NATIVE(UNCHAIN)
 //  "Remove PATH!, e.g. leading slash or trailing slash from an element"
 //
 //      return: [<null> element?]
-//      path [<cond> path!]
+//      path [path!]
 //  ]
 //
 DECLARE_NATIVE(UNPATH)
@@ -842,7 +842,7 @@ DECLARE_NATIVE(UNPATH)
 //  "Remove TUPLE!, e.g. leading dot or trailing dot from a tuple"
 //
 //      return: [<null> element?]
-//      tuple [<cond> tuple!]
+//      tuple [tuple!]
 //  ]
 //
 DECLARE_NATIVE(UNTUPLE)

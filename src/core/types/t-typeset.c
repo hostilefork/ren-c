@@ -252,7 +252,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
   // 1. TAG! parameter modifiers can't be abstracted.  So you can't say:
   //
-  //        modifier: either condition [<end>] [<cond>]
+  //        modifier: either condition [<end>] [<opt>]
   //        foo: func [arg [modifier integer!]] [...]
   //
   // 2. !!! The actual final notation for variadics is not decided on; it
@@ -269,8 +269,10 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
         else if (0 == CT_Utf8(item, g_tag_end, strict)) {
             flags |= PARAMETER_FLAG_ENDABLE;
         }
-        else if (0 == CT_Utf8(item, g_tag_cond, strict)) {
-            flags |= PARAMETER_FLAG_CONDITIONAL;
+        else if (0 == CT_Utf8(item, g_tag_veto, strict)) {
+            if (pclass != PARAMCLASS_META)
+                panic ("<veto> tag only valid on ^META parameters");
+            flags |= PARAMETER_FLAG_WANT_VETO;
         }
         else if (0 == CT_Utf8(item, g_tag_opt, strict)) {
             flags |= PARAMETER_FLAG_UNDO_OPT;
@@ -737,7 +739,7 @@ Result(None) Decorate_Element(const Element* decoration, Element* element)
 //          quoted! "allows things like [' '' ''' '@ ''^ ''$] etc."
 //          parameter! "apply parameter decoration rules as in spec dialect"
 //      ]
-//      value [<cond> plain?]
+//      value [plain?]
 //  ]
 //
 DECLARE_NATIVE(DECORATE)
@@ -775,7 +777,7 @@ DECLARE_NATIVE(DECORATE)
 //          quoted! "allows things like [' '' ''' '@ ''^ ''$] etc."
 //          parameter! "apply parameter decoration rules as in spec dialect"
 //      ]
-//      value [<cond> element?]
+//      value [element?]
 //  ]
 //
 DECLARE_NATIVE(REDECORATE)
@@ -809,7 +811,7 @@ DECLARE_NATIVE(REDECORATE)
 //          quoted! "quotes are in decoration, like [' '' ''' '@ ''^ ''$] etc."
 //          <null> "if none of the above decorations are present"
 //      ]
-//      value [<cond> element?]
+//      value [element?]
 //  ]
 //
 DECLARE_NATIVE(DECORATION_OF)
@@ -862,7 +864,7 @@ DECLARE_NATIVE(DECORATION_OF)
 //  "Remove decorations (Sigils, Quotes, leading-space sequences) from VALUE"
 //
 //      return: [<null> plain?]
-//      value [<cond> element?]
+//      value [element?]
 //  ]
 //
 DECLARE_NATIVE(UNDECORATE)

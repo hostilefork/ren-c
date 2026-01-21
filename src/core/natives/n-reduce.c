@@ -31,7 +31,7 @@
 //  "Detect whether argument is the ~(veto)~ dual"
 //
 //      return: [logic!]
-//      ^value '[any-value?]
+//      ^value '[<veto> any-value?]
 //  ]
 //
 DECLARE_NATIVE(VETO_Q)
@@ -102,7 +102,7 @@ DECLARE_NATIVE(DRAIN_Q)
 //
 //      return: [<null> element?]
 //      value "Lists evaluate each item, single values evaluate"
-//          [<cond> element?]
+//          [element?]
 //      :predicate "Applied after evaluation, default is IDENTITY"
 //          [frame!]
 //  ]
@@ -312,7 +312,7 @@ DECLARE_NATIVE(REDUCE)
 //
 //      return: [pack!]
 //      block "Reduce if plain BLOCK!, don't if @BLOCK!"
-//          [<cond> block! @block!]
+//          [block! @block!]
 //      {predicate}  ; for FRAME!-compatibility with REDUCE
 //  ]
 //

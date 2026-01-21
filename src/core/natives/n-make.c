@@ -33,9 +33,9 @@
 //
 //      return: [element?]
 //      type "The datatype or parent context to construct from"
-//          [<cond> datatype! any-context?]
+//          [datatype! any-context?]
 //      def "Definition or size of the new value (binding may be modified)"
-//          [<cond> element?]  ; !!! ACTION! decays to FRAME!, should it?
+//          [element?]  ; !!! ACTION! decays to FRAME!, should it?
 //  ]
 //
 DECLARE_NATIVE(MAKE)
@@ -83,7 +83,7 @@ Bounce Copy_Quoter_Executor(Level* level_)
 //
 //      return: [any-stable?]
 //      value "If an ANY-SERIES?, it is only copied from its current position"
-//          [<cond> element?]
+//          [element?]
 //      :part "Limits to a given length or position"
 //          [any-number? any-series? pair!]
 //      :deep "Also copies series values within the block"
@@ -301,8 +301,8 @@ static Bounce Downshift_For_To_Or_As_Checker(Level *level_) {
 //  "Reversibly convert VALUE to TYPE (copied if TYPE is already VALUE's type)"
 //
 //      return: [element?]
-//      type [<cond> datatype!]
-//      value [<cond> element? datatype!]
+//      type [datatype!]
+//      value [element? datatype!]
 //  ]
 //
 DECLARE_NATIVE(TO)
@@ -411,7 +411,7 @@ DECLARE_NATIVE(TO)
 //
 //      return: [<null> plain?]
 //      type [datatype!]
-//      value [<cond> plain?]
+//      value [plain?]
 //  ]
 //
 DECLARE_NATIVE(AS)

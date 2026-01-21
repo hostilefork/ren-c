@@ -110,7 +110,7 @@ DECLARE_NATIVE(JUST)
 //          element?    "if depth = 0, may give a non-quoted result"
 //          <null>      "if input is void"
 //      ]
-//      value [<cond> element?]
+//      value [element?]
 //      :depth "Number of quoting levels to apply (default 1)"
 //          [integer!]
 //  ]
@@ -409,7 +409,6 @@ DECLARE_NATIVE(UNANTI)
 //          <null>
 //      ]
 //      value [
-//          <cond>
 //          any-list? "plain lists become splices"
 //          <opt> "void gives empty splice"
 //      ]
@@ -440,7 +439,7 @@ DECLARE_NATIVE(SPREAD)
 //  "Tells you if argument is a parameter pack (antiform block)"
 //
 //      return: [logic!]
-//      ^value '[any-value?]
+//      ^value '[<veto> any-value?]
 //  ]
 //
 DECLARE_NATIVE(PACK_Q)
@@ -478,7 +477,7 @@ DECLARE_NATIVE(BEDROCK_Q)
 //  "Tells you if argument is an undecayable PACK!, with one unlifted WORD!"
 //
 //      return: [logic!]
-//      ^value '[any-value?]
+//      ^value '[<veto> any-value?]
 //  ]
 //
 DECLARE_NATIVE(HOT_POTATO_Q)
@@ -545,7 +544,7 @@ DECLARE_NATIVE(RUNS)
 //  "Give back a frame! for action! input"
 //
 //      return: [frame!]
-//      action [<cond> frame!]
+//      action [frame!]
 //  ]
 //
 DECLARE_NATIVE(UNRUN)
@@ -563,7 +562,7 @@ DECLARE_NATIVE(UNRUN)
 //  "Give back an ERROR! for FAILURE! input"
 //
 //      return: [error!]
-//      ^error [<cond> failure!]
+//      ^error [failure!]
 //  ]
 //
 DECLARE_NATIVE(DISARM)
@@ -583,7 +582,7 @@ DECLARE_NATIVE(DISARM)
 //  "Give back a block! for splice! input"
 //
 //      return: [block!]  ; BLOCK! seems more generically desired than GROUP!
-//      splice [<cond> splice!]
+//      splice [splice!]
 //  ]
 //
 DECLARE_NATIVE(UNSPLICE)
@@ -603,7 +602,7 @@ DECLARE_NATIVE(UNSPLICE)
 //  "Removes all levels of quoting from a (potentially) quoted element"
 //
 //      return: [fundamental?]
-//      value '[<cond> element?]
+//      value '[element?]
 //  ]
 //
 DECLARE_NATIVE(NOQUOTE)
