@@ -217,7 +217,7 @@ Result(None) Init_Invokable_From_Feed(
 
     Set_Base_Managed_Bit(varlist);  // can't use Manage_Stub
 
-    ParamList* lens = Phase_Paramlist(Frame_Phase(frame));
+    Lens* lens = Lens_Inputs(Frame_Phase(frame));
     Init_Frame(out, varlist, lens, coupling);
 
     return none;

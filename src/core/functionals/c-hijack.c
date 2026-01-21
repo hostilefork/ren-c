@@ -108,7 +108,7 @@ void Push_Redo_Action_Level(Value* out, Level* L1, const Value* run)
     StackIndex base = TOP_INDEX;  // we push refinements as we find them
 
     ParamList* varlist = Varlist_Of_Level_Force_Managed(L1);
-    ParamList* lens = Phase_Paramlist(Frame_Phase(Phase_Archetype(varlist)));
+    Lens* lens = Lens_Inputs(Frame_Phase(Phase_Archetype(varlist)));
 
     DECLARE_ELEMENT (frame1);
     Init_Frame(

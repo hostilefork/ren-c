@@ -87,11 +87,17 @@ Bounce Adapter_Dispatcher(Level* const L)
 
   initial_entry: {  //////////////////////////////////////////////////////////
 
-    // 1. The lightweight usage of a frame varlist as the binding would lead
-    //    to ambiguities in terms of what phase was implied, if it wasn't
-    //    restricted to the single phase of the "final execution".  An ADAPT
-    //    is not generally a final execution (REVIEW: could an ADAPT sense
-    //    if it's a final phase, e.g. an ADAPT on a phaseless ParamList?)
+  // 1. When we put ParamList directly into a binding chain, that's just one
+  //    pointer, vs. a full FRAME! Cell.  Since there is no Lens, it has to
+  //    act as not only the data but also the Lens.  This "self-lensing"
+  //    implies showing *all* the fields.
+  //
+  //    An ADAPT-ed function shouldn't have that much privilege.  Instead it
+  //    wants to have a Lens that shows only the inputs to the adaptee to the
+  //    prelude code.  That's done with "non-self-lensed" ParamList lenses.
+  //
+  //    We have to put a Use Stub into the binding chain to specify a Lens,
+  //    by means of using a full FRAME! Cell.
 
     Element* prelude = Details_Element_At(details, IDX_ADAPTER_PRELUDE);
     assert(Is_Block(prelude) and Series_Index(prelude) == 0);
@@ -105,10 +111,11 @@ Bounce Adapter_Dispatcher(Level* const L)
     require (
       Use* use = Alloc_Use_Inherits(Cell_Binding(prelude))
     );
+    Lens* lens = Lens_Inputs(details);  // from adaptee
     Init_Frame(
         Stub_Cell(use),
-        Level_Varlist(L),
-        details,  // make only this action's inputs visible
+        Level_Varlist(L),  // varlist != lens
+        lens,  // non-self-ParamList lens: only adaptee's inputs visible [1]
         Level_Coupling(L)
     );
 

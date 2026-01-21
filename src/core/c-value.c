@@ -229,7 +229,7 @@ void* Probe_Core_Debug(
                 Set_Base_Managed_Bit(varlist);
             }
             ParamList* paramlist = cast(ParamList*, varlist);
-            Phase* lens = cast(Phase*, Phase_Details(paramlist));  // show all
+            Lens* lens = Lens_Self(paramlist);  // !!! could we show *all*?
             Init_Frame(elem, paramlist, lens, UNCOUPLED);
         }
         else

@@ -131,31 +131,34 @@ void Init_Evars(EVARS *e, const Element* v) {
 
   //=//// FRAME ENUMERATION ///////////////////////////////////////////////=//
 
-  // 1. It makes the most sense for unlensed frames to show the inputs only.
-  //    This is because the Lens slot is used for a label when not lensed,
-  //    common with antiforms.
-
             e->slot = Varlist_Slots_Head(varlist);
 
-            Phase* lens = opt Frame_Lens(v);
+            Lens* lens = opt Frame_Lens(v);
+            ParamList* paramlist;
             if (not lens) {  // unlensed, only inputs visible [1]
                 e->lens_mode = LENS_MODE_INPUTS;
-                lens = Frame_Phase(v);
+                paramlist = Phase_Paramlist(Frame_Phase(v));
             }
-            else if (Is_Stub_Varlist(lens)) {
-                e->lens_mode = LENS_MODE_PARTIALS;
+            else if (
+                u_cast(Stub*, lens) == varlist  // self-lens, all visible [2]
+            ){
+                e->lens_mode = LENS_MODE_ALL_UNSEALED;
+                paramlist = cast(ParamList*, lens);
+            }
+            else if (Is_Stub_Varlist(lens)) {  // paramlist inputs only [3]
+                e->lens_mode = LENS_MODE_INPUTS;  // (adapt, etc.)
+                paramlist = cast(ParamList*, lens);
             }
             else {
                 assert(Is_Stub_Details(lens));
-                if (Get_Details_Flag(cast(Details*, lens), OWNS_PARAMLIST))
-                    e->lens_mode = LENS_MODE_ALL_UNSEALED;  // (func, etc.)
-                else
-                    e->lens_mode = LENS_MODE_INPUTS;  // (adapt, etc.)
+                e->lens_mode = LENS_MODE_ALL_UNSEALED;
+                paramlist = Phase_Paramlist(cast(Details*, lens));
             }
 
-            e->param = Phase_Params_Head(lens);
-            e->key = Phase_Keys(&e->key_tail, lens);
-            assert(Flex_Used(Phase_Keylist(lens)) <= Phase_Num_Params(lens));
+            assert(Varlist_Len(paramlist) <= Varlist_Len(varlist));
+
+            e->param = u_cast(Param*, Varlist_Slots_Head(paramlist));
+            e->key = Varlist_Keys(&e->key_tail, paramlist);
         }
 
         Corrupt_If_Needful(e->wordlist);
@@ -246,16 +249,10 @@ bool Try_Advance_Evars(EVARS *e) {
             if (e->lens_mode == LENS_MODE_ALL_UNSEALED)
                 return true;  // anything that wasn't "sealed" is fair game
 
-            if (e->lens_mode == LENS_MODE_INPUTS) {
-                if (Is_Specialized(e->param))
-                    continue;
-                return true;
-            }
+            assert(e->lens_mode == LENS_MODE_INPUTS);
 
-            assert(e->lens_mode == LENS_MODE_PARTIALS);
             if (Is_Specialized(e->param))
                 continue;
-
             return true;
         }
 
@@ -474,7 +471,8 @@ IMPLEMENT_GENERIC(MAKE, Is_Frame)
         nullptr  // no binder needed, not running any code
     );
 
-    Init_Frame_Core(OUT, exemplar, Frame_Lens_Or_Label(arg), coupling);
+    Lens* lens = Lens_Inputs(Frame_Phase(arg));
+    Init_Frame_Core(OUT, exemplar, lens, coupling);
 
     Copy_Vanishability(OUT, arg);
 
@@ -1263,35 +1261,34 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
         if (not Is_Frame(context))
             panic (PARAM(PICKER));  // only FRAME!s pick by index atm
 
-        Phase* lens = opt Frame_Lens(context);
-        if (not lens)
-            lens = Frame_Phase(context);
-        else if (Is_Stub_Details(lens))  // all values visible
-            lens = u_cast(Phase*,
-                Phase_Paramlist(lens)  // just interface
-            );
-
         Index index = VAL_UINT32(picker);
         if (index <= 0)
             panic (Error_Bad_Pick_Raw(picker));
 
-        const Param* param = Phase_Params_Head(lens);
-        const Key* key_tail;
-        const Key* key = Phase_Keys(&key_tail, lens);
-        slot = Varlist_Slots_Head(u_cast(VarList*, Cell_Varlist(context)));
-        for (; key != key_tail; ++key, ++param, ++slot) {
-            if (Is_Specialized(param))
-                continue;
-            if (Get_Parameter_Flag(param, REFINEMENT))
-                continue;
+        EVARS e;
+        Init_Evars(&e, context);
+
+        slot = nullptr;
+        symbol = nullptr;
+
+        while (Try_Advance_Evars(&e)) {
+            if (Is_Specialized(e.param))
+                continue;  // specialized don't count toward index
+            if (Get_Parameter_Flag(e.param, REFINEMENT))
+                continue;  // refinements don't count toward index
+
             --index;
-            if (index == 0)
+            if (index == 0) {
+                slot = e.slot;
+                symbol = Key_Symbol(e.key);
                 break;
+            }
         }
+
+        Shutdown_Evars(&e);
+
         if (index != 0)
             panic (Error_Bad_Pick_Raw(picker));
-
-        symbol = Key_Symbol(key);
     }
     else {
         if (not Is_Word(picker))

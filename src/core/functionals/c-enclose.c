@@ -125,7 +125,7 @@ Bounce Encloser_Dispatcher(Level* const L)
     Element* outer = cast(Element*, Details_At(details, IDX_ENCLOSER_OUTER));
     assert(Is_Frame(outer));  // takes 1 arg (a FRAME!)
 
-    VarList* varlist = Varlist_Of_Level_Maybe_Unmanaged(L);
+    ParamList* varlist = Varlist_Of_Level_Maybe_Unmanaged(L);
 
     L->varlist = nullptr;  // we're going to push new action in this level
     Corrupt_If_Needful(L->rootvar);
@@ -145,10 +145,10 @@ Bounce Encloser_Dispatcher(Level* const L)
     possibly(Is_Base_Managed(varlist));
     Set_Base_Managed_Bit(varlist);  // can't use Force_Flex_Managed [4]
 
-    ParamList* lens = Phase_Paramlist(Frame_Phase(inner));
+    Lens* lens = Lens_Inputs(Frame_Phase(inner));
     Element* arg = Init_Frame(  // the FRAME! passed as an arg [5]
         SPARE,
-        cast(ParamList*, varlist),
+        varlist,
         lens,
         Frame_Coupling(inner)
     );

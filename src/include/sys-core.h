@@ -285,7 +285,6 @@ typedef struct LevelStruct Level;  // forward declaration for Level
 
 typedef enum {
     LENS_MODE_INPUTS,
-    LENS_MODE_PARTIALS,
     LENS_MODE_ALL_UNSEALED
     // Note: viewing ALL including sealed could expose duplicate keys, illegal!
 } LensMode;

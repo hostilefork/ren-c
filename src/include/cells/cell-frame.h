@@ -102,9 +102,9 @@ INLINE Option(Details*) Try_Frame_Details(const Cell* c) {
 //=//// FRAME LENS AND LABELING ///////////////////////////////////////////=//
 //
 // When a FRAME! has a "Lens", that dictates what variables in the VarList
-// should be exposed--which is important for executing frames (even though
-// an adaptation's frame contains the adaptee's variables, it should not be
-// able to do things like assign its locals).
+// should be exposed--which is important for executing frames.  For instance:
+// even though an adaptation's frame contains the adaptee's variables, it
+// should not be able to see the adaptee's locals from its prelude code.
 //
 // But if the Base* where a Lens would usually be found is a Symbol* then that
 // implies there isn't any special Lens besides the action stored by the
@@ -117,21 +117,53 @@ INLINE Option(Details*) Try_Frame_Details(const Cell* c) {
 //
 // So extraction of the Lens has to be sensitive to this.
 //
-// !!! Theoretically, longer forms could be used here as labels...e.g. an
+// (!!! Theoretically, longer forms could be used here as labels...e.g. an
 // entire array or pairing backing a sequence.  However, that would get
 // tough if the sequence contained GROUP!s which were evaluated, and then
 // you'd be storing something that wouldn't be stored otherwise, so it would
-// stop being "cheap".
+// stop being "cheap".)
 //
-// Lenses can be either ParamList* or Details*.  The meaning of Details* is
-// "show only the inputs of the associated ParamList* of this Details
-// implementation".  This is because functions like ADAPT want to share the
-// same ParamList* as the function they are adapting, but not have access
-// to all the variables...hence ParamList* can't mean both "show variables"
-// and "show inputs".
+// Lenses can be either ParamList* or Details*, with special meaning given
+// when the lens ParamList is the same as the VarList.
+//
+// 1. It makes the most sense for unlensed frames to show the inputs only.
+//    This is because the Lens slot is used for a label when not lensed,
+//    common with antiforms.
+//
+// 2. "Self-lensing" comes up in an optimization, in which a VarList itself
+//    is put in the binding chain as a single pointer, with no full FRAME!
+//    Cell to hold a lens.  We want a Details*-style behavior in which all the
+//    fields relevant to the dispatcher which linked the VarList into the
+//    chain are shown.  But we don't have the Details, so show all.
+//
+// 3. The reason that a ParamList is interpreted as "inputs only" is since you
+//    can MAKE FRAME! on any ParamList, and then start editing the fields of
+//    that frame.  When you do, they start to look specialized, but you don't
+//    want them to disappear from view.  So MAKE FRAME! has to use the frame
+//    you are instantiating as the Lens.
+//
+//    If you want a proof of why this is the only logical interpretation of
+//    a ParamList lens: Specialization doesn't make new Details*, only
+//    ParamList*.  So if we want a lens to exist with a meaning "show only
+//    the inputs" for every possible level of specialization, this has to be
+//    the intepretation taken.
+//
+// 4. Details* lenses show all unsealed fields for the ParamList that they are
+//    associated with.
 //
 
-INLINE void Tweak_Frame_Lens(Stable* v, Phase* lens) {
+typedef Phase Lens;  // !!! Create separate type?
+
+#define Lens_Self(paramlist) \
+    x_cast(Lens*, known(ParamList*, (paramlist)))  // shows all unsealed [2]
+
+#define Lens_Inputs(paramlist) \
+    x_cast(Lens*, Phase_Paramlist(paramlist))  // just inputs [3]
+
+#define Lens_Unsealed(details) \
+    x_cast(Lens*, known(Details*, (details)))  // shows all unsealed [4]
+
+INLINE void Tweak_Frame_Lens(Stable* v, Lens* lens) {
     assert(Heart_Of(v) == TYPE_FRAME);  // may be protected (e.g. archetype)
     assert(Is_Stub_Varlist(lens) or Is_Stub_Details(lens));
     Tweak_Frame_Lens_Or_Label(v, lens);
@@ -142,13 +174,13 @@ INLINE Option(Stub*) Frame_Lens_Or_Label(const Cell* c) {
     return cast(Stub*, CELL_FRAME_EXTRA_LENS_OR_LABEL(c));
 }
 
-INLINE Option(Phase*) Frame_Lens(const Cell* c) {
+INLINE Option(Lens*) Frame_Lens(const Cell* c) {
     assert(Heart_Of(c) == TYPE_FRAME);
     Flex* f = cast(Flex*, CELL_FRAME_EXTRA_LENS_OR_LABEL(c));
     if (not f or Is_Stub_Symbol(f))
         return nullptr;
     assert(Is_Stub_Varlist(f) or Is_Stub_Details(f));
-    return cast(Phase*, f);
+    return cast(Lens*, f);
 }
 
 INLINE Option(const Symbol*) Frame_Label(const Cell* c) {
@@ -231,8 +263,8 @@ INLINE Element* Init_Frame_Untracked(
 
 #define Init_Frame(out,phase,lens_or_label,coupling) \
     TRACK(Init_Frame_Untracked((out), Known_Phase(phase), \
-        known_any((Option(const Symbol*), Option(ParamList*), \
-            Option(Details*), Option(Phase*)), (lens_or_label)), (coupling)))
+        known_any((Option(const Symbol*), Lens*), (lens_or_label)), \
+        (coupling)))
 
 #define Init_Frame_Core(out,phase,lens_or_label,coupling) \
     TRACK(Init_Frame_Untracked((out), Known_Phase(phase), \

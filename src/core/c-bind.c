@@ -294,7 +294,7 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
         return false;
 
     Flavor flavor = Stub_Flavor(c);
-    Option(Phase*) lens = nullptr;
+    Option(const Stub*) lens_or_label = nullptr;
 
   //=//// ALTER `c` IF USE STUB ///////////////////////////////////////////=//
 
@@ -306,11 +306,10 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
   // 1. The "final phase" of a function application is allowed to use the
   //    VarList of the Level directly as a context, and put the next context
   //    into Link_Inherit_Bind().  There's no Lens in that case, so we use the
-  //    Details of the function as the Lens--providing full visibility to all
-  //    non-sealed locals and arguments.  A null lens cues this behavior
-  //    below, so we can't leave it null when we have a USE of a Lens-less
-  //    FRAME!.  Lensing with Details would incorrectly give full visibility,
-  //    so Lens with the ParamList.
+  //    VarList itself as the Lens--providing full visibility of non-sealed
+  //    locals and arguments.  A null lens cues this behavior below, so we
+  //    can't leave it null when we have a USE of a Lens-less FRAME!.  Use a
+  //    dummy symbol to make it act the same as no lens.
 
     next = opt Link_Inherit_Bind(c);  // save so we can update `c`
 
@@ -327,9 +326,9 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
         }
 
         if (Is_Frame(overbind)) {
-            lens = Frame_Lens(overbind);
-            if (not lens)  // need lens to not default to full visibility [1]
-                lens = cast(Phase*, Phase_Paramlist(Frame_Phase(overbind)));
+            lens_or_label = Frame_Lens_Or_Label(overbind);
+            if (not lens_or_label)  // avoid full visibility default [1]
+                lens_or_label = CANON(ANONYMOUS);
         }
 
         c = Cell_Context(overbind);  // do search on other contexts
@@ -393,11 +392,11 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
     VarList* vlist = cast(VarList*, c);
 
     if (CTX_TYPE(vlist) == TYPE_FRAME) {
-        if (not lens) {  // want full visibility (Use would have defaulted...)
-            lens = cast(Phase*, Phase_Details(cast(ParamList*, vlist)));
+        if (not lens_or_label) {  // FLAVOR_USE didn't set, want all visibile
+            lens_or_label = Lens_Self(u_cast(ParamList*, vlist));
         }
-        Init_Frame(
-            out, cast(ParamList*, vlist), lens, UNCOUPLED
+        Init_Frame_Core(
+            out, u_cast(ParamList*, vlist), lens_or_label, UNCOUPLED
         );
     }
     else {
