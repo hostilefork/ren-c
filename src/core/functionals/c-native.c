@@ -106,7 +106,6 @@ Result(Details*) Make_Native_Dispatch_Details_May_Update_Spec(
         BASE_FLAG_MANAGED
             | DETAILS_FLAG_RAW_NATIVE
             | DETAILS_FLAG_API_CONTINUATIONS_OK
-            | DETAILS_FLAG_OWNS_PARAMLIST
     );
 
     if (native_type == NATIVE_INTRINSIC)

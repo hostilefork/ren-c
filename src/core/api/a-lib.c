@@ -3483,7 +3483,6 @@ RebolValue* API_rebFunctionFlipped(
 
     Details* details = Make_Dispatch_Details(
         BASE_FLAG_MANAGED
-            | DETAILS_FLAG_OWNS_PARAMLIST
             | DETAILS_FLAG_API_CONTINUATIONS_OK,
         Phase_Archetype(paramlist),
         &Api_Function_Dispatcher,

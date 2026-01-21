@@ -73,21 +73,13 @@ STATIC_ASSERT(DETAILS_FLAG_METHODIZED == VARLIST_FLAG_METHODIZED);  // same [1]
 
 //=//// DETAILS_FLAG_26 ///////////////////////////////////////////////////=//
 //
-//
 #define DETAILS_FLAG_26 \
     STUB_SUBCLASS_FLAG_26
 
 
-//=//// DETAILS_FLAG_OWNS_PARAMLIST ////////////////////////////////////////=//
+//=//// DETAILS_FLAG_27 ///////////////////////////////////////////////////=//
 //
-// When the Frame_Lens() of a FRAME! is a Details*, then this flag drives
-// whether or not all the variables of the associated ParamList* are visible
-// or just the inputs.  It's important because while ADAPT shares the same
-// ParamList* as the function it's adapting, you shouldn't be able to get
-// at the locals of that adaptee...so it shouldn't use this flag.  But things
-// like FUNCTION need it, otherwise locals and RETURN wouldn't be visible.
-//
-#define DETAILS_FLAG_OWNS_PARAMLIST \
+#define DETAILS_FLAG_27 \
     STUB_SUBCLASS_FLAG_27
 
 

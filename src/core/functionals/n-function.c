@@ -430,7 +430,7 @@ Bounce Make_Interpreted_Action(
     }
 
     Details* details = Make_Dispatch_Details(
-        BASE_FLAG_MANAGED | DETAILS_FLAG_OWNS_PARAMLIST,
+        BASE_FLAG_MANAGED,
         Phase_Archetype(paramlist),
         dispatcher,
         details_capacity  // we fill in details[0], caller fills any extra

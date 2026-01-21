@@ -151,13 +151,6 @@
     STUB_SUBCLASS_FLAG_27
 
 
-// These are the flags which are scanned for and set during Make_Phase
-//
-#define PARAMLIST_MASK_CACHED \
-    (PARAMLIST_FLAG_QUOTES_FIRST)
-
-
-
 // A context's varlist is always allocated dynamically, in order to speed
 // up variable access--no need to test USED_BYTE_OR_255 for 255.
 //

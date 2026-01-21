@@ -937,7 +937,6 @@ DECLARE_NATIVE(JS_NATIVE)
 
     Details* details = Make_Dispatch_Details(
         BASE_FLAG_MANAGED
-            | DETAILS_FLAG_OWNS_PARAMLIST
             | DETAILS_FLAG_API_CONTINUATIONS_OK,
         Phase_Archetype(paramlist),
         &JavaScript_Dispatcher,

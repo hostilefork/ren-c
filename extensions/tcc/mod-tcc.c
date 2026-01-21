@@ -350,7 +350,7 @@ DECLARE_NATIVE(MAKE_NATIVE)
     ));
 
     Details* details = Make_Dispatch_Details(
-        BASE_FLAG_MANAGED | DETAILS_FLAG_OWNS_PARAMLIST,
+        BASE_FLAG_MANAGED,
         Phase_Archetype(paramlist),
         &Pending_Native_Dispatcher,  // will be replaced e.g. by COMPILE
         MAX_IDX_TCC_PRENATIVE  // details len [source module linkname tcc_state]
@@ -738,8 +738,7 @@ DECLARE_NATIVE(COMPILE_P)
         memcpy(&cfunc, &sym, sizeof(cfunc));
 
         Details* details_api = Make_Dispatch_Details(
-            (not BASE_FLAG_MANAGED)  // we swap and free, need unmanaged
-                | DETAILS_FLAG_OWNS_PARAMLIST,
+            (not BASE_FLAG_MANAGED),  // we swap and free, need unmanaged
             Phase_Archetype(details_tcc),  // reuse paramlist
             &Api_Function_Dispatcher,
             MAX_IDX_TCC_NATIVE

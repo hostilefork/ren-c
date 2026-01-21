@@ -875,7 +875,6 @@ Details* Make_Dispatch_Details(
             | DETAILS_FLAG_CAN_DISPATCH_AS_INTRINSIC
             | DETAILS_FLAG_API_CONTINUATIONS_OK
             | DETAILS_FLAG_RAW_NATIVE
-            | DETAILS_FLAG_OWNS_PARAMLIST
             | DETAILS_FLAG_METHODIZED  // inherit from exemplar
     ))));
 
