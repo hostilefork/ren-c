@@ -1588,7 +1588,7 @@ DECLARE_NATIVE(RETURN_OF)
     Element* frame = Element_ARG(FRAME);
     Phase* phase = Frame_Phase(frame);
 
-    Details* details = Phase_Details(phase);
+    Details* details = Ensure_Phase_Details(phase);
     DetailsQuerier* querier = Details_Querier(details);
     if (not (*querier)(OUT, details, SYM_RETURN_OF))
         panic ("Frame Details does not offer RETURN (shouldn't happen)");
@@ -1618,7 +1618,7 @@ DECLARE_NATIVE(BODY_OF)  // !!! should this be SOURCE-OF ?
     Element* frame = Element_ARG(FRAME);
     Phase* phase = Frame_Phase(frame);
 
-    Details* details = Phase_Details(phase);
+    Details* details = Ensure_Phase_Details(phase);
     DetailsQuerier* querier = Details_Querier(details);
     if (not (*querier)(OUT, details, SYM_BODY_OF))
         return fail ("Frame Details does not offer BODY, use TRY for NULL");
@@ -1646,7 +1646,7 @@ DECLARE_NATIVE(COUPLING_OF)
 
     Element* frame = Element_ARG(FRAME);
 
-    Details* details = Phase_Details(Frame_Phase(frame));
+    Details* details = Ensure_Phase_Details(Frame_Phase(frame));
     if (Not_Details_Flag(details, METHODIZED))
         return fail ("FRAME! is not methodized, no COUPLING OF is applicable");
 
@@ -1856,8 +1856,8 @@ REBINT CT_Frame(const Element* a, const Element* b, bool strict)
     Phase* a_phase = Frame_Phase(a);
     Phase* b_phase = Frame_Phase(b);
 
-    Details* a_details = Phase_Details(a_phase);
-    Details* b_details = Phase_Details(b_phase);
+    Details* a_details = opt Phase_Details(a_phase);
+    Details* b_details = opt Phase_Details(b_phase);
 
     if (a_details != b_details)
         return a_details > b_details ? 1 : -1;

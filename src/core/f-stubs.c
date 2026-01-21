@@ -355,7 +355,10 @@ void Extra_Init_Context_Cell_Checks_Debug(
 void Extra_Init_Frame_Checks_Debug(Phase* phase) {
     assert(Is_Frame(Phase_Archetype(phase)));
 
-    assert(Is_Stub_Details(Phase_Details(phase)));
+    Details* details = opt Phase_Details(phase);
+    if (details)
+        assert(Is_Stub_Details(details));
+
     assert(Is_Stub_Varlist(Phase_Paramlist(phase)));
 
     KeyList* keylist = Phase_Keylist(phase);

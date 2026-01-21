@@ -1016,7 +1016,7 @@ DECLARE_NATIVE(COUPLE)
 
     Copy_Cell(OUT, ARG(VALUE));
 
-    Details* details = Phase_Details(Frame_Phase(OUT));
+    Details* details = Ensure_Phase_Details(Frame_Phase(OUT));
     if (Not_Details_Flag(details, METHODIZED))
         return fail ("FRAME! is not methodized, cannot COUPLE it");
 

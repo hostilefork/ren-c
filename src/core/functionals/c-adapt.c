@@ -151,7 +151,7 @@ bool Adapter_Details_Querier(
     switch (property) {
       case SYM_RETURN_OF: {
         Stable* adaptee = Phase_Archetype(details);
-        Details* adaptee_details = Phase_Details(Frame_Phase(adaptee));
+        Details* adaptee_details = unwrap Phase_Details(Frame_Phase(adaptee));
         DetailsQuerier* querier = Details_Querier(adaptee_details);
         return (*querier)(out, adaptee_details, SYM_RETURN_OF); }
 

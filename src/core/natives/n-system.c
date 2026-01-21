@@ -224,7 +224,7 @@ DECLARE_NATIVE(CHECK)  // !!! Review the necessity of this (hasn't been used)
     }
     else if (Is_Frame(value)) {
         Assert_Flex(Phase_Keylist(Frame_Phase(value)));
-        Assert_Array(Details_Array(Phase_Details(Frame_Phase(value))));
+        Assert_Array(Details_Array(Ensure_Phase_Details(Frame_Phase(value))));
     }
     else if (Any_Context(value)) {
         Assert_Varlist(Cell_Varlist(value));

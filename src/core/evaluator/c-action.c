@@ -951,7 +951,7 @@ Bounce Action_Executor(Level* L)
         Mark_Typechecked(ARG);
     }
 
-    Tweak_Level_Phase(L, Phase_Details(Level_Phase(L)));  // ensure Details [4]
+    Tweak_Level_Phase(L, Ensure_Phase_Details(Level_Phase(L)));  // [4]
 
     // Action arguments are gathered, begin dispatching
 

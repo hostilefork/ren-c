@@ -261,7 +261,7 @@ bool Hijacker_Details_Querier(
 
     Stable* hijacker = Details_At(details, IDX_HIJACKER_FRAME);
 
-    Details* hijacker_details = Phase_Details(Frame_Phase(hijacker));
+    Details* hijacker_details = unwrap Phase_Details(Frame_Phase(hijacker));
     DetailsQuerier* querier = Details_Querier(hijacker_details);
     return (*querier)(out, hijacker_details, property);
 }

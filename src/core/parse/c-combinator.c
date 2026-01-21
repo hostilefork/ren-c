@@ -126,7 +126,7 @@ bool Combinator_Details_Querier(
         Stable* body = Details_At(details, IDX_DETAILS_1);  // code to run
         assert(Is_Frame(body));  // takes 1 arg (a FRAME!)
 
-        Details* body_details = Phase_Details(Frame_Phase(body));
+        Details* body_details = Ensure_Phase_Details(Frame_Phase(body));
         DetailsQuerier* querier = Details_Querier(body_details);
         return (*querier)(out, body_details, SYM_RETURN_OF); }
 

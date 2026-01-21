@@ -73,9 +73,12 @@
 #define Phase_Archetype(phase) \
     Flex_Head_Dynamic(Element, Known_Phase(phase))
 
-INLINE Details* Phase_Details_Core(Phase* p) {
+INLINE Option(Details*) Phase_Details_Core(Phase* p) {
     while (not Is_Stub_Details(p)) {
-        p = cast(Phase*, CELL_FRAME_PAYLOAD_1_PHASE(Phase_Archetype(p)));
+        Base* b = CELL_FRAME_PAYLOAD_1_PHASE(Phase_Archetype(p));
+        if (b == p)  // root paramlist reached, no details attached
+            return nullptr;
+        p = cast(Phase*, b);
     }
     return cast(Details*, p);
 }
@@ -83,6 +86,18 @@ INLINE Details* Phase_Details_Core(Phase* p) {
 #define Phase_Details(p) \
     Phase_Details_Core(Known_Phase(p))
 
+INLINE Details* Ensure_Phase_Details_Core(Phase* p) {
+    while (not Is_Stub_Details(p)) {
+        Base* b = CELL_FRAME_PAYLOAD_1_PHASE(Phase_Archetype(p));
+        if (b == p)  // root paramlist reached, no details attached
+            panic ("Details requested for ParamList w/no implementation");
+        p = cast(Phase*, b);
+    }
+    return cast(Details*, p);
+}
+
+#define Ensure_Phase_Details(p) \
+    Ensure_Phase_Details_Core(Known_Phase(p))
 
 INLINE bool Is_Frame_Details(const Cell* v) {
     assert(Heart_Of(v) == TYPE_FRAME);

@@ -162,7 +162,7 @@ Bounce Cascader_Executor(Level* const L)
 
     Tweak_Level_Phase(
         sub,
-        Phase_Details(Frame_Phase(first))  // has varlist already [3]
+        Ensure_Phase_Details(Frame_Phase(first))  // has varlist already [3]
     );
     Tweak_Level_Coupling(sub, Frame_Coupling(first));
 
@@ -244,7 +244,7 @@ bool Cascader_Details_Querier(
 
         const Element* last = Array_Last(Cell_Array(pipeline));
 
-        Details* last_details = Phase_Details(Frame_Phase(last));
+        Details* last_details = unwrap Phase_Details(Frame_Phase(last));
         DetailsQuerier* querier = Details_Querier(last_details);
         return (*querier)(out, last_details, SYM_RETURN_OF); }
 

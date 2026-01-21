@@ -195,7 +195,7 @@ bool Encloser_Details_Querier(
         Element* outer = cast(Element*, Details_At(details, IDX_ENCLOSER_OUTER));
         assert(Is_Frame(outer));  // takes 1 arg (a FRAME!)
 
-        Details* outer_details = Phase_Details(Frame_Phase(outer));
+        Details* outer_details = unwrap Phase_Details(Frame_Phase(outer));
         DetailsQuerier* querier = Details_Querier(outer_details);
         return (*querier)(out, outer_details, SYM_RETURN); }
 

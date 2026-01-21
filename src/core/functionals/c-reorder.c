@@ -101,7 +101,7 @@ bool Reorderer_Details_Querier(
 
     Stable* reorderee = Details_At(details, IDX_REORDERER_REORDEREE);
 
-    Details* reorderee_details = Phase_Details(Frame_Phase(reorderee));
+    Details* reorderee_details = unwrap Phase_Details(Frame_Phase(reorderee));
     DetailsQuerier* querier = Details_Querier(reorderee_details);
     return (*querier)(out, reorderee_details, property);
 }
