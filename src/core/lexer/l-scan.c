@@ -3434,7 +3434,7 @@ Result(Option(Source*)) Try_Scan_Variadic_Feed_Utf8_Managed(Feed* feed)
     const LineNumber start_line = 1;
     Init_Transcode(
         &transcode_struct,
-        ANONYMOUS,  // %tmp-boot.r name in boot overwritten currently by this
+        NO_FILENAME,  // %tmp-boot.r name in boot overwritten currently by this
         start_line,
         nullptr  // let scanner fetch feed->p Utf8 as new S->begin
     );

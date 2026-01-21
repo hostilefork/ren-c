@@ -43,8 +43,17 @@
 // invocations, which may not have an associated name).  To make sure the
 // callsite intends to accept symbols, use ANONYMOUS instead of nullptr.
 //
+// Note: It has been considered whether avoiding null checking and using
+// a reserved "anonymous" symbol would be better.  Null checking is fast, and
+// being able to systemically see where "no label" is occurring based on the
+// type system is fundamentally more useful than lying.
+//
 #define ANONYMOUS  u_cast(Option(const Symbol*), nullptr)
 
+// Filenames aren't restricted to the rules of symbols, so prefer to use
+// NO_FILENAME instead of ANONYMOUS, as it's a "Strand" vs. a "Symbol"
+//
+#define NO_FILENAME  u_cast(Option(Strand*), nullptr)
 
 INLINE bool Is_Strand_Symbol(const Strand* s) {
     if (Stub_Flavor(s) == FLAVOR_SYMBOL)

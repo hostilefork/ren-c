@@ -694,7 +694,7 @@ DECLARE_NATIVE(COMPOSE2)
     const LineNumber start_line = 1;
     Init_Transcode(
         transcode,
-        ANONYMOUS,  // %tmp-boot.r name in boot overwritten by this
+        NO_FILENAME,  // %tmp-boot.r name in boot overwritten by this
         start_line,
         cast(Byte*, head)
     );
