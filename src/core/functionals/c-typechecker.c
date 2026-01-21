@@ -1222,7 +1222,9 @@ DECLARE_NATIVE(MATCH)
 
     Stable* test = ARG(TEST);
     Stable* v = ARG(VALUE);
-    assert(not Is_Nulled(v));  // <cond> args should prohibit NULL
+
+    if (Is_Nulled(v))  // [1]
+        panic ("NULL input to MATCH not currently allowed, use TYPECHECK");
 
     if (not Typecheck_Uses_Spare_And_Scratch(LEVEL, v, test, SPECIFIED))
         return nullptr;
