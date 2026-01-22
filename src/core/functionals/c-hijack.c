@@ -126,8 +126,8 @@ void Push_Redo_Action_Level(Value* out, Level* L1, const Value* run)
             continue;
 
         if (Get_Parameter_Flag(e.param, REFINEMENT)) {
-            if (Is_Nulled(Slot_Hack(e.slot)))  // don't add to PATH!
-                continue;
+            if (Is_Unrefinedlike_Null(Slot_Hack(e.slot)))
+                continue;  // don't add to PATH!
 
             Init_Pushed_Refinement(PUSH(), Key_Symbol(e.key));
 

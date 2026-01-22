@@ -406,10 +406,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
             Blit_Param_Drop_Mark(arg, param);
         else {
             Erase_Cell(arg);
-            if (Get_Parameter_Flag(param, REFINEMENT))
-                Init_Nulled(arg);
-            else
-                Init_Unspecialized_Ghost(arg);
+            Init_Unspecialized_Null(arg);
         }
     }
 
@@ -832,7 +829,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
         if (Not_Parameter_Flag(tests, REFINEMENT))
             return true;  // unconstrained non-refinement permits anything
 
-        return Is_Possibly_Unstable_Value_Okay(v) or Is_Light_Null(v);
+        return Is_Possibly_Unstable_Value_Okay(v) or Is_Unrefinedlike_Null(v);
     }
 
   try_parameter_flag_optimizations: {

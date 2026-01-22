@@ -187,6 +187,26 @@ INLINE bool Is_Lifted_Null(const Value* v) {
     Is_Lifted_Null(Known_Stable(v))  // subtle distinction of question...
 
 
+//=//// UNREFINED SIGNALING MACROS ////////////////////////////////////////=//
+//
+// It was wondered for a time if unused refinements should be GHOST! instead
+// of NULL, as a more "pure" signal of "no value provided".  This was made
+// more feasible by the :VAR notation to mean "give NULL if VAR holds GHOST!"
+//
+// That idea was panned for its poor ergonomics.  But trying it out meant
+// finding sites where nulls had been initialized for unrefined slots, and
+// these macros help find those places if it's of interest later.
+//
+
+#define Init_Nulled_For_Unrefined(out)  Init_Nulled(out)
+#define Is_Unrefinedlike_Null(v)  Is_Light_Null(v)
+
+#define Init_Unspecialized_Null(out)  Init_Nulled(out)
+#define Is_Unspecialized_Null(v)  Is_Nulled(v)
+
+#define Init_Lifted_Unspecialized_Null(out)  Init_Lifted_Null(out)
+
+
 //=//// CANON LOGIC TRUTHY: ~OKAY~ ANTIFORM ///////////////////////////////=//
 //
 // The ~null~ antiform is the only "branch inhibitor", e.g. the only thing

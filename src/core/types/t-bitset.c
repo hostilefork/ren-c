@@ -106,7 +106,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Bitset)
     }
 
     Init_Blob(v, bset);
-    Init_Nulled(LOCAL(FORM));  // form = false
+    Init_Nulled_For_Unrefined(LOCAL(FORM));  // form = false
     Bounce bounce = GENERIC_CFUNC(MOLDIFY, Is_Blob)(LEVEL);
     assert(Is_Trash(Value_From_Bounce(bounce)));
     // !!! generically it could BOUNCE_CONTINUE...

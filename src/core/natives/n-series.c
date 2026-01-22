@@ -191,7 +191,7 @@ DECLARE_NATIVE(INSERT)  // Must be frame-compatible with CHANGE [A]
         return COPY_TO_OUT(series);  // don't panic on read only for noops
 
     Copy_Cell(LOCAL(LIMIT), LOCAL(PART));  // :PART acts as CHANGE's LIMIT
-    Init_Nulled(LOCAL(PART));
+    Init_Nulled_For_Unrefined(LOCAL(PART));
     Init_Integer(LOCAL(DUP), dups);
 
     STATE = ST_MODIFY_INSERT;
@@ -241,7 +241,7 @@ DECLARE_NATIVE(APPEND)
     }
 
     Copy_Cell(LOCAL(LIMIT), LOCAL(PART));  // :PART acts as CHANGE's LIMIT
-    Init_Nulled(LOCAL(PART));
+    Init_Nulled_For_Unrefined(LOCAL(PART));
     Init_Integer(LOCAL(DUP), dups);
 
   dispatch_to_generic_modify: {

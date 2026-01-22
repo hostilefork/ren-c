@@ -65,10 +65,7 @@ Result(None) Prep_Action_Level(
             Blit_Param_Drop_Mark(arg, param);
         else {
             Erase_Cell(arg);
-            if (Get_Parameter_Flag(param, REFINEMENT))
-                Init_Nulled(arg);
-            else
-                Init_Unspecialized_Ghost(arg);
+            Init_Unspecialized_Null(arg);
         }
     }
 

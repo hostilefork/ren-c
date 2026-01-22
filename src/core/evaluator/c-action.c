@@ -343,7 +343,7 @@ Bounce Action_Executor(Level* L)
 
       skip_fulfilling_arg_for_now:
         assert(Not_Action_Executor_Flag(L, DOING_PICKUPS));
-        assert(Is_Light_Null(ARG));  // couldn't leave erased, so make nulled
+        assert(Is_Unrefinedlike_Null(ARG));  // couldn't leave erased
         continue;
 
   //=//// ACTUAL LOOP BODY ////////////////////////////////////////////////=//
@@ -430,7 +430,7 @@ Bounce Action_Executor(Level* L)
                     goto continue_fulfilling;
                 }
 
-                Init_Nulled(Erase_Cell(ARG));  // can't bypass and leave erased
+                Init_Nulled_For_Unrefined(Erase_Cell(ARG));  // have to init
                 goto skip_fulfilling_arg_for_now;
             }
         }
@@ -818,7 +818,7 @@ Bounce Action_Executor(Level* L)
             goto fulfill_and_any_pickups_done;
         }
 
-        assert(Is_Light_Null(ARG));  // had to null (could not leave erased)
+        assert(Is_Unrefinedlike_Null(ARG));  // could not leave erased
 
         Set_Action_Executor_Flag(L, DOING_PICKUPS);
         goto fulfill_arg;

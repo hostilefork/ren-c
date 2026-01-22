@@ -205,7 +205,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     }
 
     if (Is_Bedrock_Dual_A_Hole(dual_spare)) {  // unspecialized cell
-        Init_Lifted_Ghost(SPARE);
+        Init_Lifted_Unspecialized_Null(SPARE);
         goto return_without_unbinding;
     }
 

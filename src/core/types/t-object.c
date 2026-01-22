@@ -913,9 +913,15 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
         Mold_Element(mo, set_word);
         Append_Codepoint(mo->strand, ' ');
 
-        if (Is_Bedrock(evars.slot)) {
+        if (Is_Bedrock(evars.slot)) {  // !!! ...fake it until you make it...
+            if (Is_Cell_A_Bedrock_Hole(evars.slot)) {
+                require (
+                  Append_Ascii(mo->strand, "~null~  ; hole")
+                );
+                continue;
+            }
             require (
-              Append_Ascii(mo->strand, "??? ; dual cell")  // !!! rethink
+              Append_Ascii(mo->strand, "???  ; dual")  // !!! rethink
             );
             continue;
         }

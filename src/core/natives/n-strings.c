@@ -141,13 +141,13 @@ DECLARE_NATIVE(JOIN)
     }
     bool joining_datatype = not base;  // compiler should optimize out
 
-    Option(const Element*) rest = Is_Nulled(Stable_LOCAL(REST))
+    Option(const Element*) rest = Is_Unrefinedlike_Null(LOCAL(REST))
         ? nullptr
         : Element_ARG(REST);
 
     Element* original_index;
 
-    Option(Element*) delimiter = Is_Nulled(Stable_LOCAL(WITH))
+    Option(Element*) delimiter = Is_Unrefinedlike_Null(LOCAL(WITH))
         ? nullptr
         : Element_ARG(WITH);
     if (delimiter)
