@@ -158,6 +158,7 @@ Result(None) Get_Word_Or_Tuple(
         var,  // have to do before SPARE erase, in case (v = SPARE)
         context
     ));
+    Clear_Cell_Sigil(As_Element(SCRATCH));  // may be already meta
     Metafy_Cell(As_Element(SCRATCH));
 
     Force_Erase_Cell(SPARE);  // clears protection bit
