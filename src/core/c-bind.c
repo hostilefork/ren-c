@@ -1346,8 +1346,11 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
             symbol = Canon_Symbol(dummy_sym);
             dummy_sym = cast(SymId, cast(int, dummy_sym) + 1);
 
-            Copy_Cell_May_Bind(slot, item, binding);
-            LIFT_BYTE(slot) = BEDROCK_0;  // alias bedrock convention [1]
+            Element* copy = Copy_Cell_May_Bind(slot, item, binding);
+            Clear_Cell_Sigil(copy);
+            Metafy_Cell(copy);
+            LIFT_BYTE(slot) = BEDROCK_0;
+            assert(Is_Cell_A_Bedrock_Alias(slot));  // alias uses ^META [1]
         }
         else {
             assert(body_needs_binding);  // set above
@@ -1440,12 +1443,15 @@ Result(None) Read_Slot_Meta(Sink(Value) out, const Slot* slot)
 
     assert(not Is_Cell_A_Bedrock_Drain(slot));
 
+    if (Is_Cell_A_Bedrock_Hole(slot)) {
+        Init_Ghost(out);
+        return none;
+    }
+
+    assert(Is_Cell_A_Bedrock_Alias(slot));
+
     DECLARE_ELEMENT (temp);  // don't have to guard--slot guards
     Copy_Cell_Core(temp, slot, CELL_MASK_COPY);
-  #if RUNTIME_CHECKS
-    LIFT_BYTE(temp) = NOQUOTE_3;
-    assert(Is_Tied_Form_Of(WORD, temp));  // alias
-  #endif
     KIND_BYTE(temp) = TYPE_WORD;
     LIFT_BYTE(temp) = ONEQUOTE_NONQUASI_5;
     unnecessary(Push_Lifeguard(temp));  // slot protects it.
@@ -1505,12 +1511,10 @@ Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(Slot* slot, Value* v)
         return none;
     }
 
+    assert(Is_Cell_A_Bedrock_Alias(slot));
+
     DECLARE_ELEMENT (temp);
     Copy_Cell(temp, u_cast(Element*, slot));
-  #if RUNTIME_CHECKS
-    LIFT_BYTE(temp) = NOQUOTE_3;
-    assert(Is_Tied_Form_Of(WORD, temp));
-  #endif
     KIND_BYTE(temp) = TYPE_WORD;
     LIFT_BYTE(temp) = ONEQUOTE_NONQUASI_5;
     unnecessary(Push_Lifeguard(temp));  // slot protects it.
