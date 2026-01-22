@@ -474,16 +474,36 @@ INLINE bool Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
             panic (Error_No_Catch_For_Throw(level_));
     }
     else {
-        heeded (Copy_Cell(SCRATCH, right));
+        Element* scratch = Copy_Cell(SCRATCH, right);
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         assert(STATE == STATE_0);
         STATE = 1;
 
+        if (Is_Chain(right)) {
+            assume (
+              Unsingleheart_Sequence(scratch)
+            );
+            Metafy_Cell(scratch);
+        }
+
         require (
           Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
         );
-        if (Is_Word(right) and Is_Action(OUT))
+
+        if (Is_Chain(right)) {
+            if (Not_Cell_Stable(OUT)) {
+                if (Is_Ghost(OUT) or Is_Trash(OUT))
+                    Init_Nulled(OUT);
+                else if (Is_Action(OUT))
+                    Deactivate_Action(OUT);
+                else
+                    panic (
+                        ":WORD! or :TUPLE! unstable not ghost/trash/action"
+                    );
+            }
+        }
+        else if ((Is_Word(right) or Is_Tuple(right)) and Is_Action(OUT))
             panic (
                 "words/tuples can't be action as right side of OR AND XOR"
             );
@@ -505,7 +525,7 @@ INLINE bool Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
 //      return: [logic!]
 //      left [any-stable?]
 //      @right "Right is evaluated if left is true"
-//          [group! word! tuple! ^word! ^tuple!]
+//          [group! word! tuple! ^word! ^tuple! :word! :tuple!]
 //  ]
 //
 DECLARE_NATIVE(AND_1)  // see TO-C-NAME
@@ -530,7 +550,7 @@ DECLARE_NATIVE(AND_1)  // see TO-C-NAME
 //      return: [logic!]
 //      left [any-stable?]
 //      @right "Right is evaluated if left is false"
-//          [group! word! tuple! ^word! ^tuple!]
+//          [group! word! tuple! ^word! ^tuple! :word! :tuple!]
 //  ]
 //
 DECLARE_NATIVE(OR_1)  // see TO-C-NAME
@@ -555,7 +575,7 @@ DECLARE_NATIVE(OR_1)  // see TO-C-NAME
 //      return: [logic!]
 //      left [any-stable?]
 //      @right "Always evaluated"  ; [1]
-//          [group! word! tuple! ^word! ^tuple!]
+//          [group! word! tuple! ^word! ^tuple! :word! :tuple!]
 //  ]
 //
 DECLARE_NATIVE(XOR_1)  // see TO-C-NAME
