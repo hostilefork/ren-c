@@ -39,8 +39,8 @@
         prefix: ensure delimiter-types escape
     ]
 
-    if match [integer! word!] opt prefix [prefix: to-text prefix]
-    if match [integer! word!] opt suffix [suffix: to-text suffix]
+    if match [integer! word!] cond prefix [prefix: to-text prefix]
+    if match [integer! word!] cond suffix [suffix: to-text suffix]
 
     if block? values [
         values: to map! values

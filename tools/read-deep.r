@@ -51,7 +51,7 @@ export read-deep: func [
     :strategy "TAKEs next item from queue, building the queue as necessary"
         [frame!]
 ][
-    let taker: any [runs strategy, get meta $read-deep-seq]
+    let taker: any [runs cond strategy, get meta $read-deep-seq]
 
     let result: copy []
 
