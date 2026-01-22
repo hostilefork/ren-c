@@ -156,9 +156,13 @@ typedef uint64_t Tick;  // evaluator cycles; unsigned overflow is well defined
 //    NEEDFUL_OPTION_USES_WRAPPER switch, we can't enforce Ordinal's "never 0"
 //    property without that switch.
 
+#define Unchecked(T)  Unchecked##T
+
+typedef intptr_t UncheckedOrdinal;  // convey the semantics without the wrapper
+
 #if (! NEEDFUL_OPTION_USES_WRAPPER)
     typedef intptr_t Ordinal;
-    #define Ordinal_To_Int ((o) - 1)
+    #define Ordinal_To_Int(o) ((o) - 1)
     #define Int_To_Ordinal(i) ((i) + 1)
 #else
     struct Ordinal {
