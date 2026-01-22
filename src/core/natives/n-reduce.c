@@ -65,7 +65,7 @@ DECLARE_NATIVE(DRAIN_Q)
         Clear_Cell_Sigil(v);
 
         Quote_Cell(v);
-        Stable* result = rebStable(CANON(TWEAK), v, CANON(NONE));
+        Stable* result = rebStable(CANON(TWEAK), v, "()");
         is_drain = Is_Dual_Drain(As_Dual(result));
         rebRelease(result);
     }
