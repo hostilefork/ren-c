@@ -1370,11 +1370,7 @@ DECLARE_NATIVE(QUASAR_Q)
 {
     INCLUDE_PARAMS_OF_QUASAR_Q;
 
-    require (
-      Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
-    );
-    if (not v)
-        return NULL_OUT;
+    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
     return LOGIC_OUT(Is_Quasar(v));
 }
@@ -1393,11 +1389,7 @@ DECLARE_NATIVE(SPACE_Q)
 {
     INCLUDE_PARAMS_OF_SPACE_Q;
 
-    require (
-      Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
-    );
-    if (not v)
-        return NULL_OUT;
+    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
     return LOGIC_OUT(Is_Space(v));
 }
@@ -1416,11 +1408,7 @@ DECLARE_NATIVE(BLANK_Q)
 {
     INCLUDE_PARAMS_OF_BLANK_Q;
 
-    require (
-      Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
-    );
-    if (not v)
-        return NULL_OUT;
+    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
     if (not Is_Rune(v))
         return LOGIC_OUT(false);
