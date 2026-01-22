@@ -298,23 +298,6 @@ DECLARE_NATIVE(UNIMPLEMENTED)
 //  ]
 //
 DECLARE_NATIVE(HIJACK)
-//
-// 1. It may seem useful to change the interface to that of the hijacker,
-//    so that any added refinements would be exposed.  However, that would
-//    create a variance in terms of specializations created before the
-//    hijack and those after.  It seems better to avoid the "sometimes it
-//    will work, and sometimes it won't" property and keep the interface
-//    consistent.  (Perhaps it could be an option to :EXPAND the interface?)
-//
-// 2. Miserly initial attempts at HIJACK tried to get away with a single
-//    element Details array, so it could fit in a Stub.  But when you
-//    consider that you're trying to maintain the old interface, and fit in
-//    a whole FRAME! Cell's worth of information for the hijacker, it was
-//    not working--and the "Archetype" cell was no longer representing an
-//    instance of the action.  A 2-cell array works and is cleaner.
-//
-// 3. It's not totally understood what ADJUNCT is or is not for, so this just
-//    assigns a shared copy.
 {
     INCLUDE_PARAMS_OF_HIJACK;
 
@@ -333,6 +316,25 @@ DECLARE_NATIVE(HIJACK)
     }
 
     Option(VarList*) adjunct = Misc_Phase_Adjunct(victim);
+
+  make_proxy: {
+
+  // 1. It may seem useful to change the interface to that of the hijacker,
+  //    so that any added refinements would be exposed.  However, that would
+  //    create a variance in terms of specializations created before the
+  //    hijack and those after.  It seems better to avoid the "sometimes it
+  //    will work, and sometimes it won't" property and keep the interface
+  //    consistent.  (Perhaps it could be an option to :EXPAND the interface?)
+  //
+  // 2. Miserly initial attempts at HIJACK tried to get away with a single
+  //    element Details array, so it could fit in a Stub.  But when you
+  //    consider that you're trying to maintain the old interface, and fit in
+  //    a whole FRAME! Cell's worth of information for the hijacker, it was
+  //    not working--and the "Archetype" cell was no longer representing an
+  //    instance of the action.  A 2-cell array works and is cleaner.
+  //
+  // 3. It's not totally understood what ADJUNCT is or is not for, so this
+  //    just assigns a shared copy.
 
     Details* proxy = Make_Dispatch_Details(
         BASE_FLAG_MANAGED,
@@ -374,4 +376,4 @@ DECLARE_NATIVE(HIJACK)
 
     assert(Is_Possibly_Unstable_Value_Frame(OUT));
     return OUT;
-}
+}}
