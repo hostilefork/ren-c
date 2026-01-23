@@ -1456,7 +1456,7 @@ DECLARE_NATIVE(AES_KEY)
   setup_initialization_vector: { /////////////////////////////////////////////
 
     size_t blocksize = mbedtls_cipher_get_block_size(ctx);
-    if (rebUnboxLogic("blob? opt iv")) {
+    if (rebUnboxLogic("blob? cond iv")) {
         size_t iv_size;
         const Byte* iv_bytes = rebLockBytes(&iv_size, "iv");
 

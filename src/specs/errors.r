@@ -174,8 +174,10 @@ unset-variable:     "Unset variable: $1"
 expect-arg:         "$1 got $2 for $3 argument, expected $4"
 phase-expect-arg:   "$1 inner phase got $2 for $3 argument, expected $4"
 
-no-logic-typecheck: "$1 must return LOGIC? to use in typechecking"
+no-logic-typecheck: "$1 must return LOGIC! to use in typechecking"
 no-arg-typecheck:   "$1 must take an argument to use in typechecking"
+
+type-test-null:     "Type testing of ~null~ disabled, use COND for NULL result"
 
 invalid-type:       "$1 type is not allowed here"
 invalid-op:         "invalid operator: $1"

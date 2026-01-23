@@ -210,7 +210,7 @@ bind construct [
                 ]
                 all [
                     not unset? $val
-                    action? opt ^val
+                    action? cond ^val
                 ] then [
                     ; All parsers passed as arguments, we want it to be
                     ; rigged so that their results append to an aggregator in

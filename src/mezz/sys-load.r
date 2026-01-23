@@ -288,7 +288,7 @@ load: func [
 
     [header data line]: trap load-header:file data file
 
-    if word? opt header [cause-error 'syntax header source]
+    if word? cond header [cause-error 'syntax header source]
 
     ensure [<null> object!] header
     ensure [blob! block! text!] data
@@ -384,6 +384,12 @@ adjust-url-for-raw: func [
 ; a URL! or reading from a file.  But we could notice when the same filename
 ; or URL was used.  We should also use hashes to tell when things change.
 ;
+; 1. !!! The idea of `import *` is frowned upon as a practice, as it adds an
+;    unknown number of things to the namespace of the caller.  Most languages
+;    urge you not to do it, but JavaScript bans it entirely.  We should maybe
+;    ban it as well (or at least make it inconvenient).  But do it for the
+;    moment since that is how it has worked in the past.
+;
 import*: func [
     "Imports a module; locate, load, make, and setup its bindings"
 
@@ -417,23 +423,12 @@ import*: func [
 bind construct [
     importing-remotely: 'no
 ][
-    return: adapt return/ [  ; make sure all return paths actually import vars
-        ;
-        ; Note: `atom` below is the argument to RETURN.  It is a ^META
-        ; parameter so should be a quoted pack containing a module.  We don't
-        ; disrupt that, else falling through to RETURN would get tripped up.
-        ;
-        ; !!! The idea of `import *` is frowned upon as a practice, as it adds
-        ; an unknown number of things to the namespace of the caller.  Most
-        ; languages urge you not to do it, but JavaScript bans it entirely.  We
-        ; should maybe ban it as well (or at least make it inconvenient).  But
-        ; do it for the moment since that is how it has worked in the past.
-        ;
-        assert [pack? ^value]
-        if where [
+    if where [
+        return: adapt return/ [  ; ensure all return paths actually import vars
+            assert [pack? ^value]
             let mod: ensure module! decay ^value
-            let exports: select (opt adjunct-of mod) 'exports
-            proxy-exports where mod (opt exports)
+            let exports: select (cond adjunct-of mod) 'exports
+            proxy-exports where mod (cond exports)  ; (import *) is bad [1]
         ]
     ]
 
@@ -546,6 +541,12 @@ bind construct [
     ; want to inject that in the header.  So SYSTEM.STANDARD.SCRIPT is the
     ; base object for gathering these other instantiation-related properties
     ; so the running script can know about them.
+    ;
+    ; !!! Should there be a post-script-hook?
+    ;
+    ; 1. It seems we could/should pass system.script here, and the filtering
+    ;    of source as something not to notify about would be the decision of
+    ;    the hook.
 
     let original-script: system.script
 
@@ -557,15 +558,8 @@ bind construct [
         args: '(args)  ; variable same name as field, trips up binding
     ]
 
-    if (not trash? ^script-pre-load-hook) and (match [file! url!] source) [
-        ;
-        ; !!! It seems we could/should pass system.script here, and the
-        ; filtering of source as something not to notify about would be the
-        ; decision of the hook.
-        ;
-        ; !!! Should there be a post-script-hook?
-        ;
-        script-pre-load-hook // [is-module hdr]
+    if match [file! url!] source [  ; system.script? [1]
+        apply cond :script-pre-load-hook [is-module, opt hdr]
     ]
 
     === CHANGE WORKING DIRECTORY TO MODULE'S DIRECTORY (IF IT'S A MODULE) ===
@@ -681,7 +675,7 @@ export*: func [
         ; !!! notation for exporting antiforms?
         items: next items
 
-        (types: match block! cond try items.1) then [
+        (types: match block! cond :items.1) then [
             (match types ^val) else [
                 panic [
                     "EXPORT expected" word "to be in" @types

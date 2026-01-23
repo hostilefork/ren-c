@@ -128,7 +128,7 @@ module: func [
         make module! body  ; inherits binding from body, does not run it
     ]
 
-    if block? opt spec [  ; turn spec into an object if it was a block
+    if block? cond spec [  ; turn spec into an object if it was a block
         spec: construct:with (pin spec) system.standard.header  ; see def.
     ]
 
@@ -187,7 +187,7 @@ module: func [
         ]
     )
 
-    if object? opt mixin [body: bind mixin body]
+    if object? cond mixin [body: bind mixin body]
 
   ;----
   ; 1. We add a QUIT slot to the module (alongside IMPORT* and EXPORT*), and

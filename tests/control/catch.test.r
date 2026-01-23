@@ -143,10 +143,10 @@
     (<uncaught> = catch [null] else [<uncaught>])
     (<uncaught> = catch [null] then [panic] else [<uncaught>])
 
-    (ghost? opt catch [throw ^ghost])
+    (ghost? cond catch [throw ^ghost])
     (<caught> = catch [throw ^ghost] else [<caught>])  ; THROW not heavy
-    (ghost? opt catch [^ghost])
-    (ghost? opt catch [^ghost] then [panic])
+    (ghost? cond catch [^ghost])
+    (ghost? cond catch [^ghost] then [panic])
     (<uncaught> = catch [^ghost] else [<uncaught>])
     (<uncaught> = catch [^ghost] then [panic] else [<uncaught>])
 ]

@@ -11,6 +11,13 @@
 (null? null)
 (logic! = type of null)
 
+(logic? null)
+(logic? okay)
+(not logic? 1020)
+
+~type-test-null~ !! (integer? null)
+(null = integer? cond null)
+
 (not null? 1)
 
 ; Early designs for NULL did not let you get or set them from plain WORD!

@@ -411,8 +411,8 @@ bind construct [
     ; %console-skin.r if in system.options.resources
 
     let skin-file: case [
-        file? opt skin [skin]
-        object? opt skin [null]
+        file? cond skin [skin]
+        object? cond skin [null]
     ] else [%console-skin.r]
 
     loud-print "Starting console..."
@@ -531,7 +531,7 @@ console*: func [
   ; parameter for what the QUIT:VALUE was--or multiplex it into the result,
   ; making this code more complicated for little point.)
 
-    if integer? opt result [  ; QUIT for console only returns exit statuses
+    if integer? cond result [  ; QUIT for console only returns exit statuses
         return result
     ]
 
@@ -730,7 +730,7 @@ console*: func [
   ; is being called non-interactively from the shell).
 
     if error? result [
-        if object? opt system.console [
+        if object? cond system.console [
             emit [system.console/print-panic (<*> result)]
         ] else [
             emit [console!/print-panic (<*> result)]  ; fallback to default

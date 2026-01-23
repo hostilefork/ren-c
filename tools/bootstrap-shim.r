@@ -247,8 +247,6 @@ for-each [alias] [
 
 function3: ~#[FUNCTION slated for synonym of FUNC, so no FUNCTION3]#~
 
-cond: conditional: opt/
-
 
 === "ISSUE! => RUNE!" ===
 
@@ -449,7 +447,7 @@ splice!: block!  ; best we can do
 
 splice3?: lambda3 [value [<opt> any-value!]] [
     all [
-        block? opt value
+        block? cond value
         #splice! = (first value)
     ]
 ]
@@ -939,8 +937,8 @@ modernize-action: func3 [
                 ]
 
                 if types: match block! spec.1 [
-                    if find types <opt> [
-                        append3 proxiers compose3:deep [  ; splices
+                    comment [  ; proxy code if it is needed
+                        append3 proxiers compose3:deep [
                             if void? (to-get-word w) [
                                 (to-set-word w) null
                             ]
@@ -1066,7 +1064,7 @@ apply: func3 [
     ; Now go by the SET-WORD!s.  If it's a refinement that takes an argument,
     ; we have to set the refinement to okay
     ;
-    while [set-word? opt :args.1] [
+    while [set-word? cond :args.1] [
         pos: find params to refinement3! args.1 else [
             panic ["Unknown refinement" args.1]
         ]

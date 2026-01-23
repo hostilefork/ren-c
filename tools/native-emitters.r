@@ -301,7 +301,7 @@ export emit-include-params-macro: func [
             ]
             iter: next iter
 
-            while [text? opt try pick cond iter 1] [  ; allow TEXT! before spec
+            while [text? cond try pick cond iter 1] [  ; allow TEXT! before spec
                 iter: next iter
             ]
 
@@ -318,7 +318,7 @@ export emit-include-params-macro: func [
                 ]
             ]
 
-            while [text? opt try pick cond iter 1] [  ; allow TEXT! after spec
+            while [text? cond try pick cond iter 1] [  ; allow TEXT! after spec
                 iter: next iter
             ]
 

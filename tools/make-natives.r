@@ -132,9 +132,8 @@ leaders: [
 
     native  ; REAL native (overwrites bootstrap)
 
-    moldify  ; early so PROBE() works as early as it can! (uses LOGIC?)
+    moldify  ; early so PROBE() works as early as it can
 
-    ;... these all use LOGIC?
     any-value?
     any-stable?  ; uses ANY-VALUE?
     null?

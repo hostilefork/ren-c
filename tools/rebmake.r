@@ -574,7 +574,7 @@ cc: make compiler-class [
             ]
             if F [
                 for-each 'flg F [
-                    keep opt filter-flag flg .id
+                    keep cond filter-flag flg .id
                 ]
             ]
 
@@ -623,22 +623,22 @@ cc: make compiler-class [
             keep "-o"
 
             output: file-to-local output
-            either ends-with? output opt suffix [
+            either ends-with? output cond suffix [
                 keep output
             ][
                 keep unspaced [output suffix]
             ]
 
-            for-each 'search (opt map-files-to-local opt searches) [
+            for-each 'search (cond map-files-to-local cond searches) [
                 keep unspaced ["-L" search]
             ]
 
-            for-each 'flg ldflags [
-                keep opt filter-flag flg .id
+            for-each 'flg cond ldflags [
+                keep cond filter-flag flg .id
             ]
 
-            for-each 'dep depends [
-                keep opt ./accept dep
+            for-each 'dep cond depends [
+                keep cond ./accept dep
             ]
         ]
     ]
@@ -841,7 +841,7 @@ cl: make compiler-class [
             ]
             if F [
                 for-each 'flg F [
-                    keep opt filter-flag flg .id
+                    keep cond filter-flag flg .id
                 ]
             ]
 
@@ -896,8 +896,8 @@ cl: make compiler-class [
                 ]
             ]
 
-            for-each 'dep depends [
-                keep opt ./accept dep
+            for-each 'dep cond depends [
+                keep cond ./accept dep
             ]
 
             ; /link must precede linker-specific options
@@ -912,12 +912,12 @@ cl: make compiler-class [
             ;
             if debug [keep "/DEBUG"]
 
-            for-each 'search (opt map-files-to-local opt searches) [
+            for-each 'search (cond map-files-to-local cond searches) [
                 keep unspaced ["/libpath:" search]
             ]
 
-            for-each 'flg ldflags [
-                keep opt filter-flag flg .id
+            for-each 'flg cond ldflags [
+                keep cond filter-flag flg .id
             ]
         ]
     ]
@@ -1176,7 +1176,7 @@ generator-class: make object! [
         flip-flag solution 'no
 
         if find words-of solution 'depends [
-            for-each 'dep (opt solution.depends) [
+            for-each 'dep (cond solution.depends) [
                 if dep.class = #variable [
                     append vars spread reduce [
                         dep.name

@@ -104,7 +104,7 @@ compile: proc [
         let arg: b.1
         b: next b
 
-        if block? opt var [  ; at present, this always means multiple paths
+        if block? cond var [  ; at present, this always means multiple paths
             for-each 'item compose [(arg)] [
                 switch:type item [
                     text! []

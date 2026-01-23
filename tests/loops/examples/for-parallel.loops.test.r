@@ -28,12 +28,12 @@
     ], ok)
 
     (heavy-void? for-parallel [x y] [] [] [panic])
-    ([1 2] = collect [for-parallel [x y] [] [1 2] [keep opt x, keep y]])
-    ([a b] = collect [for-parallel [x y] [a b] [] [keep x, keep opt y]])
+    ([1 2] = collect [for-parallel [x y] [] [1 2] [keep cond x, keep y]])
+    ([a b] = collect [for-parallel [x y] [a b] [] [keep x, keep cond y]])
 
     (heavy-void? for-parallel [x y] none none [panic])
-    ([1 2] = collect [for-parallel [x y] none [1 2] [keep opt x, keep y]])
-    ([a b] = collect [for-parallel [x y] [a b] none [keep x, keep opt y]])
+    ([1 2] = collect [for-parallel [x y] none [1 2] [keep cond x, keep y]])
+    ([a b] = collect [for-parallel [x y] [a b] none [keep x, keep cond y]])
 
     ((lift null) = lift for-parallel [x y] [a b] [1 2] [if x = 'b [break]])
     ('~(~null~)~ = lift for-parallel [x y] [a b] [1 2] [null])

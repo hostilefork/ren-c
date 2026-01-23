@@ -407,7 +407,7 @@ make-obj-defs: proc [
         for-each 'field words-of obj [
             if all [
                 field != 'standard
-                object? opt get has obj field
+                object? cond get has obj field
             ][
                 let extended-prefix: uppercase unspaced [prefix "_" field]
                 make-obj-defs e obj.(field) extended-prefix (depth - 1)
@@ -697,7 +697,7 @@ e-ext-symids: make-emitter "Extension SymId Commitment Table" (
 )
 
 for-next 'pos sym-table [
-    while [tag? opt try pos.1] [  ; remove placeholders, add defines
+    while [tag? cond try pos.1] [  ; remove placeholders, add defines
         let definition: as text! pos.1
         take pos
 

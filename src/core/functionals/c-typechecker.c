@@ -43,7 +43,7 @@
 //
 //      return: '[logic!]
 //      value "Value to test"
-//          '[<opt> any-stable?]
+//          '[any-stable?]
 //      :type "Test a concrete type, (integer?:type integer!) passes"
 //      :quoted
 //      :quasiform
@@ -76,6 +76,10 @@ Bounce Typechecker_Dispatcher(Level* const L)
     assert(Details_Max(details) == MAX_IDX_TYPECHECKER);
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+
+    if (Is_Nulled(v))  // stop casual use of (integer? var) when null
+        return fail (Error_Type_Test_Null_Raw());
+
     Option(Type) type = Type_Of(v);
 
     if (Not_Level_Flag(L, DISPATCHING_INTRINSIC)) {
@@ -199,7 +203,7 @@ bool Typechecker_Details_Querier(
 // 2. We need a spec for our typecheckers, which comes from the built-by-hand
 //    native TYPECHECKER-ARCHETYPE.
 //
-// 3. Since the return type is always a LOGIC?, Typechecker_Details_Querier()
+// 3. Since the return type is always a LOGIC!, Typechecker_Details_Querier()
 //    can fabricate that return without it taking up a cell's worth of space
 //    on each typechecker instantiation (that isn't intrinsic).
 //
@@ -1204,7 +1208,7 @@ DECLARE_NATIVE(TYPECHECK)
 //
 //      return: [<null> any-stable?]
 //      test [block! datatype! parameter! frame!]
-//      value "Won't pass thru NULL (use TYPECHECK for a LOGIC? answer)"
+//      value "Won't pass thru NULL (use TYPECHECK for a LOGIC! answer)"
 //          [any-stable?]
 //  ]
 //
