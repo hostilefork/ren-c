@@ -548,7 +548,7 @@ unzip: func [
                     ; methods used for .ZIP compression in the wild today
 
                     if method-number = 0 [  ; STORE
-                        continue:with copy:part data compressed-size
+                        continue copy:part data compressed-size
                     ]
 
                     if method-number <> 8 [  ; DEFLATE

@@ -204,29 +204,34 @@ DECLARE_NATIVE(DEFINITIONAL_AGAIN)
 //  "Throws control back to top of loop for next iteration"
 //
 //      return: []
-//      :with "Act as if loop body finished with this value"
-//          [any-stable?]
+//      ^value "Act as if loop body finished with this value"
+//          [<hole> any-value?]
 //  ]
 //
 DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
 //
 // CONTINUE is implemented via a thrown signal that bubbles up through the
-// stack.  It uses the value of its own native function as the name of the
-// throw, like `throw:name value continue/`.
+// stack.  Loops put their identity into the instance of CONTINUE that they
+// bind into their bodies (much like a definitional RETURN), so the continue
+// knows which loop to continue.
 //
 // 1. CONTINUE with no argument acts like the branch completed with no
 //    result; and since it's being run as a branch we throw heavy void.
+//
+//    https://forum.rebol.info/t/1965/3
 //
 //    Functions like INSIST and REMOVE-EACH thus should tolerate no result
 //    OR force you to CONTINUE:WITH a value saying what you mean.
 {
     INCLUDE_PARAMS_OF_DEFINITIONAL_CONTINUE;
 
-    Value* with = SCRATCH;
-    if (not ARG(WITH))
-        Init_Heavy_Void(SCRATCH);  // https://forum.rebol.info/t/1965/3 [1]
+    Param* param = ARG(VALUE);
+
+    Value* v;
+    if (Is_Cell_A_Bedrock_Hole(param))
+        v = Init_Heavy_Void(LOCAL(VALUE));  // [1]
     else
-        Copy_Cell(SCRATCH, unwrap ARG(WITH));
+        v = As_Value(param);
 
     Level* continue_level = LEVEL;  // Level of this CONTINUE call
 
@@ -243,7 +248,7 @@ DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
         Varlist_Of_Level_Force_Managed(loop_level)
     );
 
-    Init_Thrown_With_Label(LEVEL, with, label);
+    Init_Thrown_With_Label(LEVEL, v, label);
     return BOUNCE_THROWN;
 }
 

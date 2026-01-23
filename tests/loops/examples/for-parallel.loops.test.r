@@ -38,7 +38,7 @@
     ((lift null) = lift for-parallel [x y] [a b] [1 2] [if x = 'b [break]])
     ('~(~null~)~ = lift for-parallel [x y] [a b] [1 2] [null])
 
-    ('z = for-parallel [x y] [a b] [1 2] [if x = 'b [continue:with 'z]])
+    ('z = for-parallel [x y] [a b] [1 2] [if x = 'b [continue 'z]])
     ([a b 2] = collect [
         for-parallel [x y] [a b] [1 2] [keep x if y = '1 [continue] keep y]
     ])

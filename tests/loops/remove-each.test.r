@@ -60,7 +60,7 @@
 (
     block: copy [1 2 3 4]
     remove-each 'i block [
-        if i = 3 [continue:with okay]
+        if i = 3 [continue okay]
         i = 4
     ]
     block = [1 2]
