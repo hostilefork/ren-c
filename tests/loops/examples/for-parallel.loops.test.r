@@ -5,15 +5,14 @@
 [
     (for-parallel: lambda [
         vars [block!]
-        blk1 [none? any-list?]
-        blk2 [none? any-list?]
+        ^blk1 [<void> any-series?]
+        ^blk2 [<void> any-series?]
         body [block!]
-        {context}
-    ][
+    ] {
         [vars context]: wrap:set compose vars
         body: overbind context body
-        while [(not empty? blk1) or (not empty? blk2)] [
-            (vars): pack [(try first blk1) (try first blk2)]
+        until [(empty? ^blk1) and (empty? ^blk2)] [
+            (vars): pack [^blk1.1 ^blk2.1]
 
             attempt body else [
                 break  ; if pure NULL it was a BREAK
@@ -25,15 +24,11 @@
             elide try blk1: next blk1
             elide try blk2: next blk2
         ]
-    ], ok)
+    }, ok)
 
     (heavy-void? for-parallel [x y] [] [] [panic])
-    ([1 2] = collect [for-parallel [x y] [] [1 2] [keep cond x, keep y]])
-    ([a b] = collect [for-parallel [x y] [a b] [] [keep x, keep cond y]])
-
-    (heavy-void? for-parallel [x y] none none [panic])
-    ([1 2] = collect [for-parallel [x y] none [1 2] [keep cond x, keep y]])
-    ([a b] = collect [for-parallel [x y] [a b] none [keep x, keep cond y]])
+    ([1 2] = collect [for-parallel [^x y] [] [1 2] [keep ^x, keep y]])
+    ([a b] = collect [for-parallel [x ^y] [a b] [] [keep x, keep ^y]])
 
     ((lift null) = lift for-parallel [x y] [a b] [1 2] [if x = 'b [break]])
     ('~(~null~)~ = lift for-parallel [x y] [a b] [1 2] [null])
@@ -52,19 +47,19 @@
         ]
     ])
 
-    ([[a 1] [b 2] [c ~null~]] = collect [
+    ([[a 1] [b 2] [c ~,~]] = collect [
         assert [
-            <exhausted> = for-parallel [x y] [a b c] [1 2] [
-                keep reduce [x reify y]
-                if y [y * 10] else [<exhausted>]
+            <exhausted> = for-parallel [x ^y] [a b c] [1 2] [
+                keep reduce [x reify ^y]
+                if :y [y * 10] else [<exhausted>]
             ]
         ]
     ])
 
-    ([[a 1] [b 2] [~null~ 3]] = collect [
+    ([[a 1] [b 2] [~,~ 3]] = collect [
         assert [
-            30 = for-parallel [x y] [a b] [1 2 3] [
-                keep reduce [reify x y]
+            30 = for-parallel [^x y] [a b] [1 2 3] [
+                keep reduce [reify ^x y]
                 y * 10
             ]
         ]

@@ -202,7 +202,8 @@
     not error? rescue [set $a '~okay~]
 )
 
-
+; REIFY decays PACK!, passes through FAILURE!, but turns other antiforms
+; into quasiforms.
 [
     ('null = noquasi reify ~null~)
     ('~null~ = reify null)
@@ -210,7 +211,14 @@
 
     (10 = reify 10)
     ((the '''a) = reify the '''a)
+
+    (10 = reify pack [10 20])
+    ('~null~ = reify pack [~null~ 20])
+
+    (failure? reify fail "test")
+    ('~,~ = reify ())
 ]
+
 
 ; LIFT* lifts anything that would trigger a THEN
 [

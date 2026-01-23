@@ -337,7 +337,7 @@ INLINE Element* Quasify_Antiform(Exact(Stable*) v) {
     return u_cast(Element*, v);
 }
 
-INLINE Element* Reify(Value* v) {
+INLINE Element* Reify_If_Antiform(Value* v) {
     if (LIFT_BYTE(v) > STABLE_ANTIFORM_2)
         return As_Element(v);
     assert(LIFT_BYTE_RAW(v) != BEDROCK_0);

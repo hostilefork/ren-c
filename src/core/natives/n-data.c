@@ -1545,32 +1545,35 @@ DECLARE_NATIVE(DECAYABLE_Q)
 
 
 //
-//  reify: native:intrinsic [
+//  reify: native [  ; !!! selectively decays, can't be intrinsic
 //
 //  "Make antiforms into their quasiforms, quote all other values"
 //
-//      return: [element?]
-//      value '[any-value?]
+//      return: [element? failure!]
+//      ^value "PACK!s decayed, and FAILURE! is passed through"
+//         '[any-value?]
 //  ]
 //
 DECLARE_NATIVE(REIFY)
 //
-// There isn't a /NOQUASI refinement to REIFY so it can be an intrinsic.  This
+// There isn't a :NOQUASI refinement to REIFY so it can be an intrinsic.  This
 // speeds up all REIFY operations, and (noquasi reify ...) will be faster
-// than (reify/noquasi ...)
-//
-// !!! We don't handle unstable isotopes here, so REIFY of a pack will just
-// be a reification of the first value in the pack.  And REIFY of an error
-// will panic.  We could have REIFY:EXCEPT and REIFY:PACK, if they seem to be
-// important...but let's see if we can get away without them and have this be
-// an intrinsic.
+// than (reify:noquasi ...).  (Note: intrinsic temporarily not possible.)
 {
     INCLUDE_PARAMS_OF_REIFY;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Value* v = Unchecked_ARG(VALUE);
+    if (Is_Failure(v))
+        return COPY_TO_OUT(v);
+
+    if (Is_Pack(v)) {
+      require(
+        Decay_If_Unstable(v)
+      );
+    }
 
     Copy_Cell(OUT, v);
-    return Reify(OUT);
+    return Reify_If_Antiform(OUT);
 }
 
 
