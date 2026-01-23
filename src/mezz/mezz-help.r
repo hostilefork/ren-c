@@ -97,7 +97,8 @@ help-action: proc [
     let refinements: copy []  ; mumble frotz
     let deco-refinements: copy []  ; :mumble :/@(frotz)
 
-    for-each [key param] (parameters of frame) [
+    for-each key frame [
+        let param: get:dual key
         if param.optional [
             append refinements key
             append deco-refinements decorate param key
@@ -128,8 +129,8 @@ help-action: proc [
     print [____ (any [return-param.text, "(undocumented)"])]
 
     let print-args: [list :indent-words] -> [
-        for-each 'key list [
-            let param: select frame key
+        for-each key list [
+            let param: get:dual key
             print [____ @(decorate param key) @(opt param.spec)]
             if param.text [
                 print [____ ____ param.text]
