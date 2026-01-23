@@ -50,28 +50,22 @@ lib.exit-process: ~#[See SYS.UTIL/EXIT]#~
 ;    (vs. a script quit that can return any value or error).  It's easier to
 ;    do the work here than in API strings in the console C code.
 ;
-; 2. Allowing QUIT to run without an argument opens up the possibility of
-;    someone putting a QUIT statement in the middle of code and not thinking
-;    it takes any arguments, but it picks one up from the next line.  Only
-;    the console's QUIT does this--for convenience.  All other places must
-;    write out the "long" form of (quit 0)
-;
 make-quit: lambda [
     "Make a quit function out of a plain THROW"
-    ^quit* [action!]
+    ^throw [action!]
     :console "Just integer, no argument acts like quit 0"  ; [1]
 ][
-    func compose:deep [
-        ^result "If not :value, integer! exit code (non-zero is failure)"
-            [any-value? (if console [<hole>])]  ; variadic has pitfalls [2]
-        :value "Return any value, non-errors all signify exit code 0"
+    diverger [
+        ^result "If not :value, integer! exit code (default is 0)"
+            [<hole> any-value?]
+        :value "Return any value, non-FAILURE! signifies exit code 0"
     ][
         result: default [0]
         if value [  ; not an exit status integer
             if not console [
-                quit* ^result  ; may be error
+                throw ^result  ; may be error
             ]
-            quit* any [
+            throw any [
                 if not failure? ^result [0]  ; non-error is shell success
                 try (unanti ^result).exit-code  ; null if no exit-code field
                 1  ; generic quit signal for all non-exit-code-bearing errors
@@ -84,7 +78,7 @@ make-quit: lambda [
             ]
         ]
         let exit-code: ^result
-        quit* case [
+        throw case [
             console [exit-code]  ; console gives code to shell, not to DO
             exit-code = 0 [~]  ; suppresses display when given back to DO
         ] else [
