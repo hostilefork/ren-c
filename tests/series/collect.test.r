@@ -7,17 +7,17 @@
 
 
 ; COLLECT* is the lower-level operation that returns NULL if it opts out of
-; collecting with nulls or has no collects.  Empty blocks count as asking
+; collecting with voids or has no collects.  Empty splices count as asking
 ; to collect emptiness.
 [
     (null = collect* [])
     ([] = collect [])
 
-    (null = collect* [assert [null? keep ^ghost]])
-    ([] = collect [assert [null? keep ^ghost]])
+    (null = collect* [assert [ghost? keep ^ghost]])
+    ([] = collect [assert [ghost? keep ^ghost]])
 
-    ([] = collect* [assert [(quasi '()) = lift (keep spread [])]])
-    ([] = collect [assert [(quasi '()) = lift (keep spread [])]])
+    ([] = collect* [assert [(quasi '[]) = lift (keep spread [])]])
+    ([] = collect [assert [(quasi '[]) = lift (keep spread [])]])
 ]
 
 [
@@ -29,7 +29,7 @@
                 line: ok
                 part: null
             ][
-                value: try spaced value
+                value: opt spaced value
             ]
             eval overbind $keep (body)
         ]

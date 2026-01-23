@@ -666,18 +666,15 @@ collect*: func3 [  ; variant giving NULL if no actual material kept
 ][
     out: null
     keeper: specialize (  ; SPECIALIZE to remove series argument
-        enclose 'append func3 [  ; gets :LINE, :DUP
+        enclose 'append lambda [  ; gets :LINE, :DUP
             f [frame!]
         ][
-            if not f.value [  ; APPEND's value is <opt> so this means null in
-                return null  ; VOID-in-NULL-out: doesn't "count" as collected
+            ; should entering KEEP at all (e.g. not VETO) mean non-null OUT?
+            if f.value [  ; APPEND's value is <opt>
+                f.series: out: default [make block! 16]  ; no return null now
+                f.value  ; ELIDE leaves result (bootstrap EVAL kills F.VALUE)
+                elide eval f
             ]
-
-            assert [not action? get $f.value]
-
-            f.series: out: default [make block! 16]  ; won't return null now
-            f.value  ; ELIDE leaves as result (F.VALUE invalid after EVAL F)
-            elide eval f
         ]
     )[
         series: <replaced>

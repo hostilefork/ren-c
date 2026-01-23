@@ -399,11 +399,10 @@ collect*: lambda [
         enclose append/ lambda [  ; Derive from APPEND for :LINE :DUP
             f [frame!]
         ][
-            decay either void? f.value [  ; DECAY, we want pure null
-                null  ; void in, null out (should it pass through the ghost?)
-            ][
+            ; should entering KEEP at all (e.g. not VETO) mean non-null OUT?
+            if f.value [
                 f.series: out: default [make block! 16]  ; no null return now
-                f.value  ; ELIDE leaves as result
+                f.value  ; ELIDE leaves as result, typechecked stable
                 elide eval-free f  ; would invalidate f.value (hence ELIDE)
             ]
         ]
