@@ -24,32 +24,37 @@
 ([[1 2] [3] [4 5 6] []] = split [1 2 3 4 5 6] @[2 1 3 5])
 ([[1 2] [3] [4 5 6]] = split [1 2 3 4 5 6] @[2 1 6])
 ([[1 2] [5 6]] = split [1 2 3 4 5 6] @[2 -2 2])
+
 (["abc" "de" "fghi" "jk"] = split "abc,de,fghi,jk" #",")
 (["a" "b" "c"] = split "a.b.c" ".")
 (["c" "c"] = split "c c" " ")
 (["1,2,3"] = split "1,2,3" " ")
 (["1" "2" "3"] = split "1,2,3" ",")
 (["1" "2" "3" ""] = split "1,2,3," ",")
-(["1" "2" "3" ""] = split "1,2,3," charset ",.")
-(["1" "2" "3" ""] = split "1.2,3." charset ",.")
+
 (["-" "-"] = split "-a-a" ["a"])
 (["-" "-" "'"] = split "-a-a'" ["a"])
+
+(["1" "2" "3" ""] = split "1,2,3," charset ",.")
+(["1" "2" "3" ""] = split "1.2,3." charset ",.")
 (["abc" "de" "fghi" "jk"] = split "abc|de/fghi:jk" charset "|/:")
+
 (["abc" "de" "fghi" "jk"] = split "abc^M^Jde^Mfghi^Jjk" [CR LF | #"^M" | newline])
 (["abc" "de" "fghi" "jk"] = split "abc     de fghi  jk" [some #" "])
 
 ; tag delimiter
-([[a] [b c] []] = split [a <t> b c <t>] quote <t>)
-(["abc" "de" "fghi" "jk"] = split "abc<br>de<br>fghi<br>jk" quote <br>)
+([[a] [b c] []] = split [a <t> b c <t>] ~[<t>]~)
+(["abc" "de" "fghi" "jk"] = split "abc<br>de<br>fghi<br>jk" ~[<br>]~)
 
 ; WORD! delimiter in block
-([[a] [b c] []] =  split [a | b c |] quote '|)
-([[a] [b c] []] = split [a x b c x] quote 'x)
+([[a] [b c] []] =  split [a | b c |] ~[|]~)
+([[a] [b c] []] = split [a x b c x] ~[x]~)
 
 
 [#690 (
-    ["This" " is a" " test" " to see "]
-        = split "This! is a. test? to see " charset "!?."
+    ["This" " is a" " test" " to see "] = (
+        split "This! is a. test? to see " charset "!?."
+    )
 )]
 
 (["a" "b" "c"] = split "a-b-c" "-")
@@ -69,11 +74,14 @@
 
 (2 = length of trim first split -[х^/+й]- "+")
 
+(null? split "a,b,c" veto)
+(null? split [a, b, c] cond null)
+
 ; NONE has nothing to split by, return original input (but in a block, to
 ; match the other outputs).
 ;
-(null? split "a,b,c" ^ghost)
-(null? split [a, b, c] ^ghost)
+(["a,b,c"] = split "a,b,c" ^ghost)
+([[a, b, c]] = split [a, b, c] ())
 
 (["a,b,c"] = split "a,b,c" none)
 ([[a, b, c]] = split [a, b, c] none)

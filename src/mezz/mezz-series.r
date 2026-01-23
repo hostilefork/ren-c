@@ -503,32 +503,27 @@ split: func [
     "Split series in pieces: fixed/variable size, fixed number, or delimited"
 
     return: [<null> block!]
-    series "The series to split"
-        [any-series?]
-    dlm "Split size, delimiter(s) (if all integer block), or block rule(s)"
-        [
-            <opt>  ; just return input
-            block!  ; parse rule
-            @block!  ; list of integers for piece lengths
-            integer!  ; length of pieces (or number of pieces if /INTO)
-            bitset!  ; set of characters to split by
-            char? text!  ; text to split by
-            quoted!  ; literally look for value
-            splice!  ; split on a splice's literal contents
-            quasiform!  ; alternate way to pass in splice or void
-        ]
+    series [any-series?]
+    dlm [
+        <opt>  "just return input (in a block if not already)"
+        block!  "parse rule"
+        @block!  "list of integers for piece lengths"
+        integer!  "length of pieces (or number of pieces if :INTO)"
+        bitset!  "set of characters to split by"
+        char? text!  "text to split by"
+        splice!  "split on literal contents of splice (1 value ATM)"
+    ]
     :into "If dlm is integer, split in n pieces (vs. pieces of length n)"
 ][
-    if not dlm [
+    any [
+        not dlm
+        none? dlm
+    ] then [
         return reduce [series]
     ]
 
-    if splice? dlm [
-        panic "SPLIT on SPLICE?! would need UPARSE, currently based on PARSE3"
-    ]
-
     if match [@block!] dlm [
-        return map-each 'len dlm [
+        return map-each 'len unpin dlm [
             if not integer? len [
                 panic ["@BLOCK! in SPLIT must be all integers:" mold len]
             ]
@@ -538,6 +533,14 @@ split: func [
             ]
             copy:part series series: skip series len
         ]
+    ]
+
+    if splice? dlm [
+        dlm: unsplice dlm
+        if 1 != length of dlm [
+            panic "SPLIT on SPLICE! > 1 item would require UPARSE (not yet...)"
+        ]
+        dlm: quote first dlm
     ]
 
     let size  ; set for INTEGER! case
