@@ -2384,7 +2384,12 @@ default-combinators: make map! [
         :limit "Limit of how far to consider (used by ... recursion)"
             [block!]
         :thru "Keep trying rule until end of block"
-        {rules pos ^result f r sublimit subpending subresult can-vanish}
+        {
+            rules pos continue-outer-loop
+            ^result f r
+            sublimit subpending subresult
+            can-vanish
+        }
     ][
         rules: value  ; alias for clarity
         limit: default [tail of rules]
@@ -2397,16 +2402,13 @@ default-combinators: make map! [
             ]
 
             if rules.1 = '| [  ; rule alternative fulfilled, but must scan [1]
-                catch [  ; use CATCH to continue outer loop
-                    while [r: try rules.1] [
-                        rules: next rules
-                        if r = '|| [
-                            input: pos  ; don't roll back past current pos
-                            throw '||
-                        ]
+                continue-outer-loop: continue/
+                while [r: try rules.1] [
+                    rules: next rules
+                    if r = '|| [
+                        input: pos  ; don't roll back past current pos
+                        continue-outer-loop
                     ]
-                ] then [
-                    continue
                 ]
 
                 input: pos
@@ -2476,23 +2478,26 @@ default-combinators: make map! [
                 ]
                 pending: none
 
-                pos: catch [  ; skip to next alternate (if any)
-                    while [r: try rules.1] [
-                        rules: next rules
-                        if r = '| [throw input]  ; reset position
-                        if r = '|| [break]  ; no relevant alternates after fail
+                continue-outer-loop: continue/
+                while [r: try rules.1] [  ; skip to next alternate (if any)
+                    rules: next rules
+                    if r = '| [
+                        pos: input  ; reset position
+                        continue-outer-loop
                     ]
-                ] else [  ; no throw to reset position
-                    if (not thru) or (tail? pos) [
-                        return fail* make error! [
-                            id: 'parse-mismatch
-                            message:
-                              "PARSE BLOCK! combinator did not match input"
-                        ]
-                    ]
-                    rules: value  ; for [...] restart rules from the beginning
-                    pos: next pos  ; and go to the next input item
+                    if r = '|| [break]  ; no relevant alternates after fail
                 ]
+
+                if (not thru) or (tail? pos) [
+                    return fail* make error! [
+                        id: 'parse-mismatch
+                        message:
+                            "PARSE BLOCK! combinator did not match input"
+                    ]
+                ]
+                rules: value  ; for [...] restart rules from the beginning
+                pos: next pos  ; and go to the next input item
+
                 continue
             ]
 
