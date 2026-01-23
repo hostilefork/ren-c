@@ -745,7 +745,7 @@ emcc: make gcc [
         ; custom link behavior could go here
 
         return link-backup // [
-            output depends any [searches []] ldflags
+            output opt depends any [searches []] opt ldflags
             dynamic: dynamic
             debug: debug
         ]
