@@ -60,25 +60,22 @@ lib.lib3: lib3: lib  ; use LIB3 to make it clearer when using old semantics
 export: lib3/func [
     "%import-shim.r variant of EXPORT which just puts the definition into LIB"
 
-    :set-word [<skip> set-word!]  ; old style unescapable literal, old <skip>!
+    'what [set-word! block! group!]
     args "`export x: ...` for single or `export [...]` for words list"
-        [null? any-value! <...>]  ; <...> is old-style variadic indicator
-
-    <local> items
+        [any-value! <...>]  ; <...> is old-style variadic indicator
 ][
-    if set-word [
-        return set (extend system.contexts.user to word! set-word) (
-            set set-word take args  ; assign in local context too...
+    if set-word? what [
+        return set (extend system.contexts.user to word! what) (
+            set what take args  ; assign in local context too...
         )
     ]
 
-    items: take args
-    if group? :items [items: eval args]
-    if not block? :items [
+    if group? what [what: eval what]
+    if not block? what [
         panic "EXPORT must be of form `export x: ...` or `export [...]`"
     ]
 
-    for-each 'word :items [
+    for-each 'word what [
         if not word? :word [  ; no type checking in shim via BLOCK!s
             panic "EXPORT only exports block of words in bootstrap shim"
         ]
