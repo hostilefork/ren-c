@@ -386,7 +386,7 @@ ATTRIBUTE_NO_RETURN void Crash_Core(
 //
 //      return: []
 //      @info "If you want to implicate a value, use (crash $value)"
-//          [<end> error! text! $word!]
+//          [<hole> error! text! $word!]
 //  ]
 //
 DECLARE_NATIVE(CRASH)
@@ -398,7 +398,7 @@ DECLARE_NATIVE(CRASH)
 {
     INCLUDE_PARAMS_OF_CRASH;
 
-    Element* info = ARG(INFO);
+    Param* param = ARG(INFO);
 
   #if TRAMPOLINE_COUNTS_TICKS
     Tick tick = level_->tick;  // use Level's tick instead of g_tick
@@ -407,6 +407,13 @@ DECLARE_NATIVE(CRASH)
   #endif
 
     const void *p;
+
+    if (Is_Cell_A_Bedrock_Hole(param)) {
+        p = nullptr;
+        goto crash_with_pointer;
+    }
+
+    Element* info = As_Element(param);
 
     if (Is_Tied_Form_Of(WORD, info)) {  // interpret as value to diagnose
         Clear_Cell_Sigil(info);
@@ -430,10 +437,12 @@ DECLARE_NATIVE(CRASH)
         }
     }
 
+  crash_with_pointer: { //////////////////////////////////////////////////////
+
     Crash_Core(
         p, tick, File_UTF8_Of_Level(level_), opt Line_Number_Of_Level(level_)
     );
-}
+}}
 
 
 //

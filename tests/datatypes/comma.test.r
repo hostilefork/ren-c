@@ -64,20 +64,64 @@
     commafied = normal
 )
 
-; We want commas to usually act as END for non-meta parameters.
+; We want commas to behave the same as reaching the end of a feed
+;
+; (At one time this was relaxed for literal parameters; maybe <comma> should
+; specifically mean that you want to get commas literally?  TBD.)
+
+[
+    (test-normal: lambda [x [<hole> any-value?]] [
+        reduce [lift x, boolean hole? $x]
+    ])
+
+    ([~null~ true] = test-normal,)
+    ([~null~ true] = test-normal)
+    ([~null~ true] = (test-normal))
+
+    ([~null~ false] = test-normal null)
+
+    ~???~ !! (test-normal ())
+]
+
+[
+    (test-meta: lambda [^x [<hole> any-value?]] [
+        reduce [lift ^x, boolean hole? $x]
+    ])
+
+    ([~null~ true] = test-meta,)
+    ([~null~ true] = test-meta)
+    ([~null~ true] = (test-meta))
+
+    ([~null~ false] = test-meta null)
+
+    ([~,~ false] = test-meta ())
+]
+
+[
+    (test-literal: lambda [@x [<hole> any-element?]] [
+        reduce [lift ^x, boolean hole? $x]
+    ])
+
+    ([~null~ true] = test-literal,)
+    ([~null~ true] = test-literal)
+    ([~null~ true] = (test-literal))
+
+    (['null false] = test-literal null)
+
+    (['() false] = test-literal ())
+]
+
+; When a COMMA! is hit in evaluation, it holds up the pipeline until the
+; function fulfillment is complete...so several arguments can become holes
 (
-    foo: func [x [<end> integer!]] [return ^x]
-    all [
-        ghost? (foo,)
-        10 = (foo 10)
+    test-two-holes: lambda [x [<hole> integer!] y [<hole> integer!]] [
+        reduce [boolean hole? $x, boolean hole? $y]
     ]
-)(
-    bar: func [x [<end> integer!] y [<end> integer!]] [return pack [^x ^y]]
-    all [
-        1020 = eval wrap [[^a ^b]: bar, 1020]
-        unset? $a
-        unset? $b
-    ]
+    all {
+        result: ()
+        1020 = eval [result: test-two-holes, 1020]
+        result = [true true]
+    }
 )
 
 ~need-non-end~ !! (x:,)

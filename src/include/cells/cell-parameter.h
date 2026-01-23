@@ -7,7 +7,7 @@
 //=////////////////////////////////////////////////////////////////////////=//
 //
 // Copyright 2012 REBOL Technologies
-// Copyright 2012-2023 Ren-C Open Source Contributors
+// Copyright 2012-2026 Ren-C Open Source Contributors
 // REBOL is a trademark of REBOL Technologies
 //
 // See README.md and CREDITS.md for more information
@@ -28,10 +28,10 @@
 // So for example, for the paramlist generated from the following spec:
 //
 //     foo: func [
-//         return: [integer!]  ; specialized to quoted PARAMETER! (trick!)
+//         return: [integer!]  ; specialized to PARAMETER! (trick!)
 //         arg [<opt> block!]  ; PARAMCLASS_NORMAL
 //         'qarg [word!]       ; PARAMCLASS_QUOTED
-//         earg [<end> time!]  ; PARAMCLASS_NORMAL + PARAMETER_FLAG_ENDABLE
+//         earg [<hole> time!] ; PARAMCLASS_NORMAL + PARAMETER_FLAG_HOLE_OK
 //         :refine [tag!]      ; PARAMCLASS_NORMAL + PARAMETER_FLAG_REFINEMENT
 //         {loc}               ; not PARAMETER!, specialized to null antiform
 //     ][
@@ -64,7 +64,7 @@
 //    the fewer the better.  So features like PARAMCLASS_RETURN were pared
 //    back, instead considering the fact that something like FUNC fills a
 //    frame slot to RETURN to be an implementation detail of FUNC itself,
-//    and the slot is a generic PARAMCLASS_LOCAL as far as the user would see.
+//    and the slot is a generic "local" holding a "specialized" PARAMETER!.
 //    This reduces the number of bits needed to encode the class, leaving
 //    more room for PARAMETER_FLAG_XXX.
 //
@@ -116,21 +116,25 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
     FLAG_LEFT_BIT(8)
 
 
-//=//// PARAMETER_FLAG_ENDABLE ////////////////////////////////////////////=//
+//=//// PARAMETER_FLAG_HOLE_OK ////////////////////////////////////////////=//
 //
-// Endability means that a parameter is willing to accept being at the end
-// of the input.  This means either an infix dispatch's left argument is
-// missing (e.g. `eval [+ 5]`) or an ordinary argument hit the end (e.g. the
-// trick used for `>> help` when the arity is 1 usually as `>> help foo`)
+// If a parameter is marked with the <hole> annotation, then you don't have
+// to provide a parameter for that slot in the frame.  Building a FRAME!
+// manually you can put holes anywhere--but if you are calling a function via
+// the evaluator you will get holes only when the evaluator reaches the end
+// of input or a comma, or if an infix function is missing its left argument.
 //
-// For non-endability, error parity is kept with GROUP!s, such that the same
-// error is given for `eval [1 +,]` and `(1 +,)`.
+// (e.g. `eval [+ 5]` or an ordinary argument hit the end, like the trick
+// used for `>> help` when the arity is 1 usually as `>> help foo`)
 //
-// GHOST! is used to represent the end state in all parameter types.  This
-// can be a conflation when dealing with ^META parameters that take GHOST!,
-// but this is fairly rare.
+// When a hole is *NOT* okay, error parity is kept with GROUP!s, such that the
+// same error is given for `eval [1 +,]` and `(1 +,)`.
 //
-#define PARAMETER_FLAG_ENDABLE \
+// Holes are out of band of what evaluation can produce.  Hence they can't be
+// a product of Stepper_Executor(), but are detected by the feeding mechanism
+// before the stepper is called.
+//
+#define PARAMETER_FLAG_HOLE_OK \
     FLAG_LEFT_BIT(9)
 
 

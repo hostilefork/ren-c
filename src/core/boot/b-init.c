@@ -234,7 +234,7 @@ static Element* Make_Locked_Tag(const char *utf8) { // helper
 static void Init_Action_Spec_Tags(void)
 {
     known_nullptr(g_tag_variadic) = Make_Locked_Tag("variadic");
-    known_nullptr(g_tag_end) = Make_Locked_Tag("end");
+    known_nullptr(g_tag_hole) = Make_Locked_Tag("hole");
     known_nullptr(g_tag_veto) = Make_Locked_Tag("veto");
     known_nullptr(g_tag_opt) = Make_Locked_Tag("opt");
     known_nullptr(g_tag_const) = Make_Locked_Tag("const");
@@ -243,6 +243,7 @@ static void Init_Action_Spec_Tags(void)
     known_nullptr(g_tag_dot_1) = Make_Locked_Tag(".");
 
     known_nullptr(g_tag_here) = Make_Locked_Tag("here");  // used by PARSE
+    known_nullptr(g_tag_end) = Make_Locked_Tag("end");  // used by PARSE
 
   initialize_auto_trash_param: {
 
@@ -288,7 +289,7 @@ static void Shutdown_Action_Spec_Tags(void)
     rebReleaseAndNull(&g_auto_trash_param);
 
     rebReleaseAndNull(&g_tag_variadic);
-    rebReleaseAndNull(&g_tag_end);
+    rebReleaseAndNull(&g_tag_hole);
     rebReleaseAndNull(&g_tag_veto);
     rebReleaseAndNull(&g_tag_opt);
     rebReleaseAndNull(&g_tag_const);
@@ -297,6 +298,7 @@ static void Shutdown_Action_Spec_Tags(void)
     rebReleaseAndNull(&g_tag_dot_1);
 
     rebReleaseAndNull(&g_tag_here);  // used by PARSE
+    rebReleaseAndNull(&g_tag_end);
 }
 
 

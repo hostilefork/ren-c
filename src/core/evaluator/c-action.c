@@ -246,17 +246,17 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
 // GHOST! (because a GHOST! could be a normal by-product of an evaluation).
 // e.g. you should be able to tell between:
 //
-//     >> endable-function ()
-//     ENDABLE-FUNCTION received a GHOST!
+//     >> hole-ok-function ()
+//     HOLE-OK-FUNCTION received a GHOST!
 //
-//     >> endable-function
-//     ENDABLE-FUNCTION received a HOLE
+//     >> hole-ok-function
+//     HOLE-OK-FUNCTION received a HOLE
 //
 // However, we want COMMA! to be symmetric (also symmetric in terms of any
 // errors):
 //
-//     >> endable-function,
-//     ENDABLE-FUNCTION received a HOLE
+//     >> hole-ok-function,
+//     HOLE-OK-FUNCTION received a HOLE
 //
 // This is why we put a "bedrock hole" cell in the frame.  It's out of band
 // in terms of "Value" results that can be produced by an EVAL, so we can't
@@ -896,7 +896,7 @@ Bounce Action_Executor(Level* L)
         }
 
         if (Is_Cell_A_Bedrock_Hole(ARG)) {
-            if (Not_Parameter_Flag(param, ENDABLE))
+            if (Not_Parameter_Flag(param, HOLE_OK))
                 panic (Error_No_Arg(Level_Label(L), Key_Symbol(KEY)));
             continue;
         }

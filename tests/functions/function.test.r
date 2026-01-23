@@ -303,11 +303,11 @@
     )
 
     (
-        +Q: infix lambda ['x [<end> integer!] y] [if x [x + y] else [<null>]]
+        +Q: infix lambda [@x [<hole> integer!] y] [if x [x + y] else [<null>]]
         [1000, 30] = test [soft 10 +Q 20]
     )
     (
-        +Q: infix lambda ['x y] [x + y]
+        +Q: infix lambda [@x y] [x + y]
         [1000, 30] = test [soft 10 +Q 20]
     )
 
@@ -447,7 +447,7 @@
 )]
 
 (
-    foo: lambda [^arg [null? ghost! <end> ghost? integer!]] [
+    foo: lambda [^arg [null? ghost! <hole> ghost? integer!]] [
         either unset? $arg [<unset>] [lift ^arg]
     ]
     all [

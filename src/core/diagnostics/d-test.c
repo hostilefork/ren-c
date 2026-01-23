@@ -70,15 +70,15 @@
 //          text!   "Message if INCLUDE_TEST_LIBREBOL_NATIVE not defined"
 //      ]
 //      ^value "Argument that may be useful for ad hoc tests"
-//          [<end> any-value?]
+//          [<hole> any-value?]
 //  ]
 //
 DECLARE_NATIVE(TEST_LIBREBOL)
 {
     INCLUDE_PARAMS_OF_TEST_LIBREBOL;
 
-    Value* v = ARG(VALUE);
-    USED(v);
+    Param* param = ARG(VALUE);
+    USED(param);  // !!! use as you see fit for ad-hoc tests
 
   start: {
 

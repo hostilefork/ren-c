@@ -244,6 +244,11 @@ INLINE bool Is_Bedrock_Dual_A_Hole(const Dual* dual) {
 #define Is_Dual_Hole(dual) \
     Is_Hole_Core(Known_Dual(dual), NOQUOTE_3)
 
+INLINE bool Is_Undecayed_Hole(const Value* v) {  // ~(parameter!)~ PACK!
+    const Dual* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(v);
+    return dual and Is_Dual_Hole(dual);
+}
+
 
 //=//// ALIAS BEDROCK: META-WORD!, META-TUPLE! ////////////////////////////-//
 //

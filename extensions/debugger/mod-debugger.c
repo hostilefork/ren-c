@@ -173,7 +173,7 @@ DECLARE_NATIVE(PAUSE)
 //
 //      return: []
 //      expression "Evaluate the given code as return value from BREAKPOINT"
-//          [<end> block!]
+//          [<hole> block!]
 //  ]
 //
 DECLARE_NATIVE(RESUME)
@@ -226,7 +226,7 @@ DECLARE_NATIVE(RESUME)
 //  "Perform a step in the debugger"
 //
 //      return: ~
-//      amount [<end> word! integer!]
+//      amount [<hole> word! integer!]
 //          "Number of steps to take (default is 1) or IN, OUT, OVER"
 //  ]
 //

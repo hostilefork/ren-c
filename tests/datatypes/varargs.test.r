@@ -36,7 +36,7 @@
 )
 
 ; !!! Experimental behavior of infix variadics, is to act as either 0 or 1
-; items.  0 is parallel to <end>, and 1 is parallel to a single parameter.
+; items.  0 is parallel to <hole>, and 1 is parallel to a single parameter.
 ; It's a little wonky because the evaluation of the parameter happens *before*
 ; the TAKE is called, but theorized that's still more useful than erroring.
 [

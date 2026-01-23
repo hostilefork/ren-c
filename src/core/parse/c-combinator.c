@@ -642,9 +642,9 @@ static bool Combinator_Param_Hook(
             item == tail
             or (Is_Comma(item) or Is_Bar(item) or Is_Bar_Bar(item))
         ){
-            if (Not_Parameter_Flag(param, ENDABLE))
+            if (Not_Parameter_Flag(param, HOLE_OK))
                 panic ("Too few parameters for combinator");  // !!! Error_No_Arg
-            Init_Ghost_For_End(u_cast(Value*, var));
+            Copy_Cell(var, param);
         }
         else {
             assert(Parameter_Class(param) == PARAMCLASS_LITERAL);
@@ -664,9 +664,9 @@ static bool Combinator_Param_Hook(
             item == tail
             or (Is_Comma(item) or Is_Bar(item) or Is_Bar_Bar(item))
         ){
-            if (Not_Parameter_Flag(param, ENDABLE))
+            if (Not_Parameter_Flag(param, HOLE_OK))
                 panic ("Too few parameters for combinator");  // !!! Error_No_Arg
-            Init_Ghost_For_End(u_cast(Value*, var));
+            Copy_Cell(var, param);
         }
         else {
             // !!! Getting more than one value back from a libRebol API is not

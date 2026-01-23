@@ -252,7 +252,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
   // 1. TAG! parameter modifiers can't be abstracted.  So you can't say:
   //
-  //        modifier: either condition [<end>] [<opt>]
+  //        modifier: either condition [<hole>] [<opt>]
   //        foo: func [arg [modifier integer!]] [...]
   //
   // 2. !!! The actual final notation for variadics is not decided on; it
@@ -266,8 +266,8 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
         ){
             flags |= PARAMETER_FLAG_VARIADIC;  // <variadic>, not <...> [2]
         }
-        else if (0 == CT_Utf8(item, g_tag_end, strict)) {
-            flags |= PARAMETER_FLAG_ENDABLE;
+        else if (0 == CT_Utf8(item, g_tag_hole, strict)) {
+            flags |= PARAMETER_FLAG_HOLE_OK;
         }
         else if (0 == CT_Utf8(item, g_tag_veto, strict)) {
             if (pclass != PARAMCLASS_META)

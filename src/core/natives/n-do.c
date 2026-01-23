@@ -80,7 +80,7 @@ DECLARE_NATIVE(REEVAL)
 //      '@left "Hard literal, will be processed according to right's first arg"
 //          [element?]
 //      '@right "Arbitrary variadic feed of expressions on the right"
-//          [<variadic> <end> element?]
+//          [<variadic> element?]
 //  ]
 //
 DECLARE_NATIVE(SHOVE)

@@ -988,10 +988,6 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
         assert(not Any_Void(v));  // shouldn't get here
 
     if (Not_Cell_Stable(v) and Parameter_Class(param) != PARAMCLASS_META) {
-        if (Is_Endlike_Ghost(v)) {  // non-^META endable parameters can be void
-            if (Get_Parameter_Flag(param, ENDABLE))
-                goto return_true;
-        }
         trap (
             Decay_If_Unstable(v)
         );
@@ -1053,10 +1049,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
 
   #if RUNTIME_CHECKS
     if ((result == true) and Not_Cell_Stable(v))
-        assert(
-            Parameter_Class(param) == PARAMCLASS_META
-            or (Get_Parameter_Flag(param, ENDABLE) and Is_Endlike_Ghost(v))
-        );
+        assert(Parameter_Class(param) == PARAMCLASS_META);
   #endif
 
   #if NEEDFUL_DOES_CORRUPTIONS

@@ -379,7 +379,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
             if (circled == stackindex_var)
                 panic ("Circled item has no multi-return value to use");
 
-            Init_Ghost_For_End(OUT);
+            Init_Ghost_For_Unset(OUT);
 
             heeded (Corrupt_Cell_If_Needful(SPARE));
             require (

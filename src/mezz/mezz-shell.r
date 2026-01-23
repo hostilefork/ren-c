@@ -23,13 +23,13 @@ cd: lambda [
 
     []: [file! url!]
     '@path [
-        <end> "CD with no argument just returns current directory"
+        <hole> "CD with no argument just returns current directory"
         text! "Local filesystem convention (backslashes on Windows)"
         file! "Translated to local filesystem convention"
         word! path! tuple! "Converted TO FILE!"
     ]
 ][
-    change-dir switch:type all [set? $path, path] [  ; :PATH someday will work
+    change-dir switch:type path [
         null?/ []
         file! [path]
         text! [local-to-file path]  ; LOCAL-TO-FILE is in filesystem extension

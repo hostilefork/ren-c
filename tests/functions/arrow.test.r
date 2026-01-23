@@ -35,7 +35,7 @@
     uarrow: lambda [
        []: [action!]
        @(spec) "Ordinary spec, single arg spec, or ~(args to unpack)~"
-            [<end> _ word! 'word! ^word! :word! block! ~group!~]
+            [<hole> _ word! 'word! ^word! :word! block! ~group!~]
        @(body) "Code to execute (will not be deep copied)"
             [block! fence!]
     ][
@@ -47,7 +47,7 @@
                 eval f
             })
         ][
-            lambda blockify any [ghostly ^spec '?] (body)
+            lambda blockify any [spec '?] (body)
         ]
     ]
 )

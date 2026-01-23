@@ -47,7 +47,7 @@
 //
 //      return: [action!]
 //      @(spec) "Ordinary spec, single arg spec, or ~(args to unpack)~"
-//           [<end> _ word! 'word! ^word! :word! block! ~group!~]
+//           [<hole> _ word! 'word! ^word! :word! block! ~group!~]
 //      @(body) "Code to execute (will not be deep copied)"
 //           [block! fence!]
 //  ]
@@ -59,17 +59,21 @@ DECLARE_NATIVE(ARROW)
     if (STATE != STATE_0)
         goto dispatch_to_lambda;
 
+    Element* spec;
+
   initial_entry: {
 
-    if (Is_Possibly_Unstable_Value_Block(ARG(SPEC)))
-        goto dispatch_to_lambda;
+    Param* param = ARG(SPEC);
 
-    if (Is_Endlike_Ghost(ARG(SPEC))) {  // <end> signal, for now
-        Init_Word(ARG(SPEC), CANON(QUESTION_1));
+    if (Is_Cell_A_Bedrock_Hole(param)) {
+        spec = Init_Word(LOCAL(SPEC), CANON(QUESTION_1));
         goto wrap_spec_in_block;
     }
 
-    Element* spec = Element_ARG(SPEC);
+    spec = As_Element(param);
+
+    if (Is_Block(spec))
+        goto dispatch_to_lambda;
 
     if (Is_Space(spec)) {  // nameless fields not yet supported in LAMBDA
         Init_Word(spec, CANON(DUMMY2));  // DUMMY1 has use in LAMBDA
@@ -80,7 +84,7 @@ DECLARE_NATIVE(ARROW)
         goto wrap_spec_in_block;
 
     if (not Is_Quasiform(spec))
-        panic ("SPEC must be WORD!, BLOCK!, ~GROUP!~, or <end> for ARROW");
+        panic ("SPEC must be WORD!, BLOCK!, ~GROUP!~, or <hole> for ARROW");
 
   make_unpacking_arrow: {
 
@@ -118,8 +122,8 @@ DECLARE_NATIVE(ARROW)
   // other things to work on besides that optimization...
 
     Source* a = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
-    Copy_Cell(Stub_Cell(a), ARG(SPEC));
-    Init_Block(ARG(SPEC), a);
+    Copy_Cell(Stub_Cell(a), spec);
+    Init_Block(spec, a);
     goto dispatch_to_lambda;
 
 } dispatch_to_lambda: { //////////////////////////////////////////////////////

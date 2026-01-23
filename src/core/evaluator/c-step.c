@@ -1113,7 +1113,7 @@ Bounce Stepper_Executor(Level* L)
         not infix_mode  // too rare a case for intrinsic optimization
         and details
         and Get_Details_Flag(details, CAN_DISPATCH_AS_INTRINSIC)
-        and Not_Level_At_End(L)  // can't do <end>, fallthru to error
+        and Not_Level_At_End(L)  // can't do <hole>, fallthru to error
         and not SPORADICALLY(10)  // checked builds sometimes bypass
     ){
         Copy_Plain_Cell(CURRENT, OUT);
@@ -1793,7 +1793,7 @@ Bounce Stepper_Executor(Level* L)
     //        left-the: infix func [@value] [value]
     //        the <something> left-the
     //
-    //    But due to the existence of <end>-able parameters, the left quoting
+    //    But due to the existence of <hole>-able parameters, the left quoting
     //    function might be okay with seeing nothing on the left.  Start a
     //    new expression and let it error if that's not ok.
 

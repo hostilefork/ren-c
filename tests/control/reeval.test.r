@@ -107,11 +107,11 @@
 
 
 ; !!! There used to be some concept that GHOST!-returning things could
-; appear like an "end" to functions.  But rules for reification have changed,
-; in that there are no "pure invisibles".  So saying that it's an <end> is
-; questionable.  Review when there's enough time in priorities to think on it.
+; appear like a "hole" to functions.  But rules have changed.  Is there any
+; way to make a natural barrier, that is seen to its left as a <hole> ?
+; It could be an infix mode of some kind.
 ;
-;     (not failure? rescue [reeval (lambda [x [<end>]] []) ||| 1 2 3])
+;     (not failure? rescue [reeval (lambda [x [<hole>]] []) ||| 1 2 3])
 ;     (error? rescue [reeval (lambda [x [null?]] []) ||| 1 2 3])
 
 (

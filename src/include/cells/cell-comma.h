@@ -114,18 +114,8 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
 
 //=//// GHOST! Signals ////////////////////////////////////////////////////=//
 //
-// Unstable antiforms stored in variables is where the sidewalk ends as far
-// as it comes to the idea of "truly unset".  Hence, if you want to signal
-// an <end> was reached by the evaluator, VOID is pretty much the limit of
-// how good it can get.
-//
-// If you have a ^META parameter, and the next evaluation is an actual VOID,
-// it will conflate with the VOID produced by an `<end>`.  We could prohibit
-// ^META parameters from being <end>-able and close that loophole, or leave
-// it open and just accept the conflation.
-//
-// This usage of GHOST! applies in other places, such as when a PACK! has
-// too few values, as this is more useful than erroring in the moment:
+// GHOST! applies in some places, such as when a PACK! has too few values, as
+// this is more useful than erroring in the moment:
 //
 //     >> [a b c]: pack [1 2]
 //     == \~('1 '2)~\  ; antiform
@@ -148,9 +138,6 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
 // querying TRASH!, just overwriting it (assuming it's not a protected variable
 // that is intended to stay trash for a reason...)
 //
-
-#define Init_Ghost_For_End(out)  Init_Ghost(out)
-#define Is_Endlike_Ghost(v)  Is_Ghost(v)
 
 #define Init_Ghost_For_Unset(out)  Init_Ghost(out)
 #define Is_Unsetlike_Ghost(v)  Is_Ghost(v)

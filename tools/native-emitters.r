@@ -322,9 +322,10 @@ export emit-include-params-macro: func [
                 iter: next iter
             ]
 
-            let ctype  ; underlying type (Element, Stable, Value)
+            let ctype  ; underlying type (Element, Stable, Value, Param)
             let copt  ; refinement or <opt>
             case [
+                find cond spec <hole> [ctype: 'Param]
                 param.class = 'meta [ctype: 'Value]
                 param.class = 'literal [ctype: 'Element]
                 (find [  ; !!! bad way of doing this...think of better

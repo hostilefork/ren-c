@@ -325,7 +325,7 @@ INLINE Option(const Symbol*) Level_Label(Level* L) {
     (u_cast(Arg*, (L)->rootvar) + 1)
 
 
-INLINE void* Level_Arg_Core(Level* L, Unchecked(Ordinal) n, bool optional) {
+INLINE Cell* Level_Arg_Core(Level* L, Unchecked(Ordinal) n, bool optional) {
     assert(n != 0 and n <= Level_Num_Args(L));
     assert(Not_Level_Flag(L, DISPATCHING_INTRINSIC));
     if (optional and Is_Light_Null(u_cast(Value*, L->rootvar) + n))

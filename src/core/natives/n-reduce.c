@@ -63,6 +63,7 @@ DECLARE_NATIVE(DRAIN_Q)
 
     if (Is_Tied(v)) {
         Clear_Cell_Sigil(v);
+        Metafy_Cell(v);
 
         Quote_Cell(v);
         Stable* result = rebStable(CANON(TWEAK), v, "()");
@@ -76,6 +77,42 @@ DECLARE_NATIVE(DRAIN_Q)
     }
 
     return LOGIC_OUT(is_drain);
+}
+
+
+//
+//  hole?: native [
+//
+//  "Test if VALUE is PARAMETER! bedrock representation, or $VAR holding it"
+//
+//      return: [logic!]
+//      @value [group! $word! $tuple!]
+//  ]
+//
+DECLARE_NATIVE(HOLE_Q)
+{
+    INCLUDE_PARAMS_OF_HOLE_Q;
+
+    Element* v = Element_ARG(VALUE);
+
+    bool is_hole;
+
+    if (Is_Tied(v)) {
+        Clear_Cell_Sigil(v);
+        Metafy_Cell(v);
+
+        Quote_Cell(v);
+        Stable* result = rebStable(CANON(TWEAK), v, "()");
+        is_hole = Is_Dual_Hole(As_Dual(result));
+        rebRelease(result);
+    }
+    else {
+        if (Eval_Any_List_At_Throws(OUT, v, SPECIFIED))
+            return THROWN;
+        is_hole = Is_Undecayed_Hole(OUT);
+    }
+
+    return LOGIC_OUT(is_hole);
 }
 
 

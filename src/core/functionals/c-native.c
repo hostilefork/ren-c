@@ -169,14 +169,14 @@ Result(Details*) Make_Native_Dispatch_Details_May_Update_Spec(
   //    to support them does not seem justified at this time.
   //
   // 3. An arity-1 intrinsic that is willing to still run if it reaches the
-  //    end of evaluation is another thing that's possible, but complicated
-  //    the intrinsic machinery does not seem worth it.
+  //    end of evaluation is another thing that's possible, but complicating
+  //    the intrinsic machinery does not seem worth it.  Review if needed.
 
     if (native_type == NATIVE_INTRINSIC) {
         const Param* param = Phase_Param(details, 1);
         assert(Not_Parameter_Checked_Or_Coerced(param));  // [1]
         assert(Not_Parameter_Flag(param, REFINEMENT));  // [2]
-        assert(Not_Parameter_Flag(param, ENDABLE));  // [3]
+        assert(Not_Parameter_Flag(param, HOLE_OK));  // [3]
         UNUSED(param);
     }
     goto return_details;

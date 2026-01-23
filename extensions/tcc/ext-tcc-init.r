@@ -467,7 +467,7 @@ c99: func [
         integer! "Exit status code (try to match gcc/tcc)"
     ]
     command "POSIX c99 invocation string (system.options.args if <end>)"
-        [<end> block! text!]
+        [<hole> block! text!]
     :inspect
     :runtime "Alternate way of specifying CONFIG_TCCDIR environment variable"
         [text! file!]

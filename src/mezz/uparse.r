@@ -594,11 +594,11 @@ default-combinators: make map! [
         "Break an iterated construct like SOME or REPEAT, succeeding the match"
         return: []
         input [any-series?]
-        ^parser [<end> action!]
+        ^parser [<hole> action!]
         {f ^result}
     ][
         ^result: ~  ; default `[stop]` returns trash (tripwire)
-        if not unset? $parser [  ; parser argument is optional
+        if ^parser [  ; parser argument is optional
             [^result input]: trap parser input
         ]
 

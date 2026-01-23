@@ -248,7 +248,7 @@ so: infix:postpone func [
     condition "Condition to test, must resolve to logic (use DID, NOT)"
         [logic!]
     feed "Needs value to return as result e.g. (x: even? 4 so 10 + 20)"
-        [<end> any-stable? <variadic>]
+        [any-stable? <variadic>]
 ][
     if not condition [
         panic:blame make error! [
@@ -567,7 +567,7 @@ fail: func [
     return: [failure!]
     reason "ERROR! value, ID, URL, message text, or failure spec"
         [
-            <end>  ; non-specific failure
+            <hole>  ; non-specific failure
             error!  ; already constructed error
             @word!  ; invalid-arg error with variable name/value
             text!  ; textual error message
@@ -577,6 +577,15 @@ fail: func [
     :blame "Point to variable or parameter to blame"
         [word! frame!]
 ][
+    reason: default [
+        cache [
+            make error! [  ; implicate callsite?
+                type: 'script
+                id: 'unknown-error
+            ]
+        ]
+    ]
+
     all [error? reason, not blame] then [
         return fail* reason  ; fast shortcut
     ]
@@ -626,11 +635,6 @@ fail: func [
                 type: 'script
                 id: 'unknown-error
             ])
-        ]
-    ] else [
-        null? reason so make error! [
-            type: 'script
-            id: 'unknown-error
         ]
     ]
 

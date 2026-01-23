@@ -262,10 +262,10 @@ help: func [
 
     return: ~  ; may return other types if dialected to do so?
     @topic "WORD! to explain, or other HELP target (if no args, general help)"
-        [<end> element?]
+        [<hole> element?]
     :web "Open web browser to related documentation."
 ][
-    if unset? $topic [  ; just `>> help` or `eval [help]` or similar
+    if not topic [  ; just `>> help` or `eval [help]` or similar
         print-general-help
         exit
     ]
@@ -462,7 +462,7 @@ what: func [
     "Prints a list of known actions"
 
     return: [trash? block!]
-    @name [<end> word! 'word!]
+    @name [<hole> word! 'word!]
         "Optional module name"
     :args "Show arguments not titles"
     :as-block "Return data as block"

@@ -101,7 +101,7 @@ PVAR Flex* g_dispatcher_table;
 PVAR Element* g_auto_trash_param;  // holds [trash!] spec used by [return ~]
 
 PVAR Element* g_tag_variadic;  // marks variadic argument <variadic>
-PVAR Element* g_tag_end;  // marks endable argument (NULL if at end of input)
+PVAR Element* g_tag_hole;  // marks if a parameter can be left unspecialized
 PVAR Element* g_tag_veto;  // passing void makes action a noop
 PVAR Element* g_tag_opt;  // passing void turns argument into a null
 PVAR Element* g_tag_const; // pass a CONST version of the input argument
@@ -110,6 +110,7 @@ PVAR Element* g_tag_void;  // nicer looking way to say VOID?
 PVAR Element* g_tag_dot_1;  // <.> used for methodized functions
 
 PVAR Element* g_tag_here;  // https://forum.rebol.info/t/1558/5
+PVAR Element* g_tag_end;  // parse combinator for end of input
 
 PVAR Element* g_feed_null_substitute;  // flagged with FEED_HINT_ANTIFORM
 
