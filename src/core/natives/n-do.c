@@ -916,23 +916,17 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 
 } copy_spare_to_var_in_frame: {  /////////////////////////////////////////////
 
-    possibly(  // don't write until meta test done
-        u_cast(Cell*, param) == u_cast(Cell*, slot)
-    );
+  // 1. If you were invoking a function normally, then passing in a void to
+  //    an <opt> parameter would get turned into a NULL.  The NULL is the
+  //    "language of the frame" and what all phases expect to see.  Which
+  //    raises the question of if the VOID=>NULL should be done by typechecks
+  //    or by frame builders.  It probably makes the most sense if the type
+  //    check is willing to do it as a canonization; this is still in flux.
 
-    if (/* param and */ Parameter_Class(param) != PARAMCLASS_META)
-        Move_Cell(Slot_Init_Hack(slot), SPARE);
-    else {
-        if (Is_Ghost(SPARE))
-            Init_Ghost(Slot_Init_Hack(slot));
-        else {
-            require (
-              Decay_If_Unstable(SPARE)
-            );
-            Move_Cell(Slot_Init_Hack(slot), SPARE);
-        }
-    }
+    possibly(u_cast(Cell*, param) == u_cast(Cell*, slot));  // !!! really?
+    possibly(Get_Parameter_Flag(param, UNDO_OPT));  // our responsibility? [1]
 
+    Move_Cell(Slot_Init_Hack(slot), SPARE);
     goto handle_next_item;
 
 } finalize_maybe_throwing: { /////////////////////////////////////////////////

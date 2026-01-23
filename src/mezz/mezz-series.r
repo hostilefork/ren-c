@@ -97,20 +97,27 @@ array: func [
 replace: func [
     "Replaces a search value with the replace value within the target series"
 
-    return: [<null> any-series?]
-    target "Series to replace within (modified)"
-        [any-series?]
-    pattern "Value to be replaced (converted if necessary)"
-        [<opt> element? splice!]
-    ^replacement "Value to replace with (called each time if action)"
-        [element? splice! action!]
+    return: [any-series?]
+    target ["(modified)" any-series?]
+    ^pattern [
+        element? splice! "Value(s) to match (converted if necessary)"
+        action! "LOGIC!-returning constraint function (FIND semantics)"
+        datatype! "Type to match (FIND semantics)"
+    ]
+    ^replacement [
+        <void> "erase pattern"
+        element? splice! "Value(s) to replace with (converted if necessary)"
+        action! "Gets head/tail of match, returns replacement or VETO to skip"
+    ]
 
     :one "Replace one (or zero) occurrences"
     :case "Case-sensitive replacement"  ; !!! Note this aliases CASE native!
 
     {^value pos tail}  ; !!! Aliases TAIL native (should use TAIL OF)
 ][
-    if not pattern [return target]  ; FIND would always find NONE
+    if none? ^pattern [  ; FIND would infinite loop (always finds NONE)
+        return target  ; !!! should this be an error instead of no-op?
+    ]
 
     let case_REPLACE: case
     case: lib.case/
@@ -119,7 +126,7 @@ replace: func [
 
     while [[pos tail]: find // [
         pos
-        pattern
+        ^pattern
         case: case_REPLACE
     ]][
         if action? ^replacement [
@@ -133,7 +140,7 @@ replace: func [
             ;
             ^value: apply:relax replacement/ [const pos, const tail]
         ] else [
-            value: replacement
+            value: ^replacement
         ]
 
         if veto? ^value [  ; treat returning VETO as "skip this replace"
