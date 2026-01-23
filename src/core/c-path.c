@@ -259,7 +259,7 @@ DECLARE_NATIVE(TWEAK_P_UNCHECKED)
 //      picker "Index offset, symbol, or other value to use as index"
 //          [any-stable?]
 //      ^value "FAILURE! will be piped through without doing the poke"
-//          [<void> any-stable? failure!]
+//          [any-value? failure!]
 //      {store}
 //  ]
 //
