@@ -999,14 +999,20 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
             return NULL_OUT_PICK_ABSENT;
     }
 
-    if (n < 0)
-        return NULL_OUT_PICK_ABSENT;
-    if (n >= Series_Len_Head(series))
-        return NULL_OUT_PICK_ABSENT;
-
     const Stable* poke;
 
     Stable* dual = ARG(DUAL);
+
+    if (n < 0)
+        return NULL_OUT_PICK_ABSENT;
+    if (n >= Series_Len_Head(series)) {
+        if (Is_Tweak_Nulled_Pick_Signal(dual)) {
+            Init_Ghost(OUT);
+            return LIFT_OUT_FOR_DUAL_PICK;  // treat out of bounds as void
+        }
+        return NULL_OUT_PICK_ABSENT;  // !!! drain case, (1020 = obj.dr: 1020)
+    }
+
     if (Not_Lifted(dual)) {
         if (Is_Tweak_Nulled_Pick_Signal(dual))
             goto handle_pick;

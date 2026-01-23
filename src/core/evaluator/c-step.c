@@ -1204,13 +1204,24 @@ Bounce Stepper_Executor(Level* L)
         STATE = ST_STEPPER_SET_GROUP;
         return CONTINUE_SUBLEVEL(sub); }
 
-      case LEADING_SPACE_AND(WORD): {  // :FOO, refinement, error on eval?
-        STATE = ST_STEPPER_GET_WORD;
-        panic (":WORD! meaning is likely to become TRY WORD!"); }
+      case LEADING_SPACE_AND(WORD):  // :FOO -turn voids to null
+      case LEADING_SPACE_AND(TUPLE): {  // :a.b.c - same
+        heeded (Metafy_Cell(CURRENT));
+        Bind_Cell_If_Unbound(CURRENT, L_binding);
+        heeded (Corrupt_Cell_If_Needful(SPARE));
 
-      case LEADING_SPACE_AND(TUPLE): {  // :a.b.c -- what will this do?
-        STATE = ST_STEPPER_GET_TUPLE;
-        panic (":TUPLE! meaning is likely to become TRY TUPLE!"); }
+        require (
+          Get_Var_In_Scratch_To_Out(L, GROUPS_OK)
+        );
+        if (Not_Cell_Stable(OUT)) {
+            if (Is_Ghost(OUT) or Is_Trash(OUT))
+                Init_Nulled(OUT);
+            else if (Is_Action(OUT))
+                Deactivate_Action(OUT);
+            else
+                panic (":WORD!/:TUPLE! gave unstable non-ghost/trash/action");
+        }
+        goto lookahead; }
 
       case LEADING_SPACE_AND(BLOCK): {  // !!! :[a b] reduces, not great...
         Bind_Cell_If_Unbound(CURRENT, L_binding);

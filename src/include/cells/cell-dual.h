@@ -342,6 +342,7 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Dual* dual) {
     x_cast(Bounce, Lift_Cell(Init_Nulled(OUT)))  // lifted null: present + null
 
 #define NULL_OUT_PICK_ABSENT  NULL_OUT  // non-lifted null: not present [1]
+#define Init_Nulled_Pick_Absent_Signal(cell)  Init_Nulled(cell)
 
 #define Is_Pick_Absent_Signal(cell)  Is_Nulled(cell)
 

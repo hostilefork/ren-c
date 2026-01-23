@@ -160,3 +160,29 @@
     b: 20
     '~('10 '20)~ = lift get [a b]
 )
+
+(
+    obj: make object! [a: () b: [x y]]
+    a: ()
+    b: [x y]
+    all [
+        ghost? ^a
+        ghost? ^b.3
+        ghost? ^obj.a
+        ghost? ^obj.b.3
+        null? :a
+        null? :b.3
+        null? :obj.a
+        null? :obj.b.3
+    ]
+)
+(
+    obj: make object! [a: ~#[some trash]#~]
+    a: ~#[some trash]#~
+    all [
+        trash? ^a
+        trash? ^obj.a
+        null? :a
+        null? :obj.a
+    ]
+)

@@ -179,7 +179,7 @@ bind construct [
         )
 
         (
-            if '{pending}: = try spec.1 [
+            if '{pending}: = :spec.1 [
                 assert [spec.2 = [none? quoted! block!]]
                 autopipe: 'no  ; they're asking to handle pending themselves
 

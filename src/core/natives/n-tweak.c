@@ -726,6 +726,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         }
 
         if (Is_Pick_Absent_Signal(As_Stable(SPARE))) {
+          treat_like_pick_absent_signal:
             Copy_Cell(SPARE, Data_Stack_At(Element, stackindex));
             error = Error_Bad_Pick_Raw(As_Element(SPARE));
             if (
@@ -763,6 +764,9 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
                 and stackindex == limit - 1
             ){
                 continue;  // last non-meta pick can be unstable if hot-potato
+            }
+            if (Is_Lifted_Ghost(As_Stable(SPARE))) {
+                goto treat_like_pick_absent_signal;  // like before ghost pick
             }
             error = Error_Unstable_Non_Meta_Raw(
                 Data_Stack_At(Element, stackindex)
