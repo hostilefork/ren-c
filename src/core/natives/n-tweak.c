@@ -952,6 +952,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //      ]
 //      target "Word or tuple, or calculated sequence steps (from GET)"
 //          [
+//              <opt>
 //              word! tuple!
 //              ^word! ^tuple!
 //              @block!
@@ -977,7 +978,7 @@ DECLARE_NATIVE(TWEAK)
 
     Copy_Cell(OUT, LOCAL(DUAL));
 
-    if (Is_Nulled(ARG(TARGET)))
+    if (not ARG(TARGET))
         return OUT;   // same for SET as [10 = (void): 10]
 
     Element* target = Element_ARG(TARGET);
