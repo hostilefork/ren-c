@@ -166,15 +166,7 @@ export console!: make object! [
 
             let len: length of unanti ^v
 
-            ^v: decay ^v  ; meta-assign allows ACTION! assignment
-
-            if (len = 1) and (action? opt ^v) [  ; SET-WORD-assignable action
-                print unspaced [
-                    "\~(" (mold lift ^v) ")~\"
-                        _ --[; antiform (pack!) "action-pack"]--
-                ]
-                exit
-            ]
+            v: decay ^v
 
             print ["; first in pack of length" len]
         ]
