@@ -472,6 +472,8 @@ add-sym:placeholder <MIN_SYM_ERRORS>
 
 boot-errors: load3 %errors.r
 
+nondigit: complement charset [#"0" - #"9"]
+
 for-each [sw-cat list] boot-errors [
     assert [set-word? sw-cat]
     let cat: resolve sw-cat
@@ -515,13 +517,13 @@ for-each [sw-cat list] boot-errors [
                         ]
                     )
                     opt space "$"  ; v-- bug in bootstrap [to [space | <end>]]
-                    start: <here> [to space | to <end>] finish: <here> (
+                    start: <here> [to nondigit | to <end>] finish: <here> (
                         arity: arity + 1
                         let num: transcode:one copy:part start finish
                         assert [integer? num]
                         keep transcode:one (join "arg" num)
                     )
-                    opt space
+                    opt nondigit
                     start: <here>
                     |
                     one
