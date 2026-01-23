@@ -14,7 +14,7 @@
         :keep "Don't remove delimiter"
         :binary "Return BINARY instead of TEXT"
     ][
-        if null? src [src: system.ports.input]
+        src: default [system.ports.input]
         if file? src [src: open src]
 
         let crlf: charset "^/^M"

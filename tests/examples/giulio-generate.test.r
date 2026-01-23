@@ -44,7 +44,7 @@
                 ]]
             )
         ]
-        let f: func spec body
+        let f: func spec (body)
         f:reset bind obj init
         return f/
     ]

@@ -1324,7 +1324,9 @@ void Shutdown_Loop_Each(Stable* iterator)
     if (les->took_hold)  // release read-only lock
         Clear_Flex_Flag(les->flex, FIXED_SIZE);
 
-    if (Any_Context(les->data))
+    if (les->generator)
+        assert(not les->data);
+    else if (Any_Context(les->data))
         Shutdown_Evars(&les->u.evars);
 
     Free_Memory(LoopEachState, les);
