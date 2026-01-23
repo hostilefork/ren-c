@@ -703,7 +703,7 @@ Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
 //  "RETURN, giving a result to the caller"
 //
 //      return: []
-//      ^value [any-value?]
+//      ^value [<hole> any-value?]
 //      :run "Reuse stack level for another call (<redo> uses locals/args too)"
 //      ;   [<variadic> any-stable?]  ; would force this frame managed
 //  ]
@@ -734,8 +734,6 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
 {
     INCLUDE_PARAMS_OF_DEFINITIONAL_RETURN;  // cached name usually RETURN [1]
 
-    Value* v = ARG(VALUE);
-
     Level* return_level = LEVEL;  // Level of this RETURN call
 
     Option(VarList*) coupling = Level_Coupling(return_level);
@@ -747,22 +745,45 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
     Level* target_level = Level_Of_Varlist_May_Panic(unwrap coupling);
     Details* target_details = Ensure_Level_Details(target_level);
 
-    const Element* param = Returnlike_Parameter_In_Paramlist(
+    Value* v;
+
+  auto_trash_labeling: {
+
+  // If you RETURN without an argument, we can detect that via "bedrock" and
+  // a <hole> parameter.  The behavior we take by default is to return TRASH!
+  // that is labeled with the name of the function that we are returning
+  // from (if we know it).
+
+    Param* value_param = ARG(VALUE);
+
+    if (Is_Cell_A_Bedrock_Hole(value_param)) {
+        Option(const Symbol*) label = Level_Label(target_level);
+        if (label)
+            v = Init_Labeled_Trash(value_param, unwrap label);
+        else
+            v = Init_Tripwire_Untracked(value_param);
+    }
+    else
+        v = As_Value(value_param);
+
+} handle_return: {
+
+    const Element* return_param = Returnlike_Parameter_In_Paramlist(
         Phase_Paramlist(target_details), SYM_RETURN
     );
 
     if (not ARG(RUN)) {  // plain simple RETURN (not weird tail-call)
         require (
           bool check = Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
-            LEVEL, param, v
+            LEVEL, return_param, v
           )
         );
         if (not check)  // do it now [2]
-            panic (Error_Bad_Return_Type(target_level, v, param));
+            panic (Error_Bad_Return_Type(target_level, v, return_param));
 
         if (
             Is_Trash(v)
-            and Get_Parameter_Flag(param, AUTO_TRASH)
+            and Get_Parameter_Flag(return_param, AUTO_TRASH)
         ){
             Init_Trash_Named_From_Level(v, target_level);
         }
@@ -818,7 +839,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
 
     Init_Thrown_With_Label(LEVEL, gather_args, frame);
     return BOUNCE_THROWN;
-}
+}}
 
 
 //

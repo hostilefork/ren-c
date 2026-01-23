@@ -244,11 +244,11 @@ my: infix redescribe [
 so: infix:postpone func [
     "Postfix assertion which stops running if left expression is inhibitor"
 
-    return: [any-stable?]
+    return: [any-value?]
     condition "Condition to test, must resolve to logic (use DID, NOT)"
         [logic!]
     feed "Needs value to return as result e.g. (x: even? 4 so 10 + 20)"
-        [any-stable? <variadic>]
+        [any-value? <variadic>]
 ][
     if not condition [
         panic:blame make error! [
@@ -257,7 +257,7 @@ so: infix:postpone func [
             arg1: [~null~ so]
         ] $condition
     ]
-    if tail? feed [return ~]
+    if tail? feed [return ()]
     return take feed
 ]
 

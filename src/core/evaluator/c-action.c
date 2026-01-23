@@ -635,9 +635,31 @@ Bounce Action_Executor(Level* L)
 
   //=//// ERROR ON END MARKER, BAR! IF APPLICABLE /////////////////////////=//
 
-        if (Is_Level_At_End(L)) {
+     // 1. Right now you can't process COMMA! as an argument, not even if the
+     //    parameter is @literal.  A <comma> annotation that lets you say
+     //    that you want literal commas should probably be available.
+     //
+     // 2. It's probably a good idea for expressions to have some kind of
+     //    line-continuation in general.  But variadics present a particular
+     //    problem for line continuation with <hole>-taking functions
+     //    (such as RETURN, QUIT, CONTINUE, THROW ...)
+     //
+     //        foo: func [x [integer!]] [
+     //            return
+     //            print "We want this to be disallowed"
+     //        ]
+     //
+     //    Detecting a NEWLINE_BEFORE signal on the next item in the feed is
+     //    a cheap and effective way to enforce the rule in a systemic way.
+
+        if (Is_Level_At_End(L) or Is_Comma(At_Feed(L->feed))) {  // [1]
             Handle_Barrier_Hit(ARG, L);
             goto continue_fulfilling;
+        }
+
+        if (Get_Parameter_Flag(PARAM, HOLE_OK)) {
+            if (Get_Cell_Flag(At_Feed(L->feed), NEWLINE_BEFORE))
+                panic (Error_Hole_Spans_Newline(L));  // [2]
         }
 
         switch (pclass) {
@@ -646,11 +668,6 @@ Bounce Action_Executor(Level* L)
 
           case PARAMCLASS_NORMAL:
           case PARAMCLASS_META: {
-            if (Is_Feed_At_End(L->feed) or Is_Comma(At_Feed(L->feed))) {
-                Handle_Barrier_Hit(ARG, L);
-                goto continue_fulfilling;
-            }
-
             Flags flags = EVAL_EXECUTOR_FLAG_FULFILLING_ARG;
 
             require (

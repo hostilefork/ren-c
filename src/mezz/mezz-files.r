@@ -324,7 +324,7 @@ list-dir: proc [
     ] then [
         print ["Not found:" :path]
         change-dir save-dir
-        exit
+        return
     ]
 
     for-each 'file files [

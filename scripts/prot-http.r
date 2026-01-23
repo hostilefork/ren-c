@@ -385,7 +385,7 @@ check-response: func [
             return fail make-http-error "HTTP response version not supported"
         ]
     ]
-    return ~
+    return
 ]
 
 

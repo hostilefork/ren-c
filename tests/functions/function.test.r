@@ -440,7 +440,7 @@
 
 [#539 https://github.com/metaeducation/ren-c/issues/755 (
     f: func [return: ~] [
-        use [x] [return ~]
+        use [x] [return]
         42
     ]
     (lift ^tripwire) = lift f
@@ -467,7 +467,7 @@
 
 ; Trash value returned has label of function
 (
-    some-name: func [return: ~] [return ~]
+    some-name: func [return: ~] [return]
     #some-name = unanti some-name
 )
 

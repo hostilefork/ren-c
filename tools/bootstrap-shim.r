@@ -602,7 +602,7 @@ find: func3 [
 ]
 
 replace: func3 [
-    target [<opt-out> any-series!]
+    target [any-series!]
     pattern [any-element! splice!]
     replacement [any-element! splice!]
 ][
@@ -999,13 +999,13 @@ func-core: lambda3 [
     /must-return
     <local> gen
 ][
-    gen: either has-return [
-        body: append3 copy body either must-return [  ; splices
+    gen: either has-return [  ; v-- in group for no [... return] <hole> error
+        body: append3 reduce [as group! body] either must-return [  ; splices
             [panic:blame "FUNCTION did not have a RETURN" $return]
         ] [
-            [return ~]
+            [return]
         ]
-        insert3 body [let exit: does [return ~]]  ; splices
+        insert3 body [let exit: does [return]]  ; splices
         func3/  ; want definitional return
     ][
         lambda3/  ; don't want definitional return for PROCEDURE

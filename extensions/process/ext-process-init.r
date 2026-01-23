@@ -91,7 +91,7 @@ call: enclose (
         return result
     ]
     if result = 0 [
-        return ~  ;  avoid `if 1 = call:shell "dir" [...]`, see [1]
+        return ~#[call]#~  ;  avoid `if 1 = call:shell "dir" [...]`, see [1]
     ]
     return fail make error! compose [
         message: ["Process returned non-zero exit code:" exit-code]
@@ -178,7 +178,7 @@ browse: proc [
         call:shell command except [  ; CALL is synchronous by default
             continue  ; just keep trying
         ]
-        exit
+        return
     ]
     panic "Could not open web browser"
 ]

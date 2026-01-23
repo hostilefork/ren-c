@@ -919,6 +919,25 @@ Error* Error_Invalid_Arg(Level* L, const Param* param)
 
 
 //
+//  Error_Hole_Spans_Newline: C
+//
+Error* Error_Hole_Spans_Newline(Level* L)
+{
+    DECLARE_ELEMENT (param_name);
+    Init_Word(param_name, Key_Symbol(L->u.action.key));
+
+    DECLARE_VALUE (action_name);
+    Option(const Symbol*) label = Level_Label(L);
+    if (label)
+        Init_Word(action_name, unwrap label);
+    else
+        Init_Nulled(action_name);
+
+    panic (Error_Hole_Spans_Newline_Raw(param_name, action_name));
+}
+
+
+//
 //  Error_Bad_Intrinsic_Arg_1: C
 //
 Error* Error_Bad_Intrinsic_Arg_1(Level* const L)

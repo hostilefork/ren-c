@@ -108,7 +108,7 @@ emit-proto: proc [
         ]
     ]
 
-    if header.2 != 'API [exit]
+    if header.2 != 'API [return]
     if not set-word? header.1 [
         panic ["API declaration should be a SET-WORD!, not" (header.1)]
     ]

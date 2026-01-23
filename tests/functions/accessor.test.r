@@ -16,7 +16,7 @@
             return ^store
         ]
         ^store: ^value
-        return ~
+        return
     ]
     all [
         x: 100

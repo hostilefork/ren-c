@@ -27,7 +27,7 @@ bind construct [
 ][
     let print: enclose lib.print/ lambda [f [frame!]] [
         if prefix [
-            if #on <> select enablements prefix [return ~]
+            if #on <> select enablements prefix [return]
             write stdout prefix
             write stdout space
         ]

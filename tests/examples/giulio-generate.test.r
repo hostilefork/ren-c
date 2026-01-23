@@ -29,7 +29,7 @@
             (spread map-each 'w unique words [setify w]) count: ~
         ]
         let body: bind obj compose:deep [
-            if reset [count: bind (obj) reset, return ~]
+            if reset [count: bind (obj) reset, return]
             if block? count [  ; we'll turn the variable into an integer...
                 let result: bind @count count  ; and make block use that var
                 count: 1  ; see, now it's an integer!

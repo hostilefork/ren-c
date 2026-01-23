@@ -523,7 +523,7 @@ export for-each-platform: func [
     ]] else [
         panic "Couldn't parse %platforms.r table"
     ]
-    return ~
+    return
 ]
 
 

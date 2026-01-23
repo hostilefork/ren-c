@@ -62,7 +62,7 @@ emit-proto: proc [
 
         ; should anything be done here with IMPLEMENT_GENERIC() ?
     ] then [
-        exit
+        return
     ]
 
     let header: proto-parser.data
@@ -88,7 +88,7 @@ emit-proto: proc [
             ; and considers itself to have "non-extension linkage" to the API,
             ; so the calls can be directly linked without a struct.
             ;
-            exit
+            return
         ]
         'C [
             ; The only accepted type for now
@@ -187,7 +187,7 @@ handle-item: proc [
     file: to file! name
 
     find cond options <no-make-header> then [
-        exit ; skip this file
+        return  ; skip this file
     ]
 
     assert [

@@ -1135,7 +1135,7 @@ help: proc [
 ][
     if not topic [
         print help-object.usage
-        exit
+        return
     ]
     topic: to-word topic
     print newline
@@ -1143,14 +1143,14 @@ help: proc [
         for-each [topic msg] help-object [
             print msg
         ]
-        exit
+        return
     ]
     let msg: select help-object topic
     if not msg [
         print ["Unknown topic:" topic]
         print newline
         print help-object.usage
-        exit
+        return
     ]
     print msg
 ]

@@ -63,15 +63,13 @@
 ]
 
 [
-    (foo: func [] [return ~], ok)
+    (foo: func [] [return], ok)
 
-    ((lift ^tripwire) = lift applique foo/ [])
-    (tripwire? applique foo/ [])
+    ((lift ~#[foo]#~) = lift applique foo/ [])
+    (trash? applique foo/ [])
 
-    ((lift ^tripwire) = lift eval foo/)
-    (tripwire? eval foo/)
-
-    ((lift ^tripwire) = lift eval foo/)
+    ((lift ~#[foo]#~) = lift eval foo/)
+    (trash? eval foo/)
 ]
 
 ; Explicit return of VOID
@@ -106,11 +104,11 @@
 
 [(
     foo: proc [] []
-    (lift ^tripwire) = lift foo
+    (lift ~#[foo]#~) = lift foo
 )(
     data: [a b c]
-    f: func [return: ~] [append data spread [1 2 3] return ~]
-    (lift ^tripwire) = lift f
+    f: func [return: ~] [append data spread [1 2 3] return]
+    (lift ~#[f]#~) = lift f
 )]
 
 ; LOCAL null, ^LOCAL unset, and ~LOCAL~ trash

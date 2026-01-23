@@ -413,6 +413,8 @@ DECLARE_NATIVE(CRASH)
         goto crash_with_pointer;
     }
 
+  handle_info_as_value: {
+
     Element* info = As_Element(param);
 
     if (Is_Tied_Form_Of(WORD, info)) {  // interpret as value to diagnose
@@ -437,7 +439,7 @@ DECLARE_NATIVE(CRASH)
         }
     }
 
-  crash_with_pointer: { //////////////////////////////////////////////////////
+} crash_with_pointer: { //////////////////////////////////////////////////////
 
     Crash_Core(
         p, tick, File_UTF8_Of_Level(level_), opt Line_Number_Of_Level(level_)

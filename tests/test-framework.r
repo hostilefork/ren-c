@@ -61,7 +61,7 @@ run-single-test: proc [
     ] then [
         .successes: me + 1
         log reduce [_ -["correct failure:"]- _ @(quasi expected-id) newline]
-        exit
+        return
     ]
 
     case [
@@ -85,7 +85,7 @@ run-single-test: proc [
         result = '~okay~ [
             .successes: me + 1
             log reduce [_ -["succeeded"]- newline]
-            exit
+            return
         ]
 
         result = '~null~ [
@@ -114,7 +114,7 @@ run-test-cluster: proc [
     if not empty? exclude flags .allowed-flags [
         .skipped: me + 1
         log [space -["skipped"]- newline]
-        exit
+        return
     ]
 
     ; Here we use MODULE instead of MAKE MODULE! so that we get IMPORT and

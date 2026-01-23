@@ -20,14 +20,14 @@
         ]
         if not dir? f [
             delete f
-            return ~
+            return
         ]
         for-each 'item (read f) {
            name: join f item
            delete-recurse name
         }
         delete f
-        return ~
+        return
     ]
     ok)
 

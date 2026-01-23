@@ -128,7 +128,7 @@ export console!: make object! [
 
         if failure? ^v [
             print-error disarm ^v
-            exit
+            return
         ]
 
       === GHOST! ===
@@ -136,7 +136,7 @@ export console!: make object! [
         if ghost? ^v [
             print unspaced [
                 result _ --[\~,~\  ; antiform (ghost!) "void"]--]
-            exit
+            return
         ]
 
       === UNPACK FIRST VALUE IN "PACKS" ===
@@ -152,7 +152,7 @@ export console!: make object! [
                 print unspaced [
                     result _ --[\~()~\  ; antiform (pack!) "heavy void"]--
                 ]
-                exit
+                return
             ]
 
             if not decayable? ^v [
@@ -161,7 +161,7 @@ export console!: make object! [
                 print unspaced [
                     result _ "\" mold quasi v "\" _ _ ";" _ "antiform (pack!)"
                 ]
-                exit
+                return
             ]
 
             let len: length of unanti ^v
@@ -193,7 +193,7 @@ export console!: make object! [
       ; a debugging aid for knowing where trashes came from).
 
         if trash? ^v [
-            exit
+            return
         ]
 
       === EMPTY SPLICE! ("NONE") ===
@@ -202,7 +202,7 @@ export console!: make object! [
             print unspaced [
                 result _ --[\~[]~\  ; antiform (splice!) "none"]--
             ]
-            exit
+            return
         ]
 
       === ANTIFORMS (^META v parameter means they are quasiforms) ===
@@ -231,7 +231,7 @@ export console!: make object! [
             print unspaced [
                 result _ "\" mold v "\" _ _ ";" _ "antiform (" name ")"
             ]
-            exit
+            return
         ]
 
       === "ORDINARY" VALUES (non-antiform) ===

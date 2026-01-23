@@ -3160,5 +3160,5 @@ using: func [
     obj [object!]
 ][
     add-use-object (binding of $obj) obj
-    return ~
+    return
 ]

@@ -148,7 +148,7 @@ for-each-datatype: func [
     ]] else [
         panic "Couldn't fully parse %types.r"
     ]
-    return ~
+    return
 ]
 
 ; 1. Type ranges are inclusive, so the end is included in the range.  This is

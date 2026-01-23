@@ -46,30 +46,30 @@
 
 (
     success: 'true
-    f1: func [return: ~] [return ~, success: 'false]
+    f1: func [return: ~] [return, success: 'false]
     f1
     true? success
 )
 (
-    f1: func [return: ~] [return ~]
+    f1: func [return: ~] [return]
     (lift ^tripwire) = lift f1
 )
 [#1515 (  ; the "result" of a return should not be assignable
     a: 1
-    run func [return: ~] [a: return ~]
+    run func [return: ~] [a: return]
     a = 1
 )]
-(a: 1 reeval reify func [return: ~] [set $a return ~] a = 1)
-(a: 1 reeval reify func [return: ~] [set $a return ~] a = 1)
+(a: 1 reeval reify func [return: ~] [set $a return] a = 1)
+(a: 1 reeval reify func [return: ~] [set $a return] a = 1)
 [#1509 (  ; the "result" of a return should not be passable to functions
     a: 1
-    run func [return: ~] [a: error? return ~]
+    run func [return: ~] [a: error? return]
     a = 1
 )]
 [#1535
-    (trash? reeval noquasi reify func [return: ~] [words of return ~])
+    (trash? reeval noquasi reify func [return: ~] [words of return])
 ]
-(trash? run func [return: ~] [values of return ~])
+(trash? run func [return: ~] [values of return])
 
 
 
@@ -150,4 +150,15 @@
     ]
 
     <success> = outer 1
+)
+
+
+; NEWLINE SPANNING
+
+~hole-spans-newline~ !! (
+    foo: func [x] [
+        return
+        comment "This is not legal"
+    ]
+    foo 10
 )

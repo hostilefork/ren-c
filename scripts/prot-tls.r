@@ -208,7 +208,7 @@ emit: proc [
 ][
     if blob? code [
         append ctx.msg code
-        exit
+        return
     ]
 
     while [not tail? code] [
@@ -1658,15 +1658,15 @@ do-commands: func [
 
     switch tls-port.state.mode [
         <close-notify> [
-            return ~  ; at one point returned TRUE, wasn't used
+            return  ; at one point returned TRUE, wasn't used
         ]
         #application [
-            return ~  ; at one point returned FALSE, wasn't used
+            return  ; at one point returned FALSE, wasn't used
         ]
         ; Note: Even if state is <finished>, it seems to still want to READ.
     ]
     perform-read tls-port
-    return ~
+    return
 ]
 
 

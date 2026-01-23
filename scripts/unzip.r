@@ -640,7 +640,7 @@ unzip: func [
     ]
 
     if block? where [return where]
-    return ~
+    return
 ]
 
 

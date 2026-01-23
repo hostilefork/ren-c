@@ -188,15 +188,15 @@ help-value: proc [
         ]
         if free? value [
             print "!!! contents no longer available, as it has been FREE'd !!!"
-            exit
+            return
         ]
         if action? ^value [
             help-action ^value
-            exit
+            return
         ]
         let [molded truncated]: mold:limit atom' 2000  ; quasiform
         print unspaced [molded (if truncated ["..."]) _ _ "; anti"]
-        exit
+        return
     ])
 
     value: decay ^value  ; Note: synonym for (value: ^value)
@@ -204,13 +204,13 @@ help-value: proc [
     print [opt name "is an element of type" to word! type of value]
     if free? value [
         print "!!! contents no longer available, as it has been FREE'd !!!"
-        exit
+        return
     ]
     if match [object! port!] value [
         for-each 'line summarize-obj value [
             print line
         ]
-        exit
+        return
     ]
     let [molded truncated]: mold:limit value 2000
     print unspaced [molded (if truncated ["..."])]
@@ -267,7 +267,7 @@ help: func [
 ][
     if not topic [  ; just `>> help` or `eval [help]` or similar
         print-general-help
-        exit
+        return
     ]
 
     if web [
@@ -280,7 +280,7 @@ help: func [
             browse join url! [
                 http://www.rebol.com/r3/docs/datatypes/ (string) ".html"
             ]
-            exit
+            return
         ]
 
         ; !!! The logic here repeats somewhat the same thing that is done
@@ -305,7 +305,7 @@ help: func [
         browse join url! [
             https://github.com/gchiu/reboldocs/blob/master/ (item) ".MD"
         ]
-        exit
+        return
     ]
 
     let make-libuser: does [  ; hacky unified context for searching
@@ -326,7 +326,7 @@ help: func [
         word! tuple! path! [
             let ^value: get meta topic except (e -> [
                 print form e  ; not bound, etc.
-                exit
+                return
             ])
             if action? ^value [
                 help-action:name ^value topic  ; bypass print name
@@ -366,7 +366,7 @@ help: func [
         print "For info on what it evaluates to, try" ["HELP (" topic ")"]
     ]
 
-    exit
+    return
 ]
 
 
@@ -392,7 +392,7 @@ source: proc [
             name: arg
             if action? (^f: get arg else [
                 print [name "is not set to a value"]
-                exit
+                return
             ]) [
                 f: unrun f/
             ]
@@ -413,7 +413,7 @@ source: proc [
             ]
         ]
     ] then [
-        exit
+        return
     ]
 
     let r-param: return of f
@@ -461,7 +461,7 @@ source: proc [
 what: func [
     "Prints a list of known actions"
 
-    return: [trash? block!]
+    return: [trash! block!]
     @name [<hole> word! 'word!]
         "Optional module name"
     :args "Show arguments not titles"
@@ -500,7 +500,7 @@ what: func [
             :arg
         ]
     ]
-    return ~
+    return
 ]
 
 
@@ -518,7 +518,7 @@ require-commit: proc [
 
     commit [text!]
 ][
-    let c: select system.script.header 'commit else [exit]
+    let c: select system.script.header 'commit else [return]
 
     ; If we happen to have commit information that includes a date, then we
     ; can look at the date of the running Rebol and know that a build that is

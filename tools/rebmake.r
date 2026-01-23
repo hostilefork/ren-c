@@ -453,7 +453,7 @@ cc: make compiler-class [
         .exec-file: any [exec, .exec-file]
 
         if .name [  ; don't need to try and guess what kind of compiler it is
-            exit
+            return
         ]
 
         ; Try auto-detecting what kind of compiler it is
@@ -1217,7 +1217,7 @@ generator-class: make object! [
             #object-library [target-platform.archive-suffix]
             #object-file [target-platform.obj-suffix]
         ] else [
-            exit
+            return
         ]
 
         let basename
@@ -1271,7 +1271,7 @@ generator-class: make object! [
             #static-library
             #solution
             #object-library [
-                if yes? project.generated [exit]
+                if yes? project.generated [return]
                 ./setup-output project
                 project.generated: 'yes
                 for-each 'dep project.depends [
@@ -1515,7 +1515,7 @@ export execution: make generator-class [
                     exists? to file! target.target
                 ][
                     ; TODO: Check timestamp to see if it needs to be updated
-                    exit
+                    return
                 ]
                 either block? target.commands [
                     for-each 'cmd target.commands [
@@ -1541,12 +1541,12 @@ export execution: make generator-class [
         <.>
     ][
         ;dump project
-        if not object? project [exit]
+        if not object? project [return]
 
         ./prepare project
 
         if not find [#dynamic-extension #static-extension] project.class [
-            if yes? project.generated [exit]
+            if yes? project.generated [return]
             project.generated: 'yes
         ]
 

@@ -335,7 +335,7 @@ move: func [
     insert either to [at head of source offset] [
         lib/skip source offset
     ] either any-list? source [spread part] [part]
-    return ~
+    return
 ]
 
 
@@ -666,5 +666,5 @@ find-all: func [
         eval body
         series: next series
     ]
-    return ~
+    return
 ]

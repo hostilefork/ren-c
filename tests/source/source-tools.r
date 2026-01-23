@@ -201,7 +201,7 @@ export analyse: context [
 
             let emit-proto: proc [proto] [
                 if not block? proto-parser.data [
-                    exit
+                    return
                 ]
 
                 eval overbind c-parser-extension [
