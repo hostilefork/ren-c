@@ -226,13 +226,16 @@ INLINE Stable* Init_Splice_Untracked(Init(Stable) out, const Source* a) {
 #define Init_Splice(out,a) \
     TRACK(Init_Splice_Untracked((out), (a)))
 
-INLINE bool Is_None(const Stable* v) {  // SPLICE with no elements [1]
+INLINE bool Is_None_Core(const Stable* v) {  // SPLICE with no elements [1]
     if (not Is_Splice(v))
         return false;
     const Element* tail;
     const Element* at = List_At(&tail, v);
     return tail == at;
 }
+
+#define Is_None(v) \
+    Is_None_Core(Possibly_Antiform(v))
 
 #define Init_None(out) \
     TRACK(Init_Splice_Untracked((out), EMPTY_ARRAY))
