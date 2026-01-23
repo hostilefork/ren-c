@@ -8,30 +8,41 @@
     ]
     success
 )
+
 ; catch results
-(ghost? catch [])
-(ghost? catch [()])
+
+~catch-no-throw~ !! (catch [])
+~catch-no-throw~ !! (catch [()])
+
+(ghost? catch [throw])
+
 (error? catch [throw rescue [1 / 0]])
+
 (1 = catch [throw 1])
+
 ((the '~[]~) = lift catch [throw eval ['~[]~]])
+
 (error? first catch [throw reduce [rescue [1 / 0]]])
-(1 = catch [throw 1])
 
 ; recursive cases
 (
-    num: 1
-    catch [
-        catch [throw 1]
-        num: 2
-    ]
-    2 = num
+    all {
+        num: 1
+        ghost? catch [
+            catch [throw 1]
+            num: 2
+            throw
+        ]
+        2 = num
+    }
 )
 
 [#1515 ; the "result" of throw should not be assignable
     (a: 1 catch [a: throw 2] a = 1)
 ]
+
 (a: 1 catch [set $a throw 2] a = 1)
-(a: 1 catch [set $a throw 2] a = 1)
+
 [#1509 ; the "result" of throw should not be passable to functions
     (a: 1 catch [a: error? throw 2] a = 1)
 ]
@@ -126,7 +137,7 @@
     }
 )
 (
-    ghost? catch [10 + 20]
+    30 = catch [throw 10 + 20]
 )
 
 ; Antiforms
@@ -134,19 +145,10 @@
     '~#ugly~ = lift catch [throw ~#ugly~]
 )
 
-; ELSE/THEN reactivity
+; HEAVY/LIGHT as-is (use ATTEMPT for "guaranteed" ELSE/THEN reactivity)
 [
-    (null = catch [throw null])
-    (<caught> = catch [throw null] else [<caught>])  ; THROW not heavy
-    (ghost? catch [null])
-    (ghost? catch [null] then [panic])
-    (<uncaught> = catch [null] else [<uncaught>])
-    (<uncaught> = catch [null] then [panic] else [<uncaught>])
-
-    (ghost? cond catch [throw ^ghost])
-    (<caught> = catch [throw ^ghost] else [<caught>])  ; THROW not heavy
-    (ghost? cond catch [^ghost])
-    (ghost? cond catch [^ghost] then [panic])
-    (<uncaught> = catch [^ghost] else [<uncaught>])
-    (<uncaught> = catch [^ghost] then [panic] else [<uncaught>])
+    ('~null~ = lift catch [throw null])
+    (ghost? catch [throw ^ghost])
+    (heavy-void? catch [throw ~()~])
+    (heavy-null? catch [throw ~(~null~)~])
 ]

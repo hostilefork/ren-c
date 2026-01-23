@@ -897,6 +897,7 @@ pe-format: context [
                         throw sec
                     ]
                 ]
+                throw null
             ]
         ]
 

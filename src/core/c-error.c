@@ -112,7 +112,7 @@ Error* Derive_Error_From_Pointer_Core(const void* p) {
 // running it will not make it to the point of returning the result value.
 // This distinguishes the "panic" mechanic from the "throw" mechanic, which has
 // to bubble up a thrown value through OUT (used to implement BREAK,
-// CONTINUE, RETURN, LEAVE, HALT...)
+// CONTINUE, RETURN, THROW, HALT...)
 //
 // The function will auto-detect if the pointer it is given is an ERROR!'s
 // VarList* or a UTF-8 char *.  If it's UTF-8, an error will be created from

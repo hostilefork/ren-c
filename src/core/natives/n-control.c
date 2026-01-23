@@ -1353,10 +1353,10 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
 } code_result_in_out: {  //////////////////////////////////////////////////////
 
     if (not THROWING) {
-        require (
+        require (  // error if failure before erroring on non-throw
           Ensure_No_Failures_Including_In_Packs(OUT)
         );
-        return GHOST_OUT_UNBRANCHED;  // !!! Review: result should drop out
+        panic (Error_Catch_No_Throw_Raw());
     }
 
     const Stable* label = VAL_THROWN_LABEL(LEVEL);
@@ -1376,17 +1376,23 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
 //
 //  definitional-throw: native [
 //
-//  "Throws VALUE to its associated CATCH"
+//  "Throws VALUE to its associated CATCH (default is VOID)"
 //
 //      return: []
-//      ^value [any-value?]
+//      ^value [<hole> any-value?]
 //  ]
 //
 DECLARE_NATIVE(DEFINITIONAL_THROW)
 {
     INCLUDE_PARAMS_OF_DEFINITIONAL_THROW;
 
-    Value* v = ARG(VALUE);
+    Param* param = ARG(VALUE);
+
+    Value* v;
+    if (Is_Cell_A_Bedrock_Hole(param))
+        v = Init_Ghost(LOCAL(VALUE));
+    else
+        v = As_Value(param);
 
     Level* throw_level = LEVEL;  // Level of this RETURN call
 

@@ -398,10 +398,11 @@ DECLARE_NATIVE(CONSOLE)
         "state: 'running-request",
 
         "sys.util/recover [",  // pollutes stack trace [3]
-            "catch* 'quit* [",  // definitional quit (customized THROW) [4]
-                "sys.contexts.user.quit: sys.util/make-quit:console quit*/",
+            "catch [",  // definitional quit (customized THROW) [4]
+                "sys.contexts.user.quit: sys.util/make-quit:console throw/",
                 "result': lift eval code",
-            "] then (caught -> [",  // QUIT wraps QUIT* to only throw integers
+                "throw null",  // won't run `then (caught -> [...])`
+            "] then (caught -> [",  // QUIT wraps THROW to only throw integers
                 "result': caught",  // INTEGER! due to :CONSOLE, out of band
             "])",
         "] then (error -> [",

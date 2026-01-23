@@ -317,7 +317,7 @@ Bounce Yielder_Dispatcher(Level* const L)
   // 1. It's a question as to whether to error or not if you do something like
   //    THROW out of a yielder or generator:
   //
-  //        catch [g: generator [yield 1, throw 20, print "???"], g, g]
+  //        catch [g: generator [yield 1, throw 20, print "???"], throw g]
   //
   //    Throwing destroys the evaluation state, and you can't bring it back to
   //    make another call.  But should it be considered successful completion?

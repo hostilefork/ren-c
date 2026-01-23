@@ -193,6 +193,8 @@ bad-func-arg:       "function argument $1 is not valid"
 func-no-return:     "FUNCTION $1 didn't RETURN (see LAMBDA, PROCEDURE)"
 bad-return-type:    "$1 can't RETURN $2 but rather $3"
 
+catch-no-throw:     "CATCH didn't THROW (see ATTEMPT)"
+
 no-refine:          "$1 has no refinement called $2"
 bad-refines:        "incompatible or invalid refinements"
 bad-parameter:      "incompatible or duplicate parameter: $1"
