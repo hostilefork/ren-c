@@ -902,6 +902,21 @@ bool Typecheck_Uses_Spare_And_Scratch(
         match_all = false;
         break;
 
+      case TYPE_SPLICE: {  // literal match of splice values
+        if (Is_Antiform(v))
+            return false;  // can't match list elements against antiforms
+
+        at = List_At(&tail, tests);
+        for (; at != tail; ++at) {
+            bool strict = true;  // system now case-sensitive by default
+            require (
+              bool equal = Equal_Values(As_Element(v), at, strict)
+            );
+            if (equal)
+                return true;
+        }
+        return false; }
+
       case TYPE_GROUP:
         at = List_At(&tail, tests);
         derived = Derive_Binding(tests_binding, As_Element(tests));
@@ -1158,7 +1173,7 @@ DECLARE_NATIVE(TYPECHECKER)
 //  "Same typechecking as function arguments"
 //
 //      return: [logic! failure!]  ; returns error vs. panic [1]
-//      test [block! datatype! parameter! frame!]
+//      test [block! datatype! splice! parameter! frame!]
 //      ^value [any-value?]
 //      :meta "Don't pre-decay argument (match ^META argument mode)"
 //  ]
@@ -1197,10 +1212,16 @@ DECLARE_NATIVE(TYPECHECK)
 //
 //  match: native [
 //
-//  "Same typechecking as function arguments, but return value on success"
+//  "If VALUE passes a type check, return it, else return NULL"
 //
 //      return: [<null> any-stable?]
-//      test [block! datatype! parameter! frame!]
+//      test [
+//          datatype! "simple datatype check"
+//          block! "same dialect as type specs for functions"
+//          splice! "items to test against literally"
+//          parameter! "as used in function specs"
+//          frame! "constraint function returning LOGIC!"
+//      ]
 //      value "Won't pass thru NULL (use TYPECHECK for a LOGIC! answer)"
 //          [any-stable?]
 //  ]

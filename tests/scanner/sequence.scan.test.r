@@ -249,7 +249,7 @@ until [tail? iter] [
     let original-text: const ensure text! iter.1
     iter: my next
 
-    let mode: ensure [~[!! ->]~] iter.1
+    let mode: ensure ~[!! ->]~ iter.1
     iter: my next
 
     let original-expected: const collect [

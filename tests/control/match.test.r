@@ -102,3 +102,9 @@
     (null = match+ parse3 "aaa" [some "b"])
     ("aaa" = match+ parse3 "aaa" [some "a"])
 ]
+
+; Literal matches supported via SPLICE!
+[
+    (1 = match ~[1 2]~ 1)
+    (null = match ~[1 2]~ 3)
+]
