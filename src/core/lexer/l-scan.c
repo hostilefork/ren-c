@@ -113,6 +113,14 @@ INLINE bool Is_Lex_Sub_Interstitial(Level *L, Byte sub) {
 INLINE bool Is_Lex_End_List(Byte b)
   { return b == ']' or b == ')' or b == '}'; }
 
+INLINE bool Is_Lex_Rune_Terminal(Byte b) {  // comma etc. terminate runes [#,]
+    return (
+        Is_Lex_Whitespace_Or_Comma(b)
+        or Is_Lex_End_List(b)
+        or Is_Lex_Interstitial(b)
+    );
+}
+
 INLINE bool Is_Dot_Or_Slash(Byte b)  // !!! Review lingering instances
   { return b == '/' or b == '.'; }
 
@@ -1541,7 +1549,7 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
             assert(which == '.' or which == ':' or which == '/');
             do {
                 if (
-                    Is_Lex_Whitespace(cp[1])
+                    Is_Lex_Whitespace_Or_Comma(cp[1])
                     or Is_Lex_End_List(cp[1])
                     or (cp[1] != which and Is_Lex_Interstitial(cp[1]))
                 ){
@@ -1744,7 +1752,7 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
             // legal words (at least for the time being).
             //
             do { ++cp; } while (*cp == '_');
-            if (Is_Lex_End_List(*cp) or Is_Lex_Whitespace(*cp)) {
+            if (Is_Lex_Rune_Terminal(*cp)) {
                 S->end = cp;
                 return TOKEN_UNDERSCORE;
             }
@@ -1753,7 +1761,7 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
 
           case LEX_SPECIAL_POUND:
             do { ++cp; } while (*cp == '#');
-            if (Is_Lex_End_List(*cp) or Is_Lex_Whitespace(*cp)) {
+            if (Is_Lex_Rune_Terminal(*cp)) {
                 S->end = cp;
                 return TOKEN_HASH;
             }
@@ -2307,16 +2315,22 @@ static Bounce Scanner_Executor_Core(Level* const L) {
         goto lookahead;
     }
 
-    goto underscore_hash_common;
+    goto non_single_codepoint_underscore_hash_common;
 
 } case TOKEN_HASH: { /////////////////////////////////////////////////////////
 
   // `#` standalone becomes a newline value, `#a#` and `a#b` are illegal.
 
     assert(*S->begin == '#');
-    goto underscore_hash_common;
 
-} underscore_hash_common: { //////////////////////////////////////////////////
+    if (len == 1) {
+        Init_Newline(PUSH());  // special flag handling for fast recognition
+        goto lookahead;
+    }
+
+    goto non_single_codepoint_underscore_hash_common;
+
+} non_single_codepoint_underscore_hash_common: { /////////////////////////////
 
     Byte b = *S->begin == '_' ? ' ' : '\n';
 
@@ -2649,12 +2663,16 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
   // !!! Review, this is now just "rune enclosed in quotes".
 
-    Init_Rune(
-        PUSH(),
-        cast(Utf8(const*), Binary_At(mo->strand, mo->base.size)),
-        Strand_Size(mo->strand) - mo->base.size,
-        Strand_Len(mo->strand) - mo->base.index
+    Utf8(const*) utf8 = cast(Utf8(const*),  // validated UTF-8 (it's a Strand)
+        Binary_At(mo->strand, mo->base.size)
     );
+    Size utf8_size = Strand_Size(mo->strand) - mo->base.size;
+    Length utf8_len = Strand_Len(mo->strand) - mo->base.index;
+
+    if (utf8_size == 0)
+        return fail ("Codepoint 0 RUNE! not currently supported (REVIEW)");
+
+    Init_Rune(PUSH(), utf8, utf8_size, utf8_len);
     Drop_Mold(mo);
     goto lookahead;
 

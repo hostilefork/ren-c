@@ -151,6 +151,7 @@ INLINE bool Try_Init_Small_Utf8_Untracked(
     Length len,
     Size size
 ){
+    assert(size != 0);  // !!! review, this needs work
     assert(
         Any_Utf8_Type(heart)
         and not Any_String_Type(heart) and heart != TYPE_WORD
@@ -165,7 +166,7 @@ INLINE bool Try_Init_Small_Utf8_Untracked(
         out,
         FLAG_HEART(heart) | CELL_MASK_NO_MARKING
             | ((len == 1) ? CELL_FLAG_RUNE_SINGLE_CODEPOINT : 0)
-            | ((size == 1) and (bp[0] == ' ') ? CELL_FLAG_RUNE_IS_SPACE : 0)
+            | ((len == 1) and (bp[0] == ' ') ? CELL_FLAG_RUNE_IS_SPACE : 0)
     );
 
     memcpy(
@@ -300,6 +301,9 @@ INLINE Result(Element*) Init_Single_Codepoint_Rune_Untracked(
 
 #define Init_Space(out) \
     Init_Char_Unchecked((out), ' ')
+
+#define Init_Newline(out) \
+    Init_Char_Unchecked((out), '\n')
 
 #define Init_Sigiled_Space(out,sigil) \
     Add_Cell_Sigil(Init_Space(out), sigil)

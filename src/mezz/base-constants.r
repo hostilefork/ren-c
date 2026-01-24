@@ -50,7 +50,7 @@ none: ~[]~
 quasar: '~
 
 empty-text: ""
-empty-blob: #""
+empty-blob: #{}
 
 null: ~null~
 quasi-null: '~null~

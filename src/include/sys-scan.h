@@ -159,6 +159,9 @@ typedef enum {
     MAX_LEX_DELIMIT_WHITESPACE = LEX_DELIMIT_RETURN,
 
     LEX_DELIMIT_COMMA,              // 2C , - expression barrier
+
+    MAX_LEX_DELIMIT_WHITESPACE_OR_COMMA = LEX_DELIMIT_COMMA,
+
     LEX_DELIMIT_LEFT_PAREN,         // 28 (
     LEX_DELIMIT_RIGHT_PAREN,        // 29 )
     LEX_DELIMIT_LEFT_BRACKET,       // 5B [
@@ -211,6 +214,9 @@ STATIC_ASSERT(LEX_DELIMIT == 0 and LEX_DELIMIT_SPACE == 0);
 
 #define Is_Lex_Whitespace(b) \
     (Lex_Of(b) <= MAX_LEX_DELIMIT_WHITESPACE)  // requires LEX_DELIMIT == 0
+
+#define Is_Lex_Whitespace_Or_Comma(b) \
+    (Lex_Of(b) <= MAX_LEX_DELIMIT_WHITESPACE_OR_COMMA)
 
 #define Is_Lex_Not_Delimit(b)           (Lex_Of(b) >= LEX_SPECIAL)
 #define Is_Lex_Word_Or_Number(b)        (Lex_Of(b) >= LEX_WORD)
