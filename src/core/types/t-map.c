@@ -871,7 +871,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
 
     Stable* dual = ARG(DUAL);
     if (Not_Lifted(dual)) {
-        if (Is_Tweak_Nulled_Pick_Signal(dual))
+        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -902,7 +902,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
     );
 
     if (not n)
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
 
     const Value* val = Flex_At(
         Value,
@@ -910,7 +910,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
         (((unwrap n) - 1) * 2) + 1
     );
     if (Is_Zombie(val))
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
 
     Copy_Cell(OUT, val);
     return LIFT_OUT_FOR_DUAL_PICK;
@@ -924,7 +924,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
         strict
     );
 
-    return NULL_OUT_NO_WRITEBACK;  // no upstream change for Map* reference
+    return OKAY_OUT_NO_WRITEBACK;  // no upstream change for Map* reference
 }}
 
 

@@ -86,3 +86,15 @@
 ((the '10) = lift set _ pack [10 20])
 ((the '10) = lift set '^ 10)
 ('~('10 '20)~ = lift set '^ pack [10 20])
+
+[
+    (obj: make object! [present: 1020], ok)
+
+    (failure? obj.missing: 304)
+    ~bad-pick~ !! (failure? ^obj.missing: 304)
+    (failure? ^obj.present: fail "bad pick error avoids this conflation")
+
+    ((set:dual meta $obj.missing lift fail "SET:DUAL workaround") except (e -> [
+        e.id = 'bad-pick
+    ]))
+]

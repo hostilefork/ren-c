@@ -830,7 +830,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
  dispatch_pick_or_poke: {
 
     if (Not_Lifted(dual)) {
-        if (Is_Tweak_Nulled_Pick_Signal(dual))
+        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -935,7 +935,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
         break;
 
       default:
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
     }
 
     return LIFT_OUT_FOR_DUAL_PICK;

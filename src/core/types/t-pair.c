@@ -301,7 +301,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Pair)
 
     Stable* dual = ARG(DUAL);
     if (Not_Lifted(dual)) {
-        if (Is_Tweak_Nulled_Pick_Signal(dual))
+        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -312,7 +312,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Pair)
   handle_pick: { /////////////////////////////////////////////////////////////
 
     if (n != 1 and n != 2)
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
 
     Stable* which = (n == 1) ? Cell_Pair_First(pair) : Cell_Pair_Second(pair);
     Copy_Cell(OUT, which);
@@ -333,7 +333,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Pair)
     Stable* which = (n == 1) ? Cell_Pair_First(pair) : Cell_Pair_Second(pair);
     Copy_Cell(which, poke);
 
-    return NULL_OUT_NO_WRITEBACK;  // PAIR! is two independent cells in Ren-C
+    return OKAY_OUT_NO_WRITEBACK;  // PAIR! is two independent cells in Ren-C
 }}
 
 

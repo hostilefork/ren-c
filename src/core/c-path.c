@@ -133,7 +133,7 @@ DECLARE_NATIVE(PICK)
     heeded (Init_Quasar(SCRATCH));  // carries flags...
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    Init_Dual_Nulled_Pick_Signal(OUT);
+    Init_Nulled_Signifying_Tweak_Is_Pick(OUT);
 
     STATE = 1;
 
@@ -144,11 +144,11 @@ DECLARE_NATIVE(PICK)
     );
     Drop_Data_Stack_To(base);
 
-    if (e)  // should be willing to bounce to trampoline...
-        panic (unwrap e);
-
-    if (Is_Failure(OUT))
-        return OUT;  // !!! should this be lifted?
+    if (e) {  // should be willing to bounce to trampoline...
+        Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);
+        Failify_Cell(OUT);
+        return OUT;
+    }
 
     require (
       Unlift_Cell_No_Decay(OUT)  // !!! use faster version, known ok antiform?
@@ -164,7 +164,7 @@ DECLARE_NATIVE(PICK)
 //  "Implementation detail of PICK and POKE, also underlies SET and GET"
 //
 //      return: [
-//          <null>  "no writeback needed"
+//          logic!  "null: bad picker, okay: no writeback needed"
 //          quoted! quasiform!  "lifted cell for bits to update in container"
 //          frame! ^word! ^tuple! space? parameter! "indirect writeback"
 //      ]
@@ -290,11 +290,11 @@ DECLARE_NATIVE(POKE)
     );
     Drop_Data_Stack_To(base);
 
-    if (e)
-        panic (unwrap e);
-
-    if (Is_Failure(OUT))
-        return OUT;  // !!! should this be lifted?
+    if (e) {
+        Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);
+        Failify_Cell(OUT);
+        return OUT;
+    }
 
     require (
       Unlift_Cell_No_Decay(OUT)  // !!! use faster version, known ok antiform?

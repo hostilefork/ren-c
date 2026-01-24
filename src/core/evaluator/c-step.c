@@ -1339,10 +1339,12 @@ Bounce Stepper_Executor(Level* L)
     heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    require (
-      Get_Var_In_Scratch_To_Out(L, GROUPS_OK)
-    );
-    possibly(Not_Cell_Stable(OUT));  // last step or unmeta'd item [1]
+    Get_Var_In_Scratch_To_Out(L, GROUPS_OK) except (Error* e) {
+        Init_Context_Cell(OUT, TYPE_ERROR, e);
+        Failify_Cell(OUT);
+    } else {
+        possibly(Not_Cell_Stable(OUT));  // unmeta'd item [1]
+    }
 
     goto lookahead;
 
@@ -1536,9 +1538,10 @@ Bounce Stepper_Executor(Level* L)
     heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    require (
-      Set_Var_In_Scratch_To_Out(LEVEL, GROUPS_OK)
-    );
+    Set_Var_In_Scratch_To_Out(LEVEL, GROUPS_OK) except (Error* e) {
+        Init_Context_Cell(OUT, TYPE_ERROR, e);
+        Failify_Cell(OUT);
+    }
 
     Invalidate_Gotten(L_next_gotten_raw);  // cache tampers with lookahead [1]
 

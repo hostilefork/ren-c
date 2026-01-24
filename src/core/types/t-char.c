@@ -933,7 +933,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Rune)
 
     Stable* dual = ARG(DUAL);
     if (Not_Lifted(dual)) {
-        if (Is_Tweak_Nulled_Pick_Signal(dual))
+        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -944,12 +944,12 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Rune)
   handle_pick: { /////////////////////////////////////////////////////////////
 
     if (n <= 0)
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
 
     REBLEN len;
     Utf8(const*) cp = Cell_Utf8_Len_Size_At(&len, nullptr, rune);
     if (n > len)
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
 
     Codepoint c;
     cp = Utf8_Next(&c, cp);

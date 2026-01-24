@@ -118,7 +118,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
         Data_Stack_At(Stable, picker_index)
     );
 
-    dual_arg = Init_Dual_Nulled_Pick_Signal(
+    dual_arg = Init_Nulled_Signifying_Tweak_Is_Pick(
         Force_Erase_Cell(Level_Arg(sub, 3))
     );
     USED(dual_arg);
@@ -158,7 +158,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     assert(sub == TOP_LEVEL);
     unnecessary(Drop_Action(sub));  // !! action is dropped, should it be?
 
-    if (Is_Pick_Absent_Signal(SPARE))
+    if (Is_Nulled_Signifying_Slot_Unavailable(SPARE))
         goto return_without_unbinding;
 
     Dual* dual_spare = As_Dual(SPARE);
@@ -233,8 +233,6 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     if (Is_Lifted_Antiform(SPARE))
         return Error_User("TWEAK* cannot be used on antiforms");
 
-    Stable* spare_location_dual = As_Stable(SPARE);
-
     require (
       Push_Action(sub, LIB(TWEAK_P), PREFIX_0)
     );
@@ -246,6 +244,8 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
   proxy_arguments_to_frame_dont_panic_in_this_scope: {
 
+    Dual* dual_location_spare = As_Dual(SPARE);  // incoming is location
+
   // We can't panic while there's an extant level that's not pushed.
   //
   // (See notes in Trap_Call_Pick_Refresh_Dual_In_Spare() for more details.)
@@ -253,10 +253,10 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
   // 1. GET:STEPS returns @var for steps of var.  But is (get @var) same as
   //    (get $var) ?
 
-    assert(Is_Possibly_Unstable_Value_Quoted(spare_location_dual));
+    assert(Is_Possibly_Unstable_Value_Quoted(dual_location_spare));
     location_arg = Copy_Cell(
         Force_Erase_Cell(Level_Arg(sub, 1)),
-        As_Element(spare_location_dual)
+        dual_location_spare
     );
     Unquote_Cell(location_arg);
 
@@ -365,6 +365,11 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
 } call_updater: {
 
+  // 1. We return success--in the sense of a non-`fail()` Error* result--even
+  //    if the slot was not available.  If we're on the last pick of a tuple,
+  //    the pick may not panic.  (Note this is distinct from if the picker was
+  //    objectively bad, like using an OBJECT! picker in a BLOCK!)
+
     if (Get_Cell_Flag(
         Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
     )){
@@ -376,10 +381,13 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     if (threw)  // don't want to return casual error you can TRY from
         return Error_No_Catch_For_Throw(TOP_LEVEL);
 
-    if (Is_Nulled_No_Writeback_Signal(SPARE))
+    if (Is_Logic(As_Stable(SPARE))) {  // "success" even if unavailable [1]
+        possibly(Is_Okay_Signifying_No_Writeback(As_Stable(SPARE)));
+        possibly(Is_Nulled_Signifying_Slot_Unavailable(As_Stable(SPARE)));
         goto return_success;
+    }
 
-    Dual* dual_spare = As_Dual(SPARE);  // sub level's OUT went to SPARE
+    Dual* dual_spare = As_Dual(SPARE);
 
     if (not Is_Dualized_Bedrock(dual_spare))
         goto return_success;
@@ -415,7 +423,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         "TWEAK* returned bad dualized bedrock element for writeback"
     );
 
-    Init_Nulled_No_Writeback_Signal(SPARE);
+    Init_Okay_Signifying_No_Writeback(SPARE);
     goto return_success;
 
 }} return_success: { //////////////////////////////////////////////////////////
@@ -690,8 +698,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     OnStack(Element*) at = Data_Stack_At(Element, stackindex);
     Copy_Cell(spare_location_dual, at);  // dual protocol, leave lifted
     if (not Any_Lifted(spare_location_dual)) {
-        error = Error_User("First Element in STEPS must be lifted");
-        goto return_error;
+        panic ("First Element in STEPS must be lifted");
     }
 
     ++stackindex;
@@ -699,7 +706,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 } calculate_pick_stack_limit: {
 
     StackIndex limit = stackindex_top;
-    if (Is_Tweak_Nulled_Pick_Signal(out))
+    if (Is_Nulled_Signifying_Tweak_Is_Pick(out))
         limit = stackindex_top + 1;
 
     if (stackindex == limit)
@@ -722,30 +729,21 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
             if (sub->varlist)
                 Drop_Action(sub);  // drop any varlist, if it exists
             Drop_Level(sub);
-            goto return_error;
+            panic (unwrap error);
         }
 
-        if (Is_Pick_Absent_Signal(As_Stable(SPARE))) {
+        if (Is_Nulled_Signifying_Slot_Unavailable(As_Stable(SPARE))) {
           treat_like_pick_absent_signal:
             Copy_Cell(SPARE, Data_Stack_At(Element, stackindex));
             error = Error_Bad_Pick_Raw(As_Element(SPARE));
+            Drop_Level(sub);
             if (
                 stackindex == limit - 1
                 and not Is_Metaform(Data_Stack_At(Element, stackindex))
             ){
-              #if RUNTIME_CHECKS
-                Unprotect_Cell(OUT);
-              #endif
-
-                Init_Context_Cell(OUT, TYPE_ERROR, unwrap error);
-                Failify_Cell(OUT);  // signal bad pick distinct from panics
-
-                error = SUCCESS;
-                Drop_Level(sub);
-                goto return_success;  // last step can be tolerant, see [A]
+                goto return_error;  // last step can be tolerant, see [A]
             }
-            Drop_Level(sub);
-            goto return_error;
+            panic (unwrap error);
         }
 
         if (dont_indirect) {
@@ -792,7 +790,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         and not Is_Lifted_Action(spare_location_dual) // temporarily allow
         // allow GHOST, also?
     ){
-        return Error_User("PICK result cannot be unstable unless metaform");
+        panic ("PICK result cannot be unstable unless metaform");
     }
 
     // 1. SPARE was picked via dual protocol.  At the moment of the PICK,
@@ -801,7 +799,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     //    (it just re-lifted it) so the undecayed won't make an unstable
     //    value here if the picker wasn't ^META.
 
-    if (Is_Tweak_Nulled_Pick_Signal(out)) {
+    if (Is_Nulled_Signifying_Tweak_Is_Pick(out)) {
         assert(Is_Nulled(TOP_STABLE));
       #if RUNTIME_CHECKS
         Unprotect_Cell(OUT);
@@ -838,18 +836,28 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
     // Subsequent updates become pokes, regardless of initial updater function
 
-    if (Is_Nulled_No_Writeback_Signal(spare_writeback_dual)) {
+    if (Is_Okay_Signifying_No_Writeback(spare_writeback_dual)) {
       #if RUNTIME_CHECKS
         Unprotect_Cell(OUT);
       #endif
         goto return_success;
     }
 
-    if (stackindex_top == base + 1) {
-        error = Error_User(
-            "Last TWEAK* step in POKE gave non-null writeback instruction"
-        );
+    if (Is_Nulled_Signifying_Slot_Unavailable(spare_writeback_dual)) {
+        error = Error_Bad_Pick_Raw(Data_Stack_At(Element, stackindex));
+        if (
+            mode != ST_TWEAK_TWEAKING
+            and Is_Metaform(scratch_var)  // would conflate, panic vs. error
+        ){
+            panic (unwrap error);
+        }
         goto return_error;
+    }
+
+    if (stackindex_top == base + 1) {
+        panic (
+            "Last TWEAK* step in POKE gave non-okay writeback instruction"
+        );
     }
 
     Assert_Cell_Stable(spare_writeback_dual);
@@ -864,7 +872,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     assert(error);
   #if RUNTIME_CHECKS
     Unprotect_Cell(OUT);
-    if (Is_Tweak_Nulled_Pick_Signal(OUT))
+    if (Is_Nulled_Signifying_Tweak_Is_Pick(OUT))
         Corrupt_Cell_If_Needful(OUT);  // so you don't think it picked null
   #endif
 
@@ -1000,8 +1008,11 @@ DECLARE_NATIVE(TWEAK)
         steps,
         u_cast(TweakMode, STATE)  // should last step of pick not indirect?
     );
-    if (e)
-        panic (unwrap e);
+    if (e) {
+        Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);
+        Failify_Cell(OUT);
+        return OUT;
+    }
 
   return_value_even_if_we_dont_assign: {
 

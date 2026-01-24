@@ -586,9 +586,12 @@ DECLARE_NATIVE(SET)
     if (b)
         return unwrap b;  // keep bouncing while we couldn't get OUT as answer
 
+    if (Is_Failure(OUT))
+        return OUT;  // out-of-band failures (e.g. field unavailable)
+
     if (ARG(DUAL)) {
         assert(not Is_Antiform(dual));
-        return COPY_TO_OUT(dual);
+        return OUT;
     }
 
     Element* lifted = As_Element(dual);

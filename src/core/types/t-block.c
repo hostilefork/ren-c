@@ -996,7 +996,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
         n = Try_Get_Array_Index_From_Picker(series, picker);
     else {
         if (not Try_Get_Series_Index_From_Picker(&n, series, picker))
-            return NULL_OUT_PICK_ABSENT;
+            return NULL_OUT_SLOT_UNAVAILABLE;
     }
 
     const Stable* poke;
@@ -1004,17 +1004,17 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
     Stable* dual = ARG(DUAL);
 
     if (n < 0)
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
     if (n >= Series_Len_Head(series)) {
-        if (Is_Tweak_Nulled_Pick_Signal(dual)) {
+        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual)) {
             Init_Ghost(OUT);
             return LIFT_OUT_FOR_DUAL_PICK;  // treat out of bounds as void
         }
-        return NULL_OUT_PICK_ABSENT;  // !!! drain case, (1020 = obj.dr: 1020)
+        return NULL_OUT_SLOT_UNAVAILABLE;  // !!! drain case, (1020 = obj.dr: 1020)
     }
 
     if (Not_Lifted(dual)) {
-        if (Is_Tweak_Nulled_Pick_Signal(dual))
+        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -1115,7 +1115,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
 
     UNUSED(tail);
 
-    return NULL_OUT_NO_WRITEBACK;  // Array* in Cell stays the same
+    return OKAY_OUT_NO_WRITEBACK;  // Array* in Cell stays the same
 }}
 
 

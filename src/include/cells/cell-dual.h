@@ -334,6 +334,10 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Dual* dual) {
 //    null means "the value was not present" (e.g. asking for a field in an
 //    object that doesn't exist).
 //
+//    A hook should only return NULL_OUT_SLOT_UNAVAILABLE if the picker made
+//    sense, but the slot just isn't there.  So if you pass an OBJECT! as the
+//    picker for a BLOCK!, that should be an error condition vs. NULL.
+//
 // 2. If a data structure is storing bedrock slots, such as an ALIAS or a
 //    GETTER, then picking it will return the dual of that state for the core
 //    machinery to handle (as opposed to making arbitrary containers worry
@@ -346,13 +350,13 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Dual* dual) {
 #define LIFT_NULL_OUT_FOR_DUAL_PICK \
     x_cast(Bounce, Lift_Cell(Init_Nulled(OUT)))  // lifted null: present + null
 
-#define NULL_OUT_PICK_ABSENT  NULL_OUT  // non-lifted null: not present [1]
-#define Init_Nulled_Pick_Absent_Signal(cell)  Init_Nulled(cell)
+#define NULL_OUT_SLOT_UNAVAILABLE  NULL_OUT  // non-lifted null: not present [1]
 
-#define Is_Pick_Absent_Signal(cell)  Is_Nulled(cell)
+#define Init_Nulled_Signifying_Slot_Unavailable(cell)  Init_Nulled(cell)
+#define Is_Nulled_Signifying_Slot_Unavailable(cell)  Is_Nulled(cell)
 
-#define Is_Tweak_Nulled_Pick_Signal(dual)  Is_Nulled(dual)
-#define Init_Dual_Nulled_Pick_Signal(dual)  Init_Nulled(dual)
+#define Init_Nulled_Signifying_Tweak_Is_Pick(dual)  Init_Nulled(dual)
+#define Is_Nulled_Signifying_Tweak_Is_Pick(dual)  Is_Nulled(dual)
 
 #define OUT_UNLIFTED_DUAL_INDIRECT_PICK \
     (assert(not Any_Lifted(OUT)), x_cast(Bounce, OUT))  // e.g. ALIAS, GETTER
@@ -376,13 +380,13 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Dual* dual) {
 #define LIFT_OUT_FOR_DUAL_WRITEBACK \
     x_cast(Bounce, Lift_Cell(OUT))  // commentary
 
-#define Init_Nulled_No_Writeback_Signal(dual) \
-    Init_Nulled(dual)
+#define Init_Okay_Signifying_No_Writeback(dual) \
+    Init_Okay(dual)
 
-#define NULL_OUT_NO_WRITEBACK \
-    x_cast(Bounce, Init_Nulled_No_Writeback_Signal(OUT))
+#define OKAY_OUT_NO_WRITEBACK \
+    x_cast(Bounce, Init_Okay_Signifying_No_Writeback(OUT))
 
-#define Is_Nulled_No_Writeback_Signal(cell)  Is_Nulled(cell)
+#define Is_Okay_Signifying_No_Writeback(cell)  Is_Okay(cell)
 
 #define OUT_UNLIFTED_DUAL_INDIRECT_POKE \
     (assert(not Any_Lifted(OUT)), x_cast(Bounce, OUT))  // e.g. ALIAS, SETTER

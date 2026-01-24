@@ -101,7 +101,7 @@ Result(None) Get_Var_In_Scratch_To_Out(
     Level* level_,  // OUT may be FAILURE! antiform, see [A]
     Option(Element*) steps_out  // no GROUP!s if nulled
 ){
-    heeded (Init_Dual_Nulled_Pick_Signal(OUT));
+    heeded (Init_Nulled_Signifying_Tweak_Is_Pick(OUT));
 
     Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
         level_,
@@ -110,9 +110,6 @@ Result(None) Get_Var_In_Scratch_To_Out(
     );
     if (e)
         return fail (unwrap e);
-
-    if (Is_Failure(OUT))  // !!! weird can't pick case
-        return none;
 
     require (
       Unlift_Cell_No_Decay(OUT)  // not unstable if wasn't ^META [1]

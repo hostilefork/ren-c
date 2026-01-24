@@ -515,7 +515,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Sequence)
 
     Stable* dual = ARG(DUAL);
     if (Not_Lifted(dual)) {
-        if (Is_Tweak_Nulled_Pick_Signal(dual))
+        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -526,7 +526,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Sequence)
   handle_pick: { /////////////////////////////////////////////////////////////
 
     if (n < 0 or n >= Sequence_Len(seq))
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
 
     Copy_Sequence_At(OUT, seq, n);
     return LIFT_OUT_FOR_DUAL_PICK;

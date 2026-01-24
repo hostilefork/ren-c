@@ -1309,9 +1309,9 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     }
 
     if (not slot)
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
 
-    if (Is_Tweak_Nulled_Pick_Signal(ARG(DUAL)))
+    if (Is_Nulled_Signifying_Tweak_Is_Pick(ARG(DUAL)))
         goto handle_pick;
 
     goto handle_poke;
@@ -1352,7 +1352,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     if (Is_Dualized_Bedrock(dual)) {  // CASE 1: Overwriting w/new bedrock
         Copy_Cell_Core(slot, dual, CELL_MASK_COPY);  // store
         LIFT_BYTE(slot) = BEDROCK_0;
-        return NULL_OUT_NO_WRITEBACK;  // VarList* in cell not changed
+        return OKAY_OUT_NO_WRITEBACK;  // VarList* in cell not changed
     }
 
     if (
@@ -1369,7 +1369,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     require (  // CASE 3: Ordinary writing non-bedrock into non-bedrock slot
         Unlift_Cell_No_Decay(m_cast(Value*, u_cast(Value*, slot)))
     );
-    return NULL_OUT_NO_WRITEBACK;  // VarList* in cell not changed
+    return OKAY_OUT_NO_WRITEBACK;  // VarList* in cell not changed
 
   handle_named_signal: { /////////////////////////////////////////////////////
 
@@ -1390,7 +1390,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
         panic (Error_Bad_Poke_Dual_Raw(dual));
     }
 
-    return NULL_OUT_NO_WRITEBACK;  // VarList* in context not changed
+    return OKAY_OUT_NO_WRITEBACK;  // VarList* in context not changed
 }}}
 
 

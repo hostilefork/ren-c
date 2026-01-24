@@ -111,7 +111,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Environment)
     Option(const Stable*) poke;  // set to nullptr if removing
 
     if (Not_Lifted(dual)) {
-        if (Is_Tweak_Nulled_Pick_Signal(dual))
+        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -136,14 +136,14 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Environment)
         return rebDelegate("panic", unwrap error);
 
     if (not value)  // return error if not present, must TRY or OPT
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
 
     if (
         Environment_Conflates_Empty_Strings_As_Absent(env)
         and Series_Len_At(unwrap value) == 0
     ){
         rebRelease(unwrap value);
-        return NULL_OUT_PICK_ABSENT;
+        return NULL_OUT_SLOT_UNAVAILABLE;
     }
 
     Copy_Cell(OUT, unwrap value);
@@ -177,7 +177,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Environment)
     if (error)
         return rebDelegate("panic", unwrap error);
 
-    return NULL_OUT_NO_WRITEBACK;
+    return OKAY_OUT_NO_WRITEBACK;
 }}
 
 
