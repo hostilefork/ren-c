@@ -140,10 +140,10 @@ void Init_Evars(EVARS *e, const Element* v) {
                 paramlist = Phase_Paramlist(Frame_Phase(v));
             }
             else if (
-                u_cast(Stub*, lens) == varlist  // self-lens, all visible [2]
+                u_cast(Stub*, lens) == varlist  // self-lens, archetypal [2]
             ){
                 e->lens_mode = LENS_MODE_ALL_UNSEALED;
-                paramlist = cast(ParamList*, lens);
+                paramlist = Phase_Paramlist(Frame_Phase(Phase_Archetype(lens)));
             }
             else if (Is_Stub_Varlist(lens)) {  // paramlist inputs only [3]
                 e->lens_mode = LENS_MODE_INPUTS;  // (adapt, etc.)

@@ -134,7 +134,11 @@ INLINE Option(Details*) Try_Frame_Details(const Cell* c) {
 //    is put in the binding chain as a single pointer, with no full FRAME!
 //    Cell to hold a lens.  We want a Details*-style behavior in which all the
 //    fields relevant to the dispatcher which linked the VarList into the
-//    chain are shown.  But we don't have the Details, so show all.
+//    chain are shown.  We don't have the Details, so instead we trust the
+//    archetypal phase in the rootvar slot can give us the ParamList to use.
+//
+//    (This is why Level_Phase() is updated in the rootvar of the VarList of
+//    the arguments as it goes.)
 //
 // 3. The reason that a ParamList is interpreted as "inputs only" is since you
 //    can MAKE FRAME! on any ParamList, and then start editing the fields of
