@@ -9,7 +9,7 @@
 
 
 (all {
-    x: y: ~
+    x: y: ()
     "bbb" = parse "aaabbb" [x: across some "a", y: across [some "b"]]
     x = "aaa"
     y = "bbb"

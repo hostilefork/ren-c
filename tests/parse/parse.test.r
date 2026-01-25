@@ -7,7 +7,7 @@
 [(
     combs: copy default-combinators
     combs.here: <here>
-    [b c] = parse:combinators [a b c] [skip 1, here, skip 2] combs
+    [] = parse:combinators [a b c] [skip 1, here, skip 2] combs
 )(
     foo: ~
     combs: copy default-combinators
@@ -41,9 +41,9 @@
         ]
     )
 
-    (ghost? (1 + 2 parse "" []))
+    (heavy-void? (1 + 2 parse "" []))
     (3 = (1 + 2 ^ parse "" []))
 
-    (ghost? (1 + 2 parse [] []))
+    (heavy-void? (1 + 2 parse [] []))
     (3 = (1 + 2 ^ parse [] []))
 ]

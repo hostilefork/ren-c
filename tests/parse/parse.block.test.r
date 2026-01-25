@@ -16,7 +16,7 @@
 ('b = parse [a b] ['a 'b []])
 (
     var: []
-    ghost? parse [a b] ['a 'b var]
+    heavy-void? parse [a b] ['a 'b var]
 )
 (
     var: []

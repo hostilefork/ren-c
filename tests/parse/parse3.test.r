@@ -263,7 +263,7 @@
     i: 0
     j: ~
     parse3 "a" [
-        some [thru "a" (i: i + 1, j: opt if i > 1 [<end> one]) j]
+        some [thru "a" (i: i + 1, j: either i > 1 '[<end> one] '[]) j]
     ]
     i = 1
 )
@@ -325,7 +325,7 @@
 [#1268 (
     i: 0
     j: ~
-    parse3 "a" [some [opt "a" (i: i + 1, j: opt if i = 2 [[veto]]) j]]
+    parse3 "a" [some [opt "a" (i: i + 1, j: either i = 2 '[veto] '[]) j]]
     i = 2
 )]
 

@@ -20,15 +20,15 @@
     ('b = parse [a b] [to ['b] one])
     ('b = parse [a a a b] [to ['b] one])
     ('a = parse [a a b a] [one to ['b] repeat 2 one])
-    ('c = parse [z z a b c] [to ['c | 'b | 'a] repeat 3 one])
+    ('c = parse [z z a b c] [to ['c | 'b | 'a] one])
     ('c = parse [z z a b c] [to ['a | 'b | 'c] repeat 3 one])
     ~parse-mismatch~ !! (parse [] [to 'a])
     ~parse-mismatch~ !! (parse [] [to ['a]])
 ]
 
 [
-    (ghost? parse "" [to <end>])
-    (ghost? parse "a" [to <end>])
+    (heavy-void? parse "" [to <end>])
+    (heavy-void? parse "a" [to <end>])
     ~parse-incomplete~ !! (parse "a" [to #a])
     ~parse-mismatch~ !! (parse "a" [to #a <end>])
     (#b = parse "ab" [to #a repeat 2 one])
@@ -39,7 +39,7 @@
     (#a = parse "a" [to [#a] one])
     (#a = parse "aaab" [to [#a] ^ to <end>])
     (#b = parse "ab" [to [#a] repeat 2 one])
-    (#c = parse "zzabc" [to [#c | #b | #a] repeat 3 one])
+    (#c = parse "zzabc" [to [#c | #b | #a] one])
     (#c = parse "zzabc" [to [#a | #b | #c] repeat 3 one])
     ~parse-mismatch~ !! (parse "" [to "a"])
     ~parse-mismatch~ !! (parse "" [to #a])
@@ -50,7 +50,7 @@
 ; TO and THRU would be too costly to be implicitly value bearing by making
 ; copies; you need to use ACROSS.
 [(
-    ghost? parse "abc" [to <end>]
+    heavy-void? parse "abc" [to <end>]
 )(
     ghost? parse "abc" [elide to <end>]
 )(
@@ -110,7 +110,7 @@
     ("23" = parse:part %234 ["23" ^ to <end>] 3)
     (
         count-up 'i 4 [
-            assert ["1" = parse:part "12" ["1" to [<end>]] i]
+            assert ["1" = parse:part "12" ["1" elide to [<end>]] i]
         ]
         ok
     )
