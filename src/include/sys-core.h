@@ -550,13 +550,6 @@ enum {
 #include "tmp-boot.h"
 #include "tmp-sysobj.h"
 
-#define Make_Error_Managed(cat_id, id, ...) \
-    Make_Error_Managed_Raw( \
-        cast(int, known(Option(SymId), cat_id)), \
-        cast(int, known(Option(SymId), id)), \
-        __VA_ARGS__ \
-    )
-
 #include "tmp-error-funcs.h" // functions below are called
 
 #include "sys-tick.h"

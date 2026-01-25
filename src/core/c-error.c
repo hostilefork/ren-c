@@ -746,7 +746,7 @@ Error* Make_Error_From_Vaptr_Managed(
 
 
 //
-//  Make_Error_Managed_Raw: C
+//  Make_Error_Managed: C
 //
 // This variadic function takes a number of Stable* arguments appropriate for
 // the error category and ID passed.  It is commonly used with panic():
@@ -766,20 +766,16 @@ Error* Make_Error_From_Vaptr_Managed(
 //
 //     panic (Error_Something(arg1, thing_processed_to_make_arg2));
 //
-Error* Make_Error_Managed_Raw(
-    int opt_cat_id,  // va_list is weird about enums...
-    int opt_id,  // ...note that va_arg(va, enum_type) is illegal!
+Error* Make_Error_Managed(
+    Option(SymId) category_id,  // va_list is weird about enums...
+    Option(SymId) id,  // ...note that va_arg(va, enum_type) is illegal!
     ... /* Stable* arg1, Stable* arg2, ... */
 ){
     va_list va;
 
-    va_start(va, opt_id);  // last fixed argument is opt_id, pass that
+    va_start(va, id);  // last fixed argument is opt_id, pass that
 
-    Error* error = Make_Error_From_Vaptr_Managed(
-        u_cast(Option(SymId), cast(SymId, opt_cat_id)),
-        u_cast(Option(SymId), cast(SymId, opt_id)),
-        &va
-    );
+    Error* error = Make_Error_From_Vaptr_Managed(category_id, id, &va);
 
     va_end(va);
     return error;
