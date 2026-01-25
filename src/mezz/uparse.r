@@ -279,13 +279,6 @@ combinator?: lambda [
     did all [has frame 'state]
 ]
 
-negatable-parser?: lambda [
-    []: [logic!]
-    frame [frame!]
-][
-    did find words of frame 'negated
-]
-
 ; An un-lens'd combinator has the input in position 2, but we don't know
 ; what name it was given.  Help document places that assume it's position 2.
 ;
@@ -329,14 +322,15 @@ default-combinators: make map! [
         input [any-series?]
         ^parser [action!]
         :negated
+        {f}
     ][
-        if negated [  ; NOT NOT, e.g. call parser without negating it
-            return [{^} input]: trap parser input
-        ]
-        if not negatable-parser? parser/ [
+        f: make frame! parser/  ; !!! tbd - ask for FRAME!, eval destructively
+
+        (f.negated: not negated) except [  ; NOT NOT calls parser normally
             panic "NOT called on non-negatable combinator"
         ]
-        return [{^} input]: trap parser:negated input
+
+        return [{^} input]: run f input
     ]
 
     === CONDITIONAL (COND) COMBINATOR ===
@@ -2151,7 +2145,7 @@ default-combinators: make map! [
     ;    because the variadic step is before this function actually runs...
     ;    review as the prototype evolves.
 
-    action! combinator [
+    action! vanishable combinator [  ; propagates vanishability of callee
         "Run an ordinary action with parse rule products as its arguments"
         return: [any-value?]
         input [any-series?]
@@ -2160,7 +2154,8 @@ default-combinators: make map! [
         ; AUGMENT is used to add param1, param2, param3, etc.
         :parsers "Sneaky argument of parsers collected from arguments"  ; [2]
             [block!]
-        {f subpending}
+        :unafraid "BLOCK! combinator passes this when ^^ is being used"
+        {f subpending ^result}
     ][
         f: make frame! value
         for-each key f {
@@ -2175,7 +2170,12 @@ default-combinators: make map! [
             ]
         }
         assert [tail? parsers]
-        return eval f
+        if ghost? ^result: eval f [
+            if (not unafraid) and (not vanishable? f) [
+                return ~()~
+            ]
+        ]
+        return ^result
     ]
 
     === WORD! and TUPLE! COMBINATOR ===
@@ -2373,6 +2373,11 @@ default-combinators: make map! [
   ;    outside.  On the plus side, that allowed RULE-START and RULE-END to be
   ;    exposed, which were not visible to the inner function that was returned
   ;    by (ACTION OF BINDING OF $RETURN).
+  ;
+  ; 3. Right now the combinator wraps all instances with a hook, that does
+  ;    EVAL-FREE on the frame.  The model here needs review; in particular the
+  ;    idea that if you don't plan to call a combinator multiple times, that
+  ;    you can receive the parser as a plain FRAME! and EVAL-FREE it yourself.
 
     block! (block-combinator: vanishable combinator [
         "Sequence parse rules together, and return any alternate that matches"
@@ -2388,7 +2393,7 @@ default-combinators: make map! [
             rules pos continue-outer-loop
             ^result f r
             sublimit subpending subresult
-            can-vanish
+            unafraid can-vanish
         }
     ][
         rules: value  ; alias for clarity
@@ -2436,7 +2441,7 @@ default-combinators: make map! [
                 rules: next rules
             ]
 
-            can-vanish: all [
+            unafraid: all [
                 rules.1 = '^
                 rules: next rules
                 okay
@@ -2468,10 +2473,15 @@ default-combinators: make map! [
                 f.1: pos  ; PARSIFY specialized STATE in, so input is 1st
             ]
 
-            can-vanish: default [vanishable? f]
+            try f.unafraid: unafraid  ; parser frame may not have :UNAFRAID
 
-            if failure? ^subresult: eval f [  ; parser failed to match
-                ^result: ()  ; reset, e.g. `[veto |]`
+            can-vanish: any [  ; EVAL-FREE loses F for vanishable? test
+                unafraid
+                vanishable? f
+            ]
+
+            if failure? ^subresult: eval f [  ; combinator does EVAL-FREE [3]
+                ^result: ()  ; parser didn't match--reset, e.g. `[veto |]`
 
                 if block? pending [
                     free pending  ; proactively release memory

@@ -26,4 +26,13 @@
     data = "abcFEDghi"
 )
 
-(["a" "b"] = parse ["a" "b" <c>] [collect [some keep text!] /elide tag!])
+
+[
+    (["a" "b"] = parse ["a" "b" <c>] [collect [some keep text!] /elide tag!])
+    (["a" "b"] = parse ["a" "b" <c>] [collect [some keep text!] ^ /elide tag!])
+
+    (olide: vanishable:off elide/, ok)
+
+    (heavy-void? parse ["a" "b" <c>] [collect [some keep text!] /olide tag!])
+    (["a" "b"] = parse ["a" "b" <c>] [collect [some keep text!] ^ /olide tag!])
+]
