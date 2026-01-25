@@ -76,7 +76,7 @@ void Probe_Cell_Print_Helper(
 ){
     Probe_Print_Helper(p, expr, "Value", file, line);
 
-    const Value* v = cast(Value*, p);
+    const Cell* v = cast(Cell*, p);
 
     if (Is_Cell_Poisoned(v)) {
         require (
@@ -92,13 +92,31 @@ void Probe_Cell_Print_Helper(
         return;
     }
 
-    if (Is_Antiform(v)) {
+    if (LIFT_BYTE(v) <= STABLE_ANTIFORM_2) {
         DECLARE_ELEMENT (reified);
-        Copy_Lifted_Cell(reified, v);
+        Copy_Cell_Core(reified, v, CELL_MASK_ALL);
+        LIFT_BYTE(reified) = NOQUOTE_3;
+        if (LIFT_BYTE(v) == BEDROCK_0) {
+            require (
+              Append_Ascii(mo->strand, "\\\\")
+            );
+        }
+        else {
+            require (
+              Append_Ascii(mo->strand, "\\~")
+            );
+        }
         Mold_Element(mo, reified);
-        require (
-          Append_Ascii(mo->strand, "  ; anti")
-        );
+        if (LIFT_BYTE(v) == BEDROCK_0) {
+            require (
+              Append_Ascii(mo->strand, "\\\\  ; bedrock")
+            );
+        }
+        else {
+            require (
+              Append_Ascii(mo->strand, "~\\  ; antiform")
+            );
+        }
     }
     else
         Mold_Element(mo, As_Element(v));

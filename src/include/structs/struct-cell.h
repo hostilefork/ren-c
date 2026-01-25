@@ -260,9 +260,9 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 #define BEDROCK_0  0
 
 #if DEBUG_HOOK_LIFT_BYTE  // e.g. stop `LIFT_BYTE(cell) = QUASIFORM_4` [2]
-    struct Lift_1_Struct { operator LiftByte() const { return 1; } };
-    struct Lift_2_Struct { operator LiftByte() const { return 2; } };
-    struct Lift_4_Struct { operator LiftByte() const { return 4; } };
+    struct Lift_1_Struct { constexpr operator LiftByte() const { return 1; } };
+    struct Lift_2_Struct { constexpr operator LiftByte() const { return 2; } };
+    struct Lift_4_Struct { constexpr operator LiftByte() const { return 4; } };
 
     constexpr Lift_1_Struct unstable_antiform_1;
     constexpr Lift_2_Struct stable_antiform_2;

@@ -815,15 +815,10 @@ INLINE bool Type_Of_Is_0(const Cell* cell) {
 // 2. KIND_BYTE() and LIFT_BYTE() in certain checked builds have overhead
 //    (creating actual wrapper objects to monitor reads/writes of the byte
 //    to check invariants).  We don't want to pay that overhead on every
-//    Type_Of() call.
+//    Type_Of() call.  Use KIND_BYTE_RAW() and LIFT_BYTE_RAW().
 //
 //    (However, if one were trying to catch certain bugs, it might be worth
 //    it to change these to non-raw calls temporarily.)
-//
-// 3. Only some types can have antiforms and quasiforms.  To stop casual
-//    assignments to the LIFT_BYTE() of antiforms or quasiforms they are
-//    ornery object wrappers in certain checked builds, only allowing usage
-//    in narrow contexts.  We use the numeric constants here in the switch().
 //
 
 INLINE Option(Type) Underlying_Type_Of_Unchecked(  // inlined in Type_Of() [1]
@@ -839,11 +834,11 @@ INLINE Option(Type) Underlying_Type_Of_Unchecked(  // inlined in Type_Of() [1]
     );
 }
 
-INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
+INLINE Option(Type) Type_Of_Unchecked(const Value* v) {
     switch (  // branches are in order of commonality (nonquoted first)
         LIFT_BYTE_RAW(v)  // raw [2]
     ){
-      case NOQUOTE_3: {  // inlining of Underlying_Type_Of_Unchecked() [2]
+      case NOQUOTE_3: {  // inlining of Underlying_Type_Of_Unchecked() [1]
         if (KIND_BYTE_RAW(v) <= MAX_HEARTBYTE)  // raw [2]
             return cast(HeartEnum, KIND_BYTE_RAW(v));
 
@@ -851,20 +846,20 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {  // may be TYPE_0 [3]
             u_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
         ); }
 
-      case 2:  // STABLE_ANTIFORM_2 [3]
+      case STABLE_ANTIFORM_2:
         assert(KIND_BYTE_RAW(v) <= MAX_HEARTBYTE);  // raw [2]
         return cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
 
-      case 4:  // QUASIFORM_4 [3]
+      case QUASIFORM_4:
         return TYPE_QUASIFORM;
 
-      case 1:  // UNSTABLE_ANTIFORM_1 [3]
+      case UNSTABLE_ANTIFORM_1:
         assert(KIND_BYTE_RAW(v) <= MAX_HEARTBYTE);  // raw [2]
         return cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
 
     #if RUNTIME_CHECKS
-      case 0:
-        crash ("Unexpected lift byte value 0 for Value* (non-dual)");
+      case BEDROCK_0:
+        crash ("Unexpected lift byte value BEDROCK_0 for Value* (not Slot*)");
     #endif
 
       default:
