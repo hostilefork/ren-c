@@ -1068,6 +1068,7 @@ INLINE void Inject_Definitional_Returner(
     Value* returner = Level_Arg(L, slot_num);  // should start out specialized
     assert(Is_Possibly_Unstable_Value_Parameter(returner));
 
+    assert(Not_Cell_Flag(returner, VAR_MARKED_HIDDEN));  // should be seen
     Init_Action(
         returner,
         Frame_Phase(definitional),  // DEFINITIONAL-RETURN or YIELD

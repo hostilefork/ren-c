@@ -49,8 +49,8 @@ INLINE Error* Cell_Error(const Cell* c) {
 // that is its canon form from a single pointer...the cell sitting in
 // the 0 slot of the context's varlist ("archetype")
 //
-INLINE Element* Init_Context_Cell(
-    Init(Element) out,
+INLINE Dual* Init_Context_Cell(
+    Init(Dual) out,
     Heart heart,
     VarList* c
 ){

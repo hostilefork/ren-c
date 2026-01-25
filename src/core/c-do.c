@@ -57,20 +57,28 @@ Result(None) Prep_Action_Level(
       Push_Action(L, action, PREFIX_0)
     );
 
+  copy_exemplar_frame: {
+
+  #if RUNTIME_CHECKS
+    possibly(DEBUG_PROTECT_PARAM_CELLS);
     const Key* key = L->u.action.key;
     const Param* param = L->u.action.param;
     Arg* arg = L->u.action.arg;
-    for (; key != L->u.action.key_tail; ++key, ++param, ++arg) {
-        if (Is_Specialized(param))
-            Blit_Param_Drop_Mark(arg, param);
-        else {
-            Erase_Cell(arg);
-            Init_Unspecialized_Null(arg);
-        }
-    }
+    for (; key != L->u.action.key_tail; ++key, ++param, ++arg)
+        Blit_Param_Unprotect_If_Debug(arg, param);
+  #else
+    Mem_Copy(
+        L->u.action.arg,
+        L->u.action.param,
+        sizeof(Cell) * (L->u.action.key_tail - L->u.action.key)
+    );
+  #endif
+
+} fill_in_first_argument: {
 
     if (with) { attempt {
-        arg = First_Unspecialized_Arg(&param, L);
+        const Param* param;
+        Arg* arg = First_Unspecialized_Arg(&param, L);
         if (not arg) {
             require (
               Ensure_No_Failures_Including_In_Packs(unwrap with)
@@ -88,7 +96,7 @@ Result(None) Prep_Action_Level(
     }}
 
     return none;
-}
+}}
 
 
 //
@@ -267,22 +275,32 @@ bool Pushed_Continuation(
           Push_Action(L, LIB(REDUCE), PREFIX_0)
         );
 
+    copy_exemplar_frame: {
+
+      #if RUNTIME_CHECKS
+        possibly(DEBUG_PROTECT_PARAM_CELLS);
         const Key* key = L->u.action.key;
         const Param* param = L->u.action.param;
         Arg* arg = L->u.action.arg;
-        for (; key != L->u.action.key_tail; ++key, ++param, ++arg) {
-            if (Is_Specialized(param))
-                Blit_Param_Drop_Mark(arg, param);
-            else
-                Init_Ghost_For_Unset(Erase_Cell(arg));
-        }
+        for (; key != L->u.action.key_tail; ++key, ++param, ++arg)
+            Blit_Param_Unprotect_If_Debug(arg, param);
+      #else
+        Mem_Copy(
+            L->u.action.arg,
+            L->u.action.param,
+            sizeof(Cell) * (L->u.action.key_tail - L->u.action.key)
+        );
+      #endif
 
-        arg = First_Unspecialized_Arg(&param, L);
+    } fill_in_first_argument: {
+
+        const Param* param;
+        Arg* arg = First_Unspecialized_Arg(&param, L);
         Copy_Cell_May_Bind(arg, branch, binding);
         KIND_BYTE(arg) = TYPE_BLOCK;  // :[1 + 2] => [3], not :[3]
 
         Push_Level_Erase_Out_If_State_0(out, L);
-        goto pushed_continuation; }
+        goto pushed_continuation; }}
 
       case TYPE_PATH: {
         Length len = Sequence_Len(branch);

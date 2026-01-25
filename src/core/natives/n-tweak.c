@@ -79,13 +79,21 @@ static Option(Error*) Trap_Adjust_Lifted_Antiform_For_Tweak(Value* spare)
 //    INTEGER!s just so you can pick one of them out of it.
 //
 Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
-    Level* level_,
-    Level* sub,  // will Push_Level() if not already pushed
+    Level* parent,
+    Level* const sub,  // sublevel will Push_Level() if not already pushed
     StackIndex picker_index,
     bool dont_indirect
 ){
-    if (Is_Lifted_Antiform(SPARE)) {
-        Option(Error*) e = Trap_Adjust_Lifted_Antiform_For_Tweak(SPARE);
+
+    Element* location_arg;
+    Stable* picker_arg;
+    Element* dual_arg;
+
+  adjust_antiform_pick_if_needed: {
+
+    Dual* dual_spare = As_Dual(Level_Spare(parent));
+    if (Is_Lifted_Antiform(Level_Spare(parent))) {
+        Option(Error*) e = Trap_Adjust_Lifted_Antiform_For_Tweak(dual_spare);
         if (e)
             return e;  // don't panic, caller will handle
     }
@@ -93,11 +101,6 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     require (
       Push_Action(sub, LIB(TWEAK_P), PREFIX_0)
     );
-    Set_Executor_Flag(ACTION, sub, IN_DISPATCH);
-
-    Element* location_arg;
-    Stable* picker_arg;
-    Element* dual_arg;
 
   proxy_arguments_to_frame_dont_panic_in_this_scope: {
 
@@ -106,27 +109,30 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
   // cannot panic() while an allocated-but-not-pushed Level is extant.
   // So everything in this section must succeed.
 
-    assert(Is_Possibly_Unstable_Value_Quoted(SPARE));
+    USE_LEVEL_SHORTHANDS (sub);
+    INCLUDE_PARAMS_OF_TWEAK_P;
+
+    assert(Is_Possibly_Unstable_Value_Quoted(dual_spare));
     location_arg = Copy_Cell(
-        Force_Erase_Cell(Level_Arg(sub, 1)),
-        As_Element(SPARE)
+        Erase_ARG(LOCATION),
+        dual_spare
     );
     Unquote_Cell(location_arg);
 
     picker_arg = Copy_Cell(
-        Force_Erase_Cell(Level_Arg(sub, 2)),
+        Erase_ARG(PICKER),
         Data_Stack_At(Stable, picker_index)
     );
 
-    dual_arg = Init_Nulled_Signifying_Tweak_Is_Pick(
-        Force_Erase_Cell(Level_Arg(sub, 3))
-    );
+    dual_arg = Init_Nulled_Signifying_Tweak_Is_Pick(Erase_ARG(DUAL));
     USED(dual_arg);
 
+}} push_sub_if_necessary: {
+
     if (sub == TOP_LEVEL)
-        Erase_Cell(SPARE);
+        Erase_Cell(Level_Spare(parent));
     else
-        Push_Level_Erase_Out_If_State_0(SPARE, sub);
+        Push_Level_Erase_Out_If_State_0(Level_Spare(parent), sub);
 
 } adjust_frame_arguments_now_that_its_safe_to_panic: {
 
@@ -151,6 +157,15 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
   // We actually call TWEAK*, the lower-level function that uses the dual
   // protocol--instead of PICK.
 
+    if (SPORADICALLY(32)) {
+        LEVEL_STATE_BYTE(sub) = ST_ACTION_TYPECHECKING;
+    } else {
+        Mark_Typechecked(u_cast(Param*, location_arg));
+        Mark_Typechecked(u_cast(Param*, picker_arg));
+        Mark_Typechecked(u_cast(Param*, dual_arg));
+        Set_Executor_Flag(ACTION, sub, IN_DISPATCH);
+    }
+
     bool threw = Trampoline_With_Top_As_Root_Throws();
     if (threw)  // don't want to return casual error you can TRY from
         return Error_No_Catch_For_Throw(sub);
@@ -158,10 +173,10 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     assert(sub == TOP_LEVEL);
     unnecessary(Drop_Action(sub));  // !! action is dropped, should it be?
 
-    if (Is_Nulled_Signifying_Slot_Unavailable(SPARE))
+    if (Is_Nulled_Signifying_Slot_Unavailable(Level_Spare(parent)))
         goto return_without_unbinding;
 
-    Dual* dual_spare = As_Dual(SPARE);
+    Dual* dual_spare = As_Dual(Level_Spare(parent));
 
     if (Is_Dualized_Bedrock(dual_spare)) {
         if (dont_indirect)
@@ -179,10 +194,9 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
   //    discarded).  But it's probably more useful if ^VAR is willing to give
   //    a FAILURE! so you can say (try ^var) and get NULL.
 
-
     if (Is_Bedrock_Dual_An_Accessor(dual_spare)) {  // FRAME!
         Api(Value*) result = rebLift(dual_spare);
-        Copy_Cell(SPARE, result);  // lifted result of running FRAME!
+        Copy_Cell(dual_spare, As_Dual(result));  // result of running FRAME!
         rebRelease(result);
         goto possibly_unbind_spare_and_return;
     }
@@ -190,7 +204,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     if (Is_Bedrock_Dual_An_Alias(dual_spare)) {  // ^WORD!, ^TUPLE!
         Quote_Cell(dual_spare);
         Api(Value*) result = rebLift(CANON(GET), dual_spare);
-        Copy_Cell(SPARE, result);  // lifted result of GET
+        Copy_Cell(dual_spare, As_Dual(result));  // lifted result of GET
         rebRelease(result);
         goto possibly_unbind_spare_and_return;
     }
@@ -198,45 +212,46 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     if (Is_Bedrock_Dual_A_Drain(dual_spare)) {  // SPACE
         Quasify_Isotopic_Fundamental(  // signify lifted FAILURE! [1]
             Init_Context_Cell(
-                SPARE, TYPE_ERROR, Error_Cant_Get_Drain_Raw()
+                dual_spare, TYPE_ERROR, Error_Cant_Get_Drain_Raw()
             )
         );
         goto return_without_unbinding;
     }
 
     if (Is_Bedrock_Dual_A_Hole(dual_spare)) {  // unspecialized cell
-        Init_Lifted_Unspecialized_Null(SPARE);
+        Init_Lifted_Unspecialized_Null(dual_spare);
         goto return_without_unbinding;
     }
 
     return Error_User("TWEAK* returned unknown dualized bedrock element");
 
-}} possibly_unbind_spare_and_return: { ///////////////////////////////////////
+} possibly_unbind_spare_and_return: { ///////////////////////////////////////
 
     if (Get_Cell_Flag(
         Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
     )){
-        Unbind_Cell_If_Bindable_Core(SPARE);  // unbind after reading
+        Unbind_Cell_If_Bindable_Core(dual_spare);  // unbind after reading
     }
 
-} return_without_unbinding: { ////////////////////////////////////////////////
+}} return_without_unbinding: { ////////////////////////////////////////////////
 
     return SUCCESS;
 }}
 
 
 Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
-    Level* level_,
-    Level* sub,
+    Level* parent,
+    Level* const sub,
     StackIndex picker_index
 ){
-    if (Is_Lifted_Antiform(SPARE))
+    if (Is_Lifted_Antiform(Level_Spare(parent)))
         return Error_User("TWEAK* cannot be used on antiforms");
+
+    Element* scratch_var = As_Element(Level_Scratch(parent));
 
     require (
       Push_Action(sub, LIB(TWEAK_P), PREFIX_0)
     );
-    Set_Executor_Flag(ACTION, sub, IN_DISPATCH);
 
     Element* location_arg;
     Stable* picker_arg;
@@ -244,7 +259,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
   proxy_arguments_to_frame_dont_panic_in_this_scope: {
 
-    Dual* dual_location_spare = As_Dual(SPARE);  // incoming is location
+    Dual* dual_location_spare = As_Dual(Level_Spare(parent));  // incoming
 
   // We can't panic while there's an extant level that's not pushed.
   //
@@ -253,21 +268,29 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
   // 1. GET:STEPS returns @var for steps of var.  But is (get @var) same as
   //    (get $var) ?
 
+    USE_LEVEL_SHORTHANDS (sub);
+    INCLUDE_PARAMS_OF_TWEAK_P;
+
     assert(Is_Possibly_Unstable_Value_Quoted(dual_location_spare));
     location_arg = Copy_Cell(
-        Force_Erase_Cell(Level_Arg(sub, 1)),
+        Erase_ARG(LOCATION),
         dual_location_spare
     );
     Unquote_Cell(location_arg);
 
     picker_arg = Copy_Cell(
-        Force_Erase_Cell(Level_Arg(sub, 2)),
+        Erase_ARG(PICKER),
         Data_Stack_At(Element, picker_index)
     );
 
-    value_arg = u_cast(Value*, Force_Erase_Cell(Level_Arg(sub, 3)));
+    value_arg = u_cast(Value*, Erase_ARG(DUAL));
 
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);  // SPARE becomes writeback
+} push_sub: {
+
+    Push_Level_Erase_Out_If_State_0(
+        Level_Spare(parent),  // SPARE becomes writeback
+        sub
+    );
 
 } adjust_frame_arguments_now_that_its_safe_to_panic: {
 
@@ -304,7 +327,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         Option(Sigil) picker_sigil = Sigil_Of(picker_instruction);
         UNUSED(picker_sigil);  // ideas on the table for this...
 
-        if (SIGIL_META == Cell_Underlying_Sigil(As_Element(SCRATCH)))
+        if (SIGIL_META == Cell_Underlying_Sigil(scratch_var))
             continue;  // don't decay TOP_ELEMENT
 
         // if not meta, needs to decay if unstable
@@ -321,7 +344,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
             continue;
         }
 
-        if (Get_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
+        if (Get_Cell_Flag(scratch_var, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
             return Error_User(
                 "/word: and /obj.field: assignments need ACTION!"
             );
@@ -361,7 +384,9 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
     Copy_Cell(value_arg, TOP_ELEMENT);
 
-    Clear_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION);  // consider *once*
+    Clear_Cell_Flag(
+        scratch_var, SCRATCH_VAR_NOTE_ONLY_ACTION  // consider *once*
+    );
 
 } call_updater: {
 
@@ -373,7 +398,18 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     if (Get_Cell_Flag(
         Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
     )){
-        Unbind_Cell_If_Bindable_Core(SPARE);  // unbind before writing
+        Unbind_Cell_If_Bindable_Core(  // unbind before writing
+            Level_Spare(parent)
+        );
+    }
+
+    if (SPORADICALLY(32)) {
+        LEVEL_STATE_BYTE(sub) = ST_ACTION_TYPECHECKING;
+    } else {
+        Mark_Typechecked(u_cast(Param*, location_arg));
+        Mark_Typechecked(u_cast(Param*, picker_arg));
+        Mark_Typechecked(u_cast(Param*, value_arg));
+        Set_Executor_Flag(ACTION, sub, IN_DISPATCH);
     }
 
     bool threw = Trampoline_With_Top_As_Root_Throws();
@@ -381,13 +417,14 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     if (threw)  // don't want to return casual error you can TRY from
         return Error_No_Catch_For_Throw(TOP_LEVEL);
 
-    if (Is_Logic(As_Stable(SPARE))) {  // "success" even if unavailable [1]
-        possibly(Is_Okay_Signifying_No_Writeback(As_Stable(SPARE)));
-        possibly(Is_Nulled_Signifying_Slot_Unavailable(As_Stable(SPARE)));
+    Stable* stable_spare = As_Stable(Level_Spare(parent));
+    if (Is_Logic(stable_spare)) {  // "success" even if unavailable [1]
+        possibly(Is_Okay_Signifying_No_Writeback(stable_spare));
+        possibly(Is_Nulled_Signifying_Slot_Unavailable(stable_spare));
         goto return_success;
     }
 
-    Dual* dual_spare = As_Dual(SPARE);
+    Dual* dual_spare = As_Dual(Level_Spare(parent));
 
     if (not Is_Dualized_Bedrock(dual_spare))
         goto return_success;
@@ -423,7 +460,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         "TWEAK* returned bad dualized bedrock element for writeback"
     );
 
-    Init_Okay_Signifying_No_Writeback(SPARE);
+    Init_Okay_Signifying_No_Writeback(stable_spare);
     goto return_success;
 
 }} return_success: { //////////////////////////////////////////////////////////

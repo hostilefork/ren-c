@@ -386,7 +386,6 @@ void Mold_Or_Form_Cell_Ignore_Quotes(
       require (
         Push_Action(sub, LIB(MOLDIFY), PREFIX_0)
       );
-        Set_Executor_Flag(ACTION, sub, IN_DISPATCH);
 
         Level* const level_ = sub;
         INCLUDE_PARAMS_OF_MOLDIFY;
@@ -394,6 +393,15 @@ void Mold_Or_Form_Cell_Ignore_Quotes(
         Copy_Cell(Erase_ARG(VALUE), element);
         Copy_Cell(Erase_ARG(MOLDER), molder);
         Copy_Cell(Erase_ARG(FORM), formval);
+
+        if (SPORADICALLY(32)) {
+            LEVEL_STATE_BYTE(sub) = ST_ACTION_TYPECHECKING;
+        } else {
+            Mark_Typechecked(cast(Param*, LOCAL(VALUE)));
+            Mark_Typechecked(cast(Param*, LOCAL(MOLDER)));
+            Mark_Typechecked(cast(Param*, LOCAL(FORM)));
+            Set_Executor_Flag(ACTION, sub, IN_DISPATCH);
+        }
 
         DECLARE_VALUE (out);
         Push_Level_Erase_Out_If_State_0(out, sub);

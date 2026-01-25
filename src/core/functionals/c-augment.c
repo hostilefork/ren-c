@@ -89,10 +89,10 @@ DECLARE_NATIVE(AUGMENT)
   // and PARAMETER! pairs for each argument.
   //
   // 1. For any specialized (including local) parameters in the paramlist we
-  //    are copying, we want to "seal" them from view.  We wouldn't have
-  //    access to them if we were an ADAPT and not making a copy (since the
-  //    action in the exemplar would not match the phase).  So making a copy
-  //    should not suddenly subvert the access.
+  //    are copying, we want to "seal" them from view.  We want to avoid any
+  //    duplicate symbol collisions with the new parameters we are adding;
+  //    the only collisions we should get errors on are with public parameters
+  //    of the augmentee.
 
     const Key* key_tail;
     const Key* key = Phase_Keys(&key_tail, augmentee);

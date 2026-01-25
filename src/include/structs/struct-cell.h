@@ -805,6 +805,25 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
 typedef Param Arg;  // !!! Args are in ParamList too; differentiate?
 
 
+//=//// DUALS /////////////////////////////////////////////////////////////=//
+//
+// Some parts of the system want to be able to represent a value that could
+// be in a BEDROCK_0 state, but push it "in-band" of normal values.  This is
+// done by taking most values and putting them in lifted representation, and
+// then using the unlifted NOQUOTE_3 state to represent BEDROCK_0.
+//
+// PACK!, for example, contains "dual values"...they are Element* (because
+// they have to be, to be in a List).  But the representational conception is
+// that the values are lifted unless they are signals in the NOQUOTE_3 state.)
+//
+
+#if DONT_CHECK_CELL_SUBCLASSES
+    typedef struct RebolValueStruct Dual;
+#else
+    struct Dual : public Element {};
+#endif
+
+
 //=//// SLOTS /////////////////////////////////////////////////////////////=//
 //
 // Contexts like OBJECT!, MODULE!, FRAME!, LET!, etc. store "variables".  A
@@ -844,27 +863,11 @@ typedef Param Arg;  // !!! Args are in ParamList too; differentiate?
 
     template<>
     struct AllowSinkConversion<Slot*, Element> : std::true_type {};
+
+    template<>
+    struct AllowSinkConversion<Slot*, Dual> : std::true_type {};
   }
   #endif
-#endif
-
-
-//=//// DUALS /////////////////////////////////////////////////////////////=//
-//
-// Some parts of the system want to be able to represent a value that could
-// be in a BEDROCK_0 state, but push it "in-band" of normal values.  This is
-// done by taking most values and putting them in lifted representation, and
-// then using the unlifted NOQUOTE_3 state to represent BEDROCK_0.
-//
-// PACK!, for example, contains "dual values"...they are Element* (because
-// they have to be, to be in a List).  But the representational conception is
-// that the values are lifted unless they are signals in the NOQUOTE_3 state.)
-//
-
-#if DONT_CHECK_CELL_SUBCLASSES
-    typedef struct RebolValueStruct Dual;
-#else
-    struct Dual : public Element {};
 #endif
 
 
@@ -877,10 +880,12 @@ typedef Param Arg;  // !!! Args are in ParamList too; differentiate?
 #if CPLUSPLUS_11
     static_assert(
         std::is_standard_layout<Cell>::value
+            and std::is_standard_layout<Slot>::value
+            and std::is_standard_layout<Param>::value
             and std::is_standard_layout<Value>::value
-            and std::is_standard_layout<Stable*>::value
+            and std::is_standard_layout<Stable>::value
             and std::is_standard_layout<Element>::value
-            and std::is_standard_layout<Slot>::value,
+            and std::is_standard_layout<Dual>::value,
         "C++ Cells must match C Cells: http://stackoverflow.com/a/7189821/"
     );
 #endif

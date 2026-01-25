@@ -71,8 +71,8 @@ INLINE void Add_Link_Inherit_Bind_Raw(Stub* context, Option(Context*) next) {
 
 // !!! Need better mechanism for getting context types.
 
-INLINE const Element* Varlist_Archetype(VarList* c) {  // read-only form
-    return Flex_Head_Dynamic(Element, c);
+INLINE const Dual* Varlist_Archetype(VarList* c) {  // read-only form
+    return Flex_Head_Dynamic(Dual, c);
 }
 
 INLINE Heart CTX_TYPE(Context* c) {

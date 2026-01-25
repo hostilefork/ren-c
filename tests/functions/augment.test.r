@@ -1,5 +1,16 @@
+; %augment.test.r
+;
 ; AUGMENT facility for making a variant of a function that acts just the
 ; same, but has more parameters.
+
+; Basic RETURN unsealing test
+[
+    (
+        foo: augment func [] [return 10] [x]
+        f: make frame! foo/
+        10 = eval-free f
+    )
+]
 
 (
     foo: lambda [x] [x]

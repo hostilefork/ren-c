@@ -88,7 +88,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
 
     for (; key != tail; ++key, ++param, ++arg, ++n) {
         if (Is_Specialized(param)) {  // includes locals
-            Blit_Param_Keep_Mark(arg, param);
+            Blit_Param_Unprotect_If_Debug(arg, param);
 
           continue_specialized:
 
@@ -100,16 +100,14 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
 
           continue_unspecialized:
 
-            Erase_Cell(arg);
-            Copy_Cell_Core(arg, param, CELL_MASK_COPY);
+            assert(Not_Cell_Flag(param, VAR_MARKED_HIDDEN));
+            Blit_Param_Unprotect_If_Debug(arg, param);
 
             if (binder)
                 Add_Binder_Index(unwrap binder, symbol, n);
 
             continue;
         }
-
-        Erase_Cell(arg);
 
         // Unspecialized refinement slot.  It may be partially specialized,
         // e.g. we may have pushed to the stack from the PARTIALS for it.
@@ -135,6 +133,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
             //     >> specialize skip:unbounded/ [unbounded: ok]
             //     ** Error: unbounded not bound
             //
+            Erase_Cell(arg);
             Init_Okay(arg);
             goto continue_specialized;
         }

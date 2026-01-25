@@ -466,47 +466,36 @@ INLINE const Slot* Known_Unspecialized(const Param* p) {
 // specialized slots we can just take the bits directly.
 //
 // 1. "sealed" parameters in the ParamList carry CELL_FLAG_VAR_MARKED_HIDDEN.
-//    If there were more free Cell bits, we could make this something that
-//    only had significance in the "phase" slot of a frame.  But since we
-//    don't, the flag does double duty--and we don't want running frames
-//    to confuse it with PROTECT:HIDE slots.  We have to clear it if the
-//    slot is being filled on behalf of a running varlist.
+//    This is integral to how AUGMENT can add symbols to a frame which exist
+//    already as locals or specialized parameters in the augmentee's frame.
+//    When optimized builds use Mem_Copy() to get the frame's arguments, we
+//    get those bits...and they need to be cleared out by typechecking.
+//
+// 2. We could similarly put the clearing of protected bits status on the
+//    type checking, but that would be wrong--e.g. what if someone is doing
+//    a tail call and they had protected a FRAME! local?  This means debug
+//    builds that set the protected bit on PARAMETER! in built ParamList for
+//    actions can't use Mem_Copy() to fill a frame's arguments from an
+//    exemplar...
 //
 
-INLINE Param* Blit_Param_Drop_Mark_Untracked(Param* out, const Param* p) {
-    Blit_Cell_Untracked(out, p);  // checked build ensures out is poison/erased
-    Clear_Cell_Flag(out, VAR_MARKED_HIDDEN);  // sealed params marked [1]
-  #if DEBUG_PROTECT_PARAM_CELLS
-    Clear_Cell_Flag(out, PROTECTED);
-  #endif
-    return out;
-}
+#if DEBUG_PROTECT_PARAM_CELLS
+    INLINE Param* Blit_Param_Unprotect_If_Debug_Untracked(
+        Param* out,
+        const Param* p
+    ){
+        possibly(Get_Cell_Flag(p, VAR_MARKED_HIDDEN));  // [1]
+        Blit_Cell_Untracked(out, p);
+        Clear_Cell_Flag(out, PROTECTED);  // [2]
+        return out;
+    }
+#else
+    #define Blit_Param_Unprotect_If_Debug_Untracked(out,p) \
+        Blit_Cell_Untracked((out), (p))
+#endif
 
-#define Blit_Param_Drop_Mark(out,p) \
-    TRACK(Blit_Param_Drop_Mark_Untracked(out,p))
-
-INLINE Param* Blit_Param_Unmarked_Untracked(Param* out, const Param* p) {
-    assert(Not_Cell_Flag(p, VAR_MARKED_HIDDEN));
-    Blit_Cell_Untracked(out, p);  // checked build ensures out is poison/erased
-  #if DEBUG_PROTECT_PARAM_CELLS
-    Clear_Cell_Flag(out, PROTECTED);
-  #endif
-    return out;
-}
-
-#define Blit_Param_Unmarked(out,p) \
-    TRACK(Blit_Param_Unmarked_Untracked(out,p));
-
-INLINE Param* Blit_Param_Keep_Mark_Untracked(Param* out, const Param* p) {
-    Blit_Cell_Untracked(out, p);
-  #if DEBUG_PROTECT_PARAM_CELLS
-    Clear_Cell_Flag(out, PROTECTED);
-  #endif
-    return out;
-}
-
-#define Blit_Param_Keep_Mark(out,p) /* when not making running varlist [1] */ \
-    TRACK(Blit_Param_Keep_Mark_Untracked(out,p));
+#define Blit_Param_Unprotect_If_Debug(out,p) \
+    TRACK(Blit_Param_Unprotect_If_Debug_Untracked(out,p));
 
 
 //=//// FAST ANTI-WORD "BLITTING" /////////////////////////////////////////=//

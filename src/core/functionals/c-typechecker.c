@@ -402,19 +402,27 @@ bool Predicate_Check_Spare_Uses_Scratch(
       Push_Action(sub, predicate, PREFIX_0)
     );
 
+  copy_exemplar_frame: {
+
+  #if RUNTIME_CHECKS
+    possibly(DEBUG_PROTECT_PARAM_CELLS);
     const Key* key = sub->u.action.key;
     const Param* param = sub->u.action.param;
     Arg* arg = sub->u.action.arg;
-    for (; key != sub->u.action.key_tail; ++key, ++param, ++arg) {
-        if (Is_Specialized(param))
-            Blit_Param_Drop_Mark(arg, param);
-        else {
-            Erase_Cell(arg);
-            Init_Unspecialized_Null(arg);
-        }
-    }
+    for (; key != sub->u.action.key_tail; ++key, ++param, ++arg)
+        Blit_Param_Unprotect_If_Debug(arg, param);
+  #else
+    Mem_Copy(
+        sub->u.action.arg,
+        sub->u.action.param,
+        sizeof(Cell) * (sub->u.action.key_tail - sub->u.action.key)
+    );
+  #endif
 
-    arg = First_Unspecialized_Arg(&param, sub);
+} fill_in_first_argument: {
+
+    const Param* param;
+    Arg* arg = First_Unspecialized_Arg(&param, sub);
     if (not arg)
         panic (Error_No_Arg_Typecheck(label));  // must take argument
 
@@ -430,6 +438,8 @@ bool Predicate_Check_Spare_Uses_Scratch(
         Drop_Level(sub);
         goto test_failed;
     }
+
+} execute_function: {
 
     if (Trampoline_With_Top_As_Root_Throws())
         panic (Error_No_Catch_For_Throw(sub));
@@ -449,7 +459,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
 
     goto test_failed;
 
-} test_failed: { /////////////////////////////////////////////////////////////
+}} test_failed: { ////////////////////////////////////////////////////////////
 
     result = false;
     goto return_result;

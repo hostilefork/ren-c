@@ -364,9 +364,9 @@ Bounce Action_Executor(Level* L)
         // The typechecking walk uses a PARAM coming from the phase, so this
         // means it can type check the specialized slots on behalf of the
         // underlying phase that will be running.
-        //
+
         if (Is_Specialized(PARAM)) {
-            Blit_Param_Drop_Mark(ARG, PARAM);
+            Blit_Param_Unprotect_If_Debug(ARG, PARAM);
             goto continue_fulfilling;
         }
 
@@ -896,26 +896,34 @@ Bounce Action_Executor(Level* L)
 
     assert(STATE == ST_ACTION_TYPECHECKING);
 
-    KEY = Phase_Keys(&KEY_TAIL, Level_Phase(L));
+    Phase* phase = Level_Phase(L);
+
+  check_paramlist_layer: { ///////////////////////////////////////////////////
+
+    KEY = Phase_Keys(&KEY_TAIL, phase);
     ARG = Level_Args_Head(L);
-    PARAM = Phase_Params_Head(Level_Phase(L));
+    PARAM = Phase_Params_Head(phase);
 
     for (; KEY != KEY_TAIL; ++KEY, ++PARAM, ++ARG) {
-        if (Is_Typechecked(ARG))
-            continue;
-
-        Phase* phase = Level_Phase(L);
-        const Param* param = PARAM;
-        while (Is_Specialized(param)) {
-            Element* archetype = Phase_Archetype(phase);
-            phase = Frame_Phase(archetype);
-            param = Phase_Param(phase, (ARG - Level_Args_Head(L)) + 1);
+        if (Is_Specialized(PARAM)) {  // no typecheck info in this layer
+            if (Not_Cell_Flag(PARAM, VAR_MARKED_HIDDEN)) {
+                possibly(Get_Cell_Flag(ARG, VAR_MARKED_HIDDEN));
+                Clear_Cell_Flag(ARG, VAR_MARKED_HIDDEN);
+            }
+            continue;  // digging should typecheck the ARG if not sealed [4]
         }
 
+        assert(Not_Cell_Flag(ARG, VAR_MARKED_HIDDEN));
+
+        if (Is_Typechecked(ARG))  // residual typechecks from another pass...
+            continue;  // !!! possibly not valid in redo situations?  Review.
+
         if (Is_Cell_A_Bedrock_Hole(ARG)) {
-            if (Not_Parameter_Flag(param, HOLE_OK))
-                panic (Error_No_Arg(Level_Label(L), Key_Symbol(KEY)));
-            continue;
+            if (Get_Parameter_Flag(PARAM, HOLE_OK)) {
+                Mark_Typechecked(ARG);
+                continue;  // !!! standardize hole to the parameter?
+            }
+            Init_Nulled(ARG);
         }
 
         assert(LIFT_BYTE(ARG) != BEDROCK_0);  // not a tripwire
@@ -923,7 +931,7 @@ Bounce Action_Executor(Level* L)
 
         if (
             Is_Cell_A_Veto_Hot_Potato(arg)
-            and Not_Parameter_Flag(param, WANT_VETO)
+            and Not_Parameter_Flag(PARAM, WANT_VETO)
         ){
             Set_Action_Executor_Flag(L, TYPECHECK_ONLY);
             Mark_Typechecked(ARG);
@@ -931,7 +939,7 @@ Bounce Action_Executor(Level* L)
             continue;
         }
 
-        if (Get_Parameter_Flag(param, UNDO_OPT)) {
+        if (Get_Parameter_Flag(PARAM, UNDO_OPT)) {
             if (Any_Void(arg)) {  // accepts empty pack -or- ghost
                 Init_Nulled(ARG);
                 Mark_Typechecked(ARG);  // null rejected
@@ -939,14 +947,14 @@ Bounce Action_Executor(Level* L)
             }
         }
 
-        if (Get_Parameter_Flag(param, VARIADIC)) {  // can't check now [2]
+        if (Get_Parameter_Flag(PARAM, VARIADIC)) {  // can't check now [2]
             require (
                 Stable* stable = Decay_If_Unstable(arg)
             );
             if (not Is_Varargs(stable))
-                panic (Error_Not_Varargs(L, KEY, param, stable));
+                panic (Error_Not_Varargs(L, KEY, PARAM, stable));
 
-            Tweak_Cell_Varargs_Phase(ARG, phase);
+            Tweak_Cell_Varargs_Phase(ARG, Level_Phase(L));
 
             bool infix = false;  // !!! how does infix matter?
             CELL_VARARGS_SIGNED_PARAM_INDEX(ARG) =  // store offset [3]
@@ -955,32 +963,32 @@ Bounce Action_Executor(Level* L)
                     : ARG - Level_Args_Head(L) + 1;
 
             assert(CELL_VARARGS_SIGNED_PARAM_INDEX(ARG) != 0);
+            Mark_Typechecked(ARG);
             continue;
         }
 
         require (
           bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
-            L, Known_Unspecialized(param), arg
+            L, Known_Unspecialized(PARAM), arg
           )
         );
         if (not check)
-            panic (Error_Phase_Arg_Type(L, KEY, param, arg));
-
+            panic (Error_Phase_Arg_Type(L, KEY, PARAM, arg));
         Mark_Typechecked(ARG);
     }
 
-    Tweak_Level_Phase(L, Ensure_Phase_Details(Level_Phase(L)));  // [4]
+    if (Stub_Flavor(phase) != FLAVOR_DETAILS) {
+        Phase* archetype_phase = Frame_Phase(Phase_Archetype(phase));
+        assert(archetype_phase != phase);
+        phase = archetype_phase;
+        goto check_paramlist_layer;  // don't skip unhiding/typechecking
+    }
 
-    // Action arguments are gathered, begin dispatching
+    Tweak_Level_Phase(L, phase);  // [4]
 
-} dispatch: {
+}} dispatch: {
 
-  // 1. When dispatching, we aren't using the parameter enumeration states.
-  //    These are essentially 4 free pointers (though once a BOUNCE is
-  //    returned, the Action_Executor() may start using them again, so they
-  //    are only scratch space for the Dispatcher while it is running).
-  //
-  // 2. This happens if you have something intending to act as infix but
+  // 1. This happens if you have something intending to act as infix but
   //    that does not consume arguments, e.g. (x: infix func [] []).  An
   //    infix function with no arguments might sound dumb, but it allows
   //    a 0-arity function to run in the same evaluation step as the left
@@ -988,7 +996,7 @@ Bounce Action_Executor(Level* L)
   //
   //    !!! This is dealt with in `skip_output_check`, is it needed here too?
   //
-  // 3. Resetting OUT, SPARE, and SCRATCH for a dispatcher's STATE_0 entry
+  // 2. Resetting OUT, SPARE, and SCRATCH for a dispatcher's STATE_0 entry
   //    has a slight cost.  The output cell may have CELL_MASK_PERSIST flags
   //    so we bit mask it, but the SPARE and SCRATCH are guaranteed not to,
   //    and can just have 0 written to their header.
@@ -1006,12 +1014,7 @@ Bounce Action_Executor(Level* L)
     assert(Not_Action_Executor_Flag(L, IN_DISPATCH));
     Set_Action_Executor_Flag(L, IN_DISPATCH);
 
-    Corrupt_If_Needful(L->u.action.key);  // freed param enum for dispatcher [1]
-    Corrupt_If_Needful(L->u.action.key_tail);
-    Corrupt_If_Needful(L->u.action.arg);
-    Corrupt_If_Needful(L->u.action.param);
-
-    if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT) {  // can happen [2]
+    if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT) {  // can happen [1]
         if (
             L->prior->executor == &Stepper_Executor
             and Get_Executor_Flag(EVAL, L->prior, DIDNT_LEFT_QUOTE_PATH)
@@ -1029,7 +1032,7 @@ Bounce Action_Executor(Level* L)
         goto skip_output_check;
     }
 
-    Erase_Cell(OUT);  // three 0 assignments to cell headers, worth it [3]
+    Erase_Cell(OUT);  // three 0 assignments to cell headers, worth it [2]
     Erase_Cell(SPARE);
     Erase_Cell(SCRATCH);
 
@@ -1037,15 +1040,60 @@ Bounce Action_Executor(Level* L)
 
     Invalidate_Gotten(L_next_gotten_raw);  // arbitrary code changes variables
 
-} dispatch_phase: {
-
-    // 1. After typechecking is complete, it "digs" through the phases until
-    //    it finds a Details* and makes that the phase.
+} dispatch_phase: { //////////////////////////////////////////////////////////
 
     assert(Not_Action_Executor_Flag(LEVEL, DELEGATE_CONTROL));  // delegated!
 
-    Details* details = Ensure_Level_Details(L);  // guaranteed Details [1]
+    Details* details = Ensure_Level_Details(L);  // guaranteed Details
     Dispatcher* dispatcher = Details_Dispatcher(details);
+
+  doublecheck_typecheck: {
+
+  // Last-minute typecheck verification, when we have the dispatcher in our
+  // hands to more easily see who's getting the non-typechecked arguments.
+  //
+  // 1. Things like SPECIALIZE don't type check their arguments a-priori.
+  //    Consequently, if you do something like an ADAPT of a SPECIALIZE then
+  //    there could be fields invisible to the ADAPT that are Is_Specialized()
+  //    but not typechecked.  We detect this situation by seeing if the
+  //    ParamList is "owned" by the Details (e.g. no deeper details laying a
+  //    claim on it, so it must have been a baseline ParamList e.g. the ones
+  //    created before they are paired with a native).  If not owned, then
+  //    we only check the non-specialized parameters.
+  //
+  // 2. When dispatching, we aren't using the parameter enumeration states.
+  //    These are essentially 4 free pointers (though once a BOUNCE is
+  //    returned, the Action_Executor() may start using them again, so they
+  //    are only scratch space for the Dispatcher while it is running).
+
+  #if RUNTIME_CHECKS
+    if (STATE == STATE_0) {
+        bool inputs_only = did Phase_Details(Phase_Paramlist(details));  // [1]
+
+        KEY = Phase_Keys(&KEY_TAIL, details);
+        ARG = Level_Args_Head(L);
+        PARAM = Phase_Params_Head(details);
+
+        for (; KEY != KEY_TAIL; ++KEY, ++PARAM, ++ARG) {
+            if (Get_Cell_Flag(PARAM, VAR_MARKED_HIDDEN)) {
+                assert(inputs_only);
+                assert(Get_Cell_Flag(ARG, VAR_MARKED_HIDDEN));
+                continue;
+            }
+
+            if (inputs_only and Is_Specialized(PARAM))
+                continue;
+
+            if (not Is_Typechecked(ARG))
+                assert(Not_Parameter_Checked_Or_Coerced(PARAM));
+        }
+    }
+
+    Corrupt_If_Needful(L->u.action.key);  // free for use by dispatcher [2]
+    Corrupt_If_Needful(L->u.action.key_tail);
+    Corrupt_If_Needful(L->u.action.arg);
+    Corrupt_If_Needful(L->u.action.param);
+  #endif
 
     Bounce b = opt Irreducible_Bounce(L, Apply_Cfunc(dispatcher, L));
     if (not b)
@@ -1097,14 +1145,16 @@ Bounce Action_Executor(Level* L)
 
       case C_DOWNSHIFTED:
         L = Adjust_Level_For_Downshift(L);
-        assert(Get_Action_Executor_Flag(L, IN_DISPATCH));
-        goto dispatch_phase;
+        if (Get_Action_Executor_Flag(L, IN_DISPATCH))
+            goto dispatch_phase;
+        assert(STATE == ST_ACTION_TYPECHECKING);
+        goto typecheck_then_dispatch;
 
       default:
         assert(!"Invalid pseudotype returned from action dispatcher");
     }
 
-}} check_output: {  ///////////////////////////////////////////////////////////
+}}} check_output: {  /////////////////////////////////////////////////////////
 
   // Here we know the function finished and nothing threw past it or had an
   // abrupt panic().  (It may have done a `return fail (...)`, however.)

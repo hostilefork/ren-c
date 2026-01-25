@@ -377,7 +377,8 @@ Details* Alloc_Action_From_Exemplar(
           #if DEBUG_POISON_UNINITIALIZED_CELLS
             Poison_Cell(arg);
           #endif
-            Blit_Param_Unmarked(arg, param);
+            assert(Not_Cell_Flag(arg, VAR_MARKED_HIDDEN));
+            Blit_Cell(arg, param);
             continue;
         }
 

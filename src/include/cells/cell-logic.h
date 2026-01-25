@@ -120,7 +120,7 @@ INLINE Stable* Init_Logic_Untracked(Init(Stable) out, bool logic) {
         CANON(NULL)))
 
 #define Init_Lifted_Null(out) \
-    Init_Quasi_Word(Possibly_Unstable(out), CANON(NULL))
+    Init_Quasi_Word((out), CANON(NULL))
 
 #define Init_Quasi_Null(out) \
     Init_Quasi_Word(Known_Element(out), CANON(NULL))

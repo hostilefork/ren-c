@@ -214,14 +214,22 @@ Bounce To_Or_As_Checker_Executor(Level* const L)
     require (
       Push_Action(level_, Lib_Value(id), PREFIX_0)
     );
-    Set_Executor_Flag(ACTION, level_, IN_DISPATCH);
 
     INCLUDE_PARAMS_OF_TO;
 
     Copy_Cell(Erase_ARG(TYPE), Datatype_From_Type(from));
     Copy_Cell(Erase_ARG(VALUE), out);
 
-    STATE = STATE_0;
+    assert(Get_Executor_Flag(ACTION, level_, IN_DISPATCH));
+
+    if (SPORADICALLY(32)) {
+        Clear_Executor_Flag(ACTION, level_, IN_DISPATCH);
+        LEVEL_STATE_BYTE(level_) = ST_ACTION_TYPECHECKING;
+    } else {
+        Mark_Typechecked(ARG(TYPE));
+        Mark_Typechecked(ARG(VALUE));
+        STATE = STATE_0;
+    }
 
     assert(Get_Level_Flag(level_, TRAMPOLINE_KEEPALIVE));
     Clear_Level_Flag(level_, TRAMPOLINE_KEEPALIVE);
@@ -317,6 +325,7 @@ DECLARE_NATIVE(TO)
 
         SymId id = Symbol_Id_From_Type(unwrap type);
         Init_Word(ARG(VALUE), Canon_Symbol(id));
+        Mark_Typechecked(u_cast(Param*, ARG(VALUE)));
     }
 
     Element* value = Element_ARG(VALUE);

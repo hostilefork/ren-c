@@ -97,8 +97,8 @@ INLINE Cell* Blit_Word_Untracked(
     return out;
 }
 
-INLINE Element* Init_Word_Untracked(
-    Init(Element) out,
+INLINE Dual* Init_Word_Untracked(
+    Init(Dual) out,
     Flags flags,
     const Symbol* symbol
 ){
@@ -121,8 +121,8 @@ INLINE Element* Init_Word_Untracked(
 #define Init_Quasi_Word(out,symbol) \
     TRACK(Init_Word_Untracked((out), FLAG_LIFT_BYTE(QUASIFORM_4), (symbol)))
 
-INLINE Element* Init_Word_Bound_Untracked(
-    Sink(Element) out,
+INLINE Dual* Init_Word_Bound_Untracked(
+    Sink(Dual) out,
     const Symbol* symbol,
     Context* binding
 ){

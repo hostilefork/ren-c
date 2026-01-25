@@ -160,11 +160,19 @@ Bounce Cascader_Executor(Level* const L)
     const Element* first = List_Item_At(pipeline);
     ++SERIES_INDEX_UNBOUNDED(pipeline);  // point series index to next FRAME! to call
 
-    Tweak_Level_Phase(
-        sub,
-        Ensure_Phase_Details(Frame_Phase(first))  // has varlist already [3]
-    );
+    Phase* phase = Frame_Phase(first);
+    Tweak_Level_Phase(sub, phase);  // has varlist already [3]
     Tweak_Level_Coupling(sub, Frame_Coupling(first));
+
+    assert(Get_Executor_Flag(ACTION, sub, IN_DISPATCH));
+
+    if (Is_Stub_Details(phase)) {
+        // leave IN_DISPATCH; type checking was compatible for this details
+    }
+    else {  // some layers of specialization to peel back
+        Clear_Executor_Flag(ACTION, sub, IN_DISPATCH);
+        LEVEL_STATE_BYTE(sub) = ST_ACTION_TYPECHECKING;
+    }
 
     sub->u.action.original = Frame_Phase(first);
     Set_Action_Level_Label(sub, Frame_Label_Deep(first));

@@ -187,7 +187,7 @@ Bounce Func_Dispatcher(Level* const L)
           #if DEBUG_POISON_UNINITIALIZED_CELLS
             Poison_Cell(arg);
           #endif
-            Blit_Param_Drop_Mark(arg, param);
+            Blit_Param_Unprotect_If_Debug(arg, param);
         }
         else {
             // assume arguments assigned to values desired for recursion

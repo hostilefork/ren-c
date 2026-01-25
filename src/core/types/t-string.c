@@ -937,6 +937,10 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
             assert(Is_Port(made));
             Copy_Cell(ARG_N(1), made);
             rebRelease(made);
+
+            assert(STATE == STATE_0);
+            Mark_Typechecked(u_cast(Param*, ARG_N(1)));
+
             return BOUNCE_CONTINUE;
         }
     }
