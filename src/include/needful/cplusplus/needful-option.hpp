@@ -127,7 +127,13 @@ struct OptionWrapper {
 
     template<typename U>
     explicit operator U() const  // *explicit* cast if not using `unwrap`
-      { return u_cast(U, o); }
+    {
+        /* static_assert(  // cast mechanics use casting to unwrap; review
+            false,
+            "Do `cast(T, opt option)` instead of `cast(T, option)`"
+        ); */
+        return u_cast(U, o);
+    }
 
     explicit operator bool() const {
         // explicit exception in `if` https://stackoverflow.com/q/39995573/

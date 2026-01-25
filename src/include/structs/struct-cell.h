@@ -218,7 +218,7 @@ typedef enum {
     FLAG_KIND_BYTE((crumb) << KIND_SIGIL_SHIFT)
 
 #define FLAG_SIGIL(sigil) \
-    FLAG_SIGIL_CRUMB(u_cast(Byte, known(Option(Sigil), (sigil))))
+    FLAG_SIGIL_CRUMB(u_cast(Byte, opt x_cast_known(Option(Sigil), (sigil))))
 
 #define CELL_MASK_SIGIL  FLAG_SIGIL_CRUMB(3)  // 0b11 << KIND_SIGIL_SHIFT
 

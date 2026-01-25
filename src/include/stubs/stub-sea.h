@@ -84,7 +84,7 @@ INLINE Option(Patch*) Sea_Patch(
 ){
     if (sea == g_lib_context) {
         Option(SymId) id = Symbol_Id(sym);
-        if (id and cast(int, id) <= MAX_SYM_LIB_PREMADE) {
+        if (id and cast(int, opt id) <= MAX_SYM_LIB_PREMADE) {
             if (INFO_PATCH_SEA(&g_lib_patches[opt id]) == nullptr)  // [1]
                 return nullptr;
 
@@ -94,8 +94,8 @@ INLINE Option(Patch*) Sea_Patch(
     else if (sea == g_datatypes_context) {
         Option(SymId) id = Symbol_Id(sym);
         if (id and (
-            cast(int, id) >= MIN_SYM_BUILTIN_TYPES
-            and cast(int, id) <= MAX_SYM_BUILTIN_TYPES
+            cast(int, opt id) >= MIN_SYM_BUILTIN_TYPES
+            and cast(int, opt id) <= MAX_SYM_BUILTIN_TYPES
          )){
             Type type = Type_From_Symbol_Id(unwrap id);
             assert(

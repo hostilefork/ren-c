@@ -71,10 +71,14 @@
 //
 
 #define NEEDFUL_DECLARE_WRAPPED_FIELD(T,name) \
+    static_assert(std::is_standard_layout<T>::value, \
+        "Needful wrapped types must be standard-layout"); \
     using wrapped_type = T; \
     T name
 
 #define NEEDFUL_OVERRIDE_WRAPPED_FIELD_TYPE(T) /* derived class may use */ \
+    static_assert(std::is_standard_layout<T>::value, \
+        "Needful wrapped types must be standard-layout"); \
       using wrapped_type = T
 
 
