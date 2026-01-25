@@ -631,8 +631,11 @@ static Result(REBIXO) Parse_One_Rule(
             rule = Unquote_Cell(Copy_Cell(SPARE, rule));
         }
         else if (Is_Pinned_Form_Of(WORD, rule)) {
+            DECLARE_ELEMENT (unpinned);
+            Copy_Cell(unpinned, rule);
+            Clear_Cell_Sigil(unpinned);
             require (
-              Get_Var(SPARE, NO_STEPS, rule, P_RULE_BINDING)
+              Get_Var(SPARE, NO_STEPS, unpinned, P_RULE_BINDING)
             );
             if (Is_Antiform(SPARE))
                 panic (Error_Bad_Antiform(SPARE));
@@ -681,8 +684,11 @@ static Result(REBIXO) Parse_One_Rule(
         assert(Any_String_Type(P_HEART) or P_HEART == TYPE_BLOB);
 
         if (Is_Pinned_Form_Of(WORD, rule)) {
+            DECLARE_ELEMENT (unpinned);
+            Copy_Cell(unpinned, rule);
+            Clear_Cell_Sigil(unpinned);
             require (
-              Get_Var(SPARE, NO_STEPS, rule, P_RULE_BINDING)
+              Get_Var(SPARE, NO_STEPS, unpinned, P_RULE_BINDING)
             );
             if (Is_Antiform(SPARE))
                 panic (Error_Bad_Antiform(SPARE));
