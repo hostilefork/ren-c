@@ -72,7 +72,7 @@
 
     ((lift ^void) <> lift ~[]~)
     (not (lift ^void) = first [~[]~])
-    (not (lift ^void) = ^void)
+    (not void? (lift ^void))
 ]
 
 ; If your type constraint on return is NULL?, that doesn't accept heavy

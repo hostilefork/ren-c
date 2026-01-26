@@ -223,7 +223,7 @@
 ; LIFT* lifts anything that would trigger a THEN
 [
     (null = lift* null)
-    (^void = lift* ^void)
+    (void? lift* ^void)
     ('~okay~ = lift* okay)
 
     ('~('1 '2)~ = lift* pack [1 2])

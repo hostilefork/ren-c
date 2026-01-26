@@ -883,8 +883,8 @@ DECLARE_NATIVE(VACANCY_Q)
 //  "TRUE if the values are equal"
 //
 //      return: [logic!]
-//      ^value1 [any-stable? <void>]
-//      ^value2 [any-stable? <void>]
+//      value1 [any-stable?]
+//      value2 [any-stable?]
 //      :relax "Use less strict comparison rules (e.g. caseless comparison)"
 //  ]
 //
@@ -893,11 +893,6 @@ DECLARE_NATIVE(EQUAL_Q)
     INCLUDE_PARAMS_OF_EQUAL_Q;
 
     bool relax = did ARG(RELAX);
-
-    if (Any_Void(ARG(VALUE1)))
-        return LOGIC_OUT(Heart_Of(ARG(VALUE1)) == Heart_Of(ARG(VALUE2)));
-    else if (Any_Void(ARG(VALUE2)))
-        return LOGIC_OUT(false);
 
     if (LIFT_BYTE(ARG(VALUE1)) != LIFT_BYTE(ARG(VALUE2)))
         return LOGIC_OUT(false);
@@ -1001,8 +996,8 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_Element)
 //  "TRUE if the values are identical"
 //
 //      return: [logic!]
-//      ^value1 [any-stable? <void>]
-//      ^value2 [any-stable? <void>]
+//      value1 [any-stable?]
+//      value2 [any-stable?]
 //  ]
 //
 DECLARE_NATIVE(SAME_Q)
@@ -1014,11 +1009,6 @@ DECLARE_NATIVE(SAME_Q)
 // back on equality if that is meaningful to your situation.
 {
     INCLUDE_PARAMS_OF_SAME_Q;
-
-    if (Any_Void(ARG(VALUE1)))
-        return LOGIC_OUT(Heart_Of(ARG(VALUE1)) == Heart_Of(ARG(VALUE2)));
-    else if (Any_Void(ARG(VALUE2)))
-        return LOGIC_OUT(false);
 
     if (LIFT_BYTE(ARG(VALUE1)) != LIFT_BYTE(ARG(VALUE2)))
         return LOGIC_OUT(false);

@@ -122,7 +122,7 @@
 ; https://forum.rebol.info/t/2176
 [
     (null = (null else (^void)))
-    (^void = (^void else (^void)))
+    (void? (^void else (^void)))
 
     (3 = (if ok [1 + 2] then (^void)))
 ]
