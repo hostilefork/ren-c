@@ -84,7 +84,7 @@ cache: lambda [
 ][
     if init <> '[^cache-storage] {  ; first run if not equal
         ^cache-storage: eval init  ; mutate block to [^cache-storage]
-        insert mutable init meta $cache-storage
+        insert clear mutable init meta $cache-storage
     }
     get init.1
 ]
