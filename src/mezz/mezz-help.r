@@ -175,14 +175,14 @@ help-value: proc [
         splice? ^value ['splice!]
         action? ^value ['action]
         pack? ^value ['pack!]
-        ghost? ^value ['ghost!]
+        void? ^value ['void!]
         failure? ^value ['failure!]
 
         antiform? ^value [
-            panic "Invalid Antiform Heart Found, Please Report:" @atom'
+            panic "Invalid Antiform Heart Found, Please Report:" @value'
         ]
     ] then (antitype -> [
-        let heart: reify heart of atom
+        let heart: reify heart of value
         print [
             (opt name) "is" (an antitype) ["(antiform of" _ @(heart) ")"]
         ]

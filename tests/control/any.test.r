@@ -3,27 +3,27 @@
 ; Most languages consider variadic OR operations in the spirit of ANY to
 ; be truthy if there are no items.  We use void if things truly vanish.
 [
-    (ghost? any [])
+    (void? any [])
 
     ~bad-void~ !! (if any [] [<safety>])
 
     (
         x: <overwritten>
         all [
-            ghost? x: any []
-            ghost? x
+            void? x: any []
+            void? x
         ]
     )
     (
         x: <overwritten>
         all [
-            ghost? x: any [comment "hi"]
-            ghost? x
+            void? x: any [comment "hi"]
+            void? x
         ]
     )
     (<didn't> = if else? any [] [<didn't>])
     (<else> = any [] else [<else>])
-    (ghost? (1 + 2 any []))
+    (void? (1 + 2 any []))
     (null = (1 + 2 any [1 > 2, 3 > 4]))
 ]
 
@@ -408,7 +408,7 @@
 ; When used with @ blocks, ANY will treat the block as already reduced
 ; With all values becoming truthy, this is only really useful with a predicate.
 [
-    (ghost? any @[])
+    (void? any @[])
     (1 = any @[1 + 2])
     ('~null~ = any @[~null~ _])
     ('null = any pin reduce ['null space])

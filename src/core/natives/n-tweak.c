@@ -800,7 +800,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
             ){
                 continue;  // last non-meta pick can be unstable if hot-potato
             }
-            if (Is_Lifted_Ghost(As_Stable(SPARE))) {
+            if (Is_Lifted_Void(As_Stable(SPARE))) {
                 goto treat_like_pick_absent_signal;  // like before ghost pick
             }
             error = Error_Unstable_Non_Meta_Raw(
@@ -825,7 +825,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         )
         and not Is_Lifted_Hot_Potato(spare_location_dual)  // allow e.g. VETO
         and not Is_Lifted_Action(spare_location_dual) // temporarily allow
-        // allow GHOST, also?
+        // allow VOID!, also?
     ){
         panic ("PICK result cannot be unstable unless metaform");
     }

@@ -57,7 +57,7 @@
 ([] = reduce [opt ~null~])
 
 
-([] = reduce [^ghost])
+([] = reduce [^void])
 
 
 ; === PREDICATES ===
@@ -76,11 +76,11 @@
 
 ~expect-arg~ !! (reduce:predicate [null] cascade [null?/ non/])
 
-; Ghosts not offered to predicates
+; Voids not offered to predicates
 ; https://forum.rebol.info/t/should-void-be-offered-to-predicates-for-reduce-any-all-etc/1872
 ;
 (['3 '300] = reduce:predicate [
-    1 + 2 ^ghost 100 + 200
+    1 + 2 ^void 100 + 200
 ] lift/)
 
 ([-3 -300] = reduce:predicate [1 + 2 if null [10 + 20] 100 + 200] negate/)
@@ -115,8 +115,8 @@
 ]
 
 ; REDUCE-EACH can do ^META processing, this is the basis of ATTEMPT
-; ghosts are ignored, as in REDUCE
-; if REDUCE gets a "can see ghosts" mode, REDUCE-EACH should too
+; VOID!s are ignored, as in REDUCE
+; if REDUCE gets a "can see light voids" mode, REDUCE-EACH should too
 [
     (3 = reduce-each ^x [1 + 2] [x])  ; no effect if not unstable
 

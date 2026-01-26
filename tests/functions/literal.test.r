@@ -1,11 +1,8 @@
 ; %literal.test.r
-;
-; ^META arguments can tell the difference between the end condition, a null,
-; and a nihil`
 
 [
-    (did detector: lambda [^x [<end> any-stable? pack! ghost!]] [
-        tweak $ '^x null
+    (did detector: lambda [^x [<hole> any-stable? pack! void!]] [
+        get:dual meta $x
     ])
 
     ((the '10) = detector 10)
@@ -13,17 +10,17 @@
     ('~(~null~)~ = detector if ok [null])
 
     ('~,~ = detector (comment "hi"))
-    (tripwire? detector)
+    (parameter? detector)
 
     (did left-detector: infix detector/)
 
     ((the '1) = (1 left-detector))
-    (tripwire? left-detector)
-    (tripwire? (left-detector))
+    (parameter? left-detector)
+    (parameter? (left-detector))
 ]
 
 (
     x: 'false
-    (unlift lift ^ghost) then [x: 'true]
+    (unlift lift ^void) then [x: 'true]
     true? x
 )

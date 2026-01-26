@@ -156,7 +156,7 @@ static void Startup_Lib(void)
         Tweak_Misc_Hitch(symbol, patch);  // ...but now it has one!
         Tweak_Misc_Hitch(patch, symbol);  // link back for singly-linked-list
 
-        Init_Ghost_For_Unset(Stub_Cell(patch));
+        Init_Void_Signifying_Unset(Stub_Cell(patch));
     }
 
     known_nullptr(g_lib_context) = lib;

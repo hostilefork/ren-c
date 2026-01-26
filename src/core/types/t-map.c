@@ -460,7 +460,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
 
 } key_step_result_in_out: { //////////////////////////////////////////////////
 
-    if (Is_Ghost(SPARE))
+    if (Is_Void(SPARE))
         goto reduce_key;  // try again...
 
     require (
@@ -484,7 +484,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
 
 } value_step_result_in_out: { ////////////////////////////////////////////////
 
-    if (Is_Ghost(SPARE))
+    if (Is_Void(SPARE))
         goto reduce_value;  // try again...
 
     require (

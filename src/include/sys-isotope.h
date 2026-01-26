@@ -144,7 +144,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
 
-      case TYPE_COMMA:  // GHOST!
+      case TYPE_COMMA:  // VOID!
       case TYPE_ERROR:  // FAILURE! (any special work here?)
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
@@ -182,7 +182,7 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 // so they have to be elevated to panics.
 //
 // "Elision" is more permissive than decay, because you're not actually trying
-// to extract a value if the antiform is a PACK! or GHOST! (or a PACK! with
+// to extract a value if the antiform is a PACK! or VOID! (or a PACK! with
 // a PACK! in the first slot, which must be unpacked vs. auto-decaying).  So
 // you only need to be concerned about sweeping any FAILURE!s under the rug.
 //
@@ -230,8 +230,8 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
             goto finished;
         }
 
-        if (Is_Ghost(v))
-            return fail ("Cannot decay GHOST! to a stable value");
+        if (Is_Void(v))
+            return fail ("Cannot decay VOID! to a stable value");
 
         if (Is_Trash(v))
             return fail ("Cannot decay TRASH! to a stable value");
@@ -287,8 +287,8 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
         if (Is_Lifted_Pack(first))
             return fail ("PACK! cannot decay PACK! in first slot");
 
-        if (Is_Lifted_Ghost(first))
-            return fail ("PACK! cannot decay GHOST! in first slot");
+        if (Is_Lifted_Void(first))
+            return fail ("PACK! cannot decay VOID! in first slot");
 
         if (Is_Lifted_Trash(first))
             return fail ("PACK! cannot decay TRASH! in first slot");

@@ -351,7 +351,7 @@ static Bounce Loop_Series_Common(
     //
     const bool counting_up = (s < end); // equal checked above
     if ((counting_up and bump <= 0) or (not counting_up and bump >= 0))
-        return GHOST_OUT_UNBRANCHED;  // avoid infinite loops
+        return VOID_OUT_UNBRANCHED;  // avoid infinite loops
 
     while (
         counting_up
@@ -393,7 +393,7 @@ static Bounce Loop_Series_Common(
     }
 
     if (Is_Cell_Erased(OUT))
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     return OUT_BRANCHED;
 }
@@ -448,7 +448,7 @@ static Bounce Loop_Integer_Common(
     //
     const bool counting_up = (start < end);  // equal checked above
     if ((counting_up and bump <= 0) or (not counting_up and bump >= 0))
-        return GHOST_OUT_UNBRANCHED;  // avoid infinite loops !!!
+        return VOID_OUT_UNBRANCHED;  // avoid infinite loops !!!
 
     while (counting_up ? *state <= end : *state >= end) {
         Option(LoopInterrupt) interrupt = none;
@@ -551,7 +551,7 @@ static Bounce Loop_Number_Common(
     //
     const bool counting_up = (s < e); // equal checked above
     if ((counting_up and b <= 0) or (not counting_up and b >= 0))
-        return GHOST_OUT_UNBRANCHED;  // avoid inf. loop
+        return VOID_OUT_UNBRANCHED;  // avoid inf. loop
 
     while (counting_up ? *state <= e : *state >= e) {
         if (Eval_Branch_Throws(OUT, body)) {
@@ -578,7 +578,7 @@ static Bounce Loop_Number_Common(
     }
 
     if (Is_Cell_Erased(OUT))
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     return OUT_BRANCHED;
 }
@@ -689,7 +689,7 @@ DECLARE_NATIVE(FOR_SKIP)
 
     REBINT skip = Int32(ARG(SKIP));
     if (skip == 0)  // https://forum.rebol.info/t/infinite-loop-vs-error/936
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     require (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, word)
@@ -766,7 +766,7 @@ DECLARE_NATIVE(FOR_SKIP)
     }
 
     if (Is_Cell_Erased(OUT))
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     return OUT_BRANCHED;
 }
@@ -788,7 +788,7 @@ DECLARE_NATIVE(DEFINITIONAL_STOP)  // See CYCLE for notes about STOP
 
     Value* with = SCRATCH;
     if (not ARG(WITH))
-        Init_Ghost(SCRATCH);  // See: https://forum.rebol.info/t/1965/3 [1]
+        Init_Void(SCRATCH);  // See: https://forum.rebol.info/t/1965/3 [1]
     else
         Copy_Cell(SCRATCH, unwrap ARG(WITH));
 
@@ -1123,8 +1123,8 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
     const Slot* slot_tail;
     Slot* slot = Varlist_Slots(&slot_tail, vars_ctx);
     for (; slot != slot_tail; ++slot) {
-        if (not les->more_data) {  // Y is ghost in `for-each [x y] [1] ...`
-            Init_Ghost_For_Unset(SPARE);
+        if (not les->more_data) {  // Y is void in `for-each [x y] [1] ...`
+            Init_Void_Signifying_Unset(SPARE);
             trap (
               Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
             );
@@ -1154,7 +1154,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
                     //
                     return true;
                 }
-                Init_Ghost_For_Unset(SPARE);
+                Init_Void_Signifying_Unset(SPARE);
                 trap (
                   Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
                 );
@@ -1343,7 +1343,7 @@ void Shutdown_Loop_Each(Stable* iterator)
 //          any-stable?     "last body result (if not NULL)"
 //          ~(<null>)~      "if last body result was NULL"
 //          <null>          "if BREAK encountered"
-//          ghost!           "if body never ran"
+//          void!           "if body never ran"
 //      ]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
@@ -1466,7 +1466,7 @@ DECLARE_NATIVE(FOR_EACH)
         return NULL_OUT_BREAKING;
 
     if (Is_Cell_Erased(OUT))
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     return OUT_BRANCHED;
 }}
@@ -1481,7 +1481,7 @@ DECLARE_NATIVE(FOR_EACH)
 //          any-stable?     "last body result (if not NULL)"
 //          ~(<null>)~      "if last body result was NULL"
 //          <null>          "if any body eval was NULL, or BREAK encountered"
-//          ghost!           "if body never ran"
+//          void!           "if body never ran"
 //      ]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
@@ -1613,7 +1613,7 @@ DECLARE_NATIVE(EVERY)
         return THROWN;
 
     if (Is_Cell_Erased(OUT))
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     return OUT;
 }}
@@ -1670,7 +1670,7 @@ DECLARE_NATIVE(REMOVE_EACH)
     Flex* flex = Cell_Flex_Ensure_Mutable(data);  // check even if empty
 
     if (Series_Index(data) >= Series_Len_At(data))  // past series end
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     require (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, vars)
@@ -2229,7 +2229,7 @@ DECLARE_NATIVE(MAP)
 //          any-stable?     "last body result (if not NULL)"
 //          ~(<null>)~      "if last body result was NULL"
 //          <null>          "if BREAK encountered"
-//          ghost!           "if body never ran"
+//          void!           "if body never ran"
 //      ]
 //      count "Repetitions (true loops infinitely, false doesn't run)"
 //          [<opt> any-number? logic!]
@@ -2264,15 +2264,15 @@ DECLARE_NATIVE(REPEAT)
   initial_entry: {  //////////////////////////////////////////////////////////
 
     if (not count)
-        return GHOST_OUT_UNBRANCHED;  // treat <opt> void input as "don't run"
+        return VOID_OUT_UNBRANCHED;  // treat <opt> void input as "don't run"
 
     if (Is_Logic(count)) {
         if (Cell_Logic(count) == false)
-            return GHOST_OUT_UNBRANCHED;  // treat false as "don't run"
+            return VOID_OUT_UNBRANCHED;  // treat false as "don't run"
         Init_True(index);
     }
     else if (VAL_INT64(count) <= 0)
-        return GHOST_OUT_UNBRANCHED;  // negative means "don't run" (vs. error)
+        return VOID_OUT_UNBRANCHED;  // negative means "don't run" (vs. error)
     else {
         assert(Any_Number(count));
         Init_Integer(index, 1);
@@ -2330,7 +2330,7 @@ DECLARE_NATIVE(REPEAT)
 //          any-stable?     "last body result (if not NULL)"
 //          ~(<null>)~      "if last body result was NULL"
 //          <null>          "if BREAK encountered"
-//          ghost!           "if body never ran"
+//          void!           "if body never ran"
 //      ]
 //      @(vars) "Word or block of words to set each time, no new var if $word"
 //          [_ word! ^word! $word! 'word! '^word! '$word! block!]
@@ -2386,7 +2386,7 @@ DECLARE_NATIVE(FOR)
 
     REBI64 n = VAL_INT64(value);
     if (n < 1)  // Loop_Integer from 1 to 0 with bump of 1 is infinite
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     Add_Definitional_Break_Again_Continue(body, level_);
 
@@ -2533,7 +2533,7 @@ DECLARE_NATIVE(INSIST)
     }
 
     if (Any_Void(OUT))
-        goto loop_again;  // skip ghosts [2]
+        goto loop_again;  // skip voids [2]
 
     require (
       Stable* stable_out = Decay_If_Unstable(OUT)
@@ -2642,7 +2642,7 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 } return_out: {  /////////////////////////////////////////////////////////////
 
     if (Is_Cell_Erased(OUT))  // body never ran
-        return GHOST_OUT_UNBRANCHED;  // no result to return!
+        return VOID_OUT_UNBRANCHED;  // no result to return!
 
     return OUT_BRANCHED;
 }}

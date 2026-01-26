@@ -1,15 +1,17 @@
 ; %comment.test.r
 ;
-; COMMENT returns GHOST!, which is an unstable antiform.  It limits the
-; number of types it takes in order to avoid the illusion that it's
-; could suppress evaluations, e.g. consider (comment print "HI").  Since
+; COMMENT is a vanishable function that returns VOID!.  So it disappears in
+; multi-step evaluations.
+;
+; COMMENT limits the number of types it takes in order to avoid the illusion
+; that could suppress evaluations, e.g. consider (comment print "HI").  Since
 ; PRINT is an evaluator-active WORD!, it would just be commenting out
 ; that PRINT word but leave behind the "HI".
 
 (1 = eval [comment "a" 1])
 (1 = eval [1 comment "a"])
-(ghost? comment "a")
-(ghost? (comment "a"))
+(void? comment "a")
+(void? (comment "a"))
 
 (3 = (1 + 2 comment "invisible"))
 

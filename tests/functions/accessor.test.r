@@ -12,7 +12,7 @@
 )(
     store: ~
     x: accessor func [^value [<end> any-value?]] [
-        if ghost? ^value [
+        if void? ^value [
             return ^store
         ]
         ^store: ^value

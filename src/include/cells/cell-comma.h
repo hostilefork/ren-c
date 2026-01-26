@@ -1,12 +1,12 @@
 //
 //  file: %cell-comma.h
-//  summary: "COMMA! Datatype and Vanishing GHOST! Antiform of ~,~"
+//  summary: "COMMA! Datatype and VOID! Antiform of ~,~"
 //  project: "Rebol 3 Interpreter and Run-time (Ren-C branch)"
 //  homepage: https://github.com/metaeducation/ren-c/
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Copyright 2020-2025 Ren-C Open Source Contributors
+// Copyright 2020-2026 Ren-C Open Source Contributors
 // REBOL is a trademark of REBOL Technologies
 //
 // See README.md and CREDITS.md for more information.
@@ -31,13 +31,13 @@
 //
 // It has the property that it renders "glued" to the element to the left.
 //
-// Commas are recognized specially by the evaluator, and produce a GHOST!:
+// Commas are recognized specially by the evaluator, and produce a VOID!:
 //
 //     >> eval:step [1 + 2, 10 + 20]
 //     == [, 10 + 20]  ; new position, but produced 3 as product
 //
 //     >> [x ^y]: eval:step [, 10 + 20]
-//     == \~('[] ~,~)~\  ; leading commas are ignored in an eval step
+//     == \~('[] ~,~)~\  ; antiform (pack!)
 //
 // (Although internally, if the evaluator knows you're not debugging, it will
 // silently skip through the commas without yielding an evaluative product.)
@@ -63,58 +63,74 @@ INLINE Element* Init_Comma_Untracked(Init(Element) out) {
     TRACK(Init_Comma_Untracked(out))
 
 
-//=//// GHOST! (COMMA! ANTIFORM) ///////////////////////////////////////////=//
+//=//// VOID! (COMMA! ANTIFORM) ///////////////////////////////////////////=//
 //
 // The unstable ~,~ antiform is used to signal vanishing intent, e.g. it is
 // the return result of things like COMMENT and ELIDE.  It only *actually*
 // vanishes if produced by a VANISHABLE function call, or if it is explicitly
-// marked vanishable using the `^` operator.
+// approved as vanishable using the IDENTITY operator (`^`).
 //
 // See Evaluator_Executor() for how stepping over a block retains the last
-// value at each step, so that if a step produces a GHOST! the previous
+// value at each step, so that if a step produces a VOID! the previous
 // evaluation can be preserved.
 //
-// 1. The Stepper_Executor() needs to turn GHOST! into an empty PACK! if a
-//    context is "afraid of ghosts" (e.g. a multi-step operation that hasn't
-//    used an operator to indicate expectation of a ghost arising from a non
-//    vanishable function).  But it can't turn the GHOST! into an empty pack
-//    until it has finished processing any infix operation.  So a flag is
-//    put on the GHOST! to carry the signal.
+
+INLINE Value* Init_Void_Untracked(Init(Value) out) {
+    Init_Comma_Untracked(out);
+    Unstably_Antiformize_Unbound_Fundamental(out);
+    assert(Is_Void(out));
+    return out;
+}
+
+#define Init_Void(out) \
+    TRACK(Init_Void_Untracked(out))
+
+#define Init_Lifted_Void(out) \
+    Lift_Cell(Init_Void(out))
+
+
+//=//// GHOSTLY VOID! FLAG ////////////////////////////////////////////////=//
 //
-//    The flag is in the positive sense (i.e. if the flag is set, the GHOST!
+// The Stepper_Executor() needs to turn VOID! into an empty PACK! if the
+// evaluation is "afraid of ghosts" (e.g. a multi-step operation that hasn't
+// done something to indicate expectation of a void arising from a non
+// vanishable function).  But it can't turn the VOID! into an empty pack
+// until it has finished processing any infix operation.  So a flag is put on
+// the VOID! to carry the signal.
+//
+// 1. The flag is in the positive sense (i.e. if the flag is set, the VOID!
 //    is overwritten), because this way when the overwrite happens it also
 //    clears the flag, so Stepper_Executor() doesn't leak a stray signal that
 //    could have meaning to the next step (e.g. CELL_FLAG_NOTE is used by
 //    frame processing for tracking if a FRAME! cell has been typechecked)
 //
+// 2. Since "ghostly voids" only exist in OUT cells, it may be possible to
+//    check the header against a fixed bit pattern without masking...since it
+//    is known that OUT cells don't (currently) have format bits on the cell.
+//    But this could run afoul of fancier uses of extra header bits that
+//    would apply to all cells, even OUT cells.  Keep it in mind, but we do
+//    the masking for now.
+//
 
-INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
-    Init_Comma_Untracked(out);
-    Unstably_Antiformize_Unbound_Fundamental(out);
-    assert(Is_Ghost(out));
-    return out;
-}
+#define CELL_FLAG_OUT_NOTE_GHOSTLY_VOID /* set if it *is* ghostly [1] */ \
+    CELL_FLAG_NOTE
 
-#define Init_Ghost(out) \
-    TRACK(Init_Ghost_Untracked(out))
+#define Mark_Level_Out_As_Ghostly_Void(L) \
+    ((L)->out->header.bits |= CELL_FLAG_OUT_NOTE_GHOSTLY_VOID)
 
-#define Init_Lifted_Ghost(out) \
-    Lift_Cell(Init_Ghost(out))
-
-#define CELL_FLAG_OUT_NOTE_SCARY_GHOST  CELL_FLAG_NOTE  // turn into pack [1]
-
-#define CELL_MASK_SCARY_GHOST \
+#define CELL_MASK_GHOSTLY_VOID \
     (FLAG_KIND_BYTE(TYPE_COMMA) \
         | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1) \
-        | CELL_FLAG_OUT_NOTE_SCARY_GHOST)
+        | CELL_FLAG_OUT_NOTE_GHOSTLY_VOID)
 
-#define Is_Scary_Ghost(out) /* check header with single mask operation */ \
-    (((out)->header.bits & CELL_MASK_SCARY_GHOST) == CELL_MASK_SCARY_GHOST)
+#define Is_Level_Out_Ghostly_Void(L) /* check with one mask operation [2] */ \
+    (((L)->out->header.bits & CELL_MASK_GHOSTLY_VOID) \
+        == CELL_MASK_GHOSTLY_VOID)
 
 
-//=//// GHOST! Signals ////////////////////////////////////////////////////=//
+//=//// VOID! UNSET INTENT DOCUMENTATION //////////////////////////////////=//
 //
-// GHOST! applies in some places, such as when a PACK! has too few values, as
+// VOID! applies in some places, such as when a PACK! has too few values, as
 // this is more useful than erroring in the moment:
 //
 //     >> [a b c]: pack [1 2]
@@ -126,12 +142,12 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
 //     >> b
 //     == 2
 //
-//     >> ghost? ^c
+//     >> void? ^c
 //     == \~okay~\  ; antiform
 //
 // Trash would be another possible choice (and able to store a message, like
 // ~#PACK-TOO-SHORT~).  But the mechanics of the system are geared toward
-// graceful handling of GHOST! with <opt> and null inter-convertibility, which
+// graceful handling of VOID! with <opt> and null inter-convertibility, which
 // aren't properties that one generally wants for TRASH!...that's designed to
 // throw a deliberate informative wrench into things, to let you know why
 // a variable has been "poisoned".  You shouldn't really be manipulating or
@@ -139,5 +155,14 @@ INLINE Value* Init_Ghost_Untracked(Init(Value) out) {
 // that is intended to stay trash for a reason...)
 //
 
-#define Init_Ghost_For_Unset(out)  Init_Ghost(out)
-#define Is_Unsetlike_Ghost(v)  Is_Ghost(v)
+#define Init_Void_Signifying_Unset(out)  Init_Void(out)
+
+
+//=//// VOID! UNBRANCHED INTENT DOCUMENTATION /////////////////////////////=//
+//
+// System-wide, a branching construct that doesn't take a branch will give
+// VOID!...and if they take a branch that produces VOID!, they will turn it
+// into an empty pack ("HEAVY VOID")
+//
+
+#define Init_Void_Signifying_Unbranched(out)  Init_Void(out)

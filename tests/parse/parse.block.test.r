@@ -26,12 +26,12 @@
 
 ; No-op rule of empty block should always match.
 [
-    (ghost? parse "" [])
-    (ghost? parse "" [[]])
-    (ghost? parse "" [[[]]])
+    (void? parse "" [])
+    (void? parse "" [[]])
+    (void? parse "" [[[]]])
 
-    (ghost? parse [] [])
-    (ghost? parse [] [[[]]])
+    (void? parse [] [])
+    (void? parse [] [[[]]])
 
     ~parse-incomplete~ !! (parse [x] [])
     ~parse-incomplete~ !! (parse [x] [[[]]])
@@ -85,12 +85,12 @@
 ]
 
 
-; A BLOCK! rule is allowed to return GHOST and NULL, distinct from failure
+; A BLOCK! rule is allowed to return VOID and NULL, distinct from failure
 [
     (
         x: ~
         all [
-            ghost? parse [1] [x: [integer! opt text!]]
+            heavy-void? parse [1] [x: [integer! opt text!]]
             x = null
         ]
     )

@@ -292,7 +292,7 @@ DECLARE_NATIVE(C_DEBUG_TICK)
 //
 //  "Break at next evaluation point (only use when running under C debugger)"
 //
-//      return: [ghost!]
+//      return: [void!]
 //  ]
 //
 DECLARE_NATIVE(C_DEBUG_BREAK)
@@ -315,7 +315,7 @@ DECLARE_NATIVE(C_DEBUG_BREAK)
       #if RUNTIME_CHECKS
         debug_break();  // usually we break in the evaluator, not here [1]
       #endif
-        return GHOST_OUT;  // [1] does (10 + c-debug-break 20), see [2]
+        return VOID_OUT;  // [1] does (10 + c-debug-break 20), see [2]
   #else
       panic (Error_Checked_Build_Only_Raw());
   #endif

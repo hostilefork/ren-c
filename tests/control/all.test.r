@@ -5,30 +5,30 @@
 ; some cases, many more benefits arise from being able to let it count as
 ; a kind of "non-vote", as a void.
 [
-    (ghost? all [])
-    ((lift ^ghost) = lift all [])
+    (void? all [])
+    ((lift ^void) = lift all [])
 
     ~bad-void~ !! (if all [] [<safety>])
 
     (
         x: <overwritten>
         all [
-            ghost? x: all []
-            ghost? x
+            void? x: all []
+            void? x
         ]
     )
     (
         x: <overwritten>
         all [
-            ghost? x: all [^ghost ^ghost ()]
-            ghost? x
+            void? x: all [^void ghost ()]
+            void? x
         ]
     )
-    (ghost? all [])
-    (ghost? all [] then [<then>])
+    (void? all [])
+    (void? all [] then [<then>])
     (<else> = all [] else [<else>])
 
-    (ghost? (1 + 2 all []))
+    (void? (1 + 2 all []))
     (null = (1 + 2 all [1 < 2, 3 > 4]))
 ]
 
@@ -391,13 +391,13 @@
 
 ; ALL returns void when contents completely erase
 [
-    ("A" = all ["A", all [comment "hi", ^ghost, eval []]])
+    ("A" = all ["A", all [comment "hi", (), ^ eval []]])
 ]
 
 ; When used with @ blocks, ALL will treat the block as already reduced
 ; With all reified values being truthy, this is only useful with a predicate
 [
-    (ghost? all @[])
+    (void? all @[])
 
     (2 = all @[1 + 2])
     ('null = all @[okay okay null null])

@@ -256,7 +256,7 @@ bool Pushed_Continuation(
           Level* L = Make_Level(
             &Evaluator_Executor, feed, flags
         ));
-        Init_Ghost(Evaluator_Primed_Cell(L));
+        Init_Void(Evaluator_Primed_Cell(L));
 
         Push_Level_Erase_Out_If_State_0(out, L);
         goto pushed_continuation; }

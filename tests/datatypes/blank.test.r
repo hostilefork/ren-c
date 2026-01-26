@@ -18,23 +18,28 @@
 )]
 
 [
-    (ghost? for-each 'x none [1020])
+    (void? for-each 'x none [1020])
     ([] = map-each 'x none [1020])
-    (ghost? for-next 'x none [1020])
+    (void? for-next 'x none [1020])
     (all {
         none = [result count]: remove-each 'x none [panic "never gets called"]
         result = none
         count = 0
     })
-    (ghost? every 'x none [okay])
-    (ghost? for-skip 'x none 2 [1020])
+    (void? every 'x none [okay])
+    (void? for-skip 'x none 2 [1020])
 
     ~nothing-to-take~ !! (take [])
-    (null = try take ^ghost)
-    (null = find ^ghost 304)
-    (null = select ^ghost 304)
 
-    (null = pick ^ghost 304)
+    ~???~ !! (try take ^void)
+    ~???~ !! (find ^void 304)
+    ~???~ !! (select ^void 304)
+    ~???~ !! (pick ^void 304)
+
+    (null = try take veto)
+    (null = find veto 304)
+    (null = select veto 304)
+    (null = pick veto 304)
 
     (_ = copy _)  ; do NOT want opt-out of copy
 ]

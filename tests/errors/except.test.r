@@ -21,7 +21,7 @@
     e.message = "foo"
 )
 (
-    ghost? (^ghost except (e -> [<unused>]))
+    void? (^void except (e -> [<unused>]))
 )
 
 ; Hot potatoes are tricky; they're not FAILURE! but EXCEPT should probably be

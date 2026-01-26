@@ -643,7 +643,7 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "cells/cell-series.h"
 #include "cells/cell-array.h"
 
-#include "cells/cell-comma.h"  // includes GHOST! atm
+#include "cells/cell-comma.h"  // includes VOID! atm
 #include "cells/cell-void.h"
 
 #include "cells/cell-word.h"  // needs to know about QUOTED! for binding

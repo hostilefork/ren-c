@@ -281,7 +281,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
 //    a FAILURE! would have to panic anyway, so it might as well use the one
 //    it is given.
 //
-// 3. It might seem that since EVAL [] has an answer (GHOST! or HEAVY VOID
+// 3. It might seem that since EVAL [] has an answer (VOID! or HEAVY VOID
 //    depending on the call), that EVAL:STEP [] should also have an answer...
 //
 //    *BUT* in practice, there's a dummy step at the end of every enumeration,
@@ -347,22 +347,22 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
   //
   //    * "transparent" mode like how GROUP! works, where `(expr)` and `expr`
   //      behave the same, at the cost of having distinct behavior for all
-  //      steps producing GHOST! up until the first non-GHOST! value.  (No
+  //      steps producing VOID! up until the first non-VOID! value.  (No
   //      need to use the `^` operator in those initial steps.)
   //
   //    * "regimented" mode like how `eval block` is expected to work, where
   //      every step has the same "afraid of voids" behavior, even before
-  //      the first non-GHOST! value is seen.  This enables simulating the
+  //      the first non-VOID! value is seen.  This enables simulating the
   //      answer of a full EVAL using just sequential EVAL:STEP calls, and
   //      just throwing away any voids.
   //
   //    To understand why these are different, consider:
   //
   //        eval:step [eval [comment "hi"] ...]    ; must make HEAVY VOID
-  //        eval:step [^ eval [comment "hi"] ...]  ; must make GHOST!
+  //        eval:step [^ eval [comment "hi"] ...]  ; must make VOID!
   //
-  //    By contrast, you wouldn't want `ghost? (eval [comment "hi"])` to be
-  //    false.  It needs the same answer as `ghost? eval [comment "hi"]` which
+  //    By contrast, you wouldn't want `void? (eval [^ comment "hi"])` to be
+  //    false.  It has the same answer as `void? eval [^ comment "hi"]` which
   //    is true.  Merely parenthesizing a single expression isn't expected to
   //    change what it produces.
   //
@@ -391,7 +391,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
         flags
     ));
     if (not ARG(STEP))
-        Init_Ghost(Evaluator_Primed_Cell(sub));
+        Init_Void(Evaluator_Primed_Cell(sub));
     Push_Level_Erase_Out_If_State_0(OUT, sub);
 
     if (not ARG(STEP))  // plain evaluation to end, maybe void/none
@@ -466,7 +466,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
         crash (source); // Frame is the only other type
 
     if (Is_Level_At_End(L))
-        return GHOST_OUT;
+        return VOID_OUT;
 
     require (
       Level* sub = Make_Level(  // need evaluation in a sublevel [3]

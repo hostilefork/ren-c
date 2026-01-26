@@ -13,8 +13,8 @@
     (null = collect* [])
     ([] = collect [])
 
-    (null = collect* [assert [ghost? keep ^ghost]])
-    ([] = collect [assert [ghost? keep ^ghost]])
+    (null = collect* [assert [void? keep ^void]])
+    ([] = collect [assert [void? keep ^void]])
 
     ([] = collect* [assert [(quasi '[]) = lift (keep spread [])]])
     ([] = collect [assert [(quasi '[]) = lift (keep spread [])]])

@@ -248,6 +248,13 @@ for-each [alias] [
 function3: ~#[FUNCTION slated for synonym of FUNC, so no FUNCTION3]#~
 
 
+=== "ANY-VOID? SHIM" ===
+
+; There's no heavy void in the bootstrap EXE, so ANY-VOID? is just VOID?
+
+any-void?: void?/
+
+
 === "ISSUE! => RUNE!" ===
 
 ; Historically #a and #"a" were different things, with the first being an
@@ -928,12 +935,6 @@ modernize-action: func3 [
                     text? spec.1
                 ][
                     keep3:only spec.1
-                ]
-
-                if spec.1 = [ghost?] [
-                    keep3:only []  ; old cue for invisibility
-                    spec: my next
-                    continue
                 ]
 
                 if types: match block! spec.1 [

@@ -116,15 +116,15 @@ DECLARE_NATIVE(HOLE_Q)
 }
 
 
-// PACK piggy-backs on REDUCE's implementation.  But REDUCE ignores ghosts
+// PACK piggy-backs on REDUCE's implementation.  But REDUCE ignores VOID!
 // (at least by default--maybe someday a refinement will control it being able
-// to see them...but it's too annoying to pass ghosts to predicates in the
+// to see them...but it's too annoying to pass voids to predicates in the
 // general case).  So it can't be just REDUCE:PREDICATE with LIFT, it has to
 // slip in a flag to tell REDUCE to behave like PACK.
 //
 // Note: Since REDUCE and PACK are FRAME!-compatible, there could be a special
 // value of the :PREDICATE refinement that cued PACK! behavior.  One might
-// even say that some trick like "pass a quoted FRAME! and you get GHOST!"
+// even say that some trick like "pass a quoted FRAME! and you get VOID!"
 // could be a back-door to the functionality, vs. bloating the frame with an
 // extra refinement.  For now avoiding weird magic, or exposing the feature
 // via something users could trip over accidentally.
@@ -211,7 +211,7 @@ DECLARE_NATIVE(REDUCE)
 
   // 1. !!! Skipping COMMA! saves time here, but raises questions regarding
   //    RebindableSyntax...what if COMMA! has been rethought not to make
-  //    ghosts?  It's actually semantically important for PACK (which reuses
+  //    voids?  It's actually semantically important for PACK (which reuses
   //    this code) to skip the commas, so this needs further thought.
   //
   // 2. We want the output newline status to mirror newlines of the start
@@ -224,7 +224,7 @@ DECLARE_NATIVE(REDUCE)
 
     if (Is_Comma(At_Level(SUBLEVEL))) {
         Fetch_Next_In_Feed(SUBLEVEL->feed);
-        goto next_reduce_step;  // PACK can't let COMMA! eval to GHOST! [1]
+        goto next_reduce_step;  // PACK can't let COMMA! eval to VOID! [1]
     }
 
     if (Get_Cell_Flag(At_Level(SUBLEVEL), NEWLINE_BEFORE))
@@ -239,18 +239,13 @@ DECLARE_NATIVE(REDUCE)
 
 } reduce_step_result_in_spare: { /////////////////////////////////////////////
 
-  // 1. If not doing (pack [...]) semantics, we skip ghosts.  Consider:
+  // 1. If not doing (pack [...]) semantics, we skip voids.  Consider:
   //
   //        >> reduce:predicate [1 + 2, if 3 = 4 [5], 6 + 7] negate/
   //        == [-3 -7]
   //
-  //    NEGATE doesn't necessarily accept ghosts...and even if it did, it
-  //    would probably return NULL, which is an antiform REDUCE wouldn't be
-  //    able to handle.
-  //
-  // 2. It's possible that the function being used as a predicate is an
-  //    intrinsic and doesn't do type checking.  In that case, we need to
-  //    tweak the parameter to request that it be checked.
+  //    NEGATE doesn't necessarily accept voids, but we'd still like to be
+  //    able to vanish the light void that IF makes.
 
     if (Get_Level_Flag(LEVEL, REDUCE_IS_ACTUALLY_PACK)) {
         Copy_Lifted_Cell(PUSH(), SPARE);
@@ -260,8 +255,8 @@ DECLARE_NATIVE(REDUCE)
     if (not predicate)  // default is no processing
         goto process_out;
 
-    if (Is_Ghost(SPARE))
-        goto next_reduce_step;  // don't pass ghosts to predicate
+    if (Is_Void(SPARE))
+        goto next_reduce_step;  // don't pass ghosts to predicate [1]
 
     SUBLEVEL->executor = &Just_Use_Out_Executor;
     STATE = ST_REDUCE_RUNNING_PREDICATE;
@@ -282,7 +277,7 @@ DECLARE_NATIVE(REDUCE)
   // 3. We're performing more evaluations using the same sublevel, and it
   //    needs to know its baseline correctly.  Adjust for any pushes we do.
 
-    if (Is_Ghost(SPARE))
+    if (Is_Void(SPARE))
         goto next_reduce_step;  // void results are skipped by reduce
 
     if (Is_Cell_A_Veto_Hot_Potato(SPARE))
@@ -362,7 +357,7 @@ DECLARE_NATIVE(PACK)
 //       >> pack @[1 + 2]
 //       == \~['1 '+ '2']~\  ; antiform (pack!)
 //
-// 2. Using LIFT as a predicate means error antiforms are tolerated; it is
+// 2. Using LIFT as a predicate means FAILURE! antiforms are tolerated; it is
 //    expected that you IGNORE (vs. ELIDE) a PACK which contains errors, as
 //    ordinary elisions (such as in multi-step evaluations) will complain:
 //
@@ -370,7 +365,7 @@ DECLARE_NATIVE(PACK)
 {
     INCLUDE_PARAMS_OF_PACK;
 
-    if (STATE == STATE_0) { // PACK is GHOST-aware REDUCE with LIFT predicate
+    if (STATE == STATE_0) { // PACK is VOID!-aware REDUCE with LIFT predicate
         Element* block = Element_ARG(BLOCK);
 
         if (Is_Pinned_Form_Of(BLOCK, block)) {  // lift elements literally [1]
@@ -424,7 +419,7 @@ DECLARE_NATIVE(PACK)
 //          any-value?      "last body result (if not NULL)"
 //          ~(<null>)~      "if last body result was NULL"
 //          <null>          "if BREAK encountered"
-//          ghost!          "if body never ran"
+//          void!           "if body never ran"
 //      ]
 //      @vars "Variable to receive each reduced value (multiple TBD)"
 //          [_ word! 'word! ^word!]
@@ -508,14 +503,14 @@ DECLARE_NATIVE(REDUCE_EACH)
 
 } reduce_step_result_in_spare: {  ////////////////////////////////////////////
 
-  // 1. See notes in REDUCE for why it just skips over GHOST! results.  For
+  // 1. See notes in REDUCE for why it just skips over VOID! results.  For
   //    compatibility, we make REDUCE-EACH do the same thing.
   //
   //    (If REDUCE ever gets a :GHOSTABLE refinement, REDUCE-EACH should too.)
 
     Slot* slot = Varlist_Slot(Cell_Varlist(vars), 1);
 
-    if (Is_Ghost(SPARE))
+    if (Is_Void(SPARE))
         goto reduce_next;  // REDUCE-compatible semantics [1]
 
     trap (
@@ -561,7 +556,7 @@ DECLARE_NATIVE(REDUCE_EACH)
         return THROWN;
 
     if (Is_Cell_Erased(OUT))  // body never ran
-        return GHOST_OUT_UNBRANCHED;
+        return VOID_OUT_UNBRANCHED;
 
     if (breaking)
         return NULL_OUT_BREAKING;

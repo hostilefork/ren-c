@@ -131,11 +131,11 @@ export console!: make object! [
             return
         ]
 
-      === GHOST! ===
+      === VOID! ===
 
-        if ghost? ^v [
+        if void? ^v [
             print unspaced [
-                result _ --[\~,~\  ; antiform (ghost!) "void"]--]
+                result _ --[\~,~\  ; antiform (void!)]--]
             return
         ]
 
@@ -225,7 +225,7 @@ export console!: make object! [
                 fence! ['datatype!]
                 frame! ['action!]
                 word! ['logic!]
-            ] else ['unknown]  ; failure! and ghost! handled above
+            ] else ['unknown]  ; failure! and void! handled above
 
             v: lift ^v  ; turn antiform into quasiform
             print unspaced [
@@ -834,7 +834,7 @@ console*: func [
   ;
   ; 6. If the transcode returned [], then it was like (transcode "") or
   ;    transcode "; some comment".  But rather than have the console print out
-  ;    a note that evaluated to GHOST!, we just cycle the prompt.  This is
+  ;    a note that evaluated to VOID!, we just cycle the prompt.  This is
   ;    more pleasing if you just hit enter to see if the console is responding.
 
     assert [not empty? result]  ; should have at least one item

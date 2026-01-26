@@ -70,7 +70,7 @@
         assert [b = [<xx>]]
         append b 'z
     )
-    ([] = blockify ^ghost)
+    ([] = blockify ^void)
     ([] = blockify [])
 ]
 
@@ -130,7 +130,7 @@
 
     ([a b c '[3 d e]] = append [a b c] lift compose [(1 + 2) d e])
 
-    ([a b c ~,~] = append [a b c] lift ^ghost)
+    ([a b c ~,~] = append [a b c] lift ^void)
 
     (
         [a b c ~null~] = append [a b c] lift null
@@ -185,7 +185,7 @@
 
 [
     ('~()~ = lift if ok [])
-    (ghost? if null [<a>])
+    (void? if null [<a>])
     ([a b c] = append [a b c] if null [<a>])
     (null = append [a b c] cond if null [<a>])
 ]

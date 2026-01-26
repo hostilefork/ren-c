@@ -49,10 +49,10 @@
 //    result, and actually just passes through to the Stepper_Executor().
 //
 // B. There are effectively two different ways to model multi-step evaluation
-//    in terms of how GHOST! (the ~,~ antiform) is treated.  One is a sort of
+//    in terms of how VOID! (the ~,~ antiform) is treated.  One is a sort of
 //    regimented approach where the idea is that you want the aggregate
 //    evaluation of a BLOCK! to be something that is comprised of distinct
-//    EVAL:STEP calls, which handle GHOST! in an identical way on each step.
+//    EVAL:STEP calls, which handle VOID! in an identical way on each step.
 //    The other modality is more based around the idea of things like an
 //    inline GROUP!, which prioritizes the idea that `expr` and `(expr)` will
 //    behave equivalently.
@@ -60,15 +60,15 @@
 //    This manifests in terms of if you pass in LEVEL_FLAG_AFRAID_OF_GHOSTS
 //    at the beginning of the evaluation.  If you don't, then the evaluator
 //    only becomes "afraid" of voids (none-ifying the non-VANISHABLE cases)
-//    once it sees a non-GHOST! result.
+//    once it sees a non-VOID! result.
 //
-//        ghost? eval [comment "hi"]    ; => ~okay~
-//        ghost? (eval [comment "hi"])  ; => should also be ~okay~
+//        void? eval [^ comment "hi"]    ; => ~okay~
+//        void? (eval [^ comment "hi"])  ; => should also be ~okay~
 //
 //    But if you start afraid, then all are identically afraid, e.g.:
 //
-//        eval:step [eval [comment "hi"]]    ; => HEAVY VOID, not GHOST!
-//        eval:step [^ eval [comment "hi"]]  ; => GHOST!
+//        eval:step [eval [^ comment "hi"]]    ; => HEAVY VOID, not VOID!
+//        eval:step [^ eval [^ comment "hi"]]  ; => VOID!
 //
 //    This divergence of evaluator styles is a natural outcome of the needs
 //    of EVAL-the-function and GROUP!-the-syntax-tool.  They are different
@@ -105,14 +105,14 @@ static Level* Level_For_Stepping(Level* L) {  // see [A]
 //    set the "primed" value for what they want as a result if there
 //    are no non-invisible evaluations.  Theoretically any preloaded value is
 //    possible (and we may want to expose that as a feature e.g. in EVAL).
-//    But for now, GHOST! is the presumed initial value at all callsites.
+//    But for now, VOID! is the presumed initial value at all callsites.
 //
 //    (Note: The reason preloading was initially offered to clients was to
 //    allow a choice of HEAVY VOID vs. VOID, so contexts where vaporization
-//    would be "risky" could avoid GHOST!.  A systemic and powerful way of
+//    would be "risky" could avoid VOID!.  A systemic and powerful way of
 //    controlling vaporization arose from LEVEL_FLAG_AFRAID_OF_GHOSTS which
 //    gives a best-of-both-worlds approach: allowing multi-step evaluation
-//    contexts to convert voids to nones in steps for functions that are
+//    contexts to convert void to heavy void in steps for functions that are
 //    not intrinically "VANISHABLE", with an operator to override the void
 //    suppression.  But preloading is kept as it may be useful later.)
 //
@@ -132,7 +132,7 @@ Bounce Evaluator_Executor(Level* const L)
       case ST_EVALUATOR_INITIAL_ENTRY:
         assert(Not_Level_Flag(L, TRAMPOLINE_KEEPALIVE));
         possibly(Get_Level_Flag(L, AFRAID_OF_GHOSTS));  // GROUP! doesn't [B]
-        assert(Is_Ghost(PRIMED));  // all cases GHOST! at the moment [1]
+        assert(Is_Void(PRIMED));  // all cases VOID! at the moment [1]
         goto initial_entry;
 
       default:  // if using same level as Stepper, it takes all other states
@@ -158,7 +158,7 @@ Bounce Evaluator_Executor(Level* const L)
         Push_Level_Erase_Out_If_State_0(OUT, sub);
 
         if (Is_Level_At_End(sub)) {
-            Init_Ghost(OUT);
+            Init_Void(OUT);
             goto finished;
         }
 
@@ -167,7 +167,7 @@ Bounce Evaluator_Executor(Level* const L)
     }
 
     if (Is_Level_At_End(L)) {
-        Init_Ghost(OUT);
+        Init_Void(OUT);
         goto finished;
     }
 
@@ -196,7 +196,7 @@ Bounce Evaluator_Executor(Level* const L)
 
 } step_done_with_result_in_out: {  ///////////////////////////////////////////
 
-  // 1. Note that unless a function is declared as VANISHABLE, any GHOST! it
+  // 1. Note that unless a function is declared as VANISHABLE, any VOID! it
   //    tries to return will be converted to empty PACK! for safety when in
   //    an evaluation step marked by LEVEL_FLAG_AFRAID_OF_GHOSTS.  You have to
   //    override this explicitly with the `^` operator when you actually want
@@ -224,7 +224,7 @@ Bounce Evaluator_Executor(Level* const L)
 
     Level* step_level = Level_For_Stepping(L);
 
-    if (Is_Ghost(OUT)) {  // ELIDE, COMMENT, (^ EVAL []) etc. [1]
+    if (Is_Void(OUT)) {  // ELIDE, COMMENT, (^ EVAL []) etc. [1]
         if (Is_Level_At_End(step_level)) {
             Move_Cell(OUT, PRIMED);
             goto finished;

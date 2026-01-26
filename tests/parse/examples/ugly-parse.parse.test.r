@@ -21,15 +21,15 @@
     ][
         ^r: eval value except (e -> [panic e])  ; can't `return fail` for this
 
-        if void? ^r [  ; like [inline (comment "hi")]
+        if any-void? ^r [  ; like [inline (comment "hi")]
             return ()
         ]
 
         if antiform? ^r [
-            panic "Misguided GROUP! cannot make non-ghostly antiforms"
+            panic "Misguided GROUP! cannot make non-void antiforms"
         ]
 
-        r: ^r  ; only needed as ^META to check for ghosts
+        r: ^r  ; only needed as ^META to check for voids
 
         if word? r [
             r: reduce [r]  ; enable 0-arity combinators
@@ -46,7 +46,7 @@
     ; want to suppress the triggering of the generated rule.
     ;
     ugly-combinators.discard: vanishable combinator [
-        return: [ghost!]
+        return: [void!]
         input [any-series?]
         @group [group!]
     ][

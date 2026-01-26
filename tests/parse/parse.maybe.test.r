@@ -3,15 +3,12 @@
 ; OPT is an alternative to the TRY combinator, that synthesizes VOID instead
 ; of NULL when a parse rule does not match.
 
-(ghost? parse "aaa" [some "a" opt some "b"])
-(ghost? parse "aaabbb" [some "a" opt some "b"])
+(void? parse "aaa" [some "a" opt some "b"])
+(void? parse "aaabbb" [some "a" opt some "b"])
 
 
 ; Usages with SET-WORD!, potentially opting out of changing variables and
 ; making the rule evaluation their previous value if opting out.
-;
-; !!! So long as OPT is designed to return nihil, this can't do a legal
-; assignment...demonstrate meta
 
 (all [
     "b" = parse "bbb" [

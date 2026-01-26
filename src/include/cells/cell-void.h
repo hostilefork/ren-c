@@ -95,12 +95,12 @@ INLINE bool Is_Lifted_Heavy_Void(const Stable* v) {
 }
 
 INLINE bool Any_Void_Core(const Value* v) {
-    return Is_Ghost(v) or Is_Heavy_Void(v);
+    return Is_Void(v) or Is_Heavy_Void(v);
 }
 
 #define Any_Void(v) \
     Any_Void_Core(Possibly_Unstable(v))
 
 INLINE bool Is_Any_Lifted_Void(const Stable* v) {
-    return Is_Lifted_Ghost(v) or Is_Lifted_Heavy_Void(v);
+    return Is_Lifted_Void(v) or Is_Lifted_Heavy_Void(v);
 }

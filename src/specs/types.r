@@ -137,7 +137,7 @@ email!      "email address"
             [any-utf8? any-inert?]
 
 rune!       "immutable codepoint or codepoint sequence"
-~trash!~:U  "Vanishes in console, can't assign normally via WORD!"
+~trash!~:U  "Panics on WORD! access, console does not display"
             (:payload1)  ; may or may not embed data in rune vs. use node
             [any-utf8? any-inert? any-sequencable?]
 
@@ -207,7 +207,7 @@ parameter!  "function parameter description"
 ; datatype that was FEED-specific.  Better ideas welcome.
 
 comma!        "separator between full evaluations"
-~ghost!~:U     "a.k.a. VOID, discarded by evaluations (when safe to do so)"
+~void!~:U     "Panics on WORD! access, multi-step evaluations discard"
               (CELL_MASK_NO_MARKING)
               [any-unit?]  ; NOT inert
 

@@ -479,7 +479,7 @@ bool Process_Group_For_Parse_Throws(
         &Evaluator_Executor, group, derived, LEVEL_MASK_NONE
       )
     );
-    Init_Ghost(Evaluator_Primed_Cell(sub));
+    Init_Void(Evaluator_Primed_Cell(sub));
     Push_Level_Erase_Out_If_State_0(eval, sub);
 
     if (Trampoline_With_Top_As_Root_Throws())
@@ -2331,7 +2331,7 @@ DECLARE_NATIVE(SUBPARSE)
                     if (P_FLAGS & PF_TRY)  // don't just leave alone
                         Init_Nulled(OUT);
                     else if (P_FLAGS & PF_OPTIONAL)
-                        Init_Ghost_For_Unset(OUT);
+                        Init_Void_Signifying_Unset(OUT);
                 }
                 else if (Stub_Holds_Cells(P_INPUT)) {
                     assert(count == 1);  // check for > 1 would have errored

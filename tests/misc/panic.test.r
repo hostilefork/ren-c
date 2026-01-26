@@ -61,7 +61,7 @@
     (
         x': ~
         all [
-            (faiure? unlift [x']: lift fail "hi" ^ghost)
+            (faiure? unlift [x']: lift fail "hi" ^void)
             failure? unlift x'
         ]
     )

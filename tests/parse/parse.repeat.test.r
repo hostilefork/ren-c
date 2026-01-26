@@ -64,9 +64,11 @@
 ; Plain loops that never actually run their body give back a match that is
 ; a void, as do 0-iteration REPEAT and INTEGER! rules.
 [
-    (ghost? parse "" [repeat 0 one])
+    (void? parse "" [^ repeat 0 one])
+    (heavy-void? parse "" [repeat 0 one])
 
-    (ghost? parse "a" ["a" repeat (0) "b"])
+    (void? parse "a" ["a" repeat (0) "b"])
+    (heavy-void? parse "a" ["a" repeat (0) "b"])
 
     ("a" = parse "a" ["a" ^ repeat 0 "b"])
     ("a" = parse "a" ["a" ^ [repeat 0 "b"]])
@@ -130,7 +132,7 @@
     ("a" = parse "aaaaaaa" [repeat (#) "a"])
     ("a" = parse "aaaaaaaaaaaaaaaaaaa" [repeat (#) "a"])
     ("a" = parse "aa" [repeat (#) "a"])
-    (ghost? parse "" [repeat (#) "a"])
+    (heavy-void? parse "" [repeat (#) "a"])
 ]
 
 ; No minimum or maximum (OPT SOME equivalent), block form
@@ -138,7 +140,7 @@
     ("a" = parse "aaaaaaa" [repeat ([_ #]) "a"])
     ("a" = parse "aaaaaaaaaaaaaaaaaaa" [repeat ([_ #]) "a"])
     ("a" = parse "aa" [repeat ([_ #]) "a"])
-    (ghost? parse "" [repeat ([_ #]) "a"])
+    (heavy-void? parse "" [repeat ([_ #]) "a"])
 ]
 
 [
@@ -183,10 +185,10 @@
 ]
 
 [https://github.com/red/red/issues/4591
-    (ghost? parse [] [repeat 0 [ignore me]])
-    (ghost? parse [] [repeat 0 "ignore me"])
-    (ghost? parse [] [repeat 0 repeat 0 [ignore me]])
-    (ghost? parse [] [repeat 0 repeat 0 "ignore me"])
+    (heavy-void? parse [] [repeat 0 [ignore me]])
+    (void? parse [] [^ repeat 0 "ignore me"])
+    (heavy-void? parse [] [repeat 0 repeat 0 [ignore me]])
+    (void? parse [] [^ repeat 0 ^ repeat 0 "ignore me"])
 
     ~parse-incomplete~ !! (parse [x] [repeat 0 repeat 0 'x])
     ~parse-incomplete~ !! (parse " " [repeat 0 repeat 0 space])

@@ -67,7 +67,7 @@
   ;    definition in effect).
   ;
   ; 2. The strategy here is that we want to LIFT anything that a THEN would
-  ;    react to, leaving "light void" (ghost!) and "light null" (the ~null~
+  ;    react to, leaving "light void" (void!) and "light null" (the ~null~
   ;    logic!) in their unlifted states.  This lets them serve as the signal
   ;    for breaking or opting out of contributing to the final loop result:
   ;
@@ -75,7 +75,7 @@
   ;        == ~,~
   ;
   ;        >> () then lift/
-  ;        == \~,~\  ; antiform (ghost!) "void"
+  ;        == \~,~\  ; antiform (void!)
   ;
   ;        >> lift null
   ;        == ~null~
@@ -85,7 +85,7 @@
   ;
   ; 3. In order to "erase" the contribution of loops that don't run, we have
   ;    to work around the fact that FOR-EACH and LIFT aren't marked as being
-  ;    vanishing functions.  So when they return GHOST! in multi-step eval
+  ;    vanishing functions.  So when they return VOID! in multi-step eval
   ;    operations that have sequential meanings (like ALL), a safety mechanism
   ;    kicks in to produce a "heavy void" that won't vanish.  To subvert that
   ;    we use the `^` operator--which allows expressions to vanish even if
@@ -158,12 +158,12 @@
         ]
     ])
 
-  ; The contract of returning GHOST! is preserved when no loop bodies run, as
+  ; The contract of returning VOID! is preserved when no loop bodies run, as
   ; both FOR-EACH in the ALL have their contributions erased and effectively
   ; leave behind an `all []`.  Ren-C's working definition (motivated by this
-  ; kind of example) is that should produce a GHOST! as well.
+  ; kind of example) is that should produce a VOID! as well.
 
-    (ghost? for-both 'x [] [] [panic "Body Never Runs"])
+    (void? for-both 'x [] [] [panic "Body Never Runs"])
 
     (
         <something> = eval [

@@ -151,8 +151,8 @@
 )
 (null? get:groups $())
 (null? get:groups ())
-(null? get:groups ^ghost)
-(null? get:groups (^ghost))
+(null? get:groups ^void)
+(null? get:groups (^void))
 
 ('~('1 '2)~ = lift get ['1 '2])
 (
@@ -166,10 +166,10 @@
     a: ()
     b: [x y]
     all [
-        ghost? ^a
-        ghost? ^b.3
-        ghost? ^obj.a
-        ghost? ^obj.b.3
+        void? ^a
+        void? ^b.3
+        void? ^obj.a
+        void? ^obj.b.3
         null? :a
         null? :b.3
         null? :obj.a

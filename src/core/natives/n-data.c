@@ -1079,7 +1079,7 @@ DECLARE_NATIVE(INFIX)
 //
 //  vanishable: native [
 //
-//  "Make function's invocation not turn GHOST! results to empty PACK!"
+//  "Make function's invocation not turn VOID! results to empty PACK!"
 //
 //      return: [action! frame!]
 //      ^value [action! frame!]
@@ -1104,7 +1104,7 @@ DECLARE_NATIVE(VANISHABLE)
 //
 //  vanishable?: native [
 //
-//  "Return if a function naturally suppresses GHOST! to HEAVY VOID conversion"
+//  "Return if a function naturally suppresses VOID! to HEAVY VOID conversion"
 //
 //      return: [logic!]
 //      action [frame!]
@@ -1119,7 +1119,7 @@ DECLARE_NATIVE(VANISHABLE_Q)
 
 
 //
-//  identity: native:intrinsic [
+//  identity: vanishable native:intrinsic [  ; vanishable to not distort [1]
 //
 //  "Returns input value (https://en.wikipedia.org/wiki/Identity_function)"
 //
@@ -1127,13 +1127,28 @@ DECLARE_NATIVE(VANISHABLE_Q)
 //      ^value '[any-value?]
 //  ]
 //
-DECLARE_NATIVE(IDENTITY)  // sample uses: https://stackoverflow.com/q/3136338
+DECLARE_NATIVE(IDENTITY)  // '<-' defined as non-vanishable version [2]
 //
-// Note: a peculiar definition in the default setup for identity is as the
-// meaning of the left arrow `<-` ... this strange choice gives you the
-// ability to annotate when information is flowing leftward:
+// 1. Being "vanishable" may seem like a weird choice for IDENTITY, as if it
+//    makes it "do something" (vanish).  But it's actually *non*-vanishing
+//    that "does something", namely convert VOID! to an empty PACK! for the
+//    purposes of safety.
 //
-//   https://rebol.metaeducation.com/t/weird-old-idea-for-identity/2165
+//    One might complain a bit that if one's goal is to suppress the VOID!
+//    to PACK! conversion, then seeing the word IDENTITY in the source isn't
+//    the best way to convey that intent to a reader.  That's fair, but if
+//    you see a `^` operator in the source you know something is up... and
+//    that's probably more common to see.  IDENTITY just has to keep its
+//    behavior in sync.
+//
+//    (Note that GHOSTLY is *not* a synonym for IDENTITY, because it will
+//    turn HEAVY VOID into VOID!, which IDENTITY does not do.)
+//
+// 2. A peculiar definition in the default setup for a *NON*-vanishable
+//    identity function is the meaning of `<-` ... this strange choice gives
+//    you the ability to annotate when information is flowing leftward:
+//
+//      https://rebol.metaeducation.com/t/weird-old-idea-for-identity/2165
 {
     INCLUDE_PARAMS_OF_IDENTITY;
 
@@ -1444,7 +1459,7 @@ DECLARE_NATIVE(HEAVY)
     if (Is_Light_Null(v))
         return Init_Heavy_Null(OUT);
 
-    if (Is_Ghost(v))
+    if (Is_Void(v))
         return Init_Heavy_Void(OUT);
 
     return COPY_TO_OUT(v);

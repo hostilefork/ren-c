@@ -182,7 +182,7 @@
 )
 (
     f: does [()]
-    (lift ^ghost) = lift f
+    (lift ^void) = lift f
 )
 (
     f: does ['a]
@@ -447,14 +447,14 @@
 )]
 
 (
-    foo: lambda [^arg [null? ghost! <hole> ghost? integer!]] [
-        either unset? $arg [<unset>] [lift ^arg]
+    foo: lambda [^arg [null? void! <hole> integer!]] [
+        either hole? $arg [<hole>] [lift ^arg]
     ]
     all [
         (the '1020) = (foo 1020)
         '~,~ = (foo comment "HI")
         (lift null) = (foo any [1 > 2, 3 > 4])
-        <unset> = (foo)
+        <hole> = (foo)
     ]
 )
 

@@ -180,7 +180,7 @@ INLINE Count Noquotify(Element* elem) {
 
 //=//// UNSTABLE ANTIFORMS ////////////////////////////////////////////////=//
 //
-// Unstable antiforms like PACK!, FAILURE!, and GHOST! antiforms aren't just
+// Unstable antiforms like PACK!, FAILURE!, and VOID! antiforms aren't just
 // not allowed in blocks, they can't be in stored in "normal" variables
 // (only ^META variables can hold them).  They will either decay to stable
 // forms or cause errors in decay.

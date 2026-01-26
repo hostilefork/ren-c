@@ -14,7 +14,7 @@
 (
     list: [a b c]
     all [
-        ghost? list.2: ^ghost
+        void? list.2: ^void
         list = [a c]
     ]
 )
@@ -28,7 +28,7 @@
 )
 (
     text: "abc"
-    ghost? text.2: ^ghost
+    void? text.2: ^void
     text = "ac"
 )
 
@@ -42,7 +42,7 @@
 (
     bin: #{0A0B0C}
     all [
-        ghost? bin.2: ^ghost
+        void? bin.2: ^void
         bin = #{0A0C}
     ]
 )

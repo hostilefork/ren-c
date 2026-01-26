@@ -111,8 +111,8 @@
 ]
 
 [https://github.com/red/red/issues/3108
-    (ghost? parse [1] [some further [to <end>]])
-    (ghost? parse [1] [some further [to [<end>]]])
+    (void? parse [1] [some further [to <end>]])
+    (void? parse [1] [some further [to [<end>]]])
 ]
 
 (#c = parse "baaac" [one some [#a] #c])
@@ -129,8 +129,8 @@
 )
 
 [
-    (^ghost = parse [] [opt some 'a])
-    (^ghost = parse [] [opt some 'b])
+    (void? parse [] [^ opt some 'a])
+    (heavy-void? parse [] [opt some 'b])
     ('a = parse [a] [opt some 'a])
 
     ~parse-incomplete~ !! (parse [a] [opt some 'b])
@@ -148,8 +148,8 @@
 )]
 
 [
-    (^ghost = parse "a" ["a" opt some "b"])
-    (^ghost = parse "a" ["a" [opt "b"]])
+    (heavy-void? parse "a" ["a" opt some "b"])
+    (heavy-void? parse "a" ["a" [opt "b"]])
     ('~,~ = parse "a" ["a" [/lift opt some "b"]])
 ]
 
@@ -183,8 +183,8 @@
 
 
 [
-    (^ghost = parse "" [opt some #a])
-    (^ghost = parse "" [opt some #b])
+    (heavy-void? parse "" [opt some #a])
+    (heavy-void? parse "" [opt some #b])
     (#a = parse "a" [opt some #a])
     ~parse-incomplete~ !! (parse "a" [opt some #b])
     (#a = parse "a" [opt some #b one])
@@ -208,8 +208,8 @@
         parse #{0105} [some [x: across one elide cond (even? first x)]]
     )
 
-    (^ghost = parse #{} [opt some #{0A}])
-    (^ghost = parse #{} [opt some #{0B}])
+    (heavy-void? parse #{} [opt some #{0A}])
+    (heavy-void? parse #{} [opt some #{0B}])
     (#{0A} = parse #{0A} [opt some #{0A}])
 
     ~parse-incomplete~ !! (parse #{0A} [opt some #{0B}])
@@ -224,5 +224,5 @@
 
 [
     ('a = parse [a a] [opt some 'a])
-    (^ghost = parse [a a] [opt some 'a, opt some 'b])
+    (heavy-void? parse [a a] [opt some 'a, opt some 'b])
 ]

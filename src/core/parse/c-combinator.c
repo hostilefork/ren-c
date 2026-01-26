@@ -303,9 +303,9 @@ void Push_Parser_Sublevel(
 //
 //  opt-combinator: native:combinator [
 //
-//  "If parser fails, succeed and return GHOST without advancing the input"
+//  "If parser fails, succeed and return VOID! without advancing the input"
 //
-//      return: [ghost! any-stable?]
+//      return: [void! any-stable?]
 //      ^parser [action!]
 //      {remainder}  ; !!! no longer separate output, review
 //  ]

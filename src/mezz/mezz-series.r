@@ -105,7 +105,7 @@ replace: func [
         datatype! "Type to match (FIND semantics)"
     ]
     ^replacement [
-        <void> "erase pattern"
+        any-void? "erase pattern"
         element? splice! "Value(s) to replace with (converted if necessary)"
         action! "Gets head/tail of match, returns replacement or VETO to skip"
     ]

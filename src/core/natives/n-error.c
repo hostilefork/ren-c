@@ -32,7 +32,7 @@
 //  "Suppress PANIC escalation from PANIC!s and 'hot potatoes', return NULL"
 //
 //      return: [<null> any-value?]
-//      ^value '[<veto> any-value? failure! hot-potato? void?]
+//      ^value '[<veto> any-value? failure! hot-potato? any-void?]
 //  ]
 //
 DECLARE_NATIVE(TRY)
@@ -96,7 +96,7 @@ DECLARE_NATIVE(ENRECOVER)
         code,
         LEVEL_FLAG_AFRAID_OF_GHOSTS  // EVAL-like semantics?
     ));
-    Init_Ghost(Evaluator_Primed_Cell(L));
+    Init_Void(Evaluator_Primed_Cell(L));
 
     Push_Level_Erase_Out_If_State_0(OUT, L);
 
@@ -168,7 +168,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 
   // 1. We aren't catching throws or panics, only cooperative FAILURE! results.
 
-    Init_Ghost(OUT);  // default if all evaluations produce ghost
+    Init_Void(OUT);  // default if all evaluations produce void
 
     Flags flags = LEVEL_FLAG_TRAMPOLINE_KEEPALIVE;  // reused for each step
 

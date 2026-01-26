@@ -44,16 +44,16 @@
 [
     (foo: lambda [] [], ok)
 
-    (ghost? foo)
-    (ghost? (foo))
+    (void? foo)
+    (void? (foo))
 
-    ((lift ^ghost) = lift applique foo/ [])
-    (ghost? applique foo/ [])
-    (ghost? (applique foo/ []))
+    ((lift ^void) = lift applique foo/ [])
+    (void? applique foo/ [])
+    (void? (applique foo/ []))
 
-    ((lift ^ghost) = lift eval foo/)
-    (ghost? eval foo/)
-    (ghost? (eval foo/))
+    ((lift ^void) = lift eval foo/)
+    (void? eval foo/)
+    (void? (eval foo/))
 ]
 
 [
@@ -74,12 +74,12 @@
 
 ; Explicit return of VOID
 [
-    (did foo: func [return: [any-value?]] [return ^ghost])
+    (did foo: func [return: [any-value?]] [return ^void])
 
-    (ghost? foo)
-    ((lift ^ghost) = lift foo)
+    (void? foo)
+    ((lift ^void) = lift foo)
 
-    (ghost? (1 + 2 foo))
+    (void? (1 + 2 foo))
 ]
 
 ; Not providing an argument is an error (too easy to pick up random arguments
@@ -94,7 +94,7 @@
     (did foo: func [return: [any-stable?]] [return ~[]~])
 
     (none? foo)
-    (not ghost? foo)
+    (not void? foo)
     ('~[]~ = lift foo)
 
     (none? applique foo/ [])
@@ -178,17 +178,17 @@
     (
         a: 1020
         all [
-            ghost? ^a: (^ghost)
-            ghost? ^a
+            void? ^a: (^void)
+            void? ^a
         ]
     )
     (all [
-        ghost? ()  ; empty groups make voids
+        void? ()  ; empty groups make voids
         3 = (1 + 2 ())
     ])
     (all [
-        ghost? a: () 1 + 2  ; can't assign nihil
-        ghost? ^a
+        void? a: () 1 + 2
+        void? ^a
     ])
 ]
 
@@ -223,7 +223,7 @@
 ; LIFT* lifts anything that would trigger a THEN
 [
     (null = lift* null)
-    (^ghost = lift* ^ghost)
+    (^void = lift* ^void)
     ('~okay~ = lift* okay)
 
     ('~('1 '2)~ = lift* pack [1 2])
@@ -234,7 +234,7 @@
 
 ; UNLIFT* unlifts anything that would trigger a THEN
 [
-    (ghost? unlift* ^ghost)
+    (void? unlift* ^void)
     (null? unlift* null)
     (okay = unlift* '~okay~)
 

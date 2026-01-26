@@ -136,7 +136,7 @@
 ; No quote levels is legal for QUOTE to add also, if /DEPTH is 0
 [
     (<x> = quote:depth <x> 0)
-    ~expect-arg~ !! (ghost? quote:depth ^ghost 0)  ; can't quote voids, only lift
+    ~expect-arg~ !! (void? quote:depth ^void 0)  ; can't quote voids, only lift
 ]
 
 ; low level "KIND"

@@ -1,27 +1,27 @@
 ; %elide.test.r
 ;
 ; ELIDE is an evaluating variation of COMMENT.  It evaluates its
-; argument, but discards the result and synthesizes GHOST!
+; argument, but discards the result and synthesizes VOID!
 ;
 ; ELIDE will panic if you give it a FAILURE! antiform, but also if you
 ; give it a PACK! that contains FAILURE! antiforms.  However, it doesn't
 ; care if it can produce a value or not.  So it's more permissive than
 ; DECAY (which will panic if you give it something like a HEAVY VOID since
-; that's an empty PACK! that can't give you a value, or GHOST!, or a
+; that's an empty PACK! that can't give you a value, or VOID!, or a
 ; PACK! with a PACK! in the first slot.)
 
-(ghost? elide "a")
+(void? elide "a")
 ('~,~ = lift elide "a")
-(ghost? eval [elide "a"])
+(void? eval [elide "a"])
 ('~,~ = lift eval [elide "a"])
 
 (1 = eval [elide "a" 1])
 (1 = eval [1 elide "a"])
 
-(ghost? elide ^ghost)
-(ghost? elide pack [1 2 3])
-(ghost? elide pack [pack [1 2] 3])
-(ghost? elide pack [3 pack [1 2]])
+(void? elide ^void)
+(void? elide pack [1 2 3])
+(void? elide pack [pack [1 2] 3])
+(void? elide pack [3 pack [1 2]])
 
 ~zero-divide~ !! (elide 1 / 0)
 ~zero-divide~ !! (elide pack [1 / 0 2 3])
@@ -31,7 +31,7 @@
 (
     x: ~
     all [
-        ghost? elide elide elide x: 1020
+        void? elide elide elide x: 1020
         x = 1020
     ]
 )
@@ -71,29 +71,29 @@
 
 ; ELIDE-IF-VOID variation
 
-(equal? 304 300 + 4 elide-if-void ())
-(equal? 304 300 + 4 elide-if-void ~()~)
-(equal? 1020 elide-if-void 1000 + 20)
-(failure? elide-if-void fail "passthru")
-('~['10 '20]~ = lift elide-if-void pack [10 20])
+(equal? 304 300 + 4 ghostly ())
+(equal? 304 300 + 4 ghostly ~()~)
+(equal? 1020 ghostly 1000 + 20)
+(failure? ghostly fail "passthru")
+('~['10 '20]~ = lift ghostly pack [10 20])
 
 ; Usermode ELIDE-IF-VOID variant, to show you could write it yourself.
 [(
-    u-elide-if-void: vanishable func [
+    elide-if-void: vanishable func [
         "Argument is evaluative, but discarded if heavy void (or void)"
 
         return: [any-value?]
         ^value "Evaluation product to be ignored"
-            [any-value?]  ; ghost! is passed through
+            [any-value?]  ; void! is passed through
     ][
         if '~()~ = lift ^value [return ()]
         return ^value
     ]
     ok
 )
-    (equal? 304 300 + 4 u-elide-if-void ())
-    (equal? 304 300 + 4 u-elide-if-void ~()~)
-    (equal? 1020 u-elide-if-void 1000 + 20)
-    (failure? u-elide-if-void fail "passthru")
-    ('~['10 '20]~ = lift u-elide-if-void pack [10 20])
+    (equal? 304 300 + 4 elide-if-void ())
+    (equal? 304 300 + 4 elide-if-void ~()~)
+    (equal? 1020 elide-if-void 1000 + 20)
+    (failure? elide-if-void fail "passthru")
+    ('~['10 '20]~ = lift elide-if-void pack [10 20])
 ]

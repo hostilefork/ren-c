@@ -144,10 +144,10 @@ INLINE bool Is_Undecayed_Drain(const Value* v) {  // ~(_)~ PACK!
 // that is "FAILURE!-like" which can only be taken as a ^META form.
 //
 // 1. VETO hot potatoes signal a desire to cancel the operation that requested
-//    the evaluation.  Unlike GHOST which opts out of slots but keeps running,
+//    the evaluation.  Unlike VOID which opts out of slots but keeps running,
 //    many operations that observe a VETO will return NULL:
 //
-//        >> reduce ["a" ^ghost "b"]
+//        >> reduce ["a" ^void "b"]
 //        == ["a" "b"]
 //
 //        >> reduce ["a" veto "b"]
@@ -393,10 +393,10 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Dual* dual) {
 
 
 // !!! Places that use this should probably be running through the central
-// SET/TWEAK code.  Also, it's not clear if this should just be Is_Ghost().
+// SET/TWEAK code.  Also, it's not clear if this should just be Is_Void().
 //
 INLINE bool Is_Non_Meta_Assignable_Unstable_Antiform(const Value* v)
-  { return Is_Ghost(v) or Is_Trash(v) or Is_Action(v); }
+  { return Is_Void(v) or Is_Trash(v) or Is_Action(v); }
 
 INLINE bool Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(const Stable* v)
- { return Is_Lifted_Ghost(v) or Is_Lifted_Trash(v) or Is_Lifted_Action(v); }
+ { return Is_Lifted_Void(v) or Is_Lifted_Trash(v) or Is_Lifted_Action(v); }

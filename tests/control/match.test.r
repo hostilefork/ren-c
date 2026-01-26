@@ -26,8 +26,8 @@
 [
     ~bad-antiform~ !! (match [null?] null)
 
-    (null = match [integer!] ^ghost)
-    ~???~ !! (match [ghost?] ^ghost)
+    (null = match [integer!] ^void)
+    ~???~ !! (match [void?] ^void)
 
     ('true = match [boolean?] 'true)
     ('false = match [boolean?] 'false)

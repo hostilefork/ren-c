@@ -175,10 +175,10 @@
 ]
 
 [
-    (null? mold ^ghost)
+    (null? mold veto)
     ~expect-arg~ !! (mold null)
 
-    (null? form ^ghost)
+    (null? form veto)
     ~expect-arg~ !! (form null)
 ]
 

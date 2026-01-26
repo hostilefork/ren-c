@@ -1,6 +1,6 @@
 //
 //  file: %n-ghost.c
-//  summary: "Native Functions for GHOST! Datatype (COMMENT, ELIDE, etc.)"
+//  summary: "Native Functions for VOID! Datatype (COMMENT, ELIDE, etc.)"
 //  section: natives
 //  project: "Rebol 3 Interpreter and Run-time (Ren-C branch)"
 //  homepage: https://github.com/metaeducation/ren-c/
@@ -22,7 +22,7 @@
 //
 // For a long time, vanishing functions were not implemented as natives, due
 // to the desire to prove that they could be implemented in usermode.  But
-// now that GHOST! is well understood and simple to use (vs. being esoteric
+// now that VOID! is well understood and simple to use (vs. being esoteric
 // evaluator tricks on special infix functions), there's no reason not to
 // just implement them as fast intrinsics.
 //
@@ -31,49 +31,28 @@
 
 
 //
-//  nihil: vanishable native [
+//  ghost: vanishable native [
 //
-//  "Generate GHOST! (arity-0 COMMENT)"
+//  "Generate VOID! (arity-0 COMMENT)"
 //
-//      return: [ghost!]
+//      return: [void!]
 //  ]
 //
-DECLARE_NATIVE(NIHIL)
+DECLARE_NATIVE(GHOST)
 {
-    INCLUDE_PARAMS_OF_NIHIL;
+    INCLUDE_PARAMS_OF_GHOST;
 
-    return GHOST_OUT;
-}
-
-
-//
-//  ghost?: native:intrinsic [
-//
-//  "Tells you if argument is a comma antiform (unstable)"
-//
-//      return: [logic!]
-//      ^value '[any-value?]
-//  ]
-//
-DECLARE_NATIVE(GHOST_Q)
-{
-    INCLUDE_PARAMS_OF_GHOST_Q;
-
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
-
-    // !!! what about FAILURE!?  Should this panic?
-
-    return LOGIC_OUT(Is_Ghost(v));
+    return VOID_OUT;
 }
 
 
 //
 //  void?: native:intrinsic [
 //
-//  "Is VALUE a VOID (antiform comma, e.g. ghost!) or HEAVY VOID (empty pack!)"
+//  "Tells you if argument is a comma antiform (unstable)"
 //
-//      return: [logic!]
-//      ^value '[any-value?]
+//      return: [logic! failure!]
+//      ^value '[any-value? failure!]
 //  ]
 //
 DECLARE_NATIVE(VOID_Q)
@@ -82,7 +61,41 @@ DECLARE_NATIVE(VOID_Q)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    // !!! what about FAILURE!?  Should this panic?
+    if (Is_Failure(v))
+        return COPY_TO_OUT(v);  // typical behavior for type tests on FAILURE!
+
+    if (Is_Heavy_Void(v))
+        panic ("HEAVY VOID passed to VOID?; use ANY-VOID? to test for both");
+
+    require (
+      Ensure_No_Failures_Including_In_Packs(v)
+    );
+
+    return LOGIC_OUT(Is_Void(v));
+}
+
+
+//
+//  any-void?: native:intrinsic [
+//
+//  "Is VALUE a VOID! (antiform comma) or HEAVY VOID (empty pack!)"
+//
+//      return: [logic! failure!]
+//      ^value '[any-value? failure!]
+//  ]
+//
+DECLARE_NATIVE(ANY_VOID_Q)
+{
+    INCLUDE_PARAMS_OF_ANY_VOID_Q;
+
+    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+
+    if (Is_Failure(v))
+        return COPY_TO_OUT(v);  // typical behavior for type tests on FAILURE!
+
+    require (
+      Ensure_No_Failures_Including_In_Packs(v)
+    );
 
     return LOGIC_OUT(Any_Void(v));
 }
@@ -114,7 +127,7 @@ DECLARE_NATIVE(HEAVY_VOID_Q)
 //
 //  "Skip one element ahead, doing no evaluation (see also ELIDE)"
 //
-//      return: [ghost!]
+//      return: [void!]
 //      @skipped "Literal to skip, (comment print -[x]-) disallowed"
 //          '[any-list? any-utf8? blob! any-scalar?]
 //  ]
@@ -128,7 +141,7 @@ DECLARE_NATIVE(COMMENT)
     if (not (Any_List(v) or Any_Utf8(v) or Is_Blob(v) or Any_Scalar(v)))
        panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
 
-    return GHOST_OUT;
+    return VOID_OUT;
 }
 
 
@@ -137,8 +150,8 @@ DECLARE_NATIVE(COMMENT)
 //
 //  "Argument evaluated, result discarded (not FAILURE!, or packs w/FAILURE!s)"
 //
-//      return: [ghost!]
-//      ^discarded '[any-stable? pack! ghost!]
+//      return: [void!]
+//      ^discarded '[any-stable? pack! void!]
 //  ]
 //
 DECLARE_NATIVE(ELIDE)
@@ -151,38 +164,38 @@ DECLARE_NATIVE(ELIDE)
       Ensure_No_Failures_Including_In_Packs(v)
     );
 
-    return GHOST_OUT;
+    return VOID_OUT;
 }
 
 
 //
-//  elide-if-void: vanishable native:intrinsic [
+//  ghostly: vanishable native:intrinsic [
 //
-//  "Argument is evaluative, but discarded if VOID"
+//  "Argument is evaluative, but discarded if ANY-VOID?"
 //
 //      return: [any-value?]
-//      ^value '[any-value?]  ; ghost! is passed through
+//      ^value '[any-value?]  ; void! is passed through
 //  ]
 //
-DECLARE_NATIVE(ELIDE_IF_VOID)
+DECLARE_NATIVE(GHOSTLY)
 {
-    INCLUDE_PARAMS_OF_ELIDE_IF_VOID;
+    INCLUDE_PARAMS_OF_GHOSTLY;
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
     if (Any_Void(v))
-        return GHOST_OUT;
+        return VOID_OUT;
 
     return COPY_TO_OUT(v);  // trust piped FAILURE! etc. behaves appropriately
 }
 
 
 //
-//  ignore: native:intrinsic [
+//  ignore: native:intrinsic [  ; !!! should it be vanishable?
 //
 //  "Argument evaluated and discarded (even FAILURE! and undecayable packs)"
 //
-//      return: [ghost!]
+//      return: [void!]  ; TRASH! would cause errors in ANY/ALL
 //      ^discarded '[any-value?]
 //  ]
 //
@@ -190,14 +203,14 @@ DECLARE_NATIVE(IGNORE)
 {
     INCLUDE_PARAMS_OF_IGNORE;  // no ARG(DISCARDED), parameter is intrinsic
 
-    return GHOST_OUT;
+    return VOID_OUT;
 }
 
 
 //
 //  unvoid: native:intrinsic [  ; !!! Better name?
 //
-//  "If the argument is a GHOST!, convert it to a HEAVY VOID, else passthru"
+//  "If the argument is a VOID!, convert it to a HEAVY VOID, else passthru"
 //
 //      return: [any-value?]
 //      ^value '[any-value?]
@@ -212,7 +225,7 @@ DECLARE_NATIVE(UNVOID)
 
     Value* v = Unchecked_Intrinsic_Arg(LEVEL);
 
-    if (Is_Ghost(v))
+    if (Is_Void(v))
         return Init_Heavy_Void(OUT);
 
     return COPY_TO_OUT(v);

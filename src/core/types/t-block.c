@@ -227,7 +227,7 @@ IMPLEMENT_GENERIC(MAKE, Any_List)
                 return BOUNCE_THROWN;
             }
 
-            if (Is_Ghost(OUT))
+            if (Is_Void(OUT))
                 break;
 
             require (
@@ -1009,7 +1009,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
         return NULL_OUT_SLOT_UNAVAILABLE;
     if (n >= Series_Len_Head(series)) {
         if (Is_Nulled_Signifying_Tweak_Is_Pick(dual)) {
-            Init_Ghost(OUT);
+            Init_Void(OUT);
             return LIFT_OUT_FOR_DUAL_PICK;  // treat out of bounds as void
         }
         return NULL_OUT_SLOT_UNAVAILABLE;  // !!! drain case, (1020 = obj.dr: 1020)

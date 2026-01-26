@@ -63,7 +63,7 @@ void Bind_Values_Inner_Loop(
                     and Is_Set_Word(v)
                 )
             ){
-                Init_Ghost_For_Unset(Append_Context_Bind_Word(context, v));
+                Init_Void_Signifying_Unset(Append_Context_Bind_Word(context, v));
             }
           }
           else {
@@ -253,7 +253,7 @@ Let* Make_Let_Variable(
     );
 
     Init(Slot) slot = Slot_Init_Hack(u_cast(Slot*, Stub_Cell(let)));
-    Init_Ghost_For_Unset(slot);
+    Init_Void_Signifying_Unset(slot);
 
     Tweak_Link_Inherit_Bind_Raw(let, inherit);  // linked list [1]
     Corrupt_Unused_Field(let->misc.corrupt);  // not currently used
@@ -438,7 +438,7 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
 //      return: [
 //          any-stable?  "Expression result if (let x: <expr>)"
 //          word!        "the new variable if (let $x)"
-//          ghost!       "vanishes if (let x)"
+//          void!       "vanishes if (let x)"
 //      ]
 //      '@vars "Variable(s) to create"  ; can't soft quote due to DEFAULT
 //          [
@@ -1362,7 +1362,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
                 break;  // note for-each [x $x] can be legal
             }
 
-            Init_Ghost_For_Unset(slot);
+            Init_Void_Signifying_Unset(slot);
             if (kind == Kind_From_Sigil_And_Heart(SIGIL_META, TYPE_WORD))
                 Set_Cell_Flag(slot, LOOP_SLOT_ROOT_META);
             else
@@ -1444,7 +1444,7 @@ Result(None) Read_Slot_Meta(Sink(Value) out, const Slot* slot)
     assert(not Is_Cell_A_Bedrock_Drain(slot));
 
     if (Is_Cell_A_Bedrock_Hole(slot)) {
-        Init_Ghost(out);
+        Init_Void(out);
         return none;
     }
 

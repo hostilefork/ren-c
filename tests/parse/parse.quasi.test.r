@@ -42,7 +42,7 @@
     ('b = parse [a b] ['a @[(~,~)] 'b])
 
     ('b = parse [a b] ['a 'b ~,~])
-    ; (parse [a b] ['a 'b ^ghost])  ; [1]
+    ; (parse [a b] ['a 'b ^void])  ; [1]
     ; ('b = parse [a b] ['a 'b @void])  ; [1]
     ; ('b = parse [a b] ['a 'b @lib.void])  ; [1]
     ('b = parse [a b] ['a 'b @(~,~)])

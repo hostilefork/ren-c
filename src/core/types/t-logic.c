@@ -493,7 +493,7 @@ INLINE bool Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
 
         if (Is_Chain(right)) {
             if (Not_Cell_Stable(OUT)) {
-                if (Is_Ghost(OUT) or Is_Trash(OUT))
+                if (Is_Void(OUT) or Is_Trash(OUT))
                     Init_Nulled(OUT);
                 else if (Is_Action(OUT))
                     Deactivate_Action(OUT);

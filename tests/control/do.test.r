@@ -1,17 +1,17 @@
 ; functions/control/do.r
 
 [
-    (ghost? eval [])
-    (ghost? (eval []))
+    (void? eval [])
+    (void? (eval []))
     ('~,~ = lift eval [])
 
-    (ghost? (1 + 2 eval []))
+    (void? (1 + 2 eval []))
     (3 = (1 + 2 ^ eval []))
-    (ghost? (1 + 2 unlift lift eval []))
+    (void? (1 + 2 unlift lift eval []))
     (3 = (1 + 2 ^ unlift lift eval []))
 
     (30 = (10 + 20 ^ eval []))
-    ((lift ^ghost) = lift (10 + 20 eval [^ghost]))
+    ((lift ^void) = lift (10 + 20 eval [^void]))
     (''30 = lift (10 + 20 ^ eval [comment "hi"]))
     (''30 = lift (10 + 20 ^ eval make frame! func [] [return ~,~]))
 
@@ -22,8 +22,8 @@
 
     (all [
         let x: ~
-        ghost? ^x: comment "HI" comment "HI"  ; not eval'd in same step
-        ghost? ^x
+        void? ^x: comment "HI" comment "HI"  ; not eval'd in same step
+        void? ^x
     ])
 
     (all [
@@ -34,7 +34,7 @@
 
     ('~,~ = (10 + 20 lift (eval [])))
     ('~,~ = (10 + 20 lift (^ eval [comment "hi"])))
-    ((lift ^ghost) = (10 + 20 lift (eval make frame! lambda [] [^ghost])))
+    ((lift ^void) = (10 + 20 lift (eval make frame! lambda [] [^void])))
     ('~null~ = (lift eval [null]))
     ('~(~null~)~ = lift (eval [if okay [null]]))
 
@@ -44,10 +44,10 @@
     ('~(~null~)~ = lift eval [heavy null])
     ('~(~null~)~ = lift eval [if okay [null]])
 
-    (ghost? ^ eval [])
-    (ghost? ^ eval [comment "hi"])
-    (ghost? ^ eval make frame! func [] [return ~,~])
-    ((lift ^ghost) = lift eval [^ghost])
+    (void? ^ eval [])
+    (void? ^ eval [comment "hi"])
+    (void? ^ eval make frame! func [] [return ~,~])
+    ((lift ^void) = lift eval [^void])
 
     ((lift null) = lift eval [null])
     ((lift null) = lift (eval [null]))
@@ -63,15 +63,15 @@
 (
     x: <overwritten>
     all [
-        (lift ^ghost) = lift x: eval []
-        ghost? unlift x
+        (lift ^void) = lift x: eval []
+        void? unlift x
     ]
 )
 (
     x: 10
     all [
         '~,~ = x: lift eval []
-        ghost? unlift x
+        void? unlift x
     ]
 )
 (
@@ -84,15 +84,15 @@
     (''3 = lift (1 + 2 ^ eval [comment "HI"]))
     ('~,~ = lift eval [comment "HI"])
 
-    (ghost? (1 + 2 eval [comment "HI"]))
-    (ghost? eval [comment "HI"])
+    (void? (1 + 2 eval [comment "HI"]))
+    (void? eval [comment "HI"])
 
     (
         y: <overwritten>
-        x: (1 + 2 y: (^ghost eval [comment "HI"]))
+        x: (1 + 2 y: (^void eval [comment "HI"]))
         all [
-            ghost? x
-            ghost? y
+            void? x
+            void? y
         ]
     )
 ]
@@ -195,7 +195,7 @@
 )
 (0:00 = eval [0:00])
 (0.0.0 = eval [0.0.0])
-(ghost? ^ eval [()])
+(void? ^ eval [()])
 ('a = eval ['a])
 
 ; !!! Currently, EVAL of an ERROR! is like PANIC; it is not definitional,

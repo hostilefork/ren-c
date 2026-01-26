@@ -166,7 +166,7 @@ Bounce Inliner_Dispatcher(Level* const L)
     }
 
     if (Is_Antiform(out))
-        panic ("MACRO body must return GHOST, ANY-ELEMENT?, or SPLICE!");
+        panic ("MACRO body must return ANY-VOID?, ANY-ELEMENT?, or SPLICE!");
 
     Splice_Element_Into_Feed(L->feed, As_Element(out));
     goto continue_evaluating;

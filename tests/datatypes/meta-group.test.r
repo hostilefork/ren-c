@@ -7,15 +7,15 @@
 [
     ('~,~ = lift ())
     ('~,~ = lift (comment "hi"))
-    (ghost? unlift (lift ^ghost))
+    (void? unlift (lift ^void))
 
-    (ghost? unlift (lift opt ^ghost))
-    ((lift ^ghost) = lift (opt ^ghost))
+    (void? unlift (lift opt ^void))
+    ((lift ^void) = lift (opt ^void))
     ~no-value~ !! (opt comment "hi")
 
     ('~,~ = lift ())
     ('~,~ = lift (comment "hi"))
-    ((lift ^ghost) = lift (^ghost))
+    ((lift ^void) = lift (^void))
 ]
 
 ((the '10) = lift (10 comment "hi"))

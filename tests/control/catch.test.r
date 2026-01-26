@@ -14,7 +14,7 @@
 ~catch-no-throw~ !! (catch [])
 ~catch-no-throw~ !! (catch [()])
 
-(ghost? catch [throw])
+(void? catch [throw])
 
 (error? catch [throw rescue [1 / 0]])
 
@@ -28,7 +28,7 @@
 (
     all {
         num: 1
-        ghost? catch [
+        void? catch [
             catch [throw 1]
             num: 2
             throw
@@ -148,7 +148,7 @@
 ; HEAVY/LIGHT as-is (use ATTEMPT for "guaranteed" ELSE/THEN reactivity)
 [
     ('~null~ = lift catch [throw null])
-    (ghost? catch [throw ^ghost])
+    (void? catch [throw ^void])
     (heavy-void? catch [throw ~()~])
     (heavy-null? catch [throw ~(~null~)~])
 ]

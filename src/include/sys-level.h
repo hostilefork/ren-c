@@ -899,16 +899,16 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
 // (if any).
 //
 // 1. Once these names were shorter, e.g. just COPY() vs. COPY_TO_OUT(), or
-//    GHOST vs. GHOST_OUT.  But these more complex names help clarify what's
+//    VOID vs. VOID_OUT.  But these more complex names help clarify what's
 //    going on: that it's an active process, not a Cell*.  Or one might think
-//    GHOST was LIB(GHOST), but it's actively illegal to `return LIB(GHOST);`
+//    VOID was LIB(VOID), but it's actively illegal to `return LIB(VOID);`
 //    from a native.  See Native_Copy_Result_Untracked() for why.
 //
-// 2. The idea of NULL_OUT or GHOST_OUT etc. is that there's an operation done
-//    on the output cell (Init_Nulled(OUT), Init_Ghost(OUT)).  BRANCHED_OUT
+// 2. The idea of NULL_OUT or VOID_OUT etc. is that there's an operation done
+//    on the output cell (Init_Nulled(OUT), Init_Void(OUT)).  BRANCHED_OUT
 //    might imply something simliar, like (Init_Branched(OUT)), but we break
-//    the pattern to help cue that what you're returning is OUT, asserting
-//    that it was branched.  That's the idea, anyway.
+//    the pattern to and say OUT_BRANCHED to help cue that what you're
+//    returning is OUT's contents as-is, *asserting* that it was branched.
 //
 // 3. Once it was relatively trivial to say `return nullptr;` vs to say
 //    `return Init_Nulled(OUT);`, so it wasn't considered to be any big
@@ -947,17 +947,20 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
         (Native_Copy_Result_Untracked(level_, (v)), x_cast(Bounce, TRACK(OUT)))
 
     #define OUT_BRANCHED /* OUT_BRANCHED vs. BRANCHED_OUT for a reason [2] */ \
-        (assert(not Is_Light_Null(OUT) and not Is_Ghost(OUT)), \
+        (assert(not Is_Light_Null(OUT) and not Is_Void(OUT)), \
             x_cast(Bounce, OUT))
 
-    #define GHOST_OUT             x_cast(Bounce, Init_Ghost(OUT))
-    #define GHOST_OUT_UNBRANCHED  x_cast(Bounce, Init_Ghost(OUT))
+    #define VOID_OUT \
+        x_cast(Bounce, Init_Void(OUT))
+
+    #define VOID_OUT_UNBRANCHED \
+        x_cast(Bounce, Init_Void_Signifying_Unbranched(OUT))
 
     #define NULL_OUT /* `return NULL_OUT` is better than `return nullptr` */ \
         x_cast(Bounce, Init_Nulled(OUT))  // ...see [3] for why it's better!
 
     #define NULL_OUT_BREAKING /* separate macro for VETOING not worth it */ \
-        x_cast(Bounce, Init_Nulled(OUT))  // [3]
+        x_cast(Bounce, Init_Nulled_Signifying_Break(OUT))  // [3]
 
     #define LOGIC_OUT(b) \
         ((b) == true ? BOUNCE_OKAY : nullptr)  // no Init_Okay/Nulled()! [4]

@@ -239,7 +239,7 @@ DECLARE_NATIVE(LIFT)
 //
 //      return: [
 //          quoted! quasiform! "lifted forms"
-//          ghost! <null> failure! hot-potato? "passed through"
+//          void! <null> failure! hot-potato? "passed through"
 //      ]
 //      ^value '[any-value?]
 //  ]
@@ -253,8 +253,8 @@ DECLARE_NATIVE(LIFT_P)
     if (Is_Failure(v))
         return COPY_TO_OUT(v);
 
-    if (Is_Ghost(v))
-        return GHOST_OUT;
+    if (Is_Void(v))
+        return VOID_OUT;
 
     if (Is_Light_Null(v))
         return Init_Nulled(OUT);
@@ -291,7 +291,7 @@ DECLARE_NATIVE(UNLIFT)
 //  "Variant of UNLIFT that only unlifts THEN-reactive values"
 //
 //      return: [any-value?]
-//      ^value '[<null> ghost! quoted! quasiform!]
+//      ^value '[<null> void! quoted! quasiform!]
 //  ]
 //
 DECLARE_NATIVE(UNLIFT_P)
@@ -303,8 +303,8 @@ DECLARE_NATIVE(UNLIFT_P)
 
     Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
-    if (Is_Ghost(v))
-        return GHOST_OUT;
+    if (Is_Void(v))
+        return VOID_OUT;
 
     if (Is_Light_Null(v))
         return Init_Nulled(OUT);

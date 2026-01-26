@@ -42,8 +42,8 @@
 [https://github.com/metaeducation/ren-c/issues/876 (
     x: 1020
     all [
-        ghost? (null, x: (^ghost))
-        ghost? x
+        void? (null, x: (^void))
+        void? x
     ]
 )
 ~no-value~ !! (
@@ -82,8 +82,8 @@
 )
 (null? set:groups $() 100)
 (null? set:groups () pack [10 20])
-(null? set:groups ^ghost ~)
-(null? set:groups (^ghost) ())
+(null? set:groups ^void ~)
+(null? set:groups (^void) ())
 
 ; You can assign light voids to variables to unset them, but not heavy ones.
 ;
@@ -93,7 +93,7 @@
 ; The lie would be quickly exposed if you changed the code to ^x: ~[]~... so
 ; rather than lie we just prohibit it.
 [
-    (x: (), ghost? ^x)
+    (x: (), void? ^x)
 
     ~???~ !! (x: ~[]~)
 ]

@@ -80,7 +80,7 @@
 ; NONE has nothing to split by, return original input (but in a block, to
 ; match the other outputs).
 ;
-(["a,b,c"] = split "a,b,c" ^ghost)
+(["a,b,c"] = split "a,b,c" ^void)
 ([[a, b, c]] = split [a, b, c] ())
 
 (["a,b,c"] = split "a,b,c" none)

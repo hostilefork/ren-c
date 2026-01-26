@@ -53,4 +53,4 @@
 })
 
 (y: static [null] null? y)
-(y: static [] ghost? ^y)
+(y: static [] void? ^y)

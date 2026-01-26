@@ -213,7 +213,7 @@ process-tests: proc [
             'collect-tests body: block! (
                 log ["@collect-tests" space mold body]
 
-                let [_ collected]: module ^ghost compose:deep [collect [
+                let [_ collected]: module ^void compose:deep [collect [
                     let keep-test: adapt keep/ [
                         if not block? value [
                             panic "KEEP-TEST takes BLOCK! (acts as GROUP!)"

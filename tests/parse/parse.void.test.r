@@ -8,36 +8,36 @@
 
 ('b = parse [a b] ['a ~()~ 'b])
 (
-    ^var: ^ghost
+    ^var: ^void
     'b = parse [a b] ['a ^var 'b]
 )
 
 ; Voids synthesize void
 
-(ghost? parse [a b] ['a 'b ~()~])
+(void? parse [a b] ['a 'b ~()~])
 (
-    ^var: ^ghost
-    ghost? parse [a b] ['a 'b ^var]
+    ^var: ^void
+    void? parse [a b] ['a 'b ^var]
 )
 (
     test: ~
     all [
         'b = parse [a b] ['a ^test: [~()~] 'b]
-        ghost? ^test
+        void? ^test
     ]
 )
 (
     test: ~
-    ^var: ^ghost
+    ^var: ^void
     all [
        'b = parse [a b] ['a ^test: [^var] 'b]
-        ghost? ^test
+        void? ^test
     ]
 )
 
 ; Voided expressions work in GET-GROUP! substitutions
 
-(ghost? parse [a b] ['a 'b :(if null [[some 'c]])])
+(void? parse [a b] ['a 'b :(if null [[some 'c]])])
 ('c = parse [a b c c c] ['a 'b :(if ok [[some 'c]])])
 
 ; Liberal policy of letting NONE skip ahead is convenient to use NONE as a
@@ -45,7 +45,7 @@
 ;
 (
     c-rule: opt if null [[some 'c]]
-    ^ghost = parse [a b] ['a 'b c-rule]
+    heavy-void? parse [a b] ['a 'b c-rule]
 )
 (
     c-rule: opt if ok [[some 'c]]
@@ -59,7 +59,7 @@
 
 (
     c-rule: null
-    ^ghost = parse [a b] ['a 'b :(opt c-rule)]
+    heavy-void? parse [a b] ['a 'b :(opt c-rule)]
 )
 (
     c-rule: [some 'c]
@@ -84,4 +84,4 @@
 ; Voids synthesized from plain GROUP! also do not vanish
 
 (3 = parse [x] ['x (1 + 2) | 'y (10 + 20)])
-(ghost? parse [x] ['x (void) | 'y (10 + 20)])
+(void? parse [x] ['x (void) | 'y (10 + 20)])

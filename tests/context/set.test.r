@@ -60,9 +60,9 @@
 )
 
 
-(null = set ^ghost 10)
-(10 = set none 10)
-(null = get ^ghost)
+(null = set veto 10)
+(10 = set ^void 10)
+(null = get veto)
 
 (
     ^e: set $x fail 'test

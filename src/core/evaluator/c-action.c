@@ -243,11 +243,14 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
 
 
 // When the end of a feed is hit, we need an indicator that is distinct from
-// GHOST! (because a GHOST! could be a normal by-product of an evaluation).
-// e.g. you should be able to tell between:
+// something like NULL or VOID!, because these can be normal by-products of
+// evaluation.  e.g. you should be able to tell between:
 //
 //     >> hole-ok-function ()
-//     HOLE-OK-FUNCTION received a GHOST!
+//     HOLE-OK-FUNCTION received a VOID! antiform
+//
+//     >> hole-ok-function null
+//     HOLE-OK-FUNCTION received a ~null~ antiform
 //
 //     >> hole-ok-function
 //     HOLE-OK-FUNCTION received a HOLE
@@ -940,7 +943,7 @@ Bounce Action_Executor(Level* L)
         }
 
         if (Get_Parameter_Flag(PARAM, UNDO_OPT)) {
-            if (Any_Void(arg)) {  // accepts empty pack -or- ghost
+            if (Any_Void(arg)) {  // accepts empty pack -or- void
                 Init_Nulled(ARG);
                 Mark_Typechecked(ARG);  // null rejected
                 continue;
@@ -1166,8 +1169,8 @@ Bounce Action_Executor(Level* L)
     if (not Is_Failure(OUT))  // !!! Should there be an R_FAIL ?
         assert(STACK_BASE == TOP_INDEX);
 
-    if (Get_Level_Flag(L, AFRAID_OF_GHOSTS) and Is_Ghost(OUT))
-        Set_Cell_Flag(OUT, OUT_NOTE_SCARY_GHOST);
+    if (Get_Level_Flag(L, AFRAID_OF_GHOSTS) and Is_Void(OUT))
+        Mark_Level_Out_As_Ghostly_Void(L);
 
 } skip_output_check: {  //////////////////////////////////////////////////////
 

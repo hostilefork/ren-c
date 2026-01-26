@@ -157,7 +157,7 @@ lesser-or-equal?: equal-or-lesser?/
 |||: func [
     "Inertly consumes all subsequent data, evaluating to previous result"
 
-    return: [ghost!]
+    return: [void!]
     '@omit [element? <variadic>]
 ][
     insist [null? try take omit]
@@ -195,7 +195,9 @@ requote: reframer func [
 ; Particularly helpful for annotating when a branch result is used.
 ; https://forum.rebol.info/t/2165/
 ;
-[<-]: identity/
+; (Future ideas would give this teeth with "nodiscard" behavior)
+;
+[<-]: vanishable:off identity/
 
 ; !!! NEXT and BACK seem somewhat "noun-like" and desirable to use as variable
 ; names, but are very entrenched in Rebol history.  Also, since they are

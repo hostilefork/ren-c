@@ -107,18 +107,18 @@
 //    won't work:
 //
 //        Value* v = rebVoid();
-//        assert(rebUnboxLogic("ghost?", v));  // would PANIC on the void
+//        assert(rebUnboxLogic("void?", v));  // would PANIC on the void
 //
 //    That's because the API is not willing to decay values that come from API
 //    handles by default, just as it won't decay a WORD! holding an antiform
 //    by default.  With a WORD! you could use a ^META word, e.g. `^word` for
 //    the unstable antiform undecayed.  C needs another answer.
 //
-//    One way is using the magic of the META SPACE RUNE (^), immediately
+//    One way is using the magic of the IDENTITY operator (^), immediately
 //    preceding the value you wish to splice as-is.  So this works:
 //
 //        Value* v = rebVoid();
-//        assert(rebUnboxLogic("ghost? ^", v));  // assertion would succeed
+//        assert(rebUnboxLogic("void? ^", v));  // assertion would succeed
 //
 
 
@@ -608,7 +608,7 @@ RebolValue* API_rebVoid(void)  // unstable antiform [B]
 {
     ENTER_API;
 
-    return Init_Ghost(Alloc_Value());
+    return Init_Void(Alloc_Value());
 }
 
 
@@ -1221,7 +1221,7 @@ static Result(None) Undecayed_Run_Valist_And_Call_Va_End(  // va_end()s [1]
         return fail (e);
     }
 
-    Init_Ghost(Evaluator_Primed_Cell(L));
+    Init_Void(Evaluator_Primed_Cell(L));
 
     if (run_flags & RUN_VA_FLAG_INTERRUPTIBLE)
         L->flags.bits &= (~ LEVEL_FLAG_UNINTERRUPTIBLE);
@@ -1431,7 +1431,7 @@ void API_rebPushContinuation_internal(
     require (
       Level* L = Make_Level_At(&Evaluator_Executor, block, flags)
     );
-    Init_Ghost(Evaluator_Primed_Cell(L));
+    Init_Void(Evaluator_Primed_Cell(L));
     Push_Level_Erase_Out_If_State_0(u_cast(Value*, out), L);
 }
 
@@ -1440,7 +1440,7 @@ void API_rebPushContinuation_internal(
 //  rebUndecayed: API
 //
 // By default rebValue() will decay unstable antiforms.  This will give you
-// back undecayed PACK! or GHOST! or FAILURE! values.
+// back undecayed PACK! or VOID! or FAILURE! values.
 //
 // If you get an unstable value back and want to use it with the API, then
 // it has to be spliced in using the `^` operator.  See [B].
@@ -1827,10 +1827,10 @@ bool API_rebNot(
 //
 //  rebDid: API
 //
-// Checks to see if something is not a ghost, light null, or FAILURE! antiform.
+// Checks to see if something is not a void, light null, or FAILURE! antiform.
 //
 // If you know the argument is either NULL or OKAY antiforms, then you can
-// use rebUnboxLogic() to get a runtime check of that.  This tests ANY-STABLE?
+// use rebUnboxLogic() to get a runtime check of that.  This tests ANY-VALUE?
 //
 bool API_rebDid(
     RebolContext* binding,
@@ -1847,7 +1847,7 @@ bool API_rebDid(
         panic (e);
     }
 
-    if (Is_Light_Null(eval) or Is_Ghost(eval) or Is_Failure(eval))
+    if (Is_Light_Null(eval) or Is_Void(eval) or Is_Failure(eval))
         return false;
 
     return true;

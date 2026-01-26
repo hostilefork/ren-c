@@ -2,12 +2,12 @@
 
 ; Edge case of matching END with TO or THRU
 ;
-(ghost? parse "" [to ["a" | <end>]])
-(ghost? parse [] [to ["a" | <end>]])
+(void? parse "" [to ["a" | <end>]])
+(void? parse [] [to ["a" | <end>]])
 
 [
-    (ghost? parse [] [to <end>])
-    (ghost? parse [a] [to <end>])
+    (void? parse [] [to <end>])
+    (void? parse [a] [to <end>])
     ~parse-incomplete~ !! (parse [a] [to 'a])
     ~parse-mismatch~ !! (parse [a] [to 'a <end>])
     ('a = parse [a] [to 'a one])
@@ -52,7 +52,7 @@
 [(
     heavy-void? parse "abc" [to <end>]
 )(
-    ghost? parse "abc" [elide to <end>]
+    void? parse "abc" [elide to <end>]
 )(
     "b" = parse "aaabbb" [thru "b" elide to <end>]
 )(
@@ -85,8 +85,8 @@
         wa: [#{0A}]
         ok
     )
-    (ghost? parse #{} [to <end>])
-    (ghost? parse #{0A} [to <end>])
+    (void? parse #{} [to <end>])
+    (void? parse #{0A} [to <end>])
     ~parse-incomplete~ !! (parse #{0A} [to #{0A}])
     ~parse-mismatch~ !! (parse #{0A} [to #{0A} <end>])
     (10 = parse #{0A} [to #{0A} one])

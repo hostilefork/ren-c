@@ -88,23 +88,23 @@
 
 [
     ~no-arg~ !! (else [~unused~])
-    (() then [okay])  ; GHOST! with THEN is legal...
+    (() then [okay])  ; VOID! with THEN is legal...
     (1000 + 20 () then [okay])
 
-    (^ghost then [okay])
-    (1020 = (1000 + 20 elide-if-void (^ghost else [~(unreachable)~])))
+    (^void then [okay])
+    (1020 = (1000 + 20 ghostly (^void else [~(unreachable)~])))
 
-    ((^ghost) then [okay])
-    (ghost? (1000 + 20 ((^ghost) else [~(unreachable)~])))
+    ((^void) then [okay])
+    (void? (1000 + 20 ((^void) else [~(unreachable)~])))
 
     (eval [] then [okay])
-    (ghost? eval [] else [~(unreachable)~])
+    (void? eval [] else [~(unreachable)~])
 ]
 
 [
-    (foo: func [] [return ^ghost], ok)
+    (foo: func [] [return ^void], ok)
     (foo then [okay])
-    (1020 = (1000 + 20 elide-if-void (foo else [~(unreachable)~])))
+    (1020 = (1000 + 20 ghostly (foo else [~(unreachable)~])))
 ]
 
 [
@@ -116,15 +116,15 @@
 [
     (foo: lambda [] [], ok)
     (foo then [okay])
-    (1020 = (1000 + 20 elide-if-void (foo else [~(unreachable)~])))
+    (1020 = (1000 + 20 ghostly (foo else [~(unreachable)~])))
 ]
 
 ; https://forum.rebol.info/t/2176
 [
-    (null = (null else (^ghost)))
-    (^ghost = (^ghost else (^ghost)))
+    (null = (null else (^void)))
+    (^void = (^void else (^void)))
 
-    (3 = (if ok [1 + 2] then (^ghost)))
+    (3 = (if ok [1 + 2] then (^void)))
 ]
 
 ; THEN passes FAILURE! through, ELSE will panic on failure if not handled by
@@ -150,7 +150,7 @@
 [
     (3 = thence [1 + 2] okay)
     (null? thence [1 + 2] null)
-    (ghost? thence [1 + 2] ())
+    (void? thence [1 + 2] ())
 ]
 
 ; IF DID is prefix THEN

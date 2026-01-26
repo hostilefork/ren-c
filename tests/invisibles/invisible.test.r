@@ -4,39 +4,37 @@
 ; "Opportunistic Invisibility" means that functions can treat invisibility as
 ; a return type, decided on after they've already started running.
 [
-    (vanish-if-odd: func [return: [ghost! integer!] x] [
+    (elide-if-odd: vanishable func [return: [void! integer!] x] [
         if even? x [return x]
         return ~,~
     ] ok)
 
-    (2 = (<test> vanish-if-odd 2))
-    (<test> = (<test> vanish-if-odd 1))
+    (2 = (<test> elide-if-odd 2))
+    (<test> = (<test> elide-if-odd 1))
 
-    (vanish-if-even: func [return: [ghost! integer!] y] [
-        return unlift ^(vanish-if-odd y + 1)
+    (elide-if-even: func [return: [void! integer!] y] [
+        return elide-if-odd y + 1
     ] ok)
 
-    (<test> = (<test> vanish-if-even 2))
-    (2 = (<test> vanish-if-even 1))
+    (<test> = (<test> elide-if-even 2))
+    (2 = (<test> elide-if-even 1))
 ]
 
 
-; Invisibility is a checked return type, if you use a type spec...but allowed
-; by default if not.
 [
     (
-        no-spec: func [x] [return ~,~]
-        <test> = (<test> no-spec 10)
+        no-annotation: func [x] [return ~,~]
+        heavy-void? (<test> no-annotation 10)
     )
     ~bad-return-type~ !! (
         int-spec: func [return: [integer!] x] [return ~,~]
         int-spec 10
     )
     (
-        invis-spec: func [return: [ghost! integer!] x] [
+        annotated: vanishable func [return: [void! integer!] x] [
             return ~,~
         ]
-        <test> = (<test> invis-spec 10)
+        <test> = (<test> annotated 10)
     )
 ]
 
@@ -51,16 +49,16 @@
     all [
         "Hello World." = add-period "Hello World"
         num-runs = 1
-        null = add-period ^ghost  ; shouldn't run ADD-PERIOD body
+        null = add-period veto  ; shouldn't run ADD-PERIOD body
         num-runs = 1
     ]
 )
 
-(ghost? ~,~)
-(ghost? ^ghost)
-(heavy-void? eval [^ghost])
-(void? eval $(^ghost))
-(heavy-void? (eval [^ghost]))
+(void? ~,~)
+(void? ^void)
+(heavy-void? eval [^void])
+(any-void? eval $(^void))
+(heavy-void? (eval [^void]))
 (heavy-void? eval [~,~])
 (heavy-void? eval [, ~,~,])
-(heavy-void? eval [1 + 2, ^ghost])
+(heavy-void? eval [1 + 2, ^void])

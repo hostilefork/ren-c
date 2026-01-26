@@ -23,12 +23,10 @@
 //
 // Control constructs follow these rules:
 //
-// * If they do not run any branches, they return GHOST.  This will signal
+// * If they do not run any branches, they return VOID!.  This will signal
 //   functions like ELSE and THEN.
 //
-//   (The exception is WHEN, which returns NONE)
-//
-// * If a branch *does* run--and its evaluation *happens* to produce GHOST,
+// * If a branch *does* run--and its evaluation *happens* to produce VOID!,
 //   the result will be an empty GROUP! antiform (pack!), a.k.a. "heavy void".
 //   This way THEN runs instead of ELSE.  The same is true if it happens to
 //   produce a NULL--it's wrapped in a pack to be a "heavy null".
@@ -65,12 +63,12 @@
 // special support for their needs.
 //
 // 1. We want things like (cond if ...) or (cond switch ...) to work, with the
-//    idea that you effectively adapt the GHOST!-returning control structure
+//    idea that you effectively adapt the VOID!-returning control structure
 //    to be a VETO-returning control structure (without needing to come up
 //    with a different name).  It's worth the slight impurity of "reacting
-//    to GHOST! conditionally".
+//    to VOID! conditionally".
 //
-// 2. false makes GHOST! if OPT, VETO if COND
+// 2. false result makes VOID! if OPT, VETO if COND
 //
 static Result(bool) Return_Out_For_Conditional_Or_Optional(Level* level_)
 {
@@ -81,7 +79,7 @@ static Result(bool) Return_Out_For_Conditional_Or_Optional(Level* level_)
     if (Is_Failure(v))
         return fail (Cell_Error(v));
 
-    if (Is_Ghost(v))  // [1]
+    if (Is_Void(v))  // [1]
         return false;  // [2]
 
     Copy_Cell(OUT, v);  // save (in case pack!, we want to return the pack)
@@ -120,9 +118,9 @@ DECLARE_NATIVE(CONDITIONAL)  // usually used via its alias of COND
 //
 //  optional: native [  ; cant be intrinsic (we need to decay)
 //
-//  "If VALUE is NULL or VOID, make it GHOST! else passthru"
+//  "If VALUE is NULL or ANY-VOID?, make it VOID! else passthru"
 //
-//      return: [any-value? ghost!]
+//      return: [any-value? void!]
 //      ^value '[any-value?]
 //  ]
 //
@@ -136,7 +134,7 @@ DECLARE_NATIVE(OPTIONAL)
     if (return_out)
         return OUT;
 
-    return GHOST_OUT_UNBRANCHED;
+    return VOID_OUT_UNBRANCHED;
 }
 
 
@@ -207,7 +205,7 @@ Bounce Group_Branch_Executor(Level* const L)
         (not LEVEL_FLAG_FORCE_HEAVY_BRANCH)
             | (not LEVEL_FLAG_AFRAID_OF_GHOSTS)  // all voids act same here
     ));
-    Init_Ghost(Evaluator_Primed_Cell(sub));
+    Init_Void(Evaluator_Primed_Cell(sub));
     Push_Level_Erase_Out_If_State_0(SCRATCH, sub);
 
     STATE = ST_GROUP_BRANCH_RUNNING_GROUP;
@@ -255,9 +253,9 @@ Bounce Group_Branch_Executor(Level* const L)
 //
 //  if: native [
 //
-//  "If CONDITION is not NULL, execute BRANCH, otherwise return GHOST!"
+//  "If CONDITION is not NULL, execute BRANCH, otherwise return VOID!"
 //
-//      return: [any-value? ghost!]
+//      return: [any-value? void!]
 //      condition [any-stable?]
 //      @branch [any-branch?]
 //  ]
@@ -270,7 +268,7 @@ DECLARE_NATIVE(IF)
     Element* branch = ARG(BRANCH);
 
     if (not Logical_Test(condition))
-        return GHOST_OUT_UNBRANCHED;  // ghost is "light" void (triggers ELSE)
+        return VOID_OUT_UNBRANCHED;  // "light" void (triggers ELSE)
 
     return DELEGATE_BRANCH(OUT, branch, condition);  // branch semantics [A]
 }
@@ -281,7 +279,7 @@ DECLARE_NATIVE(IF)
 //
 //  "When CONDITION is NULL, run NULL-BRANCH, else run OKAY-BRANCH"
 //
-//      return: [any-value? ghost! heavy-null?]
+//      return: [any-value? void! heavy-null?]
 //      condition [any-stable?]
 //      @okay-branch [any-branch?]
 //      @null-branch [any-branch?]
@@ -304,7 +302,7 @@ DECLARE_NATIVE(EITHER)
 //
 //  did: native:intrinsic [
 //
-//  "Test for NOT ghost, 'light' null, or failure! (IF DID is prefix THEN)"
+//  "Test for NOT void, 'light' null, or failure! (IF DID is prefix THEN)"
 //
 //      return: [logic!]
 //      ^value '[any-value?]
@@ -320,7 +318,7 @@ DECLARE_NATIVE(DID_1)
 
     Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
 
-    if (Is_Light_Null(v) or Is_Ghost(v) or Is_Failure(v))
+    if (Is_Light_Null(v) or Is_Void(v) or Is_Failure(v))
         return LOGIC_OUT(false);
 
     possibly(Is_Pack(v) and Is_Lifted_Failure(List_Item_At(v)));  // [1]
@@ -332,7 +330,7 @@ DECLARE_NATIVE(DID_1)
 //
 //  didn't: native:intrinsic [
 //
-//  "Test for ghost, 'light' null, or failure! (IF DIDN'T is prefix ELSE)"
+//  "Test for void, 'light' null, or failure! (IF DIDN'T is prefix ELSE)"
 //
 //      return: [logic!]
 //      ^value '[any-value?]
@@ -354,10 +352,10 @@ DECLARE_NATIVE(DIDNT)
 //
 //  then: infix:defer native [  ; NOTE - INFIX:DEFER
 //
-//  "If LEFT is NULL or GHOST!, return it, otherwise return EVAL BRANCH"
+//  "If LEFT is NULL or VOID!, return it, otherwise return EVAL BRANCH"
 //
 //      return: [any-value?]
-//      ^left [<null> ghost! any-value?]
+//      ^left [<null> void! any-value?]
 //      @branch [any-branch?]
 //  ]
 //
@@ -371,7 +369,7 @@ DECLARE_NATIVE(THEN)
     if (Is_Failure(left))
         return COPY_TO_OUT(left);
 
-    if (Is_Light_Null(left) or Is_Ghost(left))
+    if (Is_Light_Null(left) or Is_Void(left))
         return COPY_TO_OUT(left);
 
     return DELEGATE_BRANCH(OUT, branch, left);
@@ -381,11 +379,11 @@ DECLARE_NATIVE(THEN)
 //
 //  thence: native [
 //
-//  "If VALUE is NULL or GHOST!, return it, otherwise return EVAL BRANCH"
+//  "If VALUE is NULL or VOID!, return it, otherwise return EVAL BRANCH"
 //
 //      return: [any-value?]
 //      @branch [any-branch?]
-//      ^value [<null> ghost! any-value?]
+//      ^value [<null> void! any-value?]
 //  ]
 //
 DECLARE_NATIVE(THENCE)
@@ -398,7 +396,7 @@ DECLARE_NATIVE(THENCE)
     if (Is_Failure(v))
         return COPY_TO_OUT(v);
 
-    if (Is_Light_Null(v) or Is_Ghost(v))
+    if (Is_Light_Null(v) or Is_Void(v))
         return COPY_TO_OUT(v);
 
     return DELEGATE_BRANCH(OUT, branch, v);
@@ -408,10 +406,10 @@ DECLARE_NATIVE(THENCE)
 //
 //  else: infix:defer native [  ; NOTE - INFIX:DEFER
 //
-//  "If LEFT is NULL or GHOST!, return EVAL BRANCH, else return LEFT"
+//  "If LEFT is NULL or VOID!, return EVAL BRANCH, else return LEFT"
 //
 //      return: [any-value?]
-//      ^left [<null> ghost! any-value?]
+//      ^left [<null> void! any-value?]
 //      @branch [any-branch?]
 //  ]
 //
@@ -422,7 +420,7 @@ DECLARE_NATIVE(ELSE)
     Value* left = Possibly_Unstable(ARG(LEFT));
     Element* branch = ARG(BRANCH);
 
-    if (not (Is_Light_Null(left) or Is_Ghost(left) or Is_Failure(left)))
+    if (not (Is_Light_Null(left) or Is_Void(left) or Is_Failure(left)))
         return COPY_TO_OUT(left);
 
     possibly(Is_Failure(left));  // handler must take ^META arg, or will panic
@@ -434,10 +432,10 @@ DECLARE_NATIVE(ELSE)
 //
 //  also: infix:defer native [  ; NOTE - INFIX:DEFER
 //
-//  "If LEFT is NULL or GHOST!, return it, else EVAL BRANCH but return LEFT"
+//  "If LEFT is NULL or VOID!, return it, else EVAL BRANCH but return LEFT"
 //
 //      return: [any-value?]
-//      ^left [<null> ghost! any-value?]
+//      ^left [<null> void! any-value?]
 //      @branch [any-branch?]
 //  ]
 //
@@ -468,7 +466,7 @@ DECLARE_NATIVE(ALSO)
     if (Is_Failure(left))
         return COPY_TO_OUT(left);
 
-    if (Is_Light_Null(left) or Is_Ghost(left))
+    if (Is_Light_Null(left) or Is_Void(left))
         return COPY_TO_OUT(left);
 
     STATE = ST_ALSO_RUNNING_BRANCH;
@@ -502,7 +500,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
     Element* block = Element_ARG(BLOCK);
     Option(Element*) predicate = ARG(PREDICATE);
 
-    Value* condition;  // SPARE, or SCRATCH (if testing predicate result)
+    Value* scratch_or_spare_condition;  // SCRATCH if predicate result
 
     enum {
         ST_ANY_ALL_NONE_INITIAL_ENTRY = STATE_0,
@@ -519,13 +517,13 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
   initial_entry: { ///////////////////////////////////////////////////////////
 
-  // 1. If you write (^x: all [<expr> ^value]) and ^value is a GHOST!, you
-  //    want the safety of the eval step to turn that ghost into a heavy
+  // 1. If you write (^x: all [<expr> ^value]) and ^value is a VOID!, you
+  //    want the safety of the eval step to turn that void into a heavy
   //    void which will cause the ANY to panic.  Only vanishable functions
   //    like ELIDE should disappear by default.
   //
-  // 2. If ANY/ALL succeed, they can't return GHOST! or light null because
-  //    that wouldn't be usable with ELSE/THEN.  But it wants to see GHOST!,
+  // 2. If ANY/ALL succeed, they can't return VOID! or light null because
+  //    that wouldn't be usable with ELSE/THEN.  But it wants to see VOID!,
   //    so it has to take responsibility for its own heavy results vs.
   //    relying on LEVEL_FLAG_FORCE_HEAVY_BRANCH.
 
@@ -542,7 +540,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
     Flags flags = (
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
             | LEVEL_FLAG_AFRAID_OF_GHOSTS  // safety regarding last step [1]
-            | (not LEVEL_FLAG_FORCE_HEAVY_BRANCH)  // must see ghosts [2]
+            | (not LEVEL_FLAG_FORCE_HEAVY_BRANCH)  // must see voids [2]
     );
 
     require (
@@ -558,13 +556,13 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
 } eval_step_result_in_spare: {  //////////////////////////////////////////////
 
-    if (Is_Ghost(SPARE))  // no vote...ignore and continue
+    if (Is_Void(SPARE))  // no vote...ignore and continue
         goto next_eval_step;  // skipping means we skip COMMA!, review this
 
     if (predicate)
         goto run_predicate_on_eval_product;  // NONEs passed to predicate
 
-    condition = SPARE;
+    scratch_or_spare_condition = SPARE;
     goto process_condition;
 
 } run_predicate_on_eval_product: {  //////////////////////////////////////////
@@ -574,7 +572,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
   //    Temporarily patch out the Stepper_Executor() so we get control back
   //    without that intermediate step.
   //
-  // 2. The predicate allows you to return GHOST! and opt out of voting one
+  // 2. The predicate allows you to return VOID! and opt out of voting one
   //    way or another.  (Heavy void can't decay for the Logical_Test())
 
     SUBLEVEL->executor = &Just_Use_Out_Executor;  // tunnel thru [1]
@@ -588,25 +586,25 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
   //    predicate let it pass.  Don't want that to trip up `if all` so make
   //    it heavy...but this way `(all:predicate [null] not?/) then [<runs>]`
 
-    if (Is_Ghost(SCRATCH))  // allow ghost predicates to be ignored
+    if (Is_Void(SCRATCH))  // allow void predicates to be ignored
         goto next_eval_step;  // (heavy voids will cause an error)
 
     SUBLEVEL->executor = &Stepper_Executor;  // done tunneling [2]
     STATE = ST_ANY_ALL_NONE_EVAL_STEP;
-    condition = SCRATCH;
+    scratch_or_spare_condition = SCRATCH;
     goto process_condition;
 
 } process_condition: { ///////////////////////////////////////////////////////
 
-    Copy_Cell(OUT, SPARE);  // not GHOST!; save for return before decay
+    Copy_Cell(OUT, SPARE);  // not VOID!; save for return before decay
 
     require (
-      Stable* stable_condition = Decay_If_Unstable(condition)
+      Stable* condition = Decay_If_Unstable(scratch_or_spare_condition)
     );
 
     Set_Level_Flag(LEVEL, SAW_NON_VOID);
 
-    bool logic = Logical_Test(stable_condition);
+    bool logic = Logical_Test(condition);
 
     switch (which) {
       case NATIVE_IS_ANY:
@@ -650,21 +648,21 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
   //    better to signal to the caller that nothing happened.  Other choices
   //    can be forced with e.g. (all [... null]) or (any [... okay])
   //
-  //    !!! It's clearly the right answer for (all []) to return GHOST!, but
+  //    !!! It's clearly the right answer for (all []) to return VOID!, but
   //    while more flexibility is provided by (any []) returning it there may
   //    be good reasons to return NULL_OUT.  This is still under review.
 
     Drop_Level(SUBLEVEL);
 
     if (Not_Level_Flag(LEVEL, SAW_NON_VOID))
-        return GHOST_OUT_UNBRANCHED;  // ghost if all evaluations vaporized [1]
+        return VOID_OUT_UNBRANCHED;  // void if all evaluations vaporized [1]
 
     switch (which) {
       case NATIVE_IS_ANY:
         return NULL_OUT;  // non-vanishing expressions, but none of them passed
 
       case NATIVE_IS_ALL:  // successful ALL returns the last value
-        return Force_Cell_Heavy(OUT);  // didn't CONTINUE_BRANCH(), saw ghosts
+        return Force_Cell_Heavy(OUT);  // didn't CONTINUE_BRANCH(), saw voids
 
       case NATIVE_IS_NONE_OF:
         return BOUNCE_OKAY;  // successful NONE-OF has no value to return
@@ -690,7 +688,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 //
 //  "Short-circuiting variant of AND, using a block of expressions as input"
 //
-//      return: [<null> ghost! any-stable?]
+//      return: [<null> void! any-value?]
 //      block "Block of expressions, @[block] will be treated inertly"
 //          [block! @block!]
 //      :predicate "Test applied to each eval step (default is LOGICAL)"
@@ -708,7 +706,7 @@ DECLARE_NATIVE(ALL)
 //
 //  "Short-circuiting version of OR, using a block of expressions as input"
 //
-//      return: [<null> ghost! any-stable?]
+//      return: [<null> void! any-value?]
 //      block "Block of expressions, @[block] will be treated inertly"
 //          [block! @block!]
 //      :predicate "Test applied to each eval step (default is LOGICAL)"
@@ -726,7 +724,7 @@ DECLARE_NATIVE(ANY)
 //
 //  "Short-circuiting shorthand for NOT ALL"
 //
-//      return: [<null> ghost! any-stable?]
+//      return: [<null> void! any-value?]
 //      block "Block of expressions, @[block] will be treated inertly"
 //          [block! @block!]
 //      :predicate "Test applied to each eval step (default is LOGICAL)"
@@ -807,7 +805,17 @@ DECLARE_NATIVE(CASE)
 
 } condition_result_in_spare: {  //////////////////////////////////////////////
 
-    if (Is_Ghost(SPARE))  // skip over things like ELIDE, but not voids!
+  // 1. Expressions between branches are allowed to vaporize via vanishable
+  //    functions (e.g. ELIDE), but due to EVAL_FLAG AFRAID_OF_GHOSTS things
+  //    in the evaluation stepping mode, non-vanishable functions (things
+  //    like `if` or `opt`) will produce HEAVY VOID, and be seen in-band as
+  //    actual case values:
+  //
+  //        >> condition: null
+  //        >> case [opt if condition [<a>] [print "Whoops?"] [<hmm>]]
+  //        ** PANIC: Can't decay HEAVY VOID ~()~ for LOGICAL test
+
+    if (Is_Void(SPARE))  // skip over ELIDE, but not non-vanishables [1]
         goto handle_next_clause;
 
     require (
@@ -825,14 +833,6 @@ DECLARE_NATIVE(CASE)
     return CONTINUE(SPARE, unwrap predicate, SPARE);  // with == out is legal
 
 } predicate_result_in_spare: {  //////////////////////////////////////////////
-
-    // 1. Expressions between branches are allowed to vaporize via GHOST
-    //    (e.g. ELIDE), but voids are not skipped.
-    //
-    //        >> condition: null
-    //        >> case [opt if condition [<a>] [print "Whoops?"] [<hmm>]]
-    //        Whoops?
-    //        == <hmm>
 
     if (Any_Void(SPARE))  // error on void predicate results (not same as [1])
         panic (Error_Bad_Void());
@@ -1056,7 +1056,7 @@ DECLARE_NATIVE(SWITCH)
     //    being evaluated as const.  But we have to proxy that const flag
     //    over to the block.
 
-    if (Is_Ghost(SPARE))  // skip comments or ELIDEs
+    if (Is_Void(SPARE))  // skip comments or ELIDEs
         goto next_switch_step;
 
     if (Is_Level_At_End(SUBLEVEL))
@@ -1198,7 +1198,7 @@ DECLARE_NATIVE(DEFAULT)
   //    fields can legitimately give back FAILURE! in-band if a field stored
   //    one.  It's under review.
   //
-  // 3. TRASH!, GHOST!, NULL, empty PACK! and empty SPLICE! are "defaultable".
+  // 3. TRASH!, VOID!, NULL, empty PACK! and empty SPLICE! are "defaultable".
   //    Space runes (blanks) aren't; no stable form is overwritten by DEFAULT.
 
     Element* steps = u_cast(Element*, SCRATCH);  // avoid double-eval [1]
@@ -1300,9 +1300,9 @@ DECLARE_NATIVE(MAYBE)
 //
 //  catch*: native [
 //
-//  "Catches a throw from a block and returns its value, GHOST! if no throw"
+//  "Catches a throw from a block and returns its value, VOID! if no throw"
 //
-//      return: [any-value? ghost!]
+//      return: [any-value? void!]
 //      name "Name of the THROW construct to define in the block of code"
 //          [word!]
 //      block "Block to evaluate"
@@ -1390,7 +1390,7 @@ DECLARE_NATIVE(DEFINITIONAL_THROW)
 
     Value* v;
     if (Is_Cell_A_Bedrock_Hole(param))
-        v = Init_Ghost(LOCAL(VALUE));
+        v = Init_Void(LOCAL(VALUE));
     else
         v = As_Value(param);
 

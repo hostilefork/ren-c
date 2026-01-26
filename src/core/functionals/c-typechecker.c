@@ -1039,7 +1039,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
     if (Is_Failure(v))
         goto return_false;
 
-    if (Is_Ghost(v))
+    if (Is_Void(v))
         goto return_false;
 
     if (Is_Trash(v))
