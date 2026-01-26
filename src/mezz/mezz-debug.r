@@ -26,8 +26,8 @@ verify: vanishable func [
             not any-void? ^result
             not ^result
 
-            ^ if handler [  ; may or may-not take two arguments
-                let ^reaction: if block? handler [
+            if handler [  ; may or may-not take two arguments
+                let reaction: if block? handler [
                     eval handler
                 ] else [
                     apply:relax handler [  ; arity 0 or 1 is okay

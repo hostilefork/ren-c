@@ -189,9 +189,9 @@
         < > : / . %     ; word!s - special (limited in some contexts)
         #               ; rune! - "hash"/"octothorpe"/"pound"
         _               ; rune! - "space"
-        $               ; tied! - tied "space" rune (a "tie")
-        ^               ; metaform! - meta "space" rune (a "meta")
-        @               ; pinned! - pinned "space" rune (a "pin")
+        $               ; tied! - tied "space" rune ("bind" operator)
+        ^               ; metaform! - meta "space" rune ("identity" operator)
+        @               ; pinned! - pinned "space" rune ("literally" operator)
         ~               ; quasiform! - quasi "space" rune (a "quasar")
         ,               ; comma!
     ][

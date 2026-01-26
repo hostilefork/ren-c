@@ -113,7 +113,7 @@
 (
     o: make object! []
     extend o 'self
-    '~ = ^ get meta $o.self
+    '~,~ = lift get meta $o.self
 )(
     o: make object! []
     extend o [self: 1]

@@ -83,14 +83,15 @@
     ok
 )
 
-; ^ is APPROVE
+; ^ is IDENTITY
 
     (3 = (1 + 2 ^ eval []))
+    (3 = (1 + 2 identity eval []))
 
     ~need-non-end~ !! (^)
 
 
-; $ acts like BIND HERE
+; $ acts like BIND1 (tbd: will be BIND)
 
     (
         foo: 10
