@@ -173,3 +173,10 @@
     (did* heavy null)
     (didn't* fail "hi")
 ]
+
+; ALSO is FAILURE!-reactive (vs. void or null) and drops branch result
+[
+    (1 / 0 also [panic "not reached"] except (e -> [e.id = 'zero-divide]))
+    (null = null also [1000 + 20] except [panic "not reached"])
+    (void? () also [300 + 4] except [panic "not reached"])
+]

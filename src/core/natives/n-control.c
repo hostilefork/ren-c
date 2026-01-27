@@ -432,10 +432,10 @@ DECLARE_NATIVE(ELSE)
 //
 //  also: infix:defer native [  ; NOTE - INFIX:DEFER
 //
-//  "If LEFT is NULL or VOID!, return it, else EVAL BRANCH but return LEFT"
+//  "If LEFT is a FAILURE!, return it, else EVAL BRANCH but return LEFT"
 //
 //      return: [any-value?]
-//      ^left [<null> void! any-value?]
+//      ^left [failure! any-value?]
 //      @branch [any-branch?]
 //  ]
 //
@@ -463,10 +463,7 @@ DECLARE_NATIVE(ALSO)
 
   initial_entry: {  //////////////////////////////////////////////////////////
 
-    if (Is_Failure(left))
-        return COPY_TO_OUT(left);
-
-    if (Is_Light_Null(left) or Is_Void(left))
+    if (Is_Failure(left) or Is_Hot_Potato(left))
         return COPY_TO_OUT(left);
 
     STATE = ST_ALSO_RUNNING_BRANCH;
