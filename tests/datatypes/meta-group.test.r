@@ -5,16 +5,16 @@
 ; Vanishing stuff via voids can only be observed via meta operations.
 ; You cannot pass a void antiform to `=`
 [
-    ('~,~ = lift ())
-    ('~,~ = lift (comment "hi"))
+    ('~ = lift ())
+    ('~ = lift (comment "hi"))
     (void? unlift (lift ^void))
 
     (void? unlift (lift opt ^void))
     ((lift ^void) = lift (opt ^void))
     ~no-value~ !! (opt comment "hi")
 
-    ('~,~ = lift ())
-    ('~,~ = lift (comment "hi"))
+    ('~ = lift ())
+    ('~ = lift (comment "hi"))
     ((lift ^void) = lift (^void))
 ]
 

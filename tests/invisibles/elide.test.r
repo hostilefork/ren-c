@@ -11,9 +11,9 @@
 ; PACK! with a PACK! in the first slot.)
 
 (void? elide "a")
-('~,~ = lift elide "a")
+('~ = lift elide "a")
 (void? eval [elide "a"])
-('~,~ = lift eval [elide "a"])
+('~ = lift eval [elide "a"])
 
 (1 = eval [elide "a" 1])
 (1 = eval [1 elide "a"])

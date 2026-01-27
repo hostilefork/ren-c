@@ -216,7 +216,7 @@
     ('~null~ = reify pack [~null~ 20])
 
     (failure? reify fail "test")
-    ('~,~ = reify ())
+    ('~ = reify ())
 ]
 
 

@@ -92,7 +92,7 @@
             return: [void!]
         ][
             bar: null
-            return ~,~
+            return ~
         ]
         all {
             [pos var]: evaluate:step [1020 bar 304]

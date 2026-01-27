@@ -61,7 +61,7 @@ quasi-okay: '~okay~
 ok?: okay?/
 
 ; https://rebol.metaeducation.com/t/why-caret-to-use-void-vs-just-void/2526
-^void: ~,~
+^void: ~
 ^tripwire: ~
 
 ignore ^veto: ~(veto)~

@@ -452,7 +452,7 @@
     ]
     all [
         (the '1020) = (foo 1020)
-        '~,~ = (foo comment "HI")
+        '~ = (foo comment "HI")
         (lift null) = (foo any [1 > 2, 3 > 4])
         <hole> = (foo)
     ]

@@ -2169,7 +2169,7 @@ static Result(None) Flush_Pending_On_End(ScanState* S) {
     attempt {
         if (S->sigil_pending) {  // e.g. "$]" or "''$]"
             assert(not S->quasi_pending);
-            Init_Sigiled_Space(PUSH(), unwrap S->sigil_pending);
+            Init_Sigiled_Comma(PUSH(), unwrap S->sigil_pending);
             S->sigil_pending = SIGIL_0;
         }
         else if (S->quasi_pending) {  // "~]" or "''~]"
@@ -2301,14 +2301,8 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 } case TOKEN_UNDERSCORE: { ///////////////////////////////////////////////////
 
   // `_` standalone becomes a SPACE value, but `_a_` and `a_b` remain words.
-  //
-  // 1. Quoted/sigiled/quasiforms do not have the underscore in rendering.
-  //
-  //    https://rebol.metaeducation.com/t/why-decorated space-vanishes/2550/
 
     assert(*S->begin == '_');
-    if (S->quasi_pending or S->sigil_pending or S->num_quotes_pending)
-        return fail (Error_Syntax(S, token));  // no ~_~ or $_ or '_ [1]
 
     if (len == 1) {
         Init_Space(PUSH());  // special flag handling for fast recognition
@@ -2368,30 +2362,23 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
     assert(*S->begin == ',' and len == 1);
 
-    if (*S->end == '~') {
-        if (not S->quasi_pending)
-            return fail (
-                "Comma only followed by ~ for ~,~ quasiform (lifted VOID!)"
-            );
-        Quasify_Isotopic_Fundamental(Init_Comma(PUSH()));
-        S->sigil_pending = SIGIL_0;
+    if (*S->end == '~')
+        return fail ("Comma can't be followed by ~");
+
+    if (S->quasi_pending or S->sigil_pending) {  // ['$, 10] => '$ , 10
+        trap (
+            Flush_Pending_On_End(S)
+        );
     }
-    else {
-        if (S->quasi_pending or S->sigil_pending) {  // ['$, 10] => '$ , 10
-            trap (
-              Flush_Pending_On_End(S)
-            );
-        }
-        else if (S->num_quotes_pending) {
-            // fall through normally, want [', 10] => ', 10
-        }
-        if (Is_Interstitial_Scan(L)) {  // only if space needed [1]
-            assert(transcode->at == S->end);  // token was "accepted"
-            --transcode->at;  // "unaccept" token so interstitial sees `,`
-            goto done;
-        }
-        Init_Comma(PUSH());
+    else if (S->num_quotes_pending) {
+        // fall through normally, want [', 10] => ', 10
     }
+    if (Is_Interstitial_Scan(L)) {  // only if space needed [1]
+        assert(transcode->at == S->end);  // token was "accepted"
+        --transcode->at;  // "unaccept" token so interstitial sees `,`
+        goto done;
+    }
+    Init_Comma(PUSH());
     goto lookahead;
 
 } case TOKEN_CARET: //// SIGILS ('$' or '^' or '@') //////////////////////////
@@ -2422,7 +2409,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
     if (S->quasi_pending) {
         if (S->sigil_pending) {  // ~$~ or ~@~ or ~^~
-            Init_Sigiled_Space(PUSH(), unwrap S->sigil_pending);
+            Init_Sigiled_Comma(PUSH(), unwrap S->sigil_pending);
             S->sigil_pending = SIGIL_0;
             --transcode->at;  // let lookahead see the `~`
             goto lookahead;

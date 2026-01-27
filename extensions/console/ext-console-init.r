@@ -131,14 +131,6 @@ export console!: make object! [
             return
         ]
 
-      === VOID! ===
-
-        if void? ^v [
-            print unspaced [
-                result _ --[\~,~\  ; antiform (void!)]--]
-            return
-        ]
-
       === UNPACK FIRST VALUE IN "PACKS" ===
 
       ; Block antiforms represent multiple returns.  Only the first output is
@@ -193,6 +185,14 @@ export console!: make object! [
       ; a debugging aid for knowing where trashes came from).
 
         if trash? ^v [
+            return
+        ]
+
+      === VOID! ===
+
+        if void? ^v [
+            print unspaced [
+                result _ --[\~\  ; antiform (void!)]--]
             return
         ]
 

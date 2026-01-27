@@ -29,7 +29,7 @@
 [#2246 (
     '~(~null~)~ = lift case [okay [null]]  ; branch was taken (vs. null)
 )(
-    '~,~ = lift case [okay []]
+    '~ = lift case [okay []]
 )]
 
 (

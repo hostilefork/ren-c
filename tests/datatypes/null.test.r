@@ -65,7 +65,7 @@
 [
     ('~(~null~)~ = lift if ok [null])
     ('~(~null~)~ = lift if ok [heavy null])
-    ('~,~ = lift if ok [])
+    ('~ = lift if ok [])
 
     ~illegal-keyword~ !! (if ok [~asdf~])  ; not all keywords legal
     (''~asdf~ = lift if ok ['~asdf~])  ; but okay as quasiforms

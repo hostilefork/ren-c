@@ -47,7 +47,7 @@
         ]
     ])
 
-    ([[a 1] [b 2] [c ~,~]] = collect [
+    ([[a 1] [b 2] [c ~]] = collect [
         assert [
             <exhausted> = for-parallel [x ^y] [a b c] [1 2] [
                 keep reduce [x reify ^y]
@@ -56,7 +56,7 @@
         ]
     ])
 
-    ([[a 1] [b 2] [~,~ 3]] = collect [
+    ([[a 1] [b 2] [~ 3]] = collect [
         assert [
             30 = for-parallel [^x y] [a b] [1 2 3] [
                 keep reduce [reify ^x y]

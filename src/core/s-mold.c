@@ -363,8 +363,7 @@ void Mold_Or_Form_Cell_Ignore_Quotes(
 
     if (
         (tildes or sigil)
-        and Heart_Of(element) == TYPE_RUNE
-        and First_Byte_Of_Rune_If_Single_Codepoint(element) == ' '
+        and Heart_Of(element) == TYPE_COMMA
     ){
         if (tildes and sigil)
             Append_Codepoint(mo->strand, '~');

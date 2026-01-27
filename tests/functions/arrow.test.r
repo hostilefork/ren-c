@@ -23,8 +23,8 @@
 
     all [
         ['1 '2 '3] = reflector pack [1 2 3]
-        ['1 '2 ~,~] = reflector pack [1 2]
-        [~,~ ~,~ ~,~] = reflector pack []
+        ['1 '2 ~] = reflector pack [1 2]
+        [~ ~ ~] = reflector pack []
     ]
 )
 
@@ -62,8 +62,8 @@
 
         all [
             ['1 '2 '3] = reflector pack [1 2 3]
-            ['1 '2 ~,~] = reflector pack [1 2]
-            [~,~ ~,~ ~,~] = reflector pack []
+            ['1 '2 ~] = reflector pack [1 2]
+            [~ ~ ~] = reflector pack []
         ]
     )
 ]

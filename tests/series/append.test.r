@@ -130,7 +130,7 @@
 
     ([a b c '[3 d e]] = append [a b c] lift compose [(1 + 2) d e])
 
-    ([a b c ~,~] = append [a b c] lift ^void)
+    ([a b c ~] = append [a b c] lift ^void)
 
     (
         [a b c ~null~] = append [a b c] lift null

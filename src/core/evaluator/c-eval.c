@@ -29,7 +29,7 @@
 //
 // The 1 + 2 evaluated to 3.  If we merely called the Stepper_Executor()
 // again on the same output cell, the comment would evaluate to an antiform
-// comma (e.g. a VOID, ~,~ antiform).  That would overwrite the 3.  So the
+// comma e.g. a VOID (~ antiform).  That would overwrite the 3.  So the
 // Evaluator_Executor() has a holding cell for the last result that it does
 // not overwrite when invisible content comes along as the next value.
 //
@@ -49,7 +49,7 @@
 //    result, and actually just passes through to the Stepper_Executor().
 //
 // B. There are effectively two different ways to model multi-step evaluation
-//    in terms of how VOID! (the ~,~ antiform) is treated.  One is a sort of
+//    in terms of how VOID! (the ~ antiform) is treated.  One is a sort of
 //    regimented approach where the idea is that you want the aggregate
 //    evaluation of a BLOCK! to be something that is comprised of distinct
 //    EVAL:STEP calls, which handle VOID! in an identical way on each step.

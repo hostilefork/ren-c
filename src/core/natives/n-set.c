@@ -267,8 +267,8 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
     if (circle_this)
         circled = TOP_INDEX;
 
-    if (Is_Metaform_Space(TOP_STABLE) or Is_Meta_Form_Of(WORD, TOP_STABLE))  // meta-assign
-        continue;
+    if (Is_Metaform_Comma(TOP_STABLE) or Is_Meta_Form_Of(WORD, TOP_STABLE))
+        continue;  // meta-assign
 
     if (Is_Word(TOP_STABLE) or Is_Tuple(TOP_STABLE))
         continue;
@@ -397,7 +397,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
         );
     }
 
-    if (Is_Metaform_Space(var))
+    if (Is_Metaform_Comma(var))
         goto circled_check;
 
     if (Is_Failure(OUT))  // don't pass thru errors if not ^ sigil
@@ -548,7 +548,7 @@ DECLARE_NATIVE(SET)
         return COPY_TO_OUT(v);
     }
 
-    if (Is_Metaform_Space(target))
+    if (Is_Metaform_Comma(target))
         return COPY_TO_OUT(v);
 
   delegate_to_tweak: {

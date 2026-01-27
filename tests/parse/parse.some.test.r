@@ -150,7 +150,7 @@
 [
     (heavy-void? parse "a" ["a" opt some "b"])
     (heavy-void? parse "a" ["a" [opt "b"]])
-    ('~,~ = parse "a" ["a" [/lift opt some "b"]])
+    ('~ = parse "a" ["a" [/lift opt some "b"]])
 ]
 
 ; This test works in Rebol2 even if it starts `i: 0`, presumably a bug.

@@ -296,17 +296,12 @@ INLINE Result(Element*) Init_Single_Codepoint_Rune_Untracked(
 //     >> if fourth [a b c _] [print "Spaces are truthy"]
 //     Spaces are truthy
 //
-// 1. Instead of rendering as `@_` and `^_` and `$_`, a Sigil'd space will
-//    render as `@`, `^`, and `$`.
 
 #define Init_Space(out) \
     Init_Char_Unchecked((out), ' ')
 
 #define Init_Newline(out) \
     Init_Char_Unchecked((out), '\n')
-
-#define Init_Sigiled_Space(out,sigil) \
-    Add_Cell_Sigil(Init_Space(out), sigil)
 
 #define Is_Space_Underlying(v) \
     (Ensure_Readable(v)->header.bits & ( \
@@ -346,44 +341,8 @@ INLINE bool Is_Cell_Space_With_Lift_Sigil(
     return is_space;
 }
 
-#define Is_Space(v) /* renders as `_` [1] */ \
+#define Is_Space(v) /* renders as `_` */ \
     Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_0)
-
-#define Is_Pinned_Space(v) /* renders as `@` [1] */ \
-    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_PIN)
-
-#define Is_Metaform_Space(v) /* renders as `^` [1] */ \
-    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_META)
-
-#define Is_Tied_Space(v) /* renders as `$` [1] */ \
-    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_TIE)
-
-
-//=//// '~' QUASIFORM (a.k.a. QUASAR) /////////////////////////////////////=//
-//
-// The quasiform of space is a tilde (instead of ~_~), and called QUASAR
-//
-//    >> lift print "Quasiform of SPACE is QUASAR"
-//    Quasiform of SPACE is QUASAR
-//    == ~
-//
-// !!! At one point it was very fast to initialize a QUASAR, as it could be
-// done with only the header.  Consider the idea of making character literals
-// able to be initialized with just the header for space-like cases.
-//
-
-#define Is_Quasar(v) \
-    Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), QUASIFORM_4, SIGIL_0)
-
-INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
-    Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base
-    Quasify_Isotopic_Fundamental(out);
-    assert(Is_Quasar(out));
-    return out;
-}
-
-#define Init_Quasar(out) \
-    TRACK(Init_Quasar_Untracked(out))
 
 
 //=//// '~' ANTIFORM (a.k.a. TRIPWIRE) ////////////////////////////////////=//

@@ -932,16 +932,9 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
         );
 
         if (Is_Antiform(var)) {
-            if (Is_Void(var)) {
-              require (
-                Append_Ascii(mo->strand, "()")  // looks better than ~,~
-              );
-            }
-            else {
-                Lift_Cell(var);  // will become quasi...
-                Mold_Element(mo, As_Element(var));  // ...molds as `~xxx~`
-                UNUSED(var);
-            }
+            Lift_Cell(var);  // will become quasi...
+            Mold_Element(mo, As_Element(var));  // ...molds as `~xxx~`
+            UNUSED(var);
         }
         else {
             Element* elem = As_Element(var);

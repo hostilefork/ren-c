@@ -6,6 +6,6 @@
 (1 = identity 1)
 ('~('10 '20)~ = lift identity pack [10 20])
 
-('~,~ = lift identity ())
+('~ = lift identity ())
 
 ((the '1020)  = lift (1000 + 20 identity ()))

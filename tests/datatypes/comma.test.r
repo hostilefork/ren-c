@@ -94,7 +94,7 @@
 
     ([~null~ false] = test-meta null)
 
-    ([~,~ false] = test-meta ())
+    ([~ false] = test-meta ())
 ]
 
 [

@@ -15,11 +15,11 @@
 
 (3 = (1 + 2 comment "invisible"))
 
-('~,~ = (lift comment "a"))
-((quote '~,~) = lift (lift comment "a"))
+('~ = (lift comment "a"))
+((quote '~) = lift (lift comment "a"))
 
-('~,~ = lift eval [comment "a"])
-((quote '~,~) = lift (lift eval [comment "a"]))
+('~ = lift eval [comment "a"])
+((quote '~) = lift (lift eval [comment "a"]))
 
 ; !!! At one time, comment mechanics allowed comments to be infix such that
 ; they ran as part of the previous evaluation.  This is no longer the case,

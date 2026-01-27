@@ -12,7 +12,7 @@
 (1 = if ok [1])
 
 ((lift null) = lift if null [])
-('~,~ = lift if ok [])
+('~ = lift if ok [])
 
 (error? if ok [rescue [1 / 0]])
 ; RETURN stops the evaluation

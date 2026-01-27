@@ -73,7 +73,7 @@
 ("34" = replace:one copy "304" "0" ^void)
 ~expect-arg~ !! (replace:one copy "304" () "1020")
 ("2020" = replace copy "10201020" "10" ())
-(#{3040} = replace:one copy #{300040} #{00} ~,~)
+(#{3040} = replace:one copy #{300040} #{00} ~)
 ~???~ !! (replace:one copy #{300040} ~()~ #{10002000})
 (#{20002000} = replace copy #{1000200010002000} #{1000} ghost)
 

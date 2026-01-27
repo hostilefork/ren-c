@@ -1,6 +1,6 @@
 //
 //  file: %cell-comma.h
-//  summary: "COMMA! Datatype and VOID! Antiform of ~,~"
+//  summary: "COMMA! Datatype and VOID! Antiform of ~"
 //  project: "Rebol 3 Interpreter and Run-time (Ren-C branch)"
 //  homepage: https://github.com/metaeducation/ren-c/
 //
@@ -37,7 +37,7 @@
 //     == [, 10 + 20]  ; new position, but produced 3 as product
 //
 //     >> [x ^y]: eval:step [, 10 + 20]
-//     == \~('[] ~,~)~\  ; antiform (pack!)
+//     == \~('[] ~)~\  ; antiform (pack!)
 //
 // (Although internally, if the evaluator knows you're not debugging, it will
 // silently skip through the commas without yielding an evaluative product.)
@@ -63,9 +63,68 @@ INLINE Element* Init_Comma_Untracked(Init(Element) out) {
     TRACK(Init_Comma_Untracked(out))
 
 
+//=//// DECORATED COMMA! ("," DOES NOT RENDER) ////////////////////////////=//
+//
+// When a COMMA! is decorated with a Sigil, Quasi, or Quote, it does not
+// render the comma character:
+//
+//     >> comma: first [,]
+//
+//     >> reduce [pin comma tie comma meta comma quasi comma quote comma]
+//     == [@ ^ $ ~ ']  ; not [@, ^, $, ~, ',]
+//
+// These standalone forms are integral parts, and since they are so integral
+// then their atomicity is more important than the scanner making it easy
+// to make decorated commas.  e.g. (x: '@, y: ~, z: ', ...) should not see
+// those as being decorated COMMA!s, merely separating the assignments.
+//
+// Given that: COMMA! becomes the perfect type to underlie the standalone
+// decorated forms.  Since VOID! is antiform COMMA!, this also has the *very*
+// pleasing property that the ~ antiform is void.
+//
+
+#define Init_Sigiled_Comma(out,sigil) \
+    Add_Cell_Sigil(Init_Comma(out), (sigil))
+
+#define Is_Pinned_Comma(v) /* renders as `@` [1] */ \
+    Cell_Has_Lift_Sigil_Heart( \
+        Known_Stable(v), NOQUOTE_3, SIGIL_PIN, TYPE_COMMA)
+
+#define Is_Metaform_Comma(v) /* renders as `^` [1] */ \
+    Cell_Has_Lift_Sigil_Heart( \
+        Known_Stable(v), NOQUOTE_3, SIGIL_META, TYPE_COMMA)
+
+#define Is_Tied_Comma(v) /* renders as `$` [1] */ \
+    Cell_Has_Lift_Sigil_Heart( \
+        Known_Stable(v), NOQUOTE_3, SIGIL_TIE, TYPE_COMMA)
+
+
+//=//// '~' QUASIFORM (a.k.a. QUASAR) /////////////////////////////////////=//
+//
+// The quasiform of COMMA! is a tilde (instead of ~,~), and called QUASAR
+//
+//    >> lift ()
+//    == ~
+//
+
+#define Is_Quasar(v) \
+    Cell_Has_Lift_Sigil_Heart( \
+        Known_Stable(v), QUASIFORM_4, SIGIL_0, TYPE_COMMA)
+
+INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
+    Init_Comma(out);
+    Quasify_Isotopic_Fundamental(out);
+    assert(Is_Quasar(out));
+    return out;
+}
+
+#define Init_Quasar(out) \
+    TRACK(Init_Quasar_Untracked(out))
+
+
 //=//// VOID! (COMMA! ANTIFORM) ///////////////////////////////////////////=//
 //
-// The unstable ~,~ antiform is used to signal vanishing intent, e.g. it is
+// The unstable ~ antiform is used to signal vanishing intent, e.g. it is
 // the return result of things like COMMENT and ELIDE.  It only *actually*
 // vanishes if produced by a VANISHABLE function call, or if it is explicitly
 // approved as vanishable using the IDENTITY operator (`^`).

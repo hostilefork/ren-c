@@ -72,10 +72,10 @@
   ;    for breaking or opting out of contributing to the final loop result:
   ;
   ;        >> lift ()
-  ;        == ~,~
+  ;        == ~
   ;
   ;        >> () then lift/
-  ;        == \~,~\  ; antiform (void!)
+  ;        == \~\  ; antiform (void!)
   ;
   ;        >> lift null
   ;        == ~null~

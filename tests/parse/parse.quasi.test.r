@@ -34,19 +34,19 @@
 
 ; !!! Review VOID behavior
 [
-    ('b = parse [a b] ['a ~,~ 'b])
+    ('b = parse [a b] ['a ~ 'b])
     ; (parse [a b] ['a ^gvoid 'b])  ; [1]
     ; ('b = parse [a b] ['a @void 'b])  ; [1]
     ; ('b = parse [a b] ['a @lib.void 'b])  ; [1]
-    ('b = parse [a b] ['a @(~,~) 'b])
-    ('b = parse [a b] ['a @[(~,~)] 'b])
+    ('b = parse [a b] ['a @(~) 'b])
+    ('b = parse [a b] ['a @[(~)] 'b])
 
-    ('b = parse [a b] ['a 'b ~,~])
+    ('b = parse [a b] ['a 'b ~])
     ; (parse [a b] ['a 'b ^void])  ; [1]
     ; ('b = parse [a b] ['a 'b @void])  ; [1]
     ; ('b = parse [a b] ['a 'b @lib.void])  ; [1]
-    ('b = parse [a b] ['a 'b @(~,~)])
-    ('b = parse [a b] ['a 'b @[(~,~)]])
+    ('b = parse [a b] ['a 'b @(~)])
+    ('b = parse [a b] ['a 'b @[(~)]])
 ]
 
 [

@@ -311,11 +311,11 @@ Bounce Stepper_Executor(Level* L)
       case TYPE_FRAME:
         goto lookahead;
 
-      case ST_STEPPER_TIE_EVALUATING_RIGHT_SIDE:
-        goto tie_rightside_in_out;
+      case ST_STEPPER_BIND_OPERATOR_EVALUATING:
+        goto bind_operator_rightside_in_out;
 
-      case ST_STEPPER_APPROVE_EVALUATING_RIGHT_SIDE:
-        goto approval_rightside_in_out;
+      case ST_STEPPER_IDENTITY_OPERATOR_EVALUATING:
+        goto identity_operator_rightside_in_out;
 
     #if RUNTIME_CHECKS
       case ST_STEPPER_FINISHED_DEBUG:
@@ -589,45 +589,14 @@ Bounce Stepper_Executor(Level* L)
 
 } handle_any_pinned: { //// PINNED! (@XXX) ///////////////////////////////////
 
-    // Type that just leaves the sigil:
-    //
-    //    >> @word
-    //    == @word
-    //
-    // This offers some parity with the @ operator, which gives its next
-    // argument back literally (used heavily in the API):
-    //
-    //    >> @ var:
-    //    == var:
-    //
-    // Most of the datatypes use is in dialects, but the evaluator behavior
-    // comes in handy for cases like passing a signal that reducing constructs
-    // should not perform further reduction:
-    //
-    //    >> pack [1 + 2 10 + 20]
-    //    == ~('3 '30)~  ; anti
-    //
-    //    >> pack @[1 + 2 10 + 20]
-    //    == ~('1 '+ '2 '10 '+ '20)~  ; anti
-    //
-    // It also helps in cases like:
-    //
-    //    import @xml
-    //    import @json/1.1.2
-    //
-    // Leaving the sigil means IMPORT can typecheck against a @WORD! + @PATH!
-    // and not have a degree of freedom that it can't distinguish from being
-    // called as (import 'xml) or (import 'json/1.1.2)
+  // PINNED! types originally focused on inert "do nothing", but are seeming
+  // more valuable to use for iterators.
 
-    if (Is_Pinned_Space(CURRENT))
-        goto handle_pin_sigil;  // special handling for lone @
+  switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
 
-    Inertly_Derelativize_Inheriting_Const(OUT, CURRENT, L->feed);
-    goto lookahead;
+  case TYPE_COMMA: { //// LITERALLY OPERATOR (@) /////////////////////////////
 
-} handle_pin_sigil: {  //// "PIN" Pinned Space Sigil (@) /////////////////////
-
-  // @ acts like JUST (literal, don't add binding):
+  // @ acts like LITERALLY, and doesn't add binding:
   //
   //     >> abc: 10
   //
@@ -684,6 +653,20 @@ Bounce Stepper_Executor(Level* L)
 
     goto lookahead;
 
+} default: { //// MISCELLANEOUS PINNED! TYPE /////////////////////////////////
+
+  // Just leave the sigil:
+  //
+  //    >> @word
+  //    == @word
+  //
+  // !!! This behavior is scheduled to change, as @ is more useful as an
+  // active type with iterators.
+
+    Inertly_Derelativize_Inheriting_Const(OUT, CURRENT, L->feed);
+    goto lookahead;
+
+  }}  // end switch on pinned type
 
 } handle_any_tied: { //// TIED! ($XXX) ///////////////////////////////////////
 
@@ -705,26 +688,21 @@ Bounce Stepper_Executor(Level* L)
     //     >> get 'var
     //     ** Error: var is unbound
 
-    if (Is_Tied_Space(CURRENT))
-        goto handle_tie_sigil;  // special handling for lone $
+  switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
 
-    Inertly_Derelativize_Inheriting_Const(OUT, CURRENT, L->feed);
-    Clear_Cell_Sigil(u_cast(Element*, OUT));  // remove the $
-    goto lookahead;
+  case TYPE_COMMA: { //// BIND OPERATOR ($) //////////////////////////////////
 
-} handle_tie_sigil: {  //// "TIE" Tied Space Sigil ($) ///////////////////////
-
-    // The $ sigil will evaluate the right hand side, and then bind the
-    // product into the current evaluator environment.
+  // The $ sigil will evaluate the right hand side, and then bind the
+  // product into the current evaluator environment.
 
     Level* right = Maybe_Rightward_Continuation_Needed(L);
     if (not right)
-        goto tie_rightside_in_out;
+        goto bind_operator_rightside_in_out;
 
-    STATE = ST_STEPPER_TIE_EVALUATING_RIGHT_SIDE;
+    STATE = ST_STEPPER_BIND_OPERATOR_EVALUATING;
     return CONTINUE_SUBLEVEL(right);
 
-} tie_rightside_in_out: {
+} bind_operator_rightside_in_out: {
 
     if (Is_Antiform(OUT))
         panic ("$ operator cannot bind antiforms");
@@ -733,14 +711,49 @@ Bounce Stepper_Executor(Level* L)
     goto lookahead;
 
 
+} default: {  //// MISCELLANEOUS TIED! TYPE //////////////////////////////////
+
+    Inertly_Derelativize_Inheriting_Const(OUT, CURRENT, L->feed);
+    Clear_Cell_Sigil(u_cast(Element*, OUT));  // remove the $
+    goto lookahead;
+
+  }}  // end switch on tied type
+
+
 } handle_any_metaform: { //// META (^) ///////////////////////////////////////
 
-    // METAFORM! types will LIFT variables on storage, and UNLIFT them on
-    // fetching.  This is complex logic.
+  // METAFORM! types retrieve things with less intervention (decaying, or
+  // perhaps suppressing VOID! => HEAVY VOID conversions).
 
   switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
 
-  case TYPE_WORD: { //// META WORD! ^XXX /////////////////////////////////////
+  case TYPE_COMMA: { //// IDENTITY OPERATOR (^) //////////////////////////////
+
+    if (Is_Feed_At_End(L->feed))  // no literal to take as argument
+        panic (Error_Need_Non_End(CURRENT));
+
+    if (Get_Cell_Flag(L_next, FEED_HINT_ANTIFORM)) {
+        Copy_Cell(OUT, L_next);
+        Undecayed_Antiformize_Unbound_Quasiform(OUT);  // all antiforms legal
+
+        Fetch_Next_In_Feed(L->feed);
+        goto lookahead;
+    }
+
+    Level* right = Maybe_Rightward_Continuation_Needed(L);
+    if (not right)
+        goto identity_operator_rightside_in_out;
+
+    STATE = ST_STEPPER_IDENTITY_OPERATOR_EVALUATING;
+    return CONTINUE_SUBLEVEL(right);
+
+} identity_operator_rightside_in_out: {
+
+    // !!! Did all the work just by making a not-afraid of voids step?
+
+    goto lookahead;
+
+} case TYPE_WORD: { //// META WORD! ^XXX /////////////////////////////////////
 
   // A META-WORD! gives you the undecayed representation of the variable
   //
@@ -846,40 +859,6 @@ Bounce Stepper_Executor(Level* L)
 } case TYPE_FENCE: { //// META FENCE! ^{...} /////////////////////////////////
 
     panic ("Don't know what ^FENCE! is going to do yet");
-
-
-} case TYPE_RUNE: { //// META RUNE! /////////////////////////////////////////
-
-    if (Is_Metaform_Space(CURRENT))
-        goto handle_caret_sigil;  // special handling for lone ^
-
-    panic ("Don't know what ^RUNE! is going to do yet (besides ^)");
-
-} handle_caret_sigil: {  //// Meta Space Sigil (^) ///////////////////////////
-
-    if (Is_Feed_At_End(L->feed))  // no literal to take as argument
-        panic (Error_Need_Non_End(CURRENT));
-
-    if (Get_Cell_Flag(L_next, FEED_HINT_ANTIFORM)) {
-        Copy_Cell(OUT, L_next);
-        Undecayed_Antiformize_Unbound_Quasiform(OUT);  // all antiforms legal
-
-        Fetch_Next_In_Feed(L->feed);
-        goto lookahead;
-    }
-
-    Level* right = Maybe_Rightward_Continuation_Needed(L);
-    if (not right)
-        goto approval_rightside_in_out;
-
-    STATE = ST_STEPPER_APPROVE_EVALUATING_RIGHT_SIDE;
-    return CONTINUE_SUBLEVEL(right);
-
-} approval_rightside_in_out: {
-
-    // !!! Did all the work just by making a not-afraid of voids step?
-
-    goto lookahead;
 
 
 } default: { /////////////////////////////////////////////////////////////////

@@ -6,7 +6,7 @@
 [
     (elide-if-odd: vanishable func [return: [void! integer!] x] [
         if even? x [return x]
-        return ~,~
+        return ~
     ] ok)
 
     (2 = (<test> elide-if-odd 2))
@@ -23,16 +23,16 @@
 
 [
     (
-        no-annotation: func [x] [return ~,~]
+        no-annotation: func [x] [return ~]
         heavy-void? (<test> no-annotation 10)
     )
     ~bad-return-type~ !! (
-        int-spec: func [return: [integer!] x] [return ~,~]
+        int-spec: func [return: [integer!] x] [return ~]
         int-spec 10
     )
     (
         annotated: vanishable func [return: [void! integer!] x] [
-            return ~,~
+            return ~
         ]
         <test> = (<test> annotated 10)
     )
@@ -54,11 +54,11 @@
     ]
 )
 
-(void? ~,~)
+(void? ~)
 (void? ^void)
 (heavy-void? eval [^void])
 (any-void? eval $(^void))
 (heavy-void? (eval [^void]))
-(heavy-void? eval [~,~])
-(heavy-void? eval [, ~,~,])
+(heavy-void? eval [~])
+(heavy-void? eval [, ~,])
 (heavy-void? eval [1 + 2, ^void])

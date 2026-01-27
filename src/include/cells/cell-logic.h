@@ -60,7 +60,7 @@
 // converting the null to a VOID!:
 //
 //    >> opt find [c d] 'e
-//    == \~,~\  ; antiform (void!)
+//    == \~\  ; antiform (void!)
 //
 //    >> append [a b] opt find [c d] 'e
 //    == [a b]

@@ -109,7 +109,7 @@ DECLARE_NATIVE(SIGIL_OF)
     Option(Sigil) sigil = Sigil_Of(elem);
     if (not sigil)
         return NULL_OUT;
-    return Init_Sigiled_Space(OUT, unwrap sigil);
+    return Init_Sigiled_Comma(OUT, unwrap sigil);
 }
 
 
