@@ -52,7 +52,7 @@
 )
 (
     f1: func [return: ~] [return]
-    (lift ^tripwire) = lift f1
+    trash? f1
 )
 [#1515 (  ; the "result" of a return should not be assignable
     a: 1

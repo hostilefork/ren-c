@@ -604,6 +604,10 @@ uintptr_t API_rebTick(void)
 //
 //  rebVoid: API
 //
+// Note that if you want your function to return void, that can also be done
+// with `return "~";` which is probably more efficient than paying for entry
+// to an API call and making an API handle that needs to be freed.
+//
 RebolValue* API_rebVoid(void)  // unstable antiform [B]
 {
     ENTER_API;
@@ -613,14 +617,31 @@ RebolValue* API_rebVoid(void)  // unstable antiform [B]
 
 
 //
-//  rebTripwire: API
+//  rebTrash: API
 //
-// In many places where you might use this, e.g. `return rebTripwire();`,
-// you could just use `return "~";` and it would be as good or better (there
-// is an optimization to take care of this when returning from functions).
+// !!! This only works with Symbol* for now, needs to be generalized for non
+// Symbol strings.
 //
 // (Natives using the core API can use `return TRASH;` for slightly more
 // efficiency, as it directly initializes the OUT cell with a tripwire.)
+//
+RebolValue* API_rebTrash(const char* label)
+{
+    ENTER_API;
+
+    require (
+      const Symbol* symbol = Intern_Unsized_Symbol(label)
+    );
+    return Init_Labeled_Trash(Alloc_Value(), symbol);
+}
+
+
+//
+//  rebTripwire: API
+//
+// In many places where you might use this, e.g. `return rebTripwire();`,
+// you could just use `return "~#~";` and it would be as good or better (there
+// is an optimization to take care of this when returning from functions).
 //
 RebolValue* API_rebTripwire(void)
 {

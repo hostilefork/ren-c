@@ -692,13 +692,13 @@ e/emit [--[
     static DECLARE_NATIVE(REGISTER_EXTENSION_P) {
         (void)level_;  /* mark unused (didn't emit INCLUDE_PARAMS for this) */
         $[Startup-Hooks]
-        return "~";
+        return "~#~";
     }
 
     static DECLARE_NATIVE(UNREGISTER_EXTENSION_P) {
         (void)level_;  /* mark unused (didn't emit INCLUDE_PARAMS for this) */
         $[Shutdown-Hooks]
-        return "~";
+        return "~#~";
     }
 ]--]
 

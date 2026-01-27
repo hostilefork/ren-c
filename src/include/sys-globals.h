@@ -60,10 +60,6 @@ PVAR Codepoint* g_lower_cases;
     PVAR bool PG_Callgrind_On;
 #endif
 
-// These are some canon cells that cannot be offered via LIB(XXX).  e.g. if
-// TRIPWIRE were actually a TRASH! value, users couldn't access it by typing
-// `tripwire` (they'd get an error on trash access)...so it's a function.
-//
 
 PVAR Stable PG_Feed_At_End;  // Canon pointer; internals use instead of rebEND
 

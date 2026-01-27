@@ -36,6 +36,6 @@
         y: x: opt (~)
         some "b"
     ]
-    tripwire? ^x
-    tripwire? $y
+    void? ^x
+    void? $y
 ])

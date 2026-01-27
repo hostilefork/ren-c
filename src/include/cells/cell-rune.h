@@ -71,9 +71,13 @@
 
 //=//// CELL_FLAG_RUNE_IS_SPACE ////////////////////////////////////////////=//
 //
-// The space variations of [_ ~ @ $ ^] are common, as is the antiform of
-// TRIPWIRE.  Being able to test for these just by looking at the header has
-// advantages, similar to the CELL_FLAG_RUNE_SINGLE_CODEPOINT.
+// It was once more important to be able to test for space quickly, because
+// the [_ ~ @ $ ^] standalone decorations were built on space.  Now they are
+// built on top of COMMA!, which is inherently easier to recognize.
+//
+// But the feature of being able to test RUNE! quickly for if it was a space
+// via a header check was written, so it's here for now.  There's another flag
+// for CELL_FLAG_RUNE_SINGLE_CODEPOINT.
 //
 #define CELL_FLAG_RUNE_IS_SPACE  CELL_FLAG_TYPE_SPECIFIC_B
 
@@ -345,23 +349,28 @@ INLINE bool Is_Cell_Space_With_Lift_Sigil(
     Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_0)
 
 
-//=//// '~' ANTIFORM (a.k.a. TRIPWIRE) ////////////////////////////////////=//
+//=//// TRASH! (antiform RUNE!) ///////////////////////////////////////////=//
 //
 // All RUNE! values have antiforms, that are considered to be TRASH!.
 //
-// The antiform of SPACE is a particularly succinct trash state, called
-// TRIPWIRE.  It's a quick way to make a variable
-//  * Quick way to poison variables, simply `(var: ~)`
+// The antiform of NEWLINE is a particularly succinct trash state, called
+// TRIPWIRE.  Quick way to poison variables, simply `(var: ~#~)`
 //
 
-#define Is_Tripwire_Core(v) \
-    Is_Cell_Space_With_Lift_Sigil((v), UNSTABLE_ANTIFORM_1, SIGIL_0)
+INLINE bool Is_Tripwire_Core(Value* v) {
+    if (not Cell_Has_Lift_Sigil_Heart(
+        v, UNSTABLE_ANTIFORM_1, SIGIL_0, TYPE_RUNE
+    )){
+        return false;
+    }
+    return '\n' == opt Codepoint_Of_Rune_If_Single_Char(v);
+}
 
 #define Is_Tripwire(v) \
     Is_Tripwire_Core(Possibly_Unstable(v))
 
 INLINE Value* Init_Tripwire_Untracked(Init(Value) out) {
-    Init_Char_Unchecked_Untracked(out, ' ');  // use space as the base
+    Init_Char_Unchecked_Untracked(out, '\n');  // use newline as the base
     Unstably_Antiformize_Unbound_Fundamental(out);
     assert(Is_Tripwire(out));
     return out;

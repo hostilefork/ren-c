@@ -591,7 +591,7 @@ default-combinators: make map! [
         ^parser [<hole> action!]
         {f ^result}
     ][
-        ^result: ~  ; default `[stop]` returns trash (tripwire)
+        ^result: ~#~  ; !!! return TRASH! by default (tripwire?)
         if ^parser [  ; parser argument is optional
             [^result input]: trap parser input
         ]

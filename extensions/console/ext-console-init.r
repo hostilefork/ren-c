@@ -175,14 +175,10 @@ export console!: make object! [
       ; Whatever doesn't display will be a "lie" in some sense.  The decision
       ; has flipped many times, but trash wins:
       ;
-      ; https://forum.rebol.info/t/console-treatment-of-void-vs-trash/2045
+      ; https://rebol.metaeducation.com/t/console-void-vs-trash/2045
       ;
-      ; TRASH? can hold arbitrary message content as an antiform RUNE!, but
-      ; the most succinct state of trash is antiform space (TRIPWIRE, whose
-      ; quasiform looks like a single tilde `~`).  Right now we don't show
-      ; any trash, regardless of whether it contains a label or not (esp.
-      ; functions that [return: ~] give back trash with their symbol, as
-      ; a debugging aid for knowing where trashes came from).
+      ; TRASH! can hold arbitrary message content as an antiform RUNE!.  We
+      ; don't show it here.
 
         if trash? ^v [
             return
@@ -675,8 +671,8 @@ console*: func [
 
     all [
         error? result
-        result.id = 'no-catch
-        result.arg2 = unrun lib.halt/  ; throw's :NAME
+        (try result.id) = 'no-catch
+        (try result.arg2) = unrun lib.halt/  ; throw's :NAME
     ] then [
         if find directives #quit-if-halt [
             return 128 + 2 ; standard cancellation exit status for bash
@@ -709,8 +705,8 @@ console*: func [
     all [
         has lib 'resume
         error? result
-        result.id = 'no-catch
-        result.arg2 = unrun lib.resume/  ; throw's :NAME
+        (try result.id) = 'no-catch
+        (try result.arg2) = unrun lib.resume/  ; throw's :NAME
     ] then [
         assert [match [^group! handle!] result.arg1]
         if no? resumable [

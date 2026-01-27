@@ -141,7 +141,6 @@ leaders: [
     space?
     quasar?
     NUL?
-    tripwire?
     none?
     veto?
     hot-potato?

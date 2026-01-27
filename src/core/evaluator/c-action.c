@@ -172,9 +172,15 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
     assert(Detect_Rebol_Pointer(b) == DETECTED_AS_UTF8);
 
     const char* cp = cast(const char*, b);
-    if (cp[0] == '~' and cp[1] == '\0') {
-        Init_Tripwire(L->out);
-        return nullptr;  // make return "~" fast!
+    if (cp[0] == '~') {
+        if (cp[1] == '\0') {
+            Init_Void(L->out);
+            return nullptr;  // make return "~" fast!
+        }
+        if (cp[1] == '#' and cp[2] == '~' and cp[3] == '\0') {
+            Init_Tripwire(L->out);
+            return nullptr;  // make return "~#~" fast!
+        }
     }
 
     if (Link_Inherit_Bind(L->varlist) == nullptr) {  // raw native hack [1]
@@ -929,7 +935,7 @@ Bounce Action_Executor(Level* L)
             Init_Nulled(ARG);
         }
 
-        assert(LIFT_BYTE(ARG) != BEDROCK_0);  // not a tripwire
+        assert(LIFT_BYTE(ARG) != BEDROCK_0);
         Value* arg = As_Value(ARG);
 
         if (

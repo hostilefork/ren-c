@@ -77,7 +77,7 @@ DECLARE_NATIVE(CLIPBOARD_ACTOR)
             if (last_error != NO_ERROR)
                 rebPanic_OS (last_error);
 
-            return "~";
+            return "~#~";
         }
 
         if (not OpenClipboard(nullptr))

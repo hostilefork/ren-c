@@ -83,10 +83,11 @@
     foo
 )]
 
-; With lambdas, []: [] doesn't discard result, it typechecks it as trash
-[(
+; With lambdas, []: [] doesn't discard result, it means function does not
+; return.
+[
+~bad-return-type~ !! (
     foo: lambda [[]: []] [~]
-    tripwire? foo
 )
 ~bad-return-type~ !! (
     foo: lambda [[]: []] [1020]

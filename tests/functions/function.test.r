@@ -443,7 +443,7 @@
         use [x] [return]
         42
     ]
-    (lift ^tripwire) = lift f
+    trash? f
 )]
 
 (
