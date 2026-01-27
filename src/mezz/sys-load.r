@@ -424,7 +424,7 @@ bind construct [
     importing-remotely: 'no
 ][
     if where [
-        return: adapt return/ [  ; ensure all return paths actually import vars
+        return*: adapt return*/ [  ; ensure vars imported before any RETURN
             assert [pack? ^value]
             let mod: ensure module! decay ^value
             let exports: select (cond adjunct-of mod) 'exports

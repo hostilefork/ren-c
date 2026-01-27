@@ -230,13 +230,13 @@ main-startup: func [
         ]
     ]
 
-    return: diverger [
+    return*: diverger [  ; changes RETURN behavior in this function only
         "Hooked RETURN function which finalizes any gathered EMIT lines"
 
         state "Describes the RESULT that the next call to HOST-CONSOLE gets"
             [integer! tag! group! datatype!]
         {
-            return-to-c (return/)  ; capture HOST-CONSOLE's RETURN
+            return-to-c (return*/)  ; capture HOST-CONSOLE's RETURN
         }
     ][
         switch state [

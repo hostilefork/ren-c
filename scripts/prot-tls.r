@@ -214,7 +214,7 @@ emit: proc [
     while [not tail? code] [
         if set-word? code.1 [  ; set the word to the binary at current position
             let word: unchain code.1
-            add-let-binding (binding of $return) word (tail of ctx.msg)
+            add-let-binding (binding of $return*) word (tail of ctx.msg)
             code: my next
         ]
         else [

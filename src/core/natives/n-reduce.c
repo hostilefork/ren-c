@@ -467,7 +467,7 @@ DECLARE_NATIVE(REDUCE_EACH)
         panic ("REDUCE-EACH only supports one variable for now");
 
     assert(Is_Block(body));
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     Executor* executor;
     if (Is_Pinned_Form_Of(BLOCK, block))

@@ -176,6 +176,9 @@ INLINE bool Is_Undecayed_Drain(const Value* v) {  // ~(_)~ PACK!
 //        >> map 'i make-one-thru-five/ [i * 10]
 //        == [10 20 30 40 50]
 //
+// 3. RETRY is used by loops for AGAIN, to do the loop body without doing any
+//    incrementation of the loop variables.
+//
 
 INLINE bool Is_Hot_Potato_With_Id_Core(
     Value* v,
@@ -214,6 +217,9 @@ INLINE bool Is_Hot_Potato_With_Id_Core(
 
 #define Is_Cell_A_Done_Hot_Potato(v) \
     Is_Hot_Potato_With_Id((v), SYM_DONE)  // [2]
+
+#define Is_Cell_A_Retry_Hot_Potato(v) \
+    Is_Hot_Potato_With_Id((v), SYM_RETRY)  // [3]
 
 
 //=//// HOLE BEDROCK: PARAMETER! //////////////////////////////////////////-//

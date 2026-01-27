@@ -73,7 +73,6 @@ Rebol [
     copy  ; use `x: across rule` for this intent
     set  ; deprecated in PARSE3 (should it be supported?)
     limit  ; was never implemented
-    return  ; is ACCEPT now to not confuse with FUNC's RETURN
 <MIN_SYM_PARSE3_MATCH>
     skip
     one
@@ -97,6 +96,24 @@ quasi?
 sys
 system
 lib
+
+
+<MIN_SYM_DEFINITIONAL_FORMS>
+
+  ; The starred forms of things are -1, while the -OF forms are +1
+
+    continue*
+    continue
+
+    return*
+    return
+    return-of
+
+    yield*
+    yield
+
+</MAX_SYM_DEFINITIONAL_FORMS>
+
 
 delimit  ; built in %base-defs.r on JOIN TEXT!, but called by system
 print  ; used by PRINT* hack
@@ -133,11 +150,7 @@ across  ; SYM_ACROSS checked as part of SET-WORD!'s code
 
 
 ; definitional forms as DEFINITIONAL-RETURN, DEFINITIONAL-BREAK, ...
-#return
-#break
-again
-yield
-continue
+;
 stop
 quit
 

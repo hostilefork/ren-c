@@ -82,32 +82,9 @@ bool Throw_Was_Loop_Interrupt(
 ){
     const Stable* label = VAL_THROWN_LABEL(loop_level);
 
-    // Throw /NAME-s used by CONTINUE and BREAK are the actual native
-    // function values of the routines themselves.
-    //
-    if (not Is_Frame(label)) {
+    if (not Is_Frame(label)) {  // Throw label for CONTINUE is the actual native
         *interrupt = none;
         return false;
-    }
-
-    if (
-        Frame_Phase(label) == Frame_Phase(LIB(DEFINITIONAL_BREAK))
-        and Frame_Coupling(label) == Level_Varlist(loop_level)
-    ){
-        CATCH_THROWN(out, loop_level);
-        Init_Unreadable(out);  // caller must interpret breaking flag
-        *interrupt = LOOP_INTERRUPT_BREAK;
-        return true;
-    }
-
-    if (
-        Frame_Phase(label) == Frame_Phase(LIB(DEFINITIONAL_AGAIN))
-        and Frame_Coupling(label) == Level_Varlist(loop_level)
-    ){
-        CATCH_THROWN(out, loop_level);
-        Init_Unreadable(out);  // caller must interpret breaking flag
-        *interrupt = LOOP_INTERRUPT_AGAIN;
-        return true;
     }
 
     if (
@@ -115,9 +92,12 @@ bool Throw_Was_Loop_Interrupt(
         and Frame_Coupling(label) == Level_Varlist(loop_level)
     ){
         CATCH_THROWN(out, loop_level);
-        if (not Is_Heavy_Void(out))  // void signals no argument to CONTINUE
-            Assert_Cell_Stable(out);  // CONTINUE doesn't take unstable :WITH
-        *interrupt = LOOP_INTERRUPT_CONTINUE;
+        if (Is_Cell_A_Veto_Hot_Potato(out))
+            *interrupt = LOOP_INTERRUPT_BREAK;
+        else if (Is_Cell_A_Retry_Hot_Potato(out))
+            *interrupt = LOOP_INTERRUPT_AGAIN;
+        else
+            *interrupt = LOOP_INTERRUPT_CONTINUE;
         return true;
     }
 
@@ -127,93 +107,21 @@ bool Throw_Was_Loop_Interrupt(
 
 
 //
-//  definitional-break: native [
-//
-//  "Exit the current iteration of a loop and stop iterating further"
-//
-//      return: []
-//  ]
-//
-DECLARE_NATIVE(DEFINITIONAL_BREAK)
-//
-// BREAK is implemented via a thrown signal that bubbles up through the stack.
-// It uses the value of its own native function as the name of the throw,
-// like `throw:name null break/`.
-{
-    INCLUDE_PARAMS_OF_DEFINITIONAL_BREAK;
-
-    Level* break_level = LEVEL;  // Level of this BREAK call
-
-    Option(VarList*) coupling = Level_Coupling(break_level);
-    if (not coupling)
-        panic (Error_Archetype_Invoked_Raw());
-
-    Level* loop_level = Level_Of_Varlist_May_Panic(unwrap coupling);
-
-    Element* label = Init_Frame(
-        SPARE,
-        Frame_Phase(LIB(DEFINITIONAL_BREAK)),
-        CANON(BREAK),
-        loop_level->varlist
-    );
-
-    Init_Thrown_With_Label(LEVEL, LIB(NULL), label);
-    return BOUNCE_THROWN;
-}
-
-
-//
-//  definitional-again: native [
-//
-//  "Re-run a loop without advancing its loop variables"
-//
-//      return: []
-//  ]
-//
-DECLARE_NATIVE(DEFINITIONAL_AGAIN)
-//
-// AGAIN is implemented via a thrown signal that bubbles up through the stack.
-// It uses the value of its own native function as the name of the throw,
-// like `throw:name null again/`.
-{
-    INCLUDE_PARAMS_OF_DEFINITIONAL_AGAIN;
-
-    Level* again_level = LEVEL;  // Level of this AGAIN call
-
-    Option(VarList*) coupling = Level_Coupling(again_level);
-    if (not coupling)
-        panic (Error_Archetype_Invoked_Raw());
-
-    Level* loop_level = Level_Of_Varlist_May_Panic(unwrap coupling);
-
-    Element* label = Init_Frame(
-        SPARE,
-        Frame_Phase(LIB(DEFINITIONAL_AGAIN)),
-        CANON(AGAIN),
-        loop_level->varlist
-    );
-
-    Init_Thrown_With_Label(LEVEL, LIB(NULL), label);
-    return BOUNCE_THROWN;
-}
-
-
-//
 //  definitional-continue: native [
 //
-//  "Throws control back to top of loop for next iteration"
+//  "Per-loop native for handing control back to the loop"
 //
 //      return: []
-//      ^value "Act as if loop body finished with this value"
-//          [<hole> any-value?]
+//      ^value "Act as if loop body finished with this value (VETO is BREAK)"
+//          [<hole> <veto> any-value?]
 //  ]
 //
 DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
 //
-// CONTINUE is implemented via a thrown signal that bubbles up through the
-// stack.  Loops put their identity into the instance of CONTINUE that they
-// bind into their bodies (much like a definitional RETURN), so the continue
-// knows which loop to continue.
+// Each loop construct binds an instance of this native into their body
+// under the name CONTINUE*.  The loop puts its identity into the "Coupling"
+// of the ACTION! Cell (much like a definitional RETURN), so that when the
+// function is called it can identify which loop is being continued.
 //
 // 1. CONTINUE with no argument acts like the branch completed with no
 //    result; and since it's being run as a branch we throw heavy void.
@@ -221,7 +129,7 @@ DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
 //    https://forum.rebol.info/t/1965/3
 //
 //    Functions like INSIST and REMOVE-EACH thus should tolerate no result
-//    OR force you to CONTINUE:WITH a value saying what you mean.
+//    OR force you to CONTINUE with a value saying what you mean.
 {
     INCLUDE_PARAMS_OF_DEFINITIONAL_CONTINUE;
 
@@ -244,7 +152,7 @@ DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
     Element* label = Init_Frame(
         SPARE,
         Frame_Phase(LIB(DEFINITIONAL_CONTINUE)),
-        CANON(CONTINUE),
+        CANON(CONTINUE_P),
         Varlist_Of_Level_Force_Managed(loop_level)
     );
 
@@ -254,9 +162,161 @@ DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
 
 
 //
-//  Add_Definitional_Break_Again_Continue: C
+//  continue: native [
 //
-void Add_Definitional_Break_Again_Continue(
+//  "Hand control back to the loop"
+//
+//      return: []
+//      ^value "Act as if loop body finished with this value (VETO is BREAK)"
+//          [<hole> <veto> any-value?]
+//  ]
+//
+DECLARE_NATIVE(CONTINUE)
+//
+// CONTINUE is implemented by calling the CONTINUE* currently in scope, giving
+// it whatever argument it got.
+{
+  default_handling: {
+
+    INCLUDE_PARAMS_OF_CONTINUE;
+
+    heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
+    Metafy_Cell(As_Element(SCRATCH));
+    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+
+    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+
+    require (
+      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+    );
+
+    if (not Is_Action(OUT))
+        panic ("BREAK found a CONTINUE* that wasn't an ACTION!");
+
+    if (Frame_Phase(OUT) != Frame_Phase(LIB(DEFINITIONAL_CONTINUE))) {
+        Param* param = ARG(VALUE);
+        if (Is_Cell_A_Bedrock_Hole(param))
+            return rebDelegate(rebRUN(OUT));
+
+        Value* v = As_Value(param);
+        Lift_Cell(v);
+        return rebDelegate(rebRUN(OUT), v);
+    }
+
+} optimized_builtin_continue_call: {
+
+    INCLUDE_PARAMS_OF_DEFINITIONAL_CONTINUE;
+
+    heeded (ARG(VALUE));
+
+    Tweak_Level_Coupling(LEVEL, Frame_Coupling(OUT));
+
+    return Apply_Cfunc(NATIVE_CFUNC(DEFINITIONAL_CONTINUE), LEVEL);
+}}
+
+
+//
+//  break: native [
+//
+//  "Exit the current iteration of a loop and stop iterating further"
+//
+//      return: []
+//      {value}  ; FRAME!-compatibility with CONTINUE (optimization may reuse)
+//  ]
+//
+DECLARE_NATIVE(BREAK)
+//
+// BREAK is implemented by calling the CONTINUE* currently in scope, giving
+// it the ~(veto)~ "hot potato".
+{
+  default_handling: {
+
+    INCLUDE_PARAMS_OF_BREAK;
+
+    heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
+    Metafy_Cell(As_Element(SCRATCH));
+    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+
+    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+
+    require (
+      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+    );
+
+    if (not Is_Action(OUT))
+        panic ("BREAK found a CONTINUE* that wasn't an ACTION!");
+
+    if (Frame_Phase(OUT) != Frame_Phase(LIB(DEFINITIONAL_CONTINUE)))
+        return rebDelegate(rebRUN(OUT), CANON(VETO));
+
+} optimized_builtin_continue_call: {
+
+    INCLUDE_PARAMS_OF_DEFINITIONAL_CONTINUE;
+
+    Copy_Cell(ARG(VALUE), LIB(VETO));  // pass along veto
+
+    Tweak_Level_Coupling(LEVEL, Frame_Coupling(OUT));
+
+    return Apply_Cfunc(NATIVE_CFUNC(DEFINITIONAL_CONTINUE), LEVEL);
+}}
+
+
+//
+//  again: native [
+//
+//  "Re-run a loop without advancing its loop variables"
+//
+//      return: []
+//      {value}  ; FRAME!-compatibility with CONTINUE (optimization may reuse)
+//  ]
+//
+DECLARE_NATIVE(AGAIN)
+//
+// AGAIN is implemented via a call to whatever CONTINUE is currently in scope,
+// passing it the ~(retry)~ "hot potato".
+{
+  default_handling: {
+
+    INCLUDE_PARAMS_OF_AGAIN;
+
+    heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
+    Metafy_Cell(As_Element(SCRATCH));
+    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+
+    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+
+    require (
+      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+    );
+
+    if (not Is_Action(OUT))
+        panic ("AGAIN found a CONTINUE* that wasn't an ACTION!");
+
+    if (Frame_Phase(OUT) != Frame_Phase(LIB(DEFINITIONAL_CONTINUE)))
+        return rebDelegate(rebRUN(OUT), CANON(RETRY));
+
+} optimized_builtin_continue_call: {
+
+    INCLUDE_PARAMS_OF_DEFINITIONAL_CONTINUE;
+
+    Copy_Cell(ARG(VALUE), LIB(RETRY));  // pass along retry
+
+    Tweak_Level_Coupling(LEVEL, Frame_Coupling(OUT));
+
+    return Apply_Cfunc(NATIVE_CFUNC(DEFINITIONAL_CONTINUE), LEVEL);
+}}
+
+
+//
+//  Add_Definitional_Continue: C
+//
+void Add_Definitional_Continue(
     Element* body,
     Level* loop_level
 ){
@@ -266,32 +326,16 @@ void Add_Definitional_Break_Again_Continue(
     }
 
     Context* parent = List_Binding(body);
-    Let* let_continue = Make_Let_Variable(CANON(CONTINUE), parent);
+    Let* let_continue = Make_Let_Variable(CANON(CONTINUE_P), parent);
 
     Init_Action(
         Stub_Cell(let_continue),
         Frame_Phase(LIB(DEFINITIONAL_CONTINUE)),
-        CANON(CONTINUE),  // relabel (the CONTINUE in lib is trash)
+        CANON(CONTINUE_P),  // relabel as CONTINUE* (CONTINUE* in lib is trash)
         Varlist_Of_Level_Force_Managed(loop_level)  // what to continue
     );
 
-    Let* let_break = Make_Let_Variable(CANON(BREAK), let_continue);
-    Init_Action(
-        Stub_Cell(let_break),
-        Frame_Phase(LIB(DEFINITIONAL_BREAK)),
-        CANON(BREAK),  // relabel (the BREAK in lib is trash)
-        Varlist_Of_Level_Force_Managed(loop_level)  // what to break
-    );
-
-    Let* let_again = Make_Let_Variable(CANON(AGAIN), let_break);
-    Init_Action(
-        Stub_Cell(let_again),
-        Frame_Phase(LIB(DEFINITIONAL_AGAIN)),
-        CANON(AGAIN),  // relabel (the AGAIN in lib is trash)
-        Varlist_Of_Level_Force_Managed(loop_level)  // what to break
-    );
-
-    Tweak_Cell_Binding(body, let_again);  // extend chain
+    Tweak_Cell_Binding(body, let_continue);  // extend chain
 }
 
 
@@ -609,7 +653,7 @@ DECLARE_NATIVE(CFOR)
     );
     Remember_Cell_Is_Lifeguard(Init_Object(ARG(WORD), varlist));
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     Fixed(Slot*) slot = Varlist_Fixed_Slot(varlist, 1);
 
@@ -696,7 +740,7 @@ DECLARE_NATIVE(FOR_SKIP)
     );
     Remember_Cell_Is_Lifeguard(Init_Object(ARG(WORD), varlist));
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     Fixed(Slot*) slot = Varlist_Fixed_Slot(varlist, 1);
 
@@ -868,7 +912,7 @@ DECLARE_NATIVE(CYCLE)
 
   initial_entry: {  //////////////////////////////////////////////////////////
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
     Add_Definitional_Stop(body, level_);
 
     STATE = ST_CYCLE_EVALUATING_BODY;
@@ -1390,7 +1434,7 @@ DECLARE_NATIVE(FOR_EACH)
 
     Remember_Cell_Is_Lifeguard(Init_Object(vars, varlist));
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     iterator = Init_Loop_Each_May_Alias_Data(LOCAL(ITERATOR), unwrap data);
     STATE = ST_FOR_EACH_INITIALIZED_ITERATOR;
@@ -1519,7 +1563,7 @@ DECLARE_NATIVE(EVERY)
     );
     Remember_Cell_Is_Lifeguard(Init_Object(ARG(VARS), varlist));
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     iterator = Init_Loop_Each_May_Alias_Data(LOCAL(ITERATOR), unwrap data);
     STATE = ST_EVERY_INITIALIZED_ITERATOR;
@@ -1677,7 +1721,7 @@ DECLARE_NATIVE(REMOVE_EACH)
     );
     Remember_Cell_Is_Lifeguard(Init_Object(ARG(VARS), varlist));
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     Index start = Series_Index(data);
 
@@ -2077,7 +2121,7 @@ DECLARE_NATIVE(MAP)
     if (not data_arg)  // same response as empty
         return Init_Block(OUT, Make_Source(0));
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     if (Is_Action(unwrap data_arg)) {
         // treat as a generator
@@ -2278,7 +2322,7 @@ DECLARE_NATIVE(REPEAT)
         Init_Integer(index, 1);
     }
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     STATE = ST_REPEAT_EVALUATING_BODY;
     Enable_Dispatcher_Catching_Of_Throws(LEVEL);  // catch break/continue
@@ -2388,7 +2432,7 @@ DECLARE_NATIVE(FOR)
     if (n < 1)  // Loop_Integer from 1 to 0 with bump of 1 is infinite
         return VOID_OUT_UNBRANCHED;
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     trap (
       VarList* varlist = Create_Loop_Context_May_Bind_Body(body, vars)
@@ -2484,7 +2528,7 @@ DECLARE_NATIVE(INSIST)
 
   initial_entry: {  //////////////////////////////////////////////////////////
 
-    Add_Definitional_Break_Again_Continue(body, level_);
+    Add_Definitional_Continue(body, level_);
 
     STATE = ST_INSIST_EVALUATING_BODY;
     Enable_Dispatcher_Catching_Of_Throws(LEVEL);  // for BREAK, CONTINUE, etc.
@@ -2585,7 +2629,7 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 
     STATE = ST_WHILE_OR_UNTIL_EVALUATING_CONDITION;  // set before catching
 
-    Add_Definitional_Break_Again_Continue(body, LEVEL);  // not condition [1]
+    Add_Definitional_Continue(body, LEVEL);  // not condition [1]
 
 } evaluate_condition: {  /////////////////////////////////////////////////////
 

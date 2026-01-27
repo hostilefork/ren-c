@@ -596,6 +596,34 @@ INLINE bool Is_Soft_Escapable_Group(const Element* e) {
 }
 
 
+// There are global MACRO-like definitions for things like RETURN that let
+// you redefine what any RETURN would do.  You can override that in scopes
+// as you wish.  But these macros dispatch to things like RETURN* that are
+// instantiated on a per-function basis.
+//
+// 1. A similar trick is used to get RETURN-OF from RETURN, that adds 1.
+//    So for these, we subtract 1, hence the symbol table can line up as:
+//
+//        return*  ; -1
+//        return
+//        return-of  ; +1
+//
+INLINE SymId Starred_Returner_Id(SymId id) {
+    SymId starred_id = u_cast(SymId, u_cast(SymId16, id) - 1);  // subtract [1]
+
+  #if RUNTIME_CHECKS
+    switch (id) {
+      case SYM_CONTINUE: assert(starred_id == SYM_CONTINUE_P); break;
+      case SYM_RETURN: assert(starred_id == SYM_RETURN_P); break;
+      case SYM_YIELD: assert(starred_id == SYM_YIELD_P); break;
+      default: assert(false);
+    }
+  #endif
+
+    return starred_id;
+}
+
+
 //=//// STORE RETURN PARAMETER! SPEC IN A "LOCAL" /////////////////////////=//
 //
 // There's a minor compression used by FUNC and YIELDER which stores the type
@@ -624,7 +652,7 @@ INLINE const Element* Returnlike_Parameter_In_Paramlist(
         Varlist_Array(paramlist),
         METHODIZED
     ) ? 2 : 1;
-    assert(Key_Id(Varlist_Key(paramlist, slot_num)) == id);
+    assert(Key_Id(Varlist_Key(paramlist, slot_num)) == Starred_Returner_Id(id));
     UNUSED(id);
     Stable* param = Stable_Slot_Hack(Varlist_Slot(paramlist, slot_num));
     assert(Is_Parameter(param));

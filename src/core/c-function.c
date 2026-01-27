@@ -175,8 +175,11 @@ static Result(None) Push_Keys_And_Params_Core(
     else {
         augment_initial_entry = false;
 
-        if (returner_id)
-            Init_Word(PUSH(), Canon_Symbol(unwrap returner_id));
+        if (returner_id and returner_id != SYM_DUMMY1)
+            Init_Word(
+                PUSH(),
+                Canon_Symbol(Starred_Returner_Id(unwrap returner_id))
+            );
         else
             Init_Word(PUSH(), Canon_Symbol(SYM_DUMMY1));
 
@@ -827,7 +830,10 @@ void Pop_Unpopped_Return(Sink(Element) out, StackIndex base)
     Copy_Cell(out, TOP_ELEMENT);
     DROP();
 
-    assert(Word_Id(TOP) == SYM_RETURN or Word_Id(TOP) == SYM_DUMMY1);
+    assert(
+        Word_Id(TOP) == Starred_Returner_Id(SYM_RETURN)
+        or Word_Id(TOP) == SYM_DUMMY1
+    );
     DROP();
 
     assert(Is_Cell_A_Bedrock_Hole(TOP_SLOT) or Is_Quasar(TOP_ELEMENT));

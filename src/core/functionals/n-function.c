@@ -844,6 +844,63 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
 
 
 //
+//  return: native [
+//
+//  "RETURN, giving a result to the caller"
+//
+//      return: []
+//      ^value [<hole> any-value?]
+//      :run "Reuse stack level for another call (<redo> uses locals/args too)"
+//      ;   [<variadic> any-stable?]  ; would force this frame managed
+//  ]
+//
+DECLARE_NATIVE(RETURN)
+//
+// RETURN is implemented by calling the RETURN* currently in scope, giving
+// it whatever argument it got.
+{
+  default_handling: {
+
+    INCLUDE_PARAMS_OF_RETURN;
+
+    heeded (Init_Word(SCRATCH, CANON(RETURN_P)));
+    Metafy_Cell(As_Element(SCRATCH));
+    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+
+    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+
+    require (
+      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+    );
+
+    if (not Is_Action(OUT))
+        panic ("RETURN found a RETURN* that wasn't an ACTION!");
+
+    if (Frame_Phase(OUT) != Frame_Phase(LIB(DEFINITIONAL_RETURN))) {
+        Param* param = ARG(VALUE);
+        if (Is_Cell_A_Bedrock_Hole(param))
+            return rebDelegate(rebRUN(OUT));
+
+        Value* v = As_Value(param);
+        Lift_Cell(v);
+        return rebDelegate(rebRUN(OUT), v);
+    }
+
+} optimized_builtin_return_call: {
+
+    INCLUDE_PARAMS_OF_DEFINITIONAL_RETURN;
+
+    heeded (ARG(VALUE));
+
+    Tweak_Level_Coupling(LEVEL, Frame_Coupling(OUT));
+
+    return Apply_Cfunc(NATIVE_CFUNC(DEFINITIONAL_RETURN), LEVEL);
+}}
+
+
+//
 //  definitional-redo: native [
 //
 //  "Internal throw signal used by RETURN:RUN"

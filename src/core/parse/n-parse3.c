@@ -1790,9 +1790,6 @@ DECLARE_NATIVE(SUBPARSE)
               case SYM_LIMIT:
                 panic ("LIMIT not implemented");
 
-              case SYM_RETURN:
-                panic ("RETURN keyword switched to ACCEPT in PARSE3/UPARSE");
-
               default:  // the list above should be exhaustive
                 assert(false);
             }

@@ -66,6 +66,7 @@ ok?: okay?/
 
 ignore ^veto: ~(veto)~
 ignore ^done: ~(done)~
+ignore ^retry: ~(retry)~
 
 ignore ^NaN: ~(NaN)~  ; speculative...
 ignore ^+inf: ~(+inf)~

@@ -47,13 +47,9 @@ steal: lambda [
 
 assert [null = coupling of return/]  ; it's archetypal, nowhere to return to
 
-return: ~#[RETURN used when no function generator is providing it]#~
+return*: ~#[RETURN* used when no function generator is providing it]#~
 
-continue: ~#[CONTINUE used when no loop is providing it]#~
-
-continue: ~#[AGAIN used when no loop is providing it]#~
-
-break: ~#[BREAK used when no loop is providing it]#~
+continue*: ~#[CONTINUE* used when no loop is providing it]#~
 
 stop: ~#[STOP used when no loop is providing it]#~
 
@@ -648,7 +644,7 @@ fail: func [
         ; If no specific location specified, and error doesn't already have a
         ; location, make it appear to originate from the frame calling FAIL.
         ;
-        let where: default [any [frame, binding of $return]]
+        let where: default [any [frame, binding of $return*]]
 
         set-location-of-error error where  ; !!! why is this native?
     ]

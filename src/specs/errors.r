@@ -94,11 +94,6 @@ hole-spans-newline: "$1 is a <hole> param of $2, and can't span a newline"
 collectable-bound:  "Collectable $1 bound, use :PREBOUND if intended"
 assertion-failure:  "Assertion failure: $1"
 
-; NOTE: Preallocated errors
-;
-done:               "Enumeration exhausted"
-veto:               "Cancel operation"
-
 yielder-panicked:   "Can't run a Yielder that has abruptly panicked"
 yielder-reentered:  "Can't re-entrantly call a Yielder not in YIELD state"
 

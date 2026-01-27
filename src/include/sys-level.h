@@ -1065,7 +1065,9 @@ INLINE void Inject_Definitional_Returner(
 
     Index slot_num = Get_Details_Flag(details, METHODIZED) ? 2 : 1;
 
-    assert(Key_Id(Varlist_Key(L->varlist, slot_num)) == id);
+    assert(
+        Key_Id(Varlist_Key(L->varlist, slot_num)) == Starred_Returner_Id(id)
+    );
     assert(Is_Base_Managed(L->varlist));
 
     Value* returner = Level_Arg(L, slot_num);  // should start out specialized
@@ -1075,7 +1077,7 @@ INLINE void Inject_Definitional_Returner(
     Init_Action(
         returner,
         Frame_Phase(definitional),  // DEFINITIONAL-RETURN or YIELD
-        Canon_Symbol(id),  // relabel as plain RETURN or YIELD
+        Canon_Symbol(Starred_Returner_Id(id)),
         L->varlist  // so knows where to RETURN/YIELD from
     );
 }

@@ -289,6 +289,13 @@ DECLARE_NATIVE(EXCEPT)
 //  ]
 //
 DECLARE_NATIVE(TRAP)
+//
+// 1. TRAP makes an API call to RETURN*.  It would be broken if it called the
+//    context-sensing RETURN in the API call, because it would have to run
+//    that code in the calling context of the TRAP callsite for the RETURN
+//    to find it.  This means that if you hooked RETURN to do something
+//    special with FAILURE! then the TRAP won't see that... it goes direct
+//    to the RETURN*, but that is *probably* better anyway.
 {
     INCLUDE_PARAMS_OF_TRAP;
 
@@ -297,7 +304,7 @@ DECLARE_NATIVE(TRAP)
     if (not Is_Failure(v))
         return COPY_TO_OUT(v);  // pass thru any non-failures
 
-    Element* return_word = Init_Word(SCRATCH, CANON(RETURN));
+    Element* return_word = Init_Word(SCRATCH, CANON(RETURN_P));  // [1]
     Bind_Cell_If_Unbound(return_word, Feed_Binding(LEVEL->feed));
     Metafy_Cell(return_word);  // want to get ACTION!s (unstable)
 

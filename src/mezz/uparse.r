@@ -200,7 +200,7 @@ bind construct [
         ; order of being called.
 
         (spread if yes? autopipe '[
-            let f: binding of $return
+            let f: binding of $return*
 
             let in-args: null
             for-each [key ^val] f [
@@ -232,10 +232,10 @@ bind construct [
             ]
         ])
 
-        return: lambda block! [[^value] compose2:deep '{} [  ; ()-composing
-            {return/} pack [
+        return*: lambda block! [[^value] compose2:deep '{} [  ; ()-composing
+            {return*/} pack [
                 ^value except (e -> [
-                    {return/} fail e  ; Review: TRAP/RETURN binding issue
+                    {return*/} fail e  ; Review: TRAP/RETURN binding issue
                 ])
                 {input-name}
                 pending  ; can't change PENDING name at this time
@@ -249,7 +249,7 @@ bind construct [
         ; return?)  Or RETURN ACCEPT and RETURN REJECT to make it clearer,
         ; where ACCEPT makes a pack and REJECT does RAISE?
 
-        eval overbind binding of $return (body)
+        eval overbind binding of $return* (body)
 
         ; If the body does not return and falls through here, the function
         ; will fail as it has a RETURN: that needs to be used to type check
@@ -463,7 +463,7 @@ default-combinators: make map! [
         ^parser [action!]
         {^result}
     ][
-        append state.loops binding of $return
+        append state.loops binding of $return*
 
         [^result input]: parser input except (e -> [
             take:last state.loops
@@ -486,7 +486,7 @@ default-combinators: make map! [
         ^body-parser [action!]
         {^result}
     ][
-        append state.loops binding of $return
+        append state.loops binding of $return*
 
         cycle [
             [^ input]: condition-parser input except [
@@ -513,7 +513,7 @@ default-combinators: make map! [
         ^body-parser [action!]
         {^result}
     ][
-        append state.loops binding of $return
+        append state.loops binding of $return*
 
         cycle [
             [^ input]: condition-parser input except [
@@ -540,7 +540,7 @@ default-combinators: make map! [
         ^parser [action!]
         {^result}
     ][
-        append state.loops binding of $return
+        append state.loops binding of $return*
 
         cycle [
             [^result input]: parser input except [
@@ -558,7 +558,7 @@ default-combinators: make map! [
         ^parser [action!]
         {count (0)}
     ][
-        append state.loops binding of $return
+        append state.loops binding of $return*
 
         cycle [
             [^ input]: parser input except [
@@ -1815,7 +1815,7 @@ default-combinators: make map! [
             panic "Can't make MAX less than MIN in range for REPEAT combinator"
         ]
 
-        append state.loops binding of $return
+        append state.loops binding of $return*
 
         count-up 'i max [  ; will count infinitely if max is #
             ;
@@ -2390,7 +2390,7 @@ default-combinators: make map! [
             [block!]
         :thru "Keep trying rule until end of block"
         {
-            rules pos continue-outer-loop
+            rules pos continue-outer-loop*
             ^result f r
             sublimit subpending subresult
             unafraid can-vanish
@@ -2407,12 +2407,12 @@ default-combinators: make map! [
             ]
 
             if rules.1 = '| [  ; rule alternative fulfilled, but must scan [1]
-                continue-outer-loop: continue/
+                continue-outer-loop*: continue*/
                 while [r: try rules.1] [
                     rules: next rules
                     if r = '|| [
                         input: pos  ; don't roll back past current pos
-                        continue-outer-loop
+                        continue-outer-loop*
                     ]
                 ]
 
@@ -2488,12 +2488,12 @@ default-combinators: make map! [
                 ]
                 pending: none
 
-                continue-outer-loop: continue/
+                continue-outer-loop*: continue*/
                 while [r: try rules.1] [  ; skip to next alternate (if any)
                     rules: next rules
                     if r = '| [
                         pos: input  ; reset position
-                        continue-outer-loop
+                        continue-outer-loop*
                     ]
                     if r = '|| [break]  ; no relevant alternates after fail
                 ]
@@ -3030,7 +3030,7 @@ parse*: func [
     furthest: input  ; COMBINATOR hook marks furthest point reached by a match
 
     let f: make frame! combinators.(type of rules)
-    f.state: binding of $return  ; see [4]
+    f.state: binding of $return*  ; see [4]
     set-combinator-input f input
     f.value: rules
     f.rule-start: null  ; see [5]
