@@ -55,23 +55,15 @@ ver: transcode:one read join repo-dir %src/specs/version.r
 
 api-objects: make block! 50
 
-map-each-api: func [code [block!]] [  ; lambda bootstrap doesn't support LET
-    return map-each 'api api-objects compose [  ; so bootstrap sees 'API
-        let aux: make object! compose [
-            /break: (lift get meta $break)  ; not definitional in bootstrap
-            /continue: (lift get meta $continue)
-        ]
-        eval overbind aux overbind api (code)
+map-each-api: lambda [code [block!]] [
+    map-each 'api api-objects compose [  ; so bootstrap sees 'API
+        ghostly repeat 1 overbind api (code) else [break]
     ]
 ]
 
-for-each-api: func [code [block!]] [  ; lambda bootstrap doesn't support LET
-    return for-each 'api api-objects compose [  ; so bootstrap sees 'API
-        let aux: make object! compose [
-            /break: (lift get meta $break)  ; not definitional in bootstrap
-            /continue: (lift get meta $continue)
-        ]
-        eval overbind aux overbind api (code)
+for-each-api: lambda [code [block!]] [
+    for-each 'api api-objects compose [  ; so bootstrap sees 'API
+        repeat 1 overbind api (code) else [break]
     ]
 ]
 

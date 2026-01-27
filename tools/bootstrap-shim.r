@@ -248,11 +248,15 @@ for-each [alias] [
 function3: ~#[FUNCTION slated for synonym of FUNC, so no FUNCTION3]#~
 
 
-=== "ANY-VOID? SHIM" ===
+=== "VOID SHIMMING" ===
 
 ; There's no heavy void in the bootstrap EXE, so ANY-VOID? is just VOID?
+; TRASH! is right now what branches become to make them "heavy" but maybe
+; it's worth it to add HEAVY-VOID, just not go all the way with PACK!s?
 
 any-void?: void?/
+
+ghostly: func3 [v [any-value!]] [if trash? :v [return ()] return :v]
 
 
 === "ISSUE! => RUNE!" ===
