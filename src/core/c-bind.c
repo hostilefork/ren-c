@@ -974,6 +974,44 @@ DECLARE_NATIVE(ADD_USE_OBJECT) {
 
 
 //
+//  definitional: native [
+//
+//  "Look up variable in the context of an executing function FRAME! callsite"
+//
+//      return: [any-value?]
+//      frame [frame!]
+//      var [word! ^word! tuple! ^tuple!]  ; demand unbound?
+//  ]
+//
+DECLARE_NATIVE(DEFINITIONAL)
+{
+    INCLUDE_PARAMS_OF_DEFINITIONAL;
+
+    Element* var = Element_ARG(VAR);
+    if (Cell_Binding(var) != nullptr)
+        panic ("DEFINITIONAL requires unbound word or tuple");
+
+    Copy_Cell(SCRATCH, var);
+
+    Context* binding = Level_Binding(
+        Level_Of_Varlist_May_Panic(Cell_Varlist(ARG(FRAME)))
+    );
+
+    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), binding));
+
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+
+    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+
+    require (
+      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+    );
+
+    return OUT;
+}
+
+
+//
 //  Clonify_And_Bind_Relative: C
 //
 // Clone the Flex embedded in a value *if* it's in the given set of types

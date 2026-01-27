@@ -286,4 +286,4 @@ latest-of: func [
     return url
 ]
 
-quit:value latest-of/  ; not a module... QUIT must be used to leak out a result
+quit* latest-of/  ; not a module... QUIT* must be used to leak out a result

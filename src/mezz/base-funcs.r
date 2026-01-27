@@ -55,7 +55,36 @@ stop: ~#[STOP used when no loop is providing it]#~
 
 throw: ~#[THROW used when no catch is providing it]#~
 
-quit: ~#[QUIT used when no (DO IMPORT CONSOLE) is providing it]#~
+quit*: ~#[QUIT* used when no (DO, IMPORT, CONSOLE) is providing it]#~
+
+quit: diverger [
+    ^result [
+        integer! "https://en.wikipedia.org/wiki/Exit_status"
+        <hole> "same as 0"
+        logic! "~okay~ same as 0, ~null~ same as 1"
+        failure! "passed through to QUIT* (will heed EXIT-CODE, else 255)"
+    ]
+][
+    let /quit*: definitional (binding of $result) '^quit*
+
+    if failure? ^result [
+        quit* ^result
+    ]
+    any [
+        hole? $result
+        okay? result
+        0 = result
+    ] then [
+        quit* ~okay~
+    ]
+    quit* fail make error! compose [
+        id: 'nonzero-passed-to-quit  ; does error need an ID?
+        message: '[
+            "Script returned non-zero exit code:" exit-code
+        ]
+        exit-code: (ensure integer! any [result 1])
+    ]
+]
 
 yield: ~#[YIELD used when no generator or yielder is providing it]#~
 

@@ -385,6 +385,11 @@ DECLARE_NATIVE(CONSOLE)
   //    during its initialization.  After that moment the module system isn't
   //    on the stack and dealing with it, so really it can only call the
   //    SYS.UTIL/EXIT function and exit the interpreter completely.)
+  //
+  // 5. The QUIT* that we generated wouldn't work any longer, after the CATCH
+  //    that provided it has exited.  You'd get an error.  Rather than have
+  //    that error arise, put back the more informative TRASH! that was in
+  //    the QUIT* of the user context to begin with.
 
     if (rebUnboxLogic("integer? code"))
         goto finished;  // if HOST-CONSOLE returns INTEGER! it means exit code
@@ -397,17 +402,25 @@ DECLARE_NATIVE(CONSOLE)
 
         "state: 'running-request",
 
+        "let ^old-quit*: ^sys.contexts.user.quit*",
+
         "sys.util/recover [",  // pollutes stack trace [3]
-            "catch [",  // definitional quit (customized THROW) [4]
-                "sys.contexts.user.quit: sys.util/make-quit:console throw/",
+            "catch [",  // definitional quit (custom THROW) [4]
+                "sys.contexts.user.quit*: cascade [lift/ throw/]",
                 "result': lift eval code",
-                "throw null",  // won't run `then (caught -> [...])`
-            "] then (caught -> [",  // QUIT wraps THROW to only throw integers
-                "result': caught",  // INTEGER! due to :CONSOLE, out of band
+                "throw ~null~",  // this throw is unlifted, won't run THEN
+            "] then (caught' -> [",  // QUIT* lifts throw, so QUIT* runs THEN
+                "unlift caught' also [",
+                    "result': 0",  // all non-FAILURE! exit with 0 status
+                "] except (e -> [",  // EXIT-CODE field used if present
+                    "result': ensure integer! any [try e.exit-code, 255]",
+                "])"
             "])",
         "] then (error -> [",
             "result': error",  // non-lifted ERROR! out of band
-        "])"
+        "])",
+
+        "sys.contexts.user.quit*: ^old-quit*"  // restore trash! [5]
     );
 
 } finished: {  ///////////////////////////////////////////////////////////////

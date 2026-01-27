@@ -280,7 +280,7 @@
 )
 
 [
-    (do "Rebol [] quit:value ['a] = reduce [''a]")
-    (do "Rebol [] quit:value [''a] = reduce ['''a]")
-    (do "Rebol [] quit:value ['a ''a ''''a] = reduce [''a '''a '''''a]")
+    (do "Rebol [] quit* ['a] = reduce [''a]")
+    (do "Rebol [] quit* [''a] = reduce ['''a]")
+    (do "Rebol [] quit* ['a ''a ''''a] = reduce [''a '''a '''''a]")
 ]

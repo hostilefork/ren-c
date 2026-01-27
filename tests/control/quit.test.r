@@ -7,13 +7,13 @@
     e.exit-code = 42
 )
 
-(99 = do -[Rebol [] try do -[Rebol [] quit 42]- quit:value 99]-)
+(99 = do -[Rebol [] try do -[Rebol [] quit 42]- quit* 99]-)
 
 ; Returning of Rebol values from called to calling script via QUIT w/arg.
 (
     do-script-returning: lambda [value {script}] [
         script: %tmp-inner.r
-        save:header script compose [quit:value (value)] []
+        save:header script compose [quit* (value)] []
         do script
         elide delete %tmp-inner.r
     ]

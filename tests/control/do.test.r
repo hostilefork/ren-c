@@ -214,7 +214,7 @@
 )
 (trash? do "Rebol []")
 (trash? do "Rebol [] 1")
-(2 = do "Rebol [] 1 quit:value 2 3")
+(2 = do "Rebol [] 1 quit* 2 3")
 
 ; RETURN stops the evaluation
 (
@@ -320,7 +320,7 @@
 )
 ; recursive behaviour
 (1 = eval [eval [1]])
-(1 = do "Rebol [] quit:value eval [1]")
+(1 = do "Rebol [] quit* eval [1]")
 (1 = 1)
 (3 = reeval unrun reeval/ unrun add/ 1 2)
 ; infinite recursion for block

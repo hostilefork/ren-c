@@ -46,52 +46,6 @@ exit: lib.exit-process/
 lib.exit-process: ~#[See SYS.UTIL/EXIT]#~
 
 
-; 1. The console exits to the shell, and hence really only needs the exit code
-;    (vs. a script quit that can return any value or error).  It's easier to
-;    do the work here than in API strings in the console C code.
-;
-make-quit: lambda [
-    "Make a quit function out of a plain THROW"
-    ^throw [action!]
-    :console "Just integer, no argument acts like quit 0"  ; [1]
-][
-    diverger [
-        ^result "If not :value, integer! exit code (default is 0)"
-            [<hole> any-value?]
-        :value "Return any value, non-FAILURE! signifies exit code 0"
-    ][
-        result: default [0]
-        if value [  ; not an exit status integer
-            if not console [
-                throw ^result  ; may be error
-            ]
-            throw any [
-                if not failure? ^result [0]  ; non-error is shell success
-                try (unanti ^result).exit-code  ; null if no exit-code field
-                1  ; generic quit signal for all non-exit-code-bearing errors
-            ]
-        ]
-        if not integer? ^result [
-            panic // [
-                "QUIT without :VALUE accepts INTEGER! exit status only"
-                blame: $result
-            ]
-        ]
-        let exit-code: ^result
-        throw case [
-            console [exit-code]  ; console gives code to shell, not to DO
-            exit-code = 0 [~]  ; suppresses display when given back to DO
-        ] else [
-            fail make error! compose [  ; give definitional error back
-                message: [
-                    "Script returned non-zero exit code:" exit-code
-                ]
-                exit-code: (exit-code)
-            ]
-        ]
-    ]
-]
-
 ; 1. !!! The product is the secondary return from running the module.  This is
 ;    not necessarily right, because it means that if the module did (quit 1)
 ;    it probably means the module was not successfully made and you should
@@ -188,23 +142,23 @@ module: func [
   ;    fill it in with a custom THROW word to catch it.  MAKE-QUIT gives us a
   ;    function that interprets non-zero integers e.g. (quit 1) as FAILURE!
   ;
-  ; 2. If there's no explicit QUIT call in the body code, we act as if TRASH!
-  ;    was the result.  That's also what MAKE-QUIT has (quit 0) do.
+  ; 2. If there's no explicit QUIT or QUIT* call in the body code, we do what
+  ;    (quit) with no arguments would do... generate an ~okay~ signal.
   ;
   ;    !!! We might consider having this run the module's QUIT with 0 instead,
   ;    so that an ADAPT'ed QUIT would always get a quit signal.  But this has
   ;    not been done with RETURN for FUNCTION, so it's a controversial idea.
 
     ignore ^product: catch [  ; IGNORE stops FAILURE! results becoming a panic
-        set (extend mod 'quit) make-quit throw/  ; module's QUIT [1]
+        set (extend mod 'quit*) throw/  ; module's QUIT* [1]
 
         wrap* mod body  ; add top-level declarations to module
         body: bindable body  ; MOD inherited body's binding, we rebind
         eval inside mod body  ; ignore body result, only QUIT returns value
-        throw ~  ; parallel behavior to if body had done (quit 0)
+        throw ~okay~  ; same behavior as QUIT 0
     ]
 
-    mod.quit: ~#[Module finished init, no QUIT (do you want SYS.UTIL/EXIT?)]#~
+    mod.quit*: ~#[Module finished init, QUIT* expired (see SYS.UTIL/EXIT)]#~
 
     return pack [mod ^product]  ; FAILURE! antiform is legal product
 ]

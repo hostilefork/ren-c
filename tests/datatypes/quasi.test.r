@@ -140,11 +140,11 @@
 ; Note: QUITs are definitional and provided by things like DO when they run
 ; a script, or IMPORT.  They are variants of THROW.
 [
-    (1 = do "Rebol [] quit:value 1")
+    (1 = do "Rebol [] quit* 1")
     (trash? do "Rebol [] quit 0")
     (do "Rebol [] quit 1" except (e -> [e.exit-code = 1]))
-    (quasi? do "Rebol [] quit:value ^^ fail -[some error]-")  ; ^^ escapes ^
-    (failure? do "Rebol [] quit:value fail* make error! -[some error]-")
+    (quasi? do "Rebol [] quit* lift fail -[some error]-")  ; ^^ escapes ^
+    (failure? do "Rebol [] quit* fail* make error! -[some error]-")
 ]
 
 ; Antiforms make it easier to write generic routines that handle QUASI-WORD?
