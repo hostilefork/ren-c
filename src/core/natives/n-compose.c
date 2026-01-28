@@ -129,10 +129,14 @@ bool Try_Match_For_Compose(
 static void Push_Composer_Level(
     Value* out,
     Level* main_level,
-    const Element* list_or_seq,  // may be quasi or quoted
+    const Stable* list_or_seq,  // may be quasi or quoted (SPLICE! if toplevel)
     Context* context
 ){
-    possibly(Is_Quoted(list_or_seq) or Is_Quasiform(list_or_seq));
+    possibly(
+        Is_Splice(list_or_seq)
+        or Is_Quoted(list_or_seq)
+        or Is_Quasiform(list_or_seq)
+    );
 
     Heart heart = Heart_Of_Builtin(list_or_seq);
 
@@ -143,25 +147,27 @@ static void Push_Composer_Level(
         LiftByte lift_byte = LIFT_BYTE(list_or_seq);
 
         DECLARE_ELEMENT (fundamental);
-        Copy_Cell(fundamental, list_or_seq);
+        Copy_Cell(fundamental, As_Element(list_or_seq));
         LIFT_BYTE(fundamental) = NOQUOTE_3;
 
         assume (  // all sequences alias as block
-            Alias_Any_Sequence_As(adjusted, list_or_seq, TYPE_BLOCK)
+          Alias_Any_Sequence_As(adjusted, As_Element(list_or_seq), TYPE_BLOCK)
         );
 
         LIFT_BYTE(adjusted) = lift_byte;  // restore
     }
+    else if (Is_Splice(list_or_seq))
+        Copy_Lifted_Cell(adjusted, list_or_seq);  // make it a quasiform
     else
         assert(Any_List_Type(heart));
 
     require (
       Level* sub = Make_Level_At_Inherit_Const(
         &Composer_Executor,
-        Is_Cell_Erased(adjusted) ? list_or_seq : adjusted,
+        Is_Cell_Erased(adjusted) ? As_Element(list_or_seq) : adjusted,
         Derive_Binding(
             context,
-            Is_Cell_Erased(adjusted) ? list_or_seq : adjusted
+            Is_Cell_Erased(adjusted) ? As_Element(list_or_seq) : adjusted
         ),
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // allows stack accumulation
     ));
@@ -195,7 +201,7 @@ static void Push_Composer_Level(
 //
 static Result(Stable*) Finalize_Composer_Level(
     Level* L,
-    const Element* composee,  // special handling if the output is a sequence
+    const Stable* composee,  // special handling if the output is a sequence
     bool conflate
 ){
     Stable* out = As_Stable(L->out);
@@ -207,14 +213,18 @@ static Result(Stable*) Finalize_Composer_Level(
 
     assert(Is_Okay(out));  // finished normally
 
-    possibly(Is_Quoted(composee) or Is_Quasiform(composee));
+    possibly(
+        Is_Splice(composee)
+        or Is_Quoted(composee)
+        or Is_Quasiform(composee)
+    );
     Heart heart = Heart_Of_Builtin(composee);
 
     if (Any_Sequence_Type(heart)) {
         trap (
           Pop_Sequence_Or_Element_Or_Nulled(
             out,
-            Heart_Of_Builtin_Fundamental(composee),
+            Heart_Of_Builtin_Fundamental(As_Element(composee)),
             L->baseline.stack_base
         ));
 
@@ -226,7 +236,7 @@ static Result(Stable*) Finalize_Composer_Level(
         }
 
         assert(LIFT_BYTE(composee) & NONQUASI_BIT);  // no anti/quasi forms
-        Count num_quotes = Quotes_Of(composee);
+        Count num_quotes = Quotes_Of(As_Element(composee));
 
         if (not Is_Nulled(out))  // don't add quoting levels (?)
             Quotify_Depth(As_Element(out), num_quotes);
@@ -239,7 +249,8 @@ static Result(Stable*) Finalize_Composer_Level(
 
     Element* list = Init_Any_List(out, heart, a);
 
-    Tweak_Cell_Binding(list, Cell_Binding(composee));  // preserve binding
+    if (not Is_Splice(composee))  // preserve binding if not splice
+        Tweak_Cell_Binding(list, Cell_Binding(As_Element(composee)));
     LIFT_BYTE(list) = LIFT_BYTE(composee);  // apply lift byte [4]
     return out;
 }
@@ -587,6 +598,7 @@ Bounce Composer_Executor(Level* const L)
 //
 //      return: [
 //          any-list?
+//          splice!
 //          any-sequence?
 //          any-utf8?
 //          any-word?       "passed through as-is, or :CONFLATE can produce"
@@ -598,7 +610,7 @@ Bounce Composer_Executor(Level* const L)
 //      pattern "Pass @ANY-LIST? (e.g. @{{}}) to use the pattern's binding"
 //          [any-list? @any-list?]
 //      template "The template to fill in (no-op if WORD!)"
-//          [any-list? any-sequence? any-word? any-utf8?]
+//          [any-list? splice! any-sequence? any-word? any-utf8?]
 //      :deep "Compose deeply into nested lists and sequences"
 //      :conflate "Let illegal sequence compositions produce lookalike WORD!s"
 //      :predicate "Function to run on slots (default is EVALUATE AS GROUP!)"
@@ -616,7 +628,7 @@ DECLARE_NATIVE(COMPOSE2)
     INCLUDE_PARAMS_OF_COMPOSE2;
 
     Element* pattern = Element_ARG(PATTERN);
-    Element* input = Element_ARG(TEMPLATE);  // template is C++ keyword
+    Stable* input = ARG(TEMPLATE);  // template is C++ keyword
 
     enum {
         ST_COMPOSE2_INITIAL_ENTRY = STATE_0,
@@ -662,12 +674,15 @@ DECLARE_NATIVE(COMPOSE2)
     if (Any_Utf8(input))
         goto string_initial_entry;
 
-    assert(Any_List(input) or Any_Sequence(input));
+    assert(Any_List(input) or Is_Splice(input) or Any_Sequence(input));
     goto list_initial_entry;
 
 } list_initial_entry: { //////////////////////////////////////////////////////
 
-    Push_Composer_Level(OUT, level_, input, List_Binding(input));
+    Context* binding =
+        Is_Splice(input) ? UNBOUND : List_Binding(As_Element(input));
+
+    Push_Composer_Level(OUT, level_, input, binding);
 
     STATE = ST_COMPOSE2_COMPOSING_LIST;
     return CONTINUE_SUBLEVEL(SUBLEVEL);
@@ -1046,6 +1061,6 @@ DECLARE_NATIVE(COMPOSE2)
     if (not Any_String(input))
         Freeze_Flex(str);
 
-    Heart input_heart = Heart_Of_Builtin_Fundamental(input);
+    Heart input_heart = Heart_Of_Builtin_Fundamental(As_Element(input));
     return Init_Series_At_Core(OUT, input_heart, str, 0, nullptr);
 }}

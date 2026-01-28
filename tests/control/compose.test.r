@@ -329,3 +329,9 @@
 
     (null = compose:deep [1 + 2 (3 + 4) [(veto) 5 + 6]])
 ]
+
+; Experimental, seems useful: COMPOSE support of SPLICE!
+[
+    (~[]~ = compose ~[(opt null)]~)
+    (~[a b c]~ = compose ~[a b (opt null) c]~)
+]
