@@ -843,7 +843,10 @@ bool Typecheck_Uses_Spare_And_Scratch(
         if (Not_Parameter_Flag(tests, REFINEMENT))
             return true;  // unconstrained non-refinement permits anything
 
-        return Is_Possibly_Unstable_Value_Okay(v) or Is_Unrefinedlike_Null(v);
+        return (
+            Is_Possibly_Unstable_Value_Okay(v)
+            or Is_Nulled_Signifying_Unspecialized(v)
+        );
     }
 
   try_parameter_flag_optimizations: {

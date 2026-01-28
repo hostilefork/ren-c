@@ -198,15 +198,11 @@ INLINE bool Is_Lifted_Null(const Value* v) {
 // these macros help find those places if it's of interest later.
 //
 
-#define Init_Nulled_For_Unrefined(out)  Init_Nulled(out)
-#define Is_Unrefinedlike_Null(v)  Is_Light_Null(v)
+#define Init_Nulled_Signifying_Unspecialized(out)  Init_Nulled(out)
+#define Init_Lifted_Null_Signifying_Unspecialized(out)  Init_Lifted_Null(out)
+#define Is_Nulled_Signifying_Unspecialized(v)  Is_Light_Null(v)
 
 #define Init_Nulled_Signifying_Break(out)  Init_Nulled(out)
-
-#define Init_Unspecialized_Null(out)  Init_Nulled(out)
-#define Is_Unspecialized_Null(v)  Is_Nulled(v)
-
-#define Init_Lifted_Unspecialized_Null(out)  Init_Lifted_Null(out)
 
 
 //=//// CANON LOGIC TRUTHY: ~OKAY~ ANTIFORM ///////////////////////////////=//

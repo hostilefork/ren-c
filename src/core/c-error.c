@@ -1416,7 +1416,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Error)
     // Protect against recursion. !!!!
     //
     if (not form) {
-        Init_Nulled_For_Unrefined(LOCAL(FORM));  // form = false;
+        Init_Nulled_Signifying_Unspecialized(LOCAL(FORM));  // form = false;
         return GENERIC_CFUNC(MOLDIFY, Any_Context)(LEVEL);
     }
 

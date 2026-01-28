@@ -385,7 +385,7 @@ DECLARE_NATIVE(PACK)
 
         assert(Is_Block(block));
         assert(Is_Nulled(LOCAL(PREDICATE)));
-        Init_Nulled_For_Unrefined(LOCAL(PREDICATE));
+        Init_Nulled_Signifying_Unspecialized(LOCAL(PREDICATE));
         Set_Level_Flag(LEVEL, REDUCE_IS_ACTUALLY_PACK);
     }
 

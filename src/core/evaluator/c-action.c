@@ -352,7 +352,7 @@ Bounce Action_Executor(Level* L)
 
       skip_fulfilling_arg_for_now:
         assert(Not_Action_Executor_Flag(L, DOING_PICKUPS));
-        assert(Is_Unrefinedlike_Null(ARG));  // couldn't leave erased
+        assert(Is_Nulled_Signifying_Unspecialized(ARG));  // couldn't leave erased
         continue;
 
   //=//// ACTUAL LOOP BODY ////////////////////////////////////////////////=//
@@ -439,8 +439,8 @@ Bounce Action_Executor(Level* L)
                     goto continue_fulfilling;
                 }
 
-                Init_Nulled_For_Unrefined(Erase_Cell(ARG));  // have to init
-                goto skip_fulfilling_arg_for_now;
+                Init_Nulled_Signifying_Unspecialized(Erase_Cell(ARG));
+                goto skip_fulfilling_arg_for_now;  // ^-- can't leave erased
             }
         }
 
@@ -844,7 +844,7 @@ Bounce Action_Executor(Level* L)
             goto fulfill_and_any_pickups_done;
         }
 
-        assert(Is_Unrefinedlike_Null(ARG));  // could not leave erased
+        assert(Is_Nulled_Signifying_Unspecialized(ARG));  // had to init
 
         Set_Action_Executor_Flag(L, DOING_PICKUPS);
         goto fulfill_arg;
