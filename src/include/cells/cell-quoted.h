@@ -443,8 +443,8 @@ INLINE Element* Copy_Lifted_Cell_Untracked(Init(Element) out, const Value* v)
 #define Copy_Lifted_Cell(out,v) \
     MAYBE_TRACK(Copy_Lifted_Cell_Untracked((out), (v)))
 
-INLINE Element* Copy_Plain_Cell_Untracked(Init(Element) out, const Value* v) {
-    Copy_Cell_Core_Untracked(out, v, CELL_MASK_COPY);
+INLINE Element* Copy_Plain_Cell_Untracked(Init(Element) out, const Cell* cell) {
+    Copy_Cell_Core_Untracked(out, cell, CELL_MASK_COPY);
     LIFT_BYTE(out) = NOQUOTE_3;
     return out;
 }

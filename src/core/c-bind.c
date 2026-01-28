@@ -1455,6 +1455,18 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
 
 
 //
+//  Read_Slot_Dual: C
+//
+void Read_Slot_Dual(Sink(Value) out, const Slot* slot)
+{
+    if (LIFT_BYTE(slot) == BEDROCK_0)
+        Copy_Plain_Cell(out, slot);
+    else
+        Copy_Lifted_Cell(out, As_Value(slot));
+}
+
+
+//
 //  Read_Slot_Meta: C
 //
 // Create_Loop_Context_May_Bind_Body() allows $WORD! for reusing an existing

@@ -1008,6 +1008,7 @@ typedef struct {
     } u;
     bool took_hold;
     bool more_data;
+    bool want_dual;  // GET:DUAL semantics
 } LoopEachState;
 
 //
@@ -1027,13 +1028,36 @@ Element* Init_Loop_Each_May_Alias_Data(
 
   handle_action: {
 
+  // Enumerating actions used to mean calling them repeatedly, but it became
+  // more useful to enumerate their PARAMETER! values.  This is consistent
+  // with the idea that things like APPEND.DUP report back a PARAMETER!, vs.
+  // panic on trying to pick out of an ACTION!.
+
+    if (Is_Action(data_arg)) {
+        Deactivate_Action(data_arg);
+        les->want_dual = true;
+    }
+    else  // dual enumeration should be some kind of ITERATOR!, generically
+        les->want_dual = false;
+
+    data = As_Element(data_arg);
+    les->generator = nullptr;
+
+} handle_lifted_action: {
+
+  // !!! As an interim workaround for the lack of ITERATOR!, we use quasi
+  // frames to signify a desire to call an action repeatedly
+  //
   // The value is generated each time by calling the data action.  Actions
   // are antiform FRAME!, and frame enumeration is distinct from this, so
   // the unstable antiform status has to be distinguished.  We don't want
   // handling `les->data` to be awkward due to being possibly unstable, so
   // put the generator in a separate field.
 
-    if (Is_Action(data_arg)) {
+    if (Is_Lifted_Action(data)) {
+        Copy_Cell(data_arg, data);
+        Unstably_Antiformize_Unbound_Fundamental(data_arg);
+
         les->took_hold = false;
         les->more_data = true;  // !!! Needs to do first call
         les->flex = nullptr;
@@ -1042,9 +1066,6 @@ Element* Init_Loop_Each_May_Alias_Data(
         data = nullptr;
         goto return_iterator;
     }
-
-    data = As_Element(data_arg);
-    les->generator = nullptr;
 
 } convert_quoted_to_block: {
 
@@ -1252,9 +1273,13 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
 
                 // Want keys and values (`for-each [key val] obj [...]`)
                 //
-                trap (
-                    Read_Slot_Meta(SPARE, les->u.evars.slot)
-                );
+                if (les->want_dual)
+                    Read_Slot_Dual(SPARE, les->u.evars.slot);
+                else {
+                    trap (
+                        Read_Slot_Meta(SPARE, les->u.evars.slot)
+                    );
+                }
                 trap (  // heeds LOOP_SLOT_ROOT_META, errors if unstable w/o
                     Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
                 );

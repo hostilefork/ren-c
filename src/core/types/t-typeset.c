@@ -25,32 +25,24 @@
 #include "sys-core.h"
 
 
-//
-//  CT_Parameter: C
-//
-REBINT CT_Parameter(const Element* a, const Element* b, bool strict)
+IMPLEMENT_GENERIC(EQUAL_Q, Is_Parameter)
 {
-    UNUSED(strict);
+    INCLUDE_PARAMS_OF_EQUAL_Q;
 
-    assert(Heart_Of(a) == TYPE_PARAMETER);
-    assert(Heart_Of(b) == TYPE_PARAMETER);
+    Element* a = Element_ARG(VALUE1);
+    Element* b = Element_ARG(VALUE2);
+    UNUSED(PARAM(RELAX));
 
-    if (Parameter_Spec(a) != Parameter_Spec(b)) {
-        if ((opt Parameter_Spec(a)) > (opt Parameter_Spec(b)))
-            return 1;
-        return -1;
-    }
+    if (Parameter_Spec(a) != Parameter_Spec(b))
+        return LOGIC_OUT(false);
 
-    if (Parameter_Strand(a) != Parameter_Strand(b)) {
-        if ((opt Parameter_Strand(a)) > (opt Parameter_Strand(b)))
-            return 1;
-        return -1;
-    }
+    if (Parameter_Strand(a) != Parameter_Strand(b))
+        return LOGIC_OUT(false);
 
-    if (Parameter_Class(a) != Parameter_Class(b))
-        return Parameter_Class(a) > Parameter_Class(b) ? 1 : -1;
+    if (CELL_PARAMETER_PAYLOAD_2_FLAGS(a) != CELL_PARAMETER_PAYLOAD_2_FLAGS(b))
+        return LOGIC_OUT(false);
 
-    return 0;
+    return LOGIC_OUT(true);
 }
 
 

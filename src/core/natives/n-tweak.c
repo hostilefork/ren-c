@@ -84,6 +84,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     StackIndex picker_index,
     bool dont_indirect
 ){
+    Option(Heart) adjusted = none;
 
     Element* location_arg;
     Stable* picker_arg;
@@ -93,6 +94,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
 
     Dual* dual_spare = As_Dual(Level_Spare(parent));
     if (Is_Lifted_Antiform(Level_Spare(parent))) {
+        adjusted = Heart_Of_Unsigiled_Isotopic(dual_spare);
         Option(Error*) e = Trap_Adjust_Lifted_Antiform_For_Tweak(dual_spare);
         if (e)
             return e;  // don't panic, caller will handle
@@ -219,7 +221,11 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     }
 
     if (Is_Bedrock_Dual_A_Hole(dual_spare)) {  // unspecialized cell
-        Init_Lifted_Null_Signifying_Unspecialized(dual_spare);
+        if (adjusted == TYPE_FRAME) { // picking parameter from an ACTION!
+            LIFT_BYTE(dual_spare) = ONEQUOTE_NONQUASI_5;  // plain lifted
+        } else {  // make it look like a NULL
+            Init_Lifted_Null_Signifying_Unspecialized(dual_spare);
+        }
         goto return_without_unbinding;
     }
 
@@ -794,6 +800,12 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
             continue;  // all meta picks are as-is
 
         if (Is_Lifted_Unstable_Antiform(SPARE)) {
+            if (
+                Is_Lifted_Action(As_Stable(SPARE))  // e.g. asking APPEND.DUP
+                and stackindex != limit - 1
+            ){
+                continue;  // allow it if NOT last step (picks PARAMETER!)
+            }
             if (
                 Is_Lifted_Hot_Potato(As_Stable(SPARE))
                 and stackindex == limit - 1

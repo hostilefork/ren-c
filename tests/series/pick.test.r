@@ -84,3 +84,34 @@
         null = try data.(3.0)
     ]
 )]
+
+; PICK out of an ACTION! gets you PARAMETER!
+[
+    (all {
+        f: make frame! append/
+        param: get:dual meta $f.dup
+        parameter? param
+        append.dup = param
+    })
+
+    (all {
+        keys1: []
+        params1: []
+        keys2: []
+        params2: []
+        for-each [key param] append/ [
+            append keys1 ensure word! key
+            append params1 ensure parameter! param
+        ]
+        f: ensure frame! decay ^append
+        for-each key f [
+            append keys2 ensure word! key
+            append params2 ensure parameter! get:dual key
+        ]
+        keys1 = [series value part dup line]
+        keys1 = words of append/
+        keys1 = words of f
+        keys1 = keys2
+        params1 = params2
+    })
+]

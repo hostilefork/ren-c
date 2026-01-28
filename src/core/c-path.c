@@ -103,8 +103,11 @@ Result(Element*) Init_Any_Sequence_At_Listlike(
 //
 //  "Perform a path picking operation; same code as `(location).(picker)`"
 //
-//      return: [<null> any-stable?]
-//      location [plain?]  ; can't pick sigil'd/quoted
+//      return: [any-stable? failure!]
+//      ^location [
+//          plain? "Ordinary value to pick from"  ; can't pick sigil'd/quoted
+//          action! "Give back PARAMETER! for the given picker"
+//      ]
 //      picker "Index offset, symbol, or other value to use as index"
 //          [any-stable?]
 //      {dual}  ; slot in position of DUAL for TWEAK*
@@ -122,7 +125,7 @@ DECLARE_NATIVE(PICK)
 {
     INCLUDE_PARAMS_OF_PICK;
 
-    Element* location = Element_ARG(LOCATION);
+    Value* location = ARG(LOCATION);
     Stable* picker = ARG(PICKER);
 
     StackIndex base = TOP_INDEX;
