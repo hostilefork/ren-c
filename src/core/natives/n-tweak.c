@@ -351,7 +351,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         }
 
         if (Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(TOP_ELEMENT))
-            continue;  // (x: ()) works, (x: ~()~ doesn't), (x: ~) works
+            continue;  // (x: ()) or (x: ~) works, (x: ~()~ doesn't)
 
         bool was_singular_pack = (
             Is_Lifted_Pack(TOP_ELEMENT) and Series_Len_At(TOP_ELEMENT) == 1

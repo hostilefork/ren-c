@@ -498,7 +498,7 @@ default-combinators: make map! [
             ; if it fails we disregard the result
             ;
             [^result input]: body-parser input except [
-                ^result: ()
+                result: ~
                 continue
             ]
         ]
@@ -522,7 +522,7 @@ default-combinators: make map! [
                 ; but if it fails we disregard the result
                 ;
                 [^result input]: body-parser input except [
-                    ^result: ()
+                    result: ~
                     continue
                 ]
                 continue
@@ -544,7 +544,7 @@ default-combinators: make map! [
 
         cycle [
             [^result input]: parser input except [
-                ^result: ()
+                result: ~
                 continue
             ]
         ]
@@ -591,7 +591,7 @@ default-combinators: make map! [
         ^parser [<hole> action!]
         {f ^result}
     ][
-        ^result: ~#~  ; !!! return TRASH! by default (tripwire?)
+        result: ~#~  ; !!! return TRASH! by default (tripwire?)
         if ^parser [  ; parser argument is optional
             [^result input]: trap parser input
         ]
@@ -2481,7 +2481,7 @@ default-combinators: make map! [
             ]
 
             if failure? ^subresult: eval f [  ; combinator does EVAL-FREE [3]
-                ^result: ()  ; parser didn't match--reset, e.g. `[veto |]`
+                result: ~  ; parser didn't match--reset, e.g. `[veto |]`
 
                 if block? pending [
                     free pending  ; proactively release memory

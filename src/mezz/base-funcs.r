@@ -174,7 +174,7 @@ redescribe: func [
 unset: redescribe [
     "Put variable into a dual state that prohibits any form of GET on it"
 ](
-    specialize set/ [value: ()]
+    specialize set/ [value: ~]
 )
 
 unset?: redescribe [

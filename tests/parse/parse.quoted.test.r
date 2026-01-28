@@ -33,42 +33,42 @@
 
     (
         all {
-            res: ()
+            res: ~
             1 = parse [] [(res: 1)]
             res = 1
         }
     )
     (
         all {
-            res: ()
+            res: ~
             1 = parse [a] ['a (res: 1)]
             res = 1
         }
     )
     (
         all {
-            res: ()
+            res: ~
             failure? parse [a] ['b (res: 1)]
             unset? $res
         }
     )
     (
         all {
-            res: ()
+            res: ~
             1 = parse [] [[(res: 1)]]
             res = 1
         }
     )
     (
         all {
-            res: ()
+            res: ~
             1 = parse [a] [['a (res: 1)]]
             res = 1
         }
     )
     (
         all {
-            res: ()
+            res: ~
             failure? parse [a] [['b (res: 1)]]
             unset? $res
         }
@@ -97,7 +97,7 @@
 ]
 
 [#682 (  ; like the old way...
-    t: ()
+    t: ~
     parse "<tag>text</tag>" [thru '<tag> t: across to '</tag> to <end>]
     t = "text"
 )(
@@ -107,35 +107,35 @@
 [
     (
         all {
-            res: ()
+            res: ~
             'a = parse [a] [res: 'a]
             res = 'a
         }
     )
     (
         all {
-            res: ()
+            res: ~
             'a = parse [a a] [res: repeat 2 'a]
             res = 'a
         }
     )
     (
         all {
-            res: ()
+            res: ~
             failure? parse [a a] [res: repeat 3 'a]
             unset? $res
         }
     )
     (
         all {
-            res: ()
+            res: ~
             'a = parse [a] [res: ['a]]
             res = 'a
         }
     )
     (
         all {
-            res: ()
+            res: ~
             'b = parse [a a b] [one res: 'a one]
             res = 'a
         }

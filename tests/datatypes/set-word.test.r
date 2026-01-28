@@ -94,6 +94,7 @@
 ; rather than lie we just prohibit it.
 [
     (x: (), void? ^x)
+    (x: ~, void? ^x)
 
     ~???~ !! (x: ~[]~)
 ]

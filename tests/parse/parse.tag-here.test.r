@@ -35,30 +35,30 @@
 )]
 
 (all {
-    pos: ()
+    pos: ~
     [x y] = res: parse ser: [x y] [pos: <here>, elide [one, one]]
     pos = ser
 })
 (all {
-    pos: ()
+    pos: ~
     [y] = res: parse ser: [x y] [one, pos: <here>, elide one]
     pos = next ser
 })
 (all {
-    pos: ()
+    pos: ~
     [] = res: parse ser: [x y] [one, one, pos: <here>]
     pos = tail of ser
 })
 [#2130 (
     all {
-        pos: val: ()
+        pos: val: ~
         'x = res: parse ser: [x] [pos: <here>, val: word!]
         val = 'x
         pos = ser
     }
 )(
     all {
-        pos: val: ()
+        pos: val: ~
         'true = res: parse ser: "foo" [
             pos: <here>
             val: across one

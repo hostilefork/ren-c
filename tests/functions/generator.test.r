@@ -149,7 +149,7 @@
         ]
     ]
 
-    a: b: c: d: e: ()
+    a: b: c: d: e: ~
 
     g: e-generator [
         ignore ^a: yield fail "a"

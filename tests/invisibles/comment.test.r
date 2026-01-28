@@ -58,7 +58,7 @@
 
 ~no-value~ !! (
     x: <overwritten>
-    (<kept> x: ())
+    (<kept> x: ~)
 )
 ~no-value~ !! (
     x: <overwritten>
@@ -75,7 +75,7 @@
 )
 ~no-value~ !! (
     obj: make object! [x: <overwritten>]
-    (<kept> obj.x: ())
+    (<kept> obj.x: ~)
 )
 ~need-non-end~ !! (
     obj: make object! [x: <overwritten>]

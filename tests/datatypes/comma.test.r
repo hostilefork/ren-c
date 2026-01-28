@@ -118,7 +118,7 @@
         reduce [boolean hole? $x, boolean hole? $y]
     ]
     all {
-        result: ()
+        result: ~
         1020 = eval [result: test-two-holes, 1020]
         result = [true true]
     }

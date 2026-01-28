@@ -162,8 +162,8 @@
 )
 
 (
-    obj: make object! [a: () b: [x y]]
-    a: ()
+    obj: make object! [a: ~ b: [x y]]
+    a: ~
     b: [x y]
     all [
         void? ^a

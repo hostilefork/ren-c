@@ -301,11 +301,13 @@ set the __ "  "
 ; to not remember that the KEEP is the kind that takes /ONLY.  Renaming the
 ; keeper to KEEP3 makes that clearer.
 
+spread3: identity/  ; comment calls out implicit splicing
+
 collect3: adapt lib3.collect/ [
     body: compose3 [
-        keep3: keep/  ; help point out keep3 will splice blocks, has /ONLY
-        keep: ~
-        (body)  ; splices block body because it's COMPOSE3
+        keep3: keep/
+        keep: ~#[Use KEEP3 not KEEP in COLLECT3 (clarifies splice behavior)]#~
+        (spread3 body)
     ]
 ]
 
