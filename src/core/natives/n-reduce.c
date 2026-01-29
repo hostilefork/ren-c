@@ -209,10 +209,10 @@ DECLARE_NATIVE(REDUCE)
 
 } next_reduce_step: {  ///////////////////////////////////////////////////////
 
-  // 1. !!! Skipping COMMA! saves time here, but raises questions regarding
-  //    RebindableSyntax...what if COMMA! has been rethought not to make
+  // 1. !!! Skipping BLANK! saves time here, but raises questions regarding
+  //    RebindableSyntax...what if BLANK! has been rethought not to make
   //    voids?  It's actually semantically important for PACK (which reuses
-  //    this code) to skip the commas, so this needs further thought.
+  //    this code) to skip the blanks, so this needs further thought.
   //
   // 2. We want the output newline status to mirror newlines of the start
   //    of the eval positions.  But when the evaluation callback happens, we
@@ -222,9 +222,9 @@ DECLARE_NATIVE(REDUCE)
     if (Is_Level_At_End(SUBLEVEL))
         goto finished;
 
-    if (Is_Comma(At_Level(SUBLEVEL))) {
+    if (Is_Blank(At_Level(SUBLEVEL))) {
         Fetch_Next_In_Feed(SUBLEVEL->feed);
-        goto next_reduce_step;  // PACK can't let COMMA! eval to VOID! [1]
+        goto next_reduce_step;  // PACK can't let BLANK! eval to VOID! [1]
     }
 
     if (Get_Cell_Flag(At_Level(SUBLEVEL), NEWLINE_BEFORE))
@@ -487,7 +487,7 @@ DECLARE_NATIVE(REDUCE_EACH)
     if (Is_Level_At_End(SUBLEVEL))
         goto finished;
 
-    if (Is_Comma(At_Level(SUBLEVEL))) {
+    if (Is_Blank(At_Level(SUBLEVEL))) {  // ","
         Fetch_Next_In_Feed(SUBLEVEL->feed);
         goto reduce_next;  // REDUCE skips commas, so REDUCE-EACH does too
     }

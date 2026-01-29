@@ -1041,7 +1041,7 @@ static Result(REBIXO) To_Thru_Non_Block_Rule(
         if (Is_Quasi_Word_With_Id(rule, SYM_OKAY))
             return P_POS;  // no-op
         if (not Is_Lifted_Datatype(rule))
-            panic ("PARSE3 supports ~void~, ~okay~, and datatype antiforms");
+            panic ("PARSE3 supports ~, ~okay~, and datatype antiforms");
     }
 
     Option(Type) t = Type_Of(rule);
@@ -1383,7 +1383,7 @@ DECLARE_NATIVE(SUBPARSE)
     if (Is_Bar(rule))  // reached BAR! without a match failure, good!
         return Init_Integer(OUT, P_POS);  // indicate match @ current pos
 
-    //=//// HANDLE COMMA! (BEFORE GROUP...?) //////////////////////////////=//
+    //=//// HANDLE BLANK! (e.g. commas) (BEFORE GROUP...?) ////////////////=//
 
     // The R3-Alpha PARSE design wasn't based on any particular notion of
     // "instruction format"; it fiddled a lot of flags like PF_WHILE to know
@@ -1394,12 +1394,12 @@ DECLARE_NATIVE(SUBPARSE)
     // make.  PARSE should be rewritten in a better way, but until it is
     // the we have to intuit the rule situation.
     //
-    // !!! For now we assume that a GROUP! evaluation to produce a comma
+    // !!! For now we assume that a GROUP! evaluation to produce a blank
     // will just error, vs. be okay in interstitial positions.  But unlike
-    // BAR! there's no scan skipping that *requires* commas to be at source
+    // BAR! there's no scan skipping that *requires* blanks to be at source
     // level, so this could be relaxed if there was a good reason to.
 
-    if (Is_Comma(rule)) {
+    if (Is_Blank(rule)) {
         if (mincount != 1 or maxcount != 1 or (P_FLAGS & PF_STATE_MASK))
             panic (Error_Expression_Barrier_Raw());
         FETCH_NEXT_RULE(L);

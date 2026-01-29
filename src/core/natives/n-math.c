@@ -828,7 +828,7 @@ DECLARE_NATIVE(SQUARE_ROOT)
 //
 //  vacancy?: native [
 //
-//  "Tells you if default would overwrite a value (TRASH, NULL?, BLANK?)"
+//  "Tells you if default would overwrite a value (TRASH!, NULL?, VOID!)"
 //
 //      return: [logic!]
 //      ^value [any-value?]

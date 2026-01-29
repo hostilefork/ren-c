@@ -144,7 +144,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
 
-      case TYPE_COMMA:  // VOID!
+      case TYPE_BLANK:  // VOID!
       case TYPE_ERROR:  // FAILURE! (any special work here?)
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;

@@ -1,7 +1,7 @@
 ; %bar-bar.test.r
 ;
 ; At one time, `|` was an "expression barrier" as an early version of
-; what today is done with COMMA!.  However, commas won out as something
+; what today is done with BLANK!.  However, commas won out as something
 ; that could be used in PARSE as well, allowing | to be alternates.
 ;
 ; `||` was conceived as something that could act as an expression
@@ -9,7 +9,7 @@
 ;
 
 (
-    3 = (1 + 2,)  ; COMMA! barrier
+    3 = (1 + 2,)  ; comma shows you where BLANK! barrier is
 )(
     3 = (1 + 2 ||)  ; usermode expression barrier
 )

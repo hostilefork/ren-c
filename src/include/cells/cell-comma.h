@@ -1,6 +1,6 @@
 //
 //  file: %cell-comma.h
-//  summary: "COMMA! Datatype and VOID! Antiform of ~"
+//  summary: "BLANK! Datatype and VOID! Antiform of ~"
 //  project: "Rebol 3 Interpreter and Run-time (Ren-C branch)"
 //  homepage: https://github.com/metaeducation/ren-c/
 //
@@ -19,11 +19,14 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// The COMMA! is a datatype whose evaluator behavior is to act as what is
+// The BLANK! is a datatype whose evaluator behavior is to act as what is
 // referred to as an "expression barrier".  It will stop argument fulfillment,
 // but if no argument fulfillment is in place then it has no effect.
 //
-//     >> 1 + 2,
+// Rendering and scanning wise, blanks have no representation.  But rendering
+// for lists use comma characters to "show where the blanks are":
+//
+//     >> 1 + 2,  ; <-- a BLANK! after the 2, hence we see a comma
 //     == 3
 //
 //     >> 1 +, 2
@@ -31,7 +34,7 @@
 //
 // It has the property that it renders "glued" to the element to the left.
 //
-// Commas are recognized specially by the evaluator, and produce a VOID!:
+// Blanks are recognized specially by the evaluator, and produce a VOID!:
 //
 //     >> eval:step [1 + 2, 10 + 20]
 //     == [, 10 + 20]  ; new position, but produced 3 as product
@@ -40,18 +43,18 @@
 //     == \~('[] ~)~\  ; antiform (pack!)
 //
 // (Although internally, if the evaluator knows you're not debugging, it will
-// silently skip through the commas without yielding an evaluative product.)
+// silently skip through the blanks without yielding an evaluative product.)
 //
 //=//// NOTES //////////////////////////////////////////////////////////////=//
 //
-// * Something like COMMA! was actually seriously considered for R3-Alpha,
+// * Something like BLANK! was actually seriously considered for R3-Alpha,
 //   as an "explicit evaluation terminator":
 //
 //     http://www.rebol.net/r3blogs/0086.html
 //
 
-INLINE Element* Init_Comma_Untracked(Init(Element) out) {
-    Reset_Cell_Header_Noquote(out, CELL_MASK_COMMA);
+INLINE Element* Init_Blank_Untracked(Init(Element) out) {
+    Reset_Cell_Header_Noquote(out, CELL_MASK_BLANK);
     Tweak_Cell_Binding(out, UNBOUND);  // Is_Bindable_Heart() due to niche use
     Corrupt_Unused_Field(out->payload.split.one.corrupt);
     Corrupt_Unused_Field(out->payload.split.two.corrupt);
@@ -59,49 +62,56 @@ INLINE Element* Init_Comma_Untracked(Init(Element) out) {
     return out;
 }
 
-#define Init_Comma(out) \
-    TRACK(Init_Comma_Untracked(out))
+#define Init_Blank(out) \
+    TRACK(Init_Blank_Untracked(out))
 
 
-//=//// DECORATED COMMA! ("," DOES NOT RENDER) ////////////////////////////=//
+//=//// DECORATED BLANK! ("," DOES NOT RENDER) ////////////////////////////=//
 //
-// When a COMMA! is decorated with a Sigil, Quasi, or Quote, it does not
+// When a BLANK! is decorated with a Sigil, Quasi, or Quote, it does not
 // render the comma character:
 //
-//     >> comma: first [,]
+//     >> blank: first [,]
 //
-//     >> reduce [pin comma tie comma meta comma quasi comma quote comma]
+//     >> reduce [pin blank tie blank meta blank quasi blank quote blank]
 //     == [@ ^ $ ~ ']  ; not [@, ^, $, ~, ',]
 //
 // These standalone forms are integral parts, and since they are so integral
 // then their atomicity is more important than the scanner making it easy
 // to make decorated commas.  e.g. (x: '@, y: ~, z: ', ...) should not see
-// those as being decorated COMMA!s, merely separating the assignments.
+// those as being decorated BLANK!s, merely separating the assignments.
 //
-// Given that: COMMA! becomes the perfect type to underlie the standalone
-// decorated forms.  Since VOID! is antiform COMMA!, this also has the *very*
+// Given that: BLANK! becomes the perfect type to underlie the standalone
+// decorated forms.  Since VOID! is antiform BLANK!, this also has the *very*
 // pleasing property that the ~ antiform is void.
 //
 
-#define Init_Sigiled_Comma(out,sigil) \
-    Add_Cell_Sigil(Init_Comma(out), (sigil))
+#define Init_Sigiled_Blank(out,sigil) \
+    Add_Cell_Sigil(Init_Blank(out), (sigil))
 
-#define Is_Pinned_Comma(v) /* renders as `@` [1] */ \
+#define Is_Cell_Blank_With_Lift_Sigil(v, lift_byte, sigil) \
     Cell_Has_Lift_Sigil_Heart( \
-        Known_Stable(v), NOQUOTE_3, SIGIL_PIN, TYPE_COMMA)
+        Known_Stable(v), (lift_byte), (sigil), TYPE_BLANK)
 
-#define Is_Metaform_Comma(v) /* renders as `^` [1] */ \
-    Cell_Has_Lift_Sigil_Heart( \
-        Known_Stable(v), NOQUOTE_3, SIGIL_META, TYPE_COMMA)
+#define Is_Pinned_Blank(v) /* renders as `@` [1] */ \
+    Is_Cell_Blank_With_Lift_Sigil((v), NOQUOTE_3, SIGIL_PIN)
 
-#define Is_Tied_Comma(v) /* renders as `$` [1] */ \
-    Cell_Has_Lift_Sigil_Heart( \
-        Known_Stable(v), NOQUOTE_3, SIGIL_TIE, TYPE_COMMA)
+#define Is_Metaform_Blank(v) /* renders as `^` [1] */ \
+    Is_Cell_Blank_With_Lift_Sigil((v), NOQUOTE_3, SIGIL_META)
+
+#define Is_Tied_Blank(v) /* renders as `$` [1] */ \
+    Is_Cell_Blank_With_Lift_Sigil((v), NOQUOTE_3, SIGIL_TIE)
+
+INLINE bool Any_Sigiled_Blank(const Element* e) {
+    if (LIFT_BYTE(e) != NOQUOTE_3 or not Sigil_Of(e))
+        return false;
+    return Heart_Of(e) == TYPE_BLANK;
+}
 
 
 //=//// '~' QUASIFORM (a.k.a. QUASAR) /////////////////////////////////////=//
 //
-// The quasiform of COMMA! is a tilde (instead of ~,~), and called QUASAR
+// The quasiform of BLANK! is a tilde (instead of ~,~), and called QUASAR
 //
 //    >> lift ()
 //    == ~
@@ -109,10 +119,10 @@ INLINE Element* Init_Comma_Untracked(Init(Element) out) {
 
 #define Is_Quasar(v) \
     Cell_Has_Lift_Sigil_Heart( \
-        Known_Stable(v), QUASIFORM_4, SIGIL_0, TYPE_COMMA)
+        Known_Stable(v), QUASIFORM_4, SIGIL_0, TYPE_BLANK)
 
 INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
-    Init_Comma(out);
+    Init_Blank(out);
     Quasify_Isotopic_Fundamental(out);
     assert(Is_Quasar(out));
     return out;
@@ -122,7 +132,7 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
     TRACK(Init_Quasar_Untracked(out))
 
 
-//=//// VOID! (COMMA! ANTIFORM) ///////////////////////////////////////////=//
+//=//// VOID! (BLANK! ANTIFORM) ///////////////////////////////////////////=//
 //
 // The unstable ~ antiform is used to signal vanishing intent, e.g. it is
 // the return result of things like COMMENT and ELIDE.  It only *actually*
@@ -135,7 +145,7 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
 //
 
 INLINE Value* Init_Void_Untracked(Init(Value) out) {
-    Init_Comma_Untracked(out);
+    Init_Blank_Untracked(out);
     Unstably_Antiformize_Unbound_Fundamental(out);
     assert(Is_Void(out));
     return out;
@@ -178,7 +188,7 @@ INLINE Value* Init_Void_Untracked(Init(Value) out) {
     ((L)->out->header.bits |= CELL_FLAG_OUT_NOTE_GHOSTLY_VOID)
 
 #define CELL_MASK_GHOSTLY_VOID \
-    (FLAG_KIND_BYTE(TYPE_COMMA) \
+    (FLAG_KIND_BYTE(TYPE_BLANK) \
         | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1) \
         | CELL_FLAG_OUT_NOTE_GHOSTLY_VOID)
 

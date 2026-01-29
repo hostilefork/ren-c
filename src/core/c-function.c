@@ -68,8 +68,8 @@ static Result(None) Push_Keys_And_Params_For_Fence(
             Is_Path(item)
             and (singleheart = Try_Get_Sequence_Singleheart(item))
             and (
-                singleheart == LEADING_SPACE_AND(WORD)
-                /* or (meta = (singleheart == LEADING_SPACE_AND(META_WORD))) */
+                singleheart == LEADING_BLANK_AND(WORD)
+                /* or (meta = (singleheart == LEADING_BLANK_AND(META_WORD))) */
             )
         ){
             symbol = Word_Symbol(item);
@@ -362,7 +362,7 @@ static Result(None) Push_Keys_And_Params_Core(
     );
 
     switch (unwrap singleheart) {
-      case TRAILING_SPACE_AND(BLOCK): {
+      case TRAILING_BLANK_AND(BLOCK): {
         if (
             returner_id != SYM_DUMMY1  // used by LAMBDA (hack)
             or Series_Len_At(spare) != 0
@@ -375,7 +375,7 @@ static Result(None) Push_Keys_And_Params_Core(
         pclass = PARAMCLASS_META;
         break; }
 
-      case TRAILING_SPACE_AND(WORD): {
+      case TRAILING_BLANK_AND(WORD): {
         if (
             quoted
             or not returner_id
@@ -389,7 +389,7 @@ static Result(None) Push_Keys_And_Params_Core(
         break; }
 
       default: {
-        if (not Singleheart_Has_Leading_Space(unwrap singleheart))
+        if (not Singleheart_Has_Leading_Blank(unwrap singleheart))
             return fail (Error_Bad_Func_Def_Raw(v));
 
         refinement = true;

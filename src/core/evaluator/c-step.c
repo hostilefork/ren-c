@@ -385,7 +385,7 @@ Bounce Stepper_Executor(Level* L)
     //    reevaluation.  L_binding's conditionality should be reviewed for
     //    relevance in the modern binding model.
 
-    if (Is_Feed_At_End(L->feed) or Is_Comma(L_next))
+    if (Is_Feed_At_End(L->feed) or Is_Blank(L_next))
         goto give_up_backward_quote_priority;
 
     assert(not L_next_gotten);  // Fetch_Next_In_Feed() cleared it
@@ -594,7 +594,7 @@ Bounce Stepper_Executor(Level* L)
 
   switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
 
-  case TYPE_COMMA: { //// LITERALLY OPERATOR (@) /////////////////////////////
+  case TYPE_BLANK: { //// LITERALLY OPERATOR (@) /////////////////////////////
 
   // @ acts like LITERALLY, and doesn't add binding:
   //
@@ -690,7 +690,7 @@ Bounce Stepper_Executor(Level* L)
 
   switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
 
-  case TYPE_COMMA: { //// BIND OPERATOR ($) //////////////////////////////////
+  case TYPE_BLANK: { //// BIND OPERATOR ($) //////////////////////////////////
 
   // The $ sigil will evaluate the right hand side, and then bind the
   // product into the current evaluator environment.
@@ -727,7 +727,7 @@ Bounce Stepper_Executor(Level* L)
 
   switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
 
-  case TYPE_COMMA: { //// IDENTITY OPERATOR (^) //////////////////////////////
+  case TYPE_BLANK: { //// IDENTITY OPERATOR (^) ///////////////////////////////
 
     if (Is_Feed_At_End(L->feed))  // no literal to take as argument
         panic (Error_Need_Non_End(CURRENT));
@@ -886,14 +886,14 @@ Bounce Stepper_Executor(Level* L)
 
   switch ((STATE = cast(Byte, Heart_Of(CURRENT)))) {  // superset [1]
 
-  case TYPE_COMMA: { //// COMMA! , ///////////////////////////////////////////
+  case TYPE_BLANK: { //// BLANK! (often manifests as "," character) //////////
 
-  // A comma is a lightweight looking expression barrier.  It errors on
+  // A blank is a lightweight looking expression barrier.  It errors on
   // evaluations that aren't interstitial, or gets skipped over otherwise.
   //
   //   https://forum.rebol.info/t/1387/6
   //
-  // 1. In argument fulfillment, we want to treat COMMA! the same as reaching
+  // 1. In argument fulfillment, we want to treat BLANK! the same as reaching
   //    the end of a block.  That means leaving a "hole" in the argument slot
   //    which is BEDROCK_0... it *acts* like a NULL, but is "beneath" null
   //    as it is not a value that can be a product of evaluation.  Hence by
@@ -909,9 +909,9 @@ Bounce Stepper_Executor(Level* L)
   //
   //    So there's no getting around the fact that [,] produces VOID!.
   //
-  // 3. The cleanest model of COMMA! behavior would be for it to always step
-  //    over it and produce a VOID! on each step over a comma.  But this
-  //    risks being costly enough that people might avoid using commas even
+  // 3. The cleanest model of BLANK! behavior would be for it to always step
+  //    over it and produce a VOID! on each step over a blank.  But this
+  //    risks being costly enough that people might avoid using blanks even
   //    if they liked the visual separation.  For now, exercise both options:
   //    a high-performance "just skip it", and a slower "debug" mode.
 
@@ -1159,17 +1159,17 @@ Bounce Stepper_Executor(Level* L)
       case NOT_SINGLEHEART_0:
         break;  // wasn't xxx: or :xxx where xxx is BLOCK!/CHAIN!/WORD!/etc
 
-      case TRAILING_SPACE_AND(WORD): {  // FOO: or ^FOO:
+      case TRAILING_BLANK_AND(WORD): {  // FOO: or ^FOO:
         Bind_Cell_If_Unbound(CURRENT, L_binding);
         goto handle_generic_set; }
 
-      case TRAILING_SPACE_AND(TUPLE): {  // a.b.c: is a set tuple
+      case TRAILING_BLANK_AND(TUPLE): {  // a.b.c: is a set tuple
         goto handle_generic_set; }
 
-      case TRAILING_SPACE_AND(BLOCK): {  // [a b]: multi-return assign
+      case TRAILING_BLANK_AND(BLOCK): {  // [a b]: multi-return assign
         goto handle_set_block; }
 
-      case TRAILING_SPACE_AND(GROUP): {  // (xxx): -- generic retrigger set
+      case TRAILING_BLANK_AND(GROUP): {  // (xxx): -- generic retrigger set
         Invalidate_Gotten(L_next_gotten_raw);  // arbitrary code changes
         require (
           Level* sub = Make_Level_At_Inherit_Const(
@@ -1183,8 +1183,8 @@ Bounce Stepper_Executor(Level* L)
         STATE = ST_STEPPER_SET_GROUP;
         return CONTINUE_SUBLEVEL(sub); }
 
-      case LEADING_SPACE_AND(WORD):  // :FOO -turn voids to null
-      case LEADING_SPACE_AND(TUPLE): {  // :a.b.c - same
+      case LEADING_BLANK_AND(WORD):  // :FOO -turn voids to null
+      case LEADING_BLANK_AND(TUPLE): {  // :a.b.c - same
         heeded (Metafy_Cell(CURRENT));
         Bind_Cell_If_Unbound(CURRENT, L_binding);
         heeded (Corrupt_Cell_If_Needful(SPARE));
@@ -1202,7 +1202,7 @@ Bounce Stepper_Executor(Level* L)
         }
         goto lookahead; }
 
-      case LEADING_SPACE_AND(BLOCK): {  // !!! :[a b] reduces, not great...
+      case LEADING_BLANK_AND(BLOCK): {  // !!! :[a b] reduces, not great...
         Bind_Cell_If_Unbound(CURRENT, L_binding);
         if (rebRunThrows(
             OUT,  // <-- output
@@ -1212,7 +1212,7 @@ Bounce Stepper_Executor(Level* L)
         }
         goto lookahead; }
 
-      case LEADING_SPACE_AND(GROUP): {
+      case LEADING_BLANK_AND(GROUP): {
         panic ("GET-GROUP! has no evaluator meaning at this time"); }
 
       default:  // it's just something like :1 or <tag>:
@@ -1370,27 +1370,27 @@ Bounce Stepper_Executor(Level* L)
         slash_at_tail = Is_Space(spare);
     }
     else switch (unwrap single) {
-      case LEADING_SPACE_AND(WORD): {
+      case LEADING_BLANK_AND(WORD): {
         assume (
           Unsingleheart_Sequence(CURRENT)
         );
         Set_Cell_Flag(CURRENT, CURRENT_NOTE_RUN_WORD);
         goto handle_word_where_action_lookups_are_active; }
 
-      case LEADING_SPACE_AND(CHAIN): {  // /abc: or /?:?:?
+      case LEADING_BLANK_AND(CHAIN): {  // /abc: or /?:?:?
         assume (
           Unsingleheart_Sequence(CURRENT)
         );
 
         switch (opt Try_Get_Sequence_Singleheart(CURRENT)) {
-          case TRAILING_SPACE_AND(WORD): {  // /abc: is set actions only
+          case TRAILING_BLANK_AND(WORD): {  // /abc: is set actions only
             assume (
               Unsingleheart_Sequence(CURRENT)
             );
             Set_Cell_Flag(CURRENT, SCRATCH_VAR_NOTE_ONLY_ACTION);
             goto handle_generic_set; }
 
-          case TRAILING_SPACE_AND(TUPLE): {  // /a.b.c: is set actions only
+          case TRAILING_BLANK_AND(TUPLE): {  // /a.b.c: is set actions only
             assume (
               Unsingleheart_Sequence(CURRENT)
             );
@@ -1403,8 +1403,8 @@ Bounce Stepper_Executor(Level* L)
         break; }
 
       default:
-        slash_at_tail = Singleheart_Has_Trailing_Space(unwrap single);
-        slash_at_head = Singleheart_Has_Leading_Space(unwrap single);
+        slash_at_tail = Singleheart_Has_Trailing_Blank(unwrap single);
+        slash_at_head = Singleheart_Has_Leading_Blank(unwrap single);
         assert(slash_at_head == not slash_at_tail);
         break;
     }

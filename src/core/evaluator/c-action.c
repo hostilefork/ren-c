@@ -261,8 +261,8 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
 //     >> hole-ok-function
 //     HOLE-OK-FUNCTION received a HOLE
 //
-// However, we want COMMA! to be symmetric (also symmetric in terms of any
-// errors):
+// However, we want BLANK! (which manifests as comma characters in molds) to
+// be symmetric (also symmetric in terms of any errors):
 //
 //     >> hole-ok-function,
 //     HOLE-OK-FUNCTION received a HOLE
@@ -270,8 +270,8 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
 // This is why we put a "bedrock hole" cell in the frame.  It's out of band
 // in terms of "Value" results that can be produced by an EVAL, so we can't
 // call `Stepper_Executor()` to produce it...and need to check the feed for
-// an end or a COMMA! before calling the stepper.  Hence if a COMMA! is seen
-// it will stay as a COMMA! in the feed until the action has acquired all
+// an end or a BLANK! before calling the stepper.  Hence if a BLANK! is seen
+// it will stay as a BLANK! in the feed until the action has acquired all
 // its arguments.
 //
 static void Handle_Barrier_Hit(Sink(Param) out, Level* L) {
@@ -644,9 +644,9 @@ Bounce Action_Executor(Level* L)
 
   //=//// ERROR ON END MARKER, BAR! IF APPLICABLE /////////////////////////=//
 
-     // 1. Right now you can't process COMMA! as an argument, not even if the
-     //    parameter is @literal.  A <comma> annotation that lets you say
-     //    that you want literal commas should probably be available.
+     // 1. Right now you can't process BLANK! as an argument, not even if the
+     //    parameter is @literal.  A <blank> annotation that lets you say
+     //    that you want literal blanks should probably be available.
      //
      // 2. It's probably a good idea for expressions to have some kind of
      //    line-continuation in general.  But variadics present a particular
@@ -661,7 +661,7 @@ Bounce Action_Executor(Level* L)
      //    Detecting a NEWLINE_BEFORE signal on the next item in the feed is
      //    a cheap and effective way to enforce the rule in a systemic way.
 
-        if (Is_Level_At_End(L) or Is_Comma(At_Feed(L->feed))) {  // [1]
+        if (Is_Level_At_End(L) or Is_Blank(At_Feed(L->feed))) {  // [1]
             Handle_Barrier_Hit(ARG, L);
             goto continue_fulfilling;
         }

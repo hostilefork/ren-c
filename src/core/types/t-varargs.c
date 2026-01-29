@@ -59,8 +59,8 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
 
     ParamClass pclass = Parameter_Class(param);
 
-    if (pclass == PARAMCLASS_NORMAL and Is_Comma(look)) {
-        Init_For_Vararg_End(out, op);  // non-quoted COMMA!
+    if (pclass == PARAMCLASS_NORMAL and Is_Blank(look)) {  // ","
+        Init_For_Vararg_End(out, op);
         return true;
     }
 

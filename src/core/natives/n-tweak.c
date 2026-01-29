@@ -550,7 +550,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
     }
     else switch (Stub_Flavor(cast(Flex*, payload1))) {
       case FLAVOR_SYMBOL: {
-        if (Get_Cell_Flag(scratch_var, LEADING_SPACE)) {  // `/a` or `.a`
+        if (Get_Cell_Flag(scratch_var, LEADING_BLANK)) {  // `/a` or `.a`
             if (Heart_Of(scratch_var) != TYPE_TUPLE) {
                 error = Error_User("GET leading space only allowed on TUPLE!");
                 goto return_error;

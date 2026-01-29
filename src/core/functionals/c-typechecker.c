@@ -537,10 +537,10 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
     if (Is_Quoted(at))
         goto handle_non_word_quoted;
 
-    if (Any_Sigiled_Space(at)) {
+    if (Any_Sigiled_Blank(at)) {
         if (
             not Is_Antiform(v)
-            and Any_Sigiled_Space(As_Element(v))
+            and Any_Sigiled_Blank(As_Element(v))
             and Sigil_Of(at) == Sigil_Of(As_Element(v))
         ){
             goto test_succeeded;
@@ -693,8 +693,8 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
             goto test_failed;
 
         if (
-            Get_Cell_Flag(SPARE, LEADING_SPACE)  // XXX: doesn't match :XXX
-            != Get_Cell_Flag(scratch, LEADING_SPACE)
+            Get_Cell_Flag(SPARE, LEADING_BLANK)  // XXX: doesn't match :XXX
+            != Get_Cell_Flag(scratch, LEADING_BLANK)
         ){
             goto test_failed;
         }

@@ -430,7 +430,7 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 // If independent, it's one bit that is custom to the datatype, and is
 // persisted when the cell is copied.
 //
-// CELL_FLAG_LEADING_SPACE (for ANY-SEQUENCE?)
+// CELL_FLAG_LEADING_BLANK (for ANY-SEQUENCE?)
 //
 // 2-element sequences can be stored in an optimized form if one of the two
 // elements is a SPACE.  This permits things like `/a` and `b.` to fit in
@@ -440,7 +440,7 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 #define CELL_FLAG_TYPE_SPECIFIC_B \
     FLAG_LEFT_BIT(31)
 
-#define CELL_FLAG_LEADING_SPACE   CELL_FLAG_TYPE_SPECIFIC_B  // ANY-SEQUENCE?
+#define CELL_FLAG_LEADING_BLANK   CELL_FLAG_TYPE_SPECIFIC_B  // ANY-SEQUENCE?
 
 
 //=//// PLATFORM-POINTER-SIZED VARIANT UNION //////////////////////////////=//
@@ -577,14 +577,14 @@ STATIC_ASSERT(sizeof(UintptrUnion) == sizeof(uintptr_t));
 //
 
 
-// COMMA! doesn't use its payload (or extra) for anything.
+// BLANK! doesn't use its payload (or extra) for anything.
 //
 // That is exploited by feeds when they are variadic instead of arrays.  The
 // feed cell is used to store va_list information along with a binding in
 // a value cell slot.
 //
-// !!! Now that more than 64 types are available, it is probably clearer to
-// make a special type for this.  But it hasn't been a problem so far.
+// !!! Now that more than 64 types are available, it would be a lot clearer
+// to make a FEED! type... but that should be unified with VARARGS! somehow.
 //
 struct CommaPayloadStruct {
     //

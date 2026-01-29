@@ -806,7 +806,7 @@ Error* Error_User(const char *utf8) {
 // "error while setting VAR:", so "error while evaluating $" etc. make sense.
 //
 Error* Error_Need_Non_End(const Element* target) {
-    assert(Any_Sigiled_Space(target) or Any_Word(target) or Is_Tuple(target));
+    assert(Any_Sigiled_Blank(target) or Any_Word(target) or Is_Tuple(target));
     return Error_Need_Non_End_Raw(target);
 }
 

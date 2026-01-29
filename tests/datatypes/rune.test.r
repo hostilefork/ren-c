@@ -51,7 +51,7 @@
         -[#[]- -[#]]- #\
         #; #'  ; as with URL!, semicolons are allowed in the token
         #":" -[#"]-  ; quotes for RUNE! with internal spaces (braces in future)
-        #"," #"." #"/"  ; COMMA! is a delimiter, so `#,` is like `(#)`
+        #"," #"." #"/"  ; comma is a delimiter, so `#,` is like `(#)`
         #< #> #?
     ][
         case [
@@ -80,7 +80,7 @@
     -[                              ]-
 ] [
     assert [rune? rune]
-    assert [blank? rune]
+    assert [spaces? rune]
     assert [text? molded]
     assert [text? text]
     assert [text = (as text! rune)]
@@ -99,7 +99,7 @@
     -[^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/^/]-
 ] [
     assert [rune? rune]
-    assert [not blank? rune]
+    assert [not spaces? rune]
     assert [text? molded]
     assert [text? text]
     assert [text = (as text! rune)]

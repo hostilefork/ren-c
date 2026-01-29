@@ -122,7 +122,7 @@ uint32_t Hash_Cell(const Cell* cell)
         hash = 0;  // improve
         break;
 
-      case TYPE_COMMA:
+      case TYPE_BLANK:
         hash = 0;
         break;
 

@@ -482,7 +482,7 @@ DECLARE_NATIVE(RUN_WORD_Q)
         return LOGIC_OUT(false);
 
     Option(SingleHeart) single = Try_Get_Sequence_Singleheart(v);
-    return LOGIC_OUT(single == LEADING_SPACE_AND(WORD));
+    return LOGIC_OUT(single == LEADING_BLANK_AND(WORD));
 }
 
 
@@ -902,10 +902,10 @@ DECLARE_NATIVE(RESOLVE)
             panic (source);
 
         if (
-            single == LEADING_SPACE_AND(WORD)  // /a
-            or single == LEADING_SPACE_AND(TUPLE)  // /a.b.c or /.a
-            or single == TRAILING_SPACE_AND(WORD)  // a/
-            or single == TRAILING_SPACE_AND(TUPLE)  // a.b.c/ or .a/
+            single == LEADING_BLANK_AND(WORD)  // /a
+            or single == LEADING_BLANK_AND(TUPLE)  // /a.b.c or /.a
+            or single == TRAILING_BLANK_AND(WORD)  // a/
+            or single == TRAILING_BLANK_AND(TUPLE)  // a.b.c/ or .a/
         ){
             assume (
               Unsingleheart_Sequence(source)
@@ -913,8 +913,8 @@ DECLARE_NATIVE(RESOLVE)
             return COPY_TO_OUT(source);
         }
         if (
-            single == LEADING_SPACE_AND(CHAIN)  // /a: or /a:b:c or /:a
-            or single == TRAILING_SPACE_AND(CHAIN)  // a:/ or a:b:c/ or :a/
+            single == LEADING_BLANK_AND(CHAIN)  // /a: or /a:b:c or /:a
+            or single == TRAILING_BLANK_AND(CHAIN)  // a:/ or a:b:c/ or :a/
         ){
             assume (
               Unsingleheart_Sequence(source)
@@ -930,10 +930,10 @@ DECLARE_NATIVE(RESOLVE)
         // fall through
     }
     else if (
-        single == LEADING_SPACE_AND(WORD)  // a:
-        or single == LEADING_SPACE_AND(TUPLE)  // a.b.c:
-        or single == TRAILING_SPACE_AND(WORD)  // :a
-        or single == TRAILING_SPACE_AND(TUPLE)  // :a.b.c
+        single == LEADING_BLANK_AND(WORD)  // a:
+        or single == LEADING_BLANK_AND(TUPLE)  // a.b.c:
+        or single == TRAILING_BLANK_AND(WORD)  // :a
+        or single == TRAILING_BLANK_AND(TUPLE)  // :a.b.c
     ){
         assume (
           Unsingleheart_Sequence(source)
@@ -1430,7 +1430,7 @@ DECLARE_NATIVE(NEWLINE_Q)
 
 
 //
-//  blank?: native:intrinsic [
+//  spaces?: native:intrinsic [
 //
 //  "Is VALUE a RUNE! consisting only of spaces [_ __ ____ _______ ...]"
 //
@@ -1438,9 +1438,9 @@ DECLARE_NATIVE(NEWLINE_Q)
 //      value '[any-stable?]
 //  ]
 //
-DECLARE_NATIVE(BLANK_Q)
+DECLARE_NATIVE(SPACES_Q)
 {
-    INCLUDE_PARAMS_OF_BLANK_Q;
+    INCLUDE_PARAMS_OF_SPACES_Q;
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 

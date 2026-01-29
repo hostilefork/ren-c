@@ -31,13 +31,9 @@
 //
 //=//// NOTES ////////////////////////////////////////////////////////////=//
 //
-// * The quasiform state ~XXX~ was once thought of as the QUASI (~~) Sigil.
-//   This was when it was believed something could not be both quoted and
-//   quasi at the same time.  Being a 2-character Sigil broke the rhythm,
-//   as did being derived from the LIFT_BYTE() and not the KIND_BYTE().
-//   Today it is believed that quoted and quasi at the same time is something
-//   with legitimate use cases, e.g. ~$~ is useful and ~@foo~ may be too.
-//   So the value of ~~ as a Sigil is not emergent.
+// * Things can be Sigil'd and Quasi'd at the same time, e.g. ~$~ or ~@foo~
+//   Current theory is that there are no Sigil'd antiforms, but that may end
+//   up being too limiting in the future.
 //
 // * There used to be a & Sigil, which was for indicating interpretation of
 //   things as datatypes.  That was removed in favor of antiform datatypes,
@@ -101,19 +97,13 @@ INLINE KindByte Kind_From_Sigil_And_Heart(Option(Sigil) sigil, HeartEnum heart)
 
 //=//// SIGIL MODIFICATION ////////////////////////////////////////////////=//
 //
-// 1. Not all values can be sigilized.  Consider something like:
+// 1. Rather than create a separate typeset for "Sigilable" values, we piggy
+//    back on "Sequencable", which seems to cover the use cases.  RUNE! is
+//    included as sequencable, so #/# is a PATH! vs. a RUNE! with a slash and
+//    pound sign in it.
 //
-//        (dollar: '$, at: '@, caret: '^)
-//
-//    When you think about what's intended there, you realize `$,` shouldn't
-//    be a sigilized COMMA!, because then `'$,` would be a quoted sigilized
-//    COMMA!.  The user's intent was clear.  This is a disproof of the idea
-//    that all types should allow Sigils.  Rather than create a separate
-//    typeset for "Sigilable" values, we piggy-back on "Sequencable", which
-//    seems to cover the use cases (and formally makes RUNE! a sequencable
-//    type, since it needs to carry sigils, meaning #/# is a PATH! vs. a
-//    RUNE! with a slash and pound sign in it).  The cases must be expanded
-//    to account for sequences themselves, which aren't in sequencable ATM.
+//    The cases must be expanded to account for sequences themselves, which
+//    aren't in sequencable ATM.
 //
 // 2. Sigilizing is assumed to only work on cells that do not already have a
 //    Sigil.  This is because you might otherwise expect e.g. META of @foo
@@ -126,7 +116,7 @@ INLINE KindByte Kind_From_Sigil_And_Heart(Option(Sigil) sigil, HeartEnum heart)
 INLINE bool Any_Sigilable_Type(Option(Type) t) {  // build on sequencable [1]
     return (
         Any_Sequence_Type(t) or Any_Sequencable_Type(t) or t == TYPE_DECIMAL
-        or t == TYPE_COMMA
+        or t == TYPE_BLANK
     );
 }
 

@@ -189,7 +189,7 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
     Option(SingleHeart) single;
     if (
         not (single = Try_Get_Sequence_Singleheart(scratch))
-        or not Singleheart_Has_Leading_Space(unwrap single)
+        or not Singleheart_Has_Leading_Blank(unwrap single)
     ){
         panic (
             "Only leading SPACE CHAIN! in SET BLOCK! dialect"
@@ -210,7 +210,7 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
     Option(SingleHeart) single;
     if (
         not (single = Try_Get_Sequence_Singleheart(scratch))
-        or not Singleheart_Has_Leading_Space(unwrap single)
+        or not Singleheart_Has_Leading_Blank(unwrap single)
     ){
         panic (
             "Only leading SPACE PATH! in SET BLOCK! dialect"
@@ -267,7 +267,7 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
     if (circle_this)
         circled = TOP_INDEX;
 
-    if (Is_Metaform_Comma(TOP_STABLE) or Is_Meta_Form_Of(WORD, TOP_STABLE))
+    if (Is_Metaform_Blank(TOP_STABLE) or Is_Meta_Form_Of(WORD, TOP_STABLE))
         continue;  // meta-assign
 
     if (Is_Word(TOP_STABLE) or Is_Tuple(TOP_STABLE))
@@ -397,7 +397,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
         );
     }
 
-    if (Is_Metaform_Comma(var))
+    if (Is_Metaform_Blank(var))
         goto circled_check;
 
     if (Is_Failure(OUT))  // don't pass thru errors if not ^ sigil
@@ -548,7 +548,7 @@ DECLARE_NATIVE(SET)
         return COPY_TO_OUT(v);
     }
 
-    if (Is_Metaform_Comma(target))
+    if (Is_Metaform_Blank(target))
         return COPY_TO_OUT(v);
 
   delegate_to_tweak: {

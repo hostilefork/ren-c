@@ -2,7 +2,7 @@
 ;
 ; ONCE-BAR was an experiment created to see if it could be done, and was
 ; thought about putting in the box.  Notationally it was || to correspond as
-; a stronger version of |.  Not only was it not used, but since COMMA! has
+; a stronger version of |.  Not only was it not used, but since BLANK! has
 ; overtaken the | it no longer makes sense.
 ;
 ; Keeping as a test of the variadic feature it exercised.

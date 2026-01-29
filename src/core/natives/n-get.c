@@ -260,7 +260,7 @@ Result(Value*) Get_Chain_Push_Refinements(
     const Element* at = tail - 1;
 
     for (; at != head - 1; --at) {
-        assert(not Is_Space(at));  // no internal blanks
+        assert(not Is_Blank(at));  // no internal blanks
 
         if (Is_Word(at)) {
             Init_Pushed_Refinement(PUSH(), Word_Symbol(at));
@@ -337,9 +337,9 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
 
     Context* binding = Sequence_Binding(path);
 
-    if (Is_Space(at)) {  // leading slash means execute (but we're GET-ing)
+    if (Is_Blank(at)) {  // leading slash means execute (but we're GET-ing)
         ++at;
-        assert(not Is_Space(at));  // two blanks would be `/` as WORD!
+        assert(not Is_Blank(at));  // two blanks would be `/` as WORD!
     }
 
     Sink(Stable) spare_left = SPARE;
@@ -365,7 +365,7 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
         Copy_Cell(spare_left, As_Stable(OUT));
     }
     else if (Is_Chain(at)) {
-        if ((at + 1 != tail) and not Is_Space(at + 1)) {
+        if ((at + 1 != tail) and not Is_Blank(at + 1)) {
             error = Error_User(
                 "CHAIN! can only be last item in a path right now"
             );
@@ -390,12 +390,12 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
 
     ++at;
 
-    if (at == tail or Is_Space(at)) {
+    if (at == tail or Is_Blank(at)) {
         Copy_Cell(OUT, spare_left);
         goto ensure_out_is_action;
     }
 
-    if (at + 1 != tail and not Is_Space(at + 1))
+    if (at + 1 != tail and not Is_Blank(at + 1))
         return fail ("PATH! can only be two items max at this time");
 
     // When we see `lib/append` for instance, we want to pick APPEND out of

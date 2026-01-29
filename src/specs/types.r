@@ -202,11 +202,11 @@ parameter!  "function parameter description"
 ; ============================================================================
 
 
-; COMMA! is weirdly bindable, due to its application in variadic feeds.
+; BLANK! is weirdly bindable, due to its application in variadic feeds.
 ; It's an implementation detail which would require inventing another
 ; datatype that was FEED-specific.  Better ideas welcome.
 
-comma!        "separator between full evaluations"
+blank!        "evaluation separator, no rendering (shows in lists via commas)"
 ~void!~:U     "Panics on WORD! access, multi-step evaluations discard"
               (CELL_MASK_NO_MARKING)
               [any-unit?]  ; NOT inert

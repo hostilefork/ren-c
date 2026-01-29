@@ -554,7 +554,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 } eval_step_result_in_spare: {  //////////////////////////////////////////////
 
     if (Is_Void(SPARE))  // no vote...ignore and continue
-        goto next_eval_step;  // skipping means we skip COMMA!, review this
+        goto next_eval_step;  // means we skip BLANK! (e.g. comma), review
 
     if (predicate)
         goto run_predicate_on_eval_product;  // NONEs passed to predicate
@@ -1220,7 +1220,7 @@ DECLARE_NATIVE(DEFAULT)
 
     if (slashed) { assume (
         Blank_Head_Or_Tail_Sequencify(  // put slash back for the write
-            target, TYPE_PATH, CELL_FLAG_LEADING_SPACE
+            target, TYPE_PATH, CELL_FLAG_LEADING_BLANK
         )
     );}
 

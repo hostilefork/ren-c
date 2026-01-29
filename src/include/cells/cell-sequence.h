@@ -94,7 +94,7 @@
 //    - Pair compression has CELL_PAYLOAD_1() with BASE_FLAG_CELL
 //
 //    - Single WORD! forms have CELL_PAYLOAD_1() as FLAVOR_SYMBOL
-//        If CELL_FLAG_LEADING_SPACE it is either a `/foo` or `.foo` case
+//        If CELL_FLAG_LEADING_BLANK it is either a `/foo` or `.foo` case
 //        Without the flag, it is either a `foo/` or `foo.` case
 //
 //    - Uncompressed forms have CELL_PAYLOAD_1() as FLAVOR_SOURCE
@@ -141,14 +141,11 @@ INLINE Result(None) Check_Sequence_Element(
         goto bad_sequence_item;
     }
 
-    if (h == TYPE_RUNE) {
-        if (Is_Space(e)) {
-            assert(not is_head);  // callers check spaces at head or tail
-            return fail (
-                Error_Bad_Sequence_Space_Raw()  // space only legal at head
-            );
-        }
-        return none;  // all other runes legal
+    if (h == TYPE_BLANK) {
+        assert(not is_head);  // callers check blanks at head or tail
+        return fail (
+            Error_Bad_Sequence_Blank_Raw()  // blank only legal at head
+        );
     }
 
     if (not Any_Sequencable_Type(h))
@@ -206,7 +203,7 @@ INLINE Result(Element*) Blank_Head_Or_Tail_Sequencify(
     Heart heart,
     Flags flag
 ){
-    assert(flag == CELL_MASK_ERASED_0 or flag == CELL_FLAG_LEADING_SPACE);
+    assert(flag == CELL_MASK_ERASED_0 or flag == CELL_FLAG_LEADING_BLANK);
     assert(Any_Sequence_Type(heart));
 
     trap (
@@ -220,7 +217,7 @@ INLINE Result(Element*) Blank_Head_Or_Tail_Sequencify(
         goto cant_optimize_in_situ;  // quote bits mean on sequence itself
 
     if (Is_Word(v)) {  // in-situ optimization, see [B]
-        v->header.bits &= (~ CELL_FLAG_LEADING_SPACE);
+        v->header.bits &= (~ CELL_FLAG_LEADING_BLANK);
         v->header.bits |= flag;
         KIND_BYTE(v) = heart;
         return v;
@@ -260,13 +257,13 @@ INLINE Result(Element*) Blank_Head_Or_Tail_Sequencify(
   // (pairing node) for the unoptimized cases.
 
     Pairing* p = Alloc_Pairing(BASE_FLAG_MANAGED);
-    if (flag == CELL_FLAG_LEADING_SPACE) {
-        Init_Space(Pairing_First(p));
+    if (flag == CELL_FLAG_LEADING_BLANK) {
+        Init_Blank(Pairing_First(p));
         Copy_Cell(Pairing_Second(p), v);
     }
     else {
         Copy_Cell(Pairing_First(p), v);
-        Init_Space(Pairing_Second(p));
+        Init_Blank(Pairing_Second(p));
     }
 
     Reset_Cell_Header_Noquote(
@@ -286,7 +283,7 @@ INLINE Result(Element*) Blank_Head_Or_Tail_Sequencify(
     Blank_Head_Or_Tail_Sequencify((elem), TYPE_CHAIN, CELL_MASK_ERASED_0)
 
 #define Refinify(elem) \
-    Blank_Head_Or_Tail_Sequencify((elem), TYPE_CHAIN, CELL_FLAG_LEADING_SPACE)
+    Blank_Head_Or_Tail_Sequencify((elem), TYPE_CHAIN, CELL_FLAG_LEADING_BLANK)
 
 #define Getify(elem)  Refinify(elem)  // !!! Update!
 
@@ -394,7 +391,7 @@ INLINE Result(Element*) Init_Any_Sequence_Or_Conflation_Pairlike(
 
     if (
         (Is_Quasar(first) and Is_Quasar(second))  // ~/~ is a WORD!
-        or (Is_Space(first) and Is_Space(second))  // plain / is a WORD!
+        or (Is_Blank(first) and Is_Blank(second))  // plain / is a WORD!
     ){
         if (heart == TYPE_PATH)
             Init_Word(out, CANON(SLASH_1));
@@ -409,13 +406,13 @@ INLINE Result(Element*) Init_Any_Sequence_Or_Conflation_Pairlike(
         return out;
     }
 
-    if (Is_Space(first)) {  // try optimize e.g. `/a` or `.a` or `:a` etc.
+    if (Is_Blank(first)) {  // try optimize e.g. `/a` or `.a` or `:a` etc.
         Copy_Cell(out, second);
         return Blank_Head_Or_Tail_Sequencify(
-            out, heart, CELL_FLAG_LEADING_SPACE
+            out, heart, CELL_FLAG_LEADING_BLANK
         );
     }
-    else if (Is_Space(second)) {
+    else if (Is_Blank(second)) {
         Copy_Cell(out, first);
         return Blank_Head_Or_Tail_Sequencify(  // optimize `a/` or `a:`
             out, heart, CELL_MASK_ERASED_0
@@ -585,7 +582,7 @@ INLINE Result(Stable*) Pop_Sequence_Or_Element_Or_Nulled(
         Move_Cell(out, TOP_ELEMENT);  // ensures element
         DROP();  // balances stack
 
-        if (not Is_Space(out)) {  // allow _.(void) to be _ if COMPOSE'd
+        if (not Is_Blank(out)) {  // allow .(void) to be . if COMPOSE'd
             trap (
               Check_Sequence_Element(
                 sequence_heart,
@@ -681,8 +678,8 @@ INLINE Element* Copy_Sequence_At_Untracked(
     switch (Stub_Flavor(u_cast(Flex*, payload1))) {
       case FLAVOR_SYMBOL : {  // compressed single WORD! sequence
         assert(n < 2);
-        if (Get_Cell_Flag(sequence, LEADING_SPACE) ? n == 0 : n != 0)
-            return Init_Space(out);
+        if (Get_Cell_Flag(sequence, LEADING_BLANK) ? n == 0 : n != 0)
+            return Init_Blank(out);
 
         Copy_Cell_Core_Untracked(out, sequence, CELL_MASK_COPY);  // [2]
         KIND_BYTE(out) = TYPE_WORD;
@@ -693,8 +690,8 @@ INLINE Element* Copy_Sequence_At_Untracked(
         const Source* a = cast(Source*, SERIESLIKE_PAYLOAD_1_BASE(sequence));
         if (Mirror_Of(a)) {  // [4]
             assert(n < 2);
-            if (Get_Cell_Flag(sequence, LEADING_SPACE) ? n == 0 : n != 0)
-                return Init_Space(out);
+            if (Get_Cell_Flag(sequence, LEADING_BLANK) ? n == 0 : n != 0)
+                return Init_Blank(out);
 
             Copy_Cell_Core_Untracked(out, sequence, CELL_MASK_COPY);
             KIND_BYTE(out) = MIRROR_BYTE(a);
@@ -829,7 +826,7 @@ INLINE Element* Init_Set_Word(Init(Element) out, const Symbol* s) {
 INLINE Element* Init_Get_Word(Init(Element) out, const Symbol* s) {
     Init_Word(out, s);
     KIND_BYTE(out) = TYPE_CHAIN;
-    Set_Cell_Flag(out, LEADING_SPACE);
+    Set_Cell_Flag(out, LEADING_BLANK);
     return out;
 }
 
@@ -843,31 +840,31 @@ INLINE Option(SingleHeart) Try_Get_Sequence_Singleheart(const Cell* c) {
     if (Is_Base_A_Cell(SERIESLIKE_PAYLOAD_1_BASE(c))) {
         const Pairing* p = cast(Pairing*, PAIRLIKE_PAYLOAD_1_PAIRING_BASE(c));
 
-        if (Is_Space(Pairing_First(p)))
-            return Leading_Space_And(Heart_Of_Builtin(Pairing_Second(p)));
+        if (Is_Blank(Pairing_First(p)))
+            return Leading_Blank_And(Heart_Of_Builtin(Pairing_Second(p)));
 
-        if (Is_Space(Pairing_Second(p)))
-            return Trailing_Space_And(Heart_Of_Builtin(Pairing_First(p)));
+        if (Is_Blank(Pairing_Second(p)))
+            return Trailing_Blank_And(Heart_Of_Builtin(Pairing_First(p)));
 
         return NOT_SINGLEHEART_0;
     }
 
     const Flex* f = cast(Flex*, SERIESLIKE_PAYLOAD_1_BASE(c));
     if (Stub_Flavor(f) == FLAVOR_SYMBOL) {
-        if (c->header.bits & CELL_FLAG_LEADING_SPACE)
-            return Leading_Space_And(TYPE_WORD);
+        if (c->header.bits & CELL_FLAG_LEADING_BLANK)
+            return Leading_Blank_And(TYPE_WORD);
 
-        return Trailing_Space_And(TYPE_WORD);
+        return Trailing_Blank_And(TYPE_WORD);
     }
 
     Option(Heart) mirror = Mirror_Of(u_cast(const Source*, f));
     if (not mirror)  // s actually is sequence elements, not one element
         return NOT_SINGLEHEART_0;
 
-    if (c->header.bits & CELL_FLAG_LEADING_SPACE)
-        return Leading_Space_And(unwrap mirror);
+    if (c->header.bits & CELL_FLAG_LEADING_BLANK)
+        return Leading_Blank_And(unwrap mirror);
 
-    return Trailing_Space_And(unwrap mirror);
+    return Trailing_Blank_And(unwrap mirror);
 }
 
 
@@ -876,7 +873,7 @@ INLINE Option(SingleHeart) Try_Get_Sequence_Singleheart(const Cell* c) {
 INLINE bool Is_Get_Word_Cell(const Cell* c) {
     return (
         Heart_Of(c) == TYPE_CHAIN and
-        LEADING_SPACE_AND(WORD) == Try_Get_Sequence_Singleheart(c)
+        LEADING_BLANK_AND(WORD) == Try_Get_Sequence_Singleheart(c)
     );
 }
 
@@ -886,7 +883,7 @@ INLINE bool Is_Get_Word(const Stable* v)
 INLINE bool Is_Set_Word_Cell(const Cell* c) {
     return (
         Heart_Of(c) == TYPE_CHAIN and
-        TRAILING_SPACE_AND(WORD) == Try_Get_Sequence_Singleheart(c)
+        TRAILING_BLANK_AND(WORD) == Try_Get_Sequence_Singleheart(c)
     );
 }
 
@@ -912,14 +909,14 @@ INLINE Option(const Symbol*) Try_Get_Settable_Word_Symbol(
     }
     if (Heart_Of(e) != TYPE_PATH)
         return nullptr;
-    if (LEADING_SPACE_AND(CHAIN) != Try_Get_Sequence_Singleheart(e))
+    if (LEADING_BLANK_AND(CHAIN) != Try_Get_Sequence_Singleheart(e))
         return nullptr;  // e is not /?:?:? style path
 
     DECLARE_ELEMENT (temp);  // !!! should be able to optimize and not need this
     Copy_Sequence_At_May_Bind(temp, e, 1, Sequence_Binding(e));
     assert(Is_Chain(temp));
 
-    if (TRAILING_SPACE_AND(WORD) != Try_Get_Sequence_Singleheart(temp))
+    if (TRAILING_BLANK_AND(WORD) != Try_Get_Sequence_Singleheart(temp))
         return nullptr;  // e is not /foo: style path
 
     if (bound)
@@ -940,7 +937,7 @@ INLINE bool Is_Set_Run_Word(const Stable* v) {
 INLINE bool Is_Get_Tuple_Cell(const Cell* c) {
     return (
         Heart_Of(c) == TYPE_CHAIN and
-        LEADING_SPACE_AND(TUPLE) == Try_Get_Sequence_Singleheart(c)
+        LEADING_BLANK_AND(TUPLE) == Try_Get_Sequence_Singleheart(c)
     );
 }
 
@@ -950,7 +947,7 @@ INLINE bool Is_Get_Tuple(const Stable* v)
 INLINE bool Is_Set_Tuple_Cell(const Cell* c) {
     return (
         Heart_Of(c) == TYPE_CHAIN and
-        TRAILING_SPACE_AND(TUPLE) == Try_Get_Sequence_Singleheart(c)
+        TRAILING_BLANK_AND(TUPLE) == Try_Get_Sequence_Singleheart(c)
     );
 }
 
@@ -963,7 +960,7 @@ INLINE bool Is_Set_Tuple(const Stable* v)
 INLINE bool Is_Get_Block_Cell(const Cell* c) {
     return (
         Heart_Of(c) == TYPE_CHAIN and
-        LEADING_SPACE_AND(BLOCK) == Try_Get_Sequence_Singleheart(c)
+        LEADING_BLANK_AND(BLOCK) == Try_Get_Sequence_Singleheart(c)
     );
 }
 
@@ -973,7 +970,7 @@ INLINE bool Is_Get_Block(const Stable* v)
 INLINE bool Is_Set_Block_Cell(const Cell* c) {
     return (
         Heart_Of(c) == TYPE_CHAIN and
-        TRAILING_SPACE_AND(BLOCK) == Try_Get_Sequence_Singleheart(c)
+        TRAILING_BLANK_AND(BLOCK) == Try_Get_Sequence_Singleheart(c)
     );
 }
 
@@ -986,7 +983,7 @@ INLINE bool Is_Set_Block(const Stable* v)
 INLINE bool Is_Get_Group_Cell(const Cell* c) {
     return (
         Heart_Of(c) == TYPE_CHAIN and
-        LEADING_SPACE_AND(GROUP) == Try_Get_Sequence_Singleheart(c)
+        LEADING_BLANK_AND(GROUP) == Try_Get_Sequence_Singleheart(c)
     );
 }
 
@@ -996,7 +993,7 @@ INLINE bool Is_Get_Group(const Stable* v)
 INLINE bool Is_Set_Group_Cell(const Cell* c) {
     return (
         Heart_Of(c) == TYPE_CHAIN and
-        TRAILING_SPACE_AND(GROUP) == Try_Get_Sequence_Singleheart(c)
+        TRAILING_BLANK_AND(GROUP) == Try_Get_Sequence_Singleheart(c)
     );
 }
 
@@ -1010,7 +1007,7 @@ INLINE bool Any_Set_Value(const Stable* v) {  // !!! optimize?
         LIFT_BYTE(v) == NOQUOTE_3
         and Heart_Of(v) == TYPE_CHAIN
         and (single = Try_Get_Sequence_Singleheart(v))
-        and Singleheart_Has_Trailing_Space(unwrap single)
+        and Singleheart_Has_Trailing_Blank(unwrap single)
     );
 }
 
@@ -1020,7 +1017,7 @@ INLINE bool Any_Get_Value(const Stable* v) {  // !!! optimize?
         LIFT_BYTE(v) == NOQUOTE_3
         and Heart_Of(v) == TYPE_CHAIN
         and (single = Try_Get_Sequence_Singleheart(v))
-        and Singleheart_Has_Leading_Space(unwrap single)
+        and Singleheart_Has_Leading_Blank(unwrap single)
     );
 }
 

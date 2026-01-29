@@ -363,7 +363,7 @@ void Mold_Or_Form_Cell_Ignore_Quotes(
 
     if (
         (tildes or sigil)
-        and Heart_Of(element) == TYPE_COMMA
+        and Heart_Of(element) == TYPE_BLANK
     ){
         if (tildes and sigil)
             Append_Codepoint(mo->strand, '~');
@@ -450,7 +450,7 @@ void Mold_Or_Form_Element(Molder* mo, const Element* v, bool form)
 
     if (
         Quotes_Of(v) > 0
-        and Is_Cell_Space_With_Lift_Sigil(
+        and Is_Cell_Blank_With_Lift_Sigil(
             v,
             LIFT_BYTE(v),  // passing v's actual lift means irrelevant for test
             SIGIL_0

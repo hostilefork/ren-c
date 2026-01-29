@@ -347,41 +347,41 @@ typedef Byte TypeByte;  // Byte whose value is <= MAX_TYPEBYTE
 
 //=//// SINGLEHEART OPTIMIZED SEQUENCE TYPE ///////////////////////////////=//
 //
-// In Ren-C, `/foo` is a 2-element PATH! with a space at the head, and `bar:`
-// is a 2-element CHAIN! with a space at the tail.  Due to how common these
+// In Ren-C, `/foo` is a 2-element PATH! with a BLANK! at the head, and `bar:`
+// is a 2-element CHAIN! with a BLAKN! at the tail.  Due to how common these
 // are, and the fact that they are immutable sequences, there is investment
 // in optimizing them.  They are called "SingleHeart" sequences, and because
 // detection of these is so common there's a special enum which multiplexes
-// both the Heart and whether there is a space at the head or tail.
+// both the Heart and whether there is a blank at the head or tail.
 //
-// (It's encoded in a single enum, because if the leading space or trailing
-// space were separated from the heart type, you could accidentally check
-// the leading space or trailing space without verifying a sequence was a
+// (It's encoded in a single enum, because if the leading blank or trailing
+// blank were separated from the heart type, you could accidentally check
+// the leading blank or trailing blank without verifying a sequence was a
 // single hearted type.  Static analysis caught bugs of that kind, and they
 // are easy to make.)
 //
 // (See notes on SingleHeart definition for more...)
 
-#define Leading_Space_And(heart) \
+#define Leading_Blank_And(heart) \
     cast(SingleHeart, (u_cast(Byte, heart) << 8) + 1)
 
-#define Trailing_Space_And(heart) \
+#define Trailing_Blank_And(heart) \
     cast(SingleHeart, u_cast(Byte, heart) << 8)
 
-#define LEADING_SPACE_AND(name)     Leading_Space_And(TYPE_##name)
-#define TRAILING_SPACE_AND(name)    Trailing_Space_And(TYPE_##name)
+#define LEADING_BLANK_AND(name)     Leading_Blank_And(TYPE_##name)
+#define TRAILING_BLANK_AND(name)    Trailing_Blank_And(TYPE_##name)
 
-INLINE bool Singleheart_Has_Leading_Space(SingleHeart single) {
+INLINE bool Singleheart_Has_Leading_Blank(SingleHeart single) {
     assert(single != NOT_SINGLEHEART_0);
     return did (cast(uint_fast16_t, single) & 1);
 }
 
-#define Singleheart_Has_Trailing_Space(single) \
-    (not Singleheart_Has_Leading_Space(single))
+#define Singleheart_Has_Trailing_Blank(single) \
+    (not Singleheart_Has_Leading_Blank(single))
 
 INLINE Heart Heart_Of_Singleheart(SingleHeart single) {
     assert(single != NOT_SINGLEHEART_0);
     HeartEnum heart = cast(HeartEnum, cast(uint_fast16_t, single) >> 8);
-    assert(heart != TYPE_0 and heart != TYPE_RUNE);
+    assert(heart != TYPE_0 and heart != TYPE_BLANK);
     return heart;
 }

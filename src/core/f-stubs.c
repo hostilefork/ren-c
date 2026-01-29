@@ -502,8 +502,8 @@ int64_t Mul_Max(Heart heart, int64_t n, int64_t m, int64_t maxi)
 //
 //  Unsingleheart_Sequence: C
 //
-// Evolve a cell containing a sequence that's just an element and a SPACE into
-// the element alone, e.g. `a:` -> `a` or `:[a b]` -> `[a b]`
+// Evolve a cell containing a sequence that's just an element and a BLANK!
+// into the element alone, e.g. `a:` -> `a` or `:[a b]` -> `[a b]`
 //
 Result(Element*) Unsingleheart_Sequence(Element* seq)
 {
@@ -522,12 +522,12 @@ Result(Element*) Unsingleheart_Sequence(Element* seq)
 
     if (Is_Base_A_Cell(payload1)) {  // compressed 2-elements, sizeof(Stub)
         const Pairing* pairing = cast(Pairing*, payload1);
-        if (Is_Space(Pairing_First(pairing))) {
-            assert(not Is_Space(Pairing_Second(pairing)));
+        if (Is_Blank(Pairing_First(pairing))) {
+            assert(not Is_Blank(Pairing_Second(pairing)));
             Copy_Cell_May_Bind(seq, Pairing_Second(pairing), Cell_Binding(seq));
             return seq;
         }
-        if (Is_Space(Pairing_Second(pairing))) {
+        if (Is_Blank(Pairing_Second(pairing))) {
             Copy_Cell_May_Bind(seq, Pairing_First(pairing), Cell_Binding(seq));
             return seq;
         }
@@ -539,21 +539,21 @@ Result(Element*) Unsingleheart_Sequence(Element* seq)
     const Flex* f = cast(Flex*, payload1);
     if (Is_Stub_Symbol(f)) {
         KIND_BYTE(seq) = TYPE_WORD;
-        Clear_Cell_Flag(seq, LEADING_SPACE);  // !!! necessary?
+        Clear_Cell_Flag(seq, LEADING_BLANK);  // !!! necessary?
         return seq;
     }
 
     Option(Heart) mirror = Mirror_Of(cast(Source*, f));
     if (mirror) {  // no length 2 sequence arrays unless mirror
         KIND_BYTE(seq) = unwrap mirror;
-        Clear_Cell_Flag(seq, LEADING_SPACE);  // !!! necessary
+        Clear_Cell_Flag(seq, LEADING_BLANK);  // !!! necessary
         return seq;
     }
 
 }} report_error: { ///////////////////////////////////////////////////////////
 
     return fail (
-        "UNCHAIN/UNPATH/UNTUPLE only on length 2 chains (when 1 item is SPACE)"
+        "UNCHAIN/UNPATH/UNTUPLE only on length 2 chains (when 1 item is BLANK)"
     );
 }}
 

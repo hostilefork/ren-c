@@ -149,8 +149,8 @@ lesser-or-equal?: equal-or-lesser?/
 ?!=: infix lax-not-equal?/
 
 
-; COMMA! is the new expression barrier.  But `||` is included as a way to
-; make comma antiforms to show how to create custom barrier-like constructs.
+; BLANK! is the new expression barrier.  But `||` is included as a way to
+; show how to create custom barrier-like constructs.
 ;
 ||: func [] [return ()]
 
@@ -287,7 +287,7 @@ echo: proc [
                 case [
                     tail? args [stop]
                     new-line? args [stop]
-                    comma? first args [stop]
+                    blank? first args [stop]
                 ]
                 keep take args
             ]

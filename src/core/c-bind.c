@@ -643,7 +643,7 @@ DECLARE_NATIVE(LET)
         if (Heart_Of(vars) == TYPE_PATH) {
             assume (  // was a path when we got it!
               Blank_Head_Or_Tail_Sequencify(
-                where, TYPE_PATH, CELL_FLAG_LEADING_SPACE
+                where, TYPE_PATH, CELL_FLAG_LEADING_BLANK
             ));
         }
         else
@@ -732,10 +732,10 @@ DECLARE_NATIVE(LET)
             switch (
                 opt (singleheart = Try_Get_Sequence_Singleheart(temp))
             ){
-              case LEADING_SPACE_AND(WORD):
+              case LEADING_BLANK_AND(WORD):
                 goto wordlike;
 
-              case LEADING_SPACE_AND(TUPLE):  // should pass through!
+              case LEADING_BLANK_AND(TUPLE):  // should pass through!
               default:
                 break;
             }

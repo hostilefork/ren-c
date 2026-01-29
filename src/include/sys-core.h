@@ -643,6 +643,7 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "cells/cell-series.h"
 #include "cells/cell-array.h"
 
+#include "cells/cell-sigil.h"
 #include "cells/cell-comma.h"  // includes VOID! atm
 #include "cells/cell-void.h"
 
@@ -656,7 +657,6 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "cells/cell-frame.h"
 #include "cells/cell-error.h"
 
-#include "cells/cell-sigil.h"
 #include "cells/cell-rune.h"
 
 #include "cells/cell-map.h"

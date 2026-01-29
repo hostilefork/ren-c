@@ -193,7 +193,7 @@
         ^               ; metaform! - meta "space" rune ("identity" operator)
         @               ; pinned! - pinned "space" rune ("literally" operator)
         ~               ; quasiform! - quasi "space" rune (a "quasar")
-        ,               ; comma!
+        ,               ; blank! (or maybe comma shows where the blank is?)
     ][
         append string mold item
     ]

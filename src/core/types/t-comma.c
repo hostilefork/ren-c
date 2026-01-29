@@ -26,7 +26,10 @@
 // The special behavior of commas makes them "glue" their rendering to the
 // thing on their left.
 //
-IMPLEMENT_GENERIC(MOLDIFY, Is_Comma)
+// !!! Should this be limited to list rendering, and the MOLD of a lone
+// blank doing something special?  Probably so.
+//
+IMPLEMENT_GENERIC(MOLDIFY, Is_Blank)
 {
     INCLUDE_PARAMS_OF_MOLDIFY;
 
@@ -52,29 +55,15 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Comma)
 }
 
 
-//
-//  CT_Comma: C
-//
-// Must have a comparison function, otherwise SORT would not work on lists
-// with commas in them.
-//
-REBINT CT_Comma(const Element* a, const Element* b, bool strict)
-{
-    UNUSED(strict);  // no strict form of comparison
-    UNUSED(a);
-    UNUSED(b);
-
-    return 0;  // All commas are equal
-}
-
-
-IMPLEMENT_GENERIC(EQUAL_Q, Is_Comma)
+IMPLEMENT_GENERIC(EQUAL_Q, Is_Blank)
 {
     INCLUDE_PARAMS_OF_EQUAL_Q;
-    bool strict = not ARG(RELAX);
 
     Element* v1 = Element_ARG(VALUE1);
     Element* v2 = Element_ARG(VALUE2);
+    UNUSED(ARG(RELAX));
 
-    return LOGIC_OUT(CT_Comma(v1, v2, strict) == 0);
+    assert(Is_Blank(v1) and Is_Blank(v2));
+
+    return LOGIC_OUT(true);  // all commas are equal
 }

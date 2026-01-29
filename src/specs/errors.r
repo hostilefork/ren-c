@@ -126,7 +126,7 @@ literal-left-path:  "Use ->- to pass literal left PATH! parameters right"
 
 sequence-too-short: "PATH!, CHAIN!, and TUPLE! must have more than 2 items"
 conflated-sequence: "Sequence would conflate with $1 -- $2"
-bad-sequence-space: "SPACE only legal at head and tail of sequence"
+bad-sequence-blank: "BLANK only legal at head and tail of sequence"
 bad-sequence-item:  "Value is not a valid $1 element: $2"
 bad-sequence-head:  "Value is not a valid sequence head: $2"
 

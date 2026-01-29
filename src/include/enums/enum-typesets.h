@@ -84,7 +84,7 @@ INLINE bool Is_Stable_Antiform_Heart(Heart heart) {
 //    accomplished in the core code with a single comparison.
 
 #define Is_Bindable_Heart(opt_heart) /* assume Option(Heart) [1] */ \
-    (known(Heart, (opt opt_heart)) >= TYPE_COMMA)  // only one test [2]
+    (known(Heart, (opt opt_heart)) >= TYPE_BLANK)  // only one test [2]
 
 #define Is_Cell_Bindable(elem) \
     Is_Bindable_Heart(Unchecked_Heart_Of(Known_Element(elem)))

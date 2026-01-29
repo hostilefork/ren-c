@@ -1955,7 +1955,7 @@ DECLARE_NATIVE(CONSTRUCT)
 //    of the object being synthesized) and `e` would be left as it was.
 //    Ren-C doesn't allow any discarding...a SET-WORD! must be followed
 //    either by another SET-WORD! or a single array element followed by
-//    another SET-WORD!, the end of the array, or a COMMA!.
+//    another SET-WORD!, the end of the array, or a BLANK!.
 {
     INCLUDE_PARAMS_OF_CONSTRUCT;
 
@@ -2024,13 +2024,13 @@ DECLARE_NATIVE(CONSTRUCT)
 
     const Element* at = nullptr;  // quiet static analyzer
 
-    attempt {  // skip COMMA! items, if present
+    attempt {  // skip BLANK! items, if present
         if (Is_Level_At_End(SUBLEVEL)) {
             Drop_Level(SUBLEVEL);
             return OUT;
         }
         at = At_Level(SUBLEVEL);
-        if (Is_Comma(at)) {
+        if (Is_Blank(at)) {  // ","
             Fetch_Next_In_Feed(SUBLEVEL->feed);
             again;
         }
@@ -2062,8 +2062,8 @@ DECLARE_NATIVE(CONSTRUCT)
             panic ("Unexpected end after SET-WORD! in CONTEXT");
 
         at = At_Level(SUBLEVEL);
-        if (Is_Comma(at))
-            panic ("Unexpected COMMA! after SET-WORD! in CONTEXT");
+        if (Is_Blank(at))
+            panic ("Unexpected BLANK! (comma) after SET-WORD! in CONTEXT");
 
     } while ((symbol = Try_Get_Settable_Word_Symbol(nullptr, at)));
 

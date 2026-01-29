@@ -109,7 +109,7 @@ void Assert_Cell_Marked_Correctly(const Cell* v)
         }
         break;
 
-      case TYPE_COMMA:
+      case TYPE_BLANK:
         break;
 
       case TYPE_INTEGER:

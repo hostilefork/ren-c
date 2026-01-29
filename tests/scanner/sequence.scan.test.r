@@ -163,7 +163,7 @@ tests: [
 ;    "#:#:#,"  -> {# # #} ,
 ;
 ; Instead we can just describe something that adds a comma character to the
-; text, and then that adds a COMMA! value to the transformation.
+; text, and then that adds a BLANK! value to the transformation.
 
 mutators: reduce [
     ;
@@ -179,7 +179,7 @@ mutators: reduce [
     ]
 
     ; comma mutator: any source with a comma character glued on the end should
-    ; scan as that thing with a COMMA! after it
+    ; scan as that thing with a BLANK! after it
     ;
     func [text] [
         append text ","

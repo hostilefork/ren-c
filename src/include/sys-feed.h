@@ -74,7 +74,7 @@
 #define Feed_Singular(feed) \
     (&(feed)->singular)
 
-// TYPE_BLOCK, TYPE_COMMA if va_list
+// TYPE_BLOCK, TYPE_BLANK if va_list
 //
 #define Feed_Data(feed) \
     u_cast(Element*, Stub_Cell(&(feed)->singular))
@@ -130,7 +130,7 @@ INLINE void Tweak_Link_Feedstub_Splice(
     Misc_Feedstub_Pending(&(feed)->singular)
 
 #define FEED_IS_VARIADIC(feed) \
-    (TYPE_COMMA == Heart_Of(Feed_Data(feed)))
+    (TYPE_BLANK == Heart_Of(Feed_Data(feed)))
 
 #define FEED_VAPTR_POINTER(feed)    Feed_Data(feed)->payload.comma.vaptr
 #define FEED_PACKED(feed)           Feed_Data(feed)->payload.comma.packed
@@ -171,7 +171,7 @@ INLINE Option(va_list*) FEED_VAPTR(Feed* feed) {
 
 // For performance, we always get the binding from the same location, even
 // if we're not using an array.  So for the moment, that means using a
-// COMMA! (which for technical reasons has a nullptr binding and is thus
+// BLANK! (which for technical reasons has a nullptr binding and is thus
 // always SPECIFIED).  However, List_Binding() only runs on arrays, so
 // we sneak past that by accessing the base directly.
 //
@@ -749,9 +749,9 @@ INLINE Result(Feed*) Prep_Variadic_Feed(
     );
 
     // We want to initialize with something that will give back SPECIFIED.
-    // It must therefore be bindable.  Try a COMMA!
+    // It must therefore be bindable.  Try a BLANK!
     //
-    Init_Comma(Feed_Data(feed));
+    Init_Blank(Feed_Data(feed));
 
     if (not vaptr) {  // `p` should be treated as a packed void* array
         FEED_VAPTR_POINTER(feed) = nullptr;
@@ -844,7 +844,7 @@ INLINE Value* Undecayed_Antiformize_Unbound_Quasiform(Exact(Value*) v) {
         break;
 
       case TYPE_GROUP:
-      case TYPE_COMMA:
+      case TYPE_BLANK:
       case TYPE_ERROR:
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;
         break;

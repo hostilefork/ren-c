@@ -780,7 +780,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 
     const Element* at = At_Level(L);
 
-    if (Is_Comma(at)) {
+    if (Is_Blank(at)) {  // ","
         Fetch_Next_In_Feed(L->feed);
         goto handle_next_item;
     }
@@ -793,7 +793,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     if (
         not Is_Chain(at)
         or not (single = Try_Get_Sequence_Singleheart(at))
-        or not (Singleheart_Has_Trailing_Space(unwrap single))
+        or not (Singleheart_Has_Trailing_Blank(unwrap single))
     ){
         if (Is_Nulled(iterator))
             goto handle_discarded_item;
@@ -811,7 +811,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
   //    next refinement is reaching a comma or end of block.  (Though this
   //    could be treated as an <end> case?)
 
-    if (single != TRAILING_SPACE_AND(WORD))  // more possibilities later [1]
+    if (single != TRAILING_BLANK_AND(WORD))  // more possibilities later [1]
         panic ("Only WORD!: labels handled in APPLY at this time");
 
     STATE = ST_FRAME_FILLER_LABELED_EVAL_STEP;
@@ -833,13 +833,13 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     Fetch_Next_In_Feed(L->feed);
     at = Try_At_Level(L);
 
-    if (at == nullptr or Is_Comma(at))
+    if (at == nullptr or Is_Blank(at))  // ","
         panic (Error_Need_Non_End_Raw(lookback));
 
     if (  // catch e.g. DUP: LINE: [2]
         Is_Chain(at)
         and (single = Try_Get_Sequence_Singleheart(at))
-        and Singleheart_Has_Trailing_Space(unwrap single)
+        and Singleheart_Has_Trailing_Blank(unwrap single)
     ){
         panic (Error_Need_Non_End_Raw(lookback));
     }

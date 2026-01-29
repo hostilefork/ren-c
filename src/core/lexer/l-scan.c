@@ -2163,13 +2163,13 @@ static void Apply_Quotes_If_Pending(Element* e, ScanState* S) {
 // produced here when it sees the "]".
 //
 // At one time, things like lone apostrophes ''' were illegal, but that is
-// now considered a quoted form of the SPACE value.
+// now considered a quoted form of a BLANK! value.
 //
 static Result(None) Flush_Pending_On_End(ScanState* S) {
     attempt {
         if (S->sigil_pending) {  // e.g. "$]" or "''$]"
             assert(not S->quasi_pending);
-            Init_Sigiled_Comma(PUSH(), unwrap S->sigil_pending);
+            Init_Sigiled_Blank(PUSH(), unwrap S->sigil_pending);
             S->sigil_pending = SIGIL_0;
         }
         else if (S->quasi_pending) {  // "~]" or "''~]"
@@ -2177,7 +2177,7 @@ static Result(None) Flush_Pending_On_End(ScanState* S) {
             S->quasi_pending = false;
         }
         else if (S->num_quotes_pending) {  // "']" or "''']"
-            Init_Space(PUSH());
+            Init_Blank(PUSH());
         }
         else
             break;  // didn't push anything
@@ -2378,7 +2378,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
         --transcode->at;  // "unaccept" token so interstitial sees `,`
         goto done;
     }
-    Init_Comma(PUSH());
+    Init_Blank(PUSH());
     goto lookahead;
 
 } case TOKEN_CARET: //// SIGILS ('$' or '^' or '@') //////////////////////////
@@ -2409,7 +2409,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
 
     if (S->quasi_pending) {
         if (S->sigil_pending) {  // ~$~ or ~@~ or ~^~
-            Init_Sigiled_Comma(PUSH(), unwrap S->sigil_pending);
+            Init_Sigiled_Blank(PUSH(), unwrap S->sigil_pending);
             S->sigil_pending = SIGIL_0;
             --transcode->at;  // let lookahead see the `~`
             goto lookahead;
@@ -2525,7 +2525,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
         S->quasi_pending = false;  // quasi-sequences don't exist
     }
     else
-        Init_Space(PUSH());
+        Init_Blank(PUSH());
 
     assert(transcode->at == S->end);
     transcode->at = S->begin;  // "unconsume" .` or `/` or `:` token
@@ -2828,7 +2828,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
     // 1. The lack of TOKEN_WHITESPACE means we have to take this moment
     //    to notice if there's not going to be another element pushed,
     //    e.g. the `foo/bar/` or `foo:)` etc.  In these cases we know that
-    //    the sequence ends in a SPACE.
+    //    the sequence ends in a BLANK!
 
     if (STATE == *transcode->at) {
         ++transcode->at;  // consume the matching interstitial delimiter
@@ -2839,7 +2839,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
             or *transcode->at == ','
             or *transcode->at == ';'
         ){
-            Init_Space(PUSH());  // abrupt end to sequence, make a space [1]
+            Init_Blank(PUSH());  // abrupt end to sequence, make a blank [1]
             goto done;
         }
 
@@ -2872,7 +2872,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
         or *transcode->at == ','
         or *transcode->at == ';'
     ){
-        // !!! No Init_Space() here?
+        // !!! No Init_Blank() here?
         goto done;
     }
 
@@ -2976,7 +2976,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
         or *transcode->at == ';'  // `foo/;bar`
         or *transcode->at == ','  // `a:, b`
     ){
-        Init_Space(PUSH());  // make a 2-element sequence with blank in slot 2
+        Init_Blank(PUSH());  // make a 2-element sequence with blank in slot 2
         goto pop_sequence_or_conflation;
     }
 
@@ -3409,9 +3409,9 @@ Option(const Byte*) Try_Scan_Rune_To_Stack(const Byte* cp, Size size)
     // !!! Review UTF-8 Safety, needs to use mold buffer the way TEXT! does
     // to scan the data.
     //
-    if (size == 0) {  // plain # is space character, #"" is empty issue
+    if (size == 0) {  // plain # is newline character, #"" is empty issue
         assert(len == 0);
-        Init_Space(PUSH());
+        Init_Newline(PUSH());
     }
     else
         Init_Rune(PUSH(), cast(Utf8(const*), cp), size, len);

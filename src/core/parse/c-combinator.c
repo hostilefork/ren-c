@@ -640,7 +640,11 @@ static bool Combinator_Param_Hook(
 
         if (
             item == tail
-            or (Is_Comma(item) or Is_Bar(item) or Is_Bar_Bar(item))
+            or (
+                Is_Blank(item)  // ","
+                or Is_Bar(item)  // "|"
+                or Is_Bar_Bar(item)  // "||"
+            )
         ){
             if (Not_Parameter_Flag(param, HOLE_OK))
                 panic ("Too few parameters for combinator");  // !!! Error_No_Arg
@@ -662,7 +666,11 @@ static bool Combinator_Param_Hook(
         const Element* item = List_At(&tail, rules);
         if (
             item == tail
-            or (Is_Comma(item) or Is_Bar(item) or Is_Bar_Bar(item))
+            or (
+                Is_Blank(item)  // ","
+                or Is_Bar(item)  // "|"
+                or Is_Bar_Bar(item)  // "||"
+            )
         ){
             if (Not_Parameter_Flag(param, HOLE_OK))
                 panic ("Too few parameters for combinator");  // !!! Error_No_Arg

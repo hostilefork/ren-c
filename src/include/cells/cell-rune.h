@@ -73,7 +73,7 @@
 //
 // It was once more important to be able to test for space quickly, because
 // the [_ ~ @ $ ^] standalone decorations were built on space.  Now they are
-// built on top of COMMA!, which is inherently easier to recognize.
+// built on top of BLANK!, which is inherently easier to recognize.
 //
 // But the feature of being able to test RUNE! quickly for if it was a space
 // via a header check was written, so it's here for now.  There's another flag
@@ -313,12 +313,6 @@ INLINE Result(Element*) Init_Single_Codepoint_Rune_Untracked(
     )) == ( \
         FLAG_HEART(TYPE_RUNE) | CELL_FLAG_RUNE_IS_SPACE \
     )
-
-INLINE bool Any_Sigiled_Space(const Element* e) {
-    if (LIFT_BYTE(e) != NOQUOTE_3 or not Sigil_Of(e))
-        return false;
-    return Is_Space_Underlying(e);
-}
 
 INLINE bool Is_Cell_Space_With_Lift_Sigil(
     const Cell* cell,

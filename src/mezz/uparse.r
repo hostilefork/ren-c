@@ -2401,7 +2401,7 @@ default-combinators: make map! [
         pos: input
 
         until [same? rules limit] [
-            if comma? rules.1 [  ; COMMA! is only legal between steps
+            if blank? rules.1 [  ; BLANK! is only legal between steps
                 rules: next rules
                 continue
             ]
@@ -2741,11 +2741,11 @@ comment [combinatorize: func [
 ; datatype combinator (such as that for a TAG!) can thus not acquire any
 ; arguments unless code is added here to facilitate that.
 ;
-; 1. The concept behind COMMA! is to provide a delimiting between rules.  That
+; 1. The concept behind BLANK! is to provide a delimiting between rules.  That
 ;    is handled by the BLOCK! combinator.  So if you see `[some, "a"]` in
 ;    PARSIFY, that is just running out of turn.
 ;
-;    (It may seem making a dummy "comma combinator" for the comma type is a
+;    (It may seem making a dummy "blank combinator" for the blank type is a
 ;    good idea.  But that's an unwanted axis of flexibility, and if we defer
 ;    the error until the combinator is run, it might never be run.)
 ;
@@ -2804,9 +2804,9 @@ parsify: func [
 ][
     r: rules.1
 
-    if comma? r [  ; block combinator consumes the legal commas [1]
+    if blank? r [  ; block combinator consumes the legal commas [1]
         return fail [
-            "COMMA! can only be run between PARSE steps, not during them"
+            "BLANK! (commas) can only be between PARSE steps, not during them"
         ]
     ]
     rules: next rules
@@ -2851,7 +2851,7 @@ parsify: func [
             ; fall through to datatype-based WORD! combinator handling
         ]
 
-        (path? r) and (space? first r) [  ; "action combinator" [5]
+        (path? r) and (blank? first r) [  ; "action combinator" [5]
             if not frame? let gotten: unrun get meta resolve r [
                 return fail "PARSE PATH starting in / must be action or frame"
             ]
@@ -2893,7 +2893,7 @@ parsify: func [
             return combinatorize:value comb rules state gotten
         ]
 
-        (path? r) and (space? last r) [  ; type constraint combinator
+        (path? r) and (blank? last r) [  ; type constraint combinator
             let ^action: get meta resolve r  ; ^ to not store ACTION as label
             comb: state.combinators.match
             return combinatorize:value comb rules state unrun action/
@@ -2906,11 +2906,11 @@ parsify: func [
     if not comb: any [  ; datatype dispatch, special case sequences [6]
         if any-sequence? r [any [
             all [
-                space? last r
+                blank? last r
                 comb: try state.combinators.(as type of r '*.)  ; hack!
             ]
             all [
-                space? first r
+                blank? first r
                 comb: try state.combinators.(as type of r '.*)  ; hack!
             ]
         ]]
