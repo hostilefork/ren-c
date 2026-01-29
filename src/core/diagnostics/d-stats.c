@@ -34,7 +34,7 @@
 //
 //  "Provides status and statistics information about the interpreter"
 //
-//      return: [<null> time! integer! object!]
+//      return: [trash! time! integer! object!]
 //      :show "Print formatted results to console"
 //      :profile "Returns profiler object"
 //      :evals "Number of values evaluated by interpreter"
@@ -75,7 +75,7 @@ DECLARE_NATIVE(STATS)
     if (ARG(POOL)) {
         Stable* pool_id = unwrap ARG(POOL);
         Dump_All_Flex_In_Pool(VAL_INT32(pool_id));
-        return NULL_OUT;
+        return TRASH_OUT;
     }
 
     if (ARG(SHOW))

@@ -409,13 +409,13 @@ find-last: redescribe [
 ;
 attempt: specialize repeat/ [count: 1]
 
-rescue: func [
+rescue: lambda [
     "If evaluation returns an antiform error, return as error, else NULL"
 
-    return: [<null> error!]
+    []: [<null> error!]
     code [block!]
 ][
-    return match error! enrescue code
+    match error! enrescue code
 ]
 
 reduce*: redescribe [

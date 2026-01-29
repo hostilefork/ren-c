@@ -578,7 +578,7 @@ Result(Element*) Unsingleheart_Sequence_Preserve_Sigil(Element* seq) {
 //
 //  "If possible, convert a value to a SET-XXX! representation"
 //
-//      return: [<null> element?:]
+//      return: [element?: failure!]
 //      value [element?]
 //  ]
 //
@@ -589,7 +589,7 @@ DECLARE_NATIVE(SETIFY)
 {
     INCLUDE_PARAMS_OF_SETIFY;
 
-    require (
+    trap (
       Element* e = Setify(Element_ARG(VALUE))
     );
 
@@ -602,7 +602,7 @@ DECLARE_NATIVE(SETIFY)
 //
 //  "If possible, convert a value to a GET-XXX! representation"
 //
-//      return: [<null> :element?]
+//      return: [:element? failure!]
 //      value [element?]
 //  ]
 //
@@ -612,7 +612,7 @@ DECLARE_NATIVE(GETIFY)
 {
     INCLUDE_PARAMS_OF_GETIFY;
 
-    require (
+    trap (
       Element* e = Getify(Element_ARG(VALUE))
     );
 
@@ -717,7 +717,7 @@ static Bounce Unsigilize_Native_Core(Level* level_, Sigil sigil)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULL_OUT;
+        panic (nullptr);  // !!! this should only happen in typecheckers
 
     if (Sigil_Of(v) != sigil)
         return fail ("Trying to remove Sigil from value without that Sigil");
@@ -731,7 +731,7 @@ static Bounce Unsigilize_Native_Core(Level* level_, Sigil sigil)
 //
 //  "Convert ^XXX to plain XXX, error if not metaform"
 //
-//      return: [<null> plain? failure!]
+//      return: [plain? failure!]
 //      value '[fundamental?]
 //  ]
 //
@@ -746,7 +746,7 @@ DECLARE_NATIVE(UNMETA)
 //
 //  "Convert @XXX to plain XXX, error if not pinned"
 //
-//      return: [<null> plain? failure!]
+//      return: [plain? failure!]
 //      value '[fundamental?]
 //  ]
 //
@@ -761,7 +761,7 @@ DECLARE_NATIVE(UNPIN)
 //
 //  "Convert $XXX to plain XXX, error if not tied"
 //
-//      return: [<null> plain? failure!]
+//      return: [plain? failure!]
 //      value '[fundamental?]
 //  ]
 //
@@ -776,7 +776,7 @@ DECLARE_NATIVE(UNTIE)
 //
 //  "Convert a value into its plain representation"
 //
-//      return: [<null> plain?]
+//      return: [plain?]
 //      value '[element?]
 //  ]
 //
@@ -788,7 +788,7 @@ DECLARE_NATIVE(PLAIN)
       Element* v = opt Typecheck_Element_Intrinsic_Arg(LEVEL)
     );
     if (not v)
-        return NULL_OUT;
+        panic (nullptr);  // !!! this should only happen in typecheckers
 
     return COPY_TO_OUT(Clear_Cell_Sigil(v));
 }
@@ -799,7 +799,7 @@ DECLARE_NATIVE(PLAIN)
 //
 //  "Remove CHAIN!, e.g. leading colon or trailing colon from an element"
 //
-//      return: [<null> element?]
+//      return: [element? failure!]
 //      chain [chain!]
 //  ]
 //
@@ -820,7 +820,7 @@ DECLARE_NATIVE(UNCHAIN)
 //
 //  "Remove PATH!, e.g. leading slash or trailing slash from an element"
 //
-//      return: [<null> element?]
+//      return: [element? failure!]
 //      path [path!]
 //  ]
 //
@@ -841,7 +841,7 @@ DECLARE_NATIVE(UNPATH)
 //
 //  "Remove TUPLE!, e.g. leading dot or trailing dot from a tuple"
 //
-//      return: [<null> element?]
+//      return: [element? failure!]
 //      tuple [tuple!]
 //  ]
 //

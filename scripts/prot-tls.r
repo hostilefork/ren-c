@@ -1814,7 +1814,7 @@ sys.util/make-scheme [
         ]
 
         write: func [
-            return: [<null> port!]
+            return: [port!]
             port [port!]
             value [any-stable?]
         ][
@@ -2035,7 +2035,7 @@ sys.util/make-scheme [
             []: [<null> blob!]
             port [port!]
         ][
-            if port.data [copy port.data]
+            copy conditional port.data
         ]
 
         query: lambda [

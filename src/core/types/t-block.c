@@ -1478,7 +1478,7 @@ IMPLEMENT_GENERIC(SORT, Any_List)
 //
 //  "If a value isn't already a BLOCK!, enclose it in a block, else return it"
 //
-//      return: [<null> block!]
+//      return: [block!]
 //      value [<opt> element?]
 //  ]
 //
@@ -1538,7 +1538,7 @@ DECLARE_NATIVE(GROUPIFY)
 //
 //  "Enclose element(s) in arbitrarily deep list structures"
 //
-//      return: [<null> any-list?]
+//      return: [any-list?]
 //      example "Example's binding (or lack of) will be used"
 //          [datatype! any-list?]
 //      content [<opt> element? splice!]

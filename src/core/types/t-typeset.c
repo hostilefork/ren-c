@@ -855,7 +855,7 @@ DECLARE_NATIVE(DECORATION_OF)
 //
 //  "Remove decorations (Sigils, Quotes, leading-space sequences) from VALUE"
 //
-//      return: [<null> plain?]
+//      return: [plain?]
 //      value [element?]
 //  ]
 //

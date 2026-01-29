@@ -418,7 +418,7 @@ DECLARE_NATIVE(TO)
 //
 //  "Aliases underlying data of one value to act as another of same class"
 //
-//      return: [<null> plain?]
+//      return: [plain?]
 //      type [datatype!]
 //      value [plain?]
 //  ]

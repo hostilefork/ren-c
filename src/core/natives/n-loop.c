@@ -2530,7 +2530,7 @@ DECLARE_NATIVE(FOR)
 //
 //  "Evaluates the body until it produces a non-NULL (and non-VOID) value"
 //
-//      return: [<null> any-stable?]
+//      return: [any-stable?]
 //      body [<const> block! frame!]  ; [A]
 //  ]
 //
@@ -2722,7 +2722,7 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 //
 //  "So long as a condition is truthy, evaluate the body"
 //
-//      return: [<null> any-stable?]
+//      return: [<null> void! any-stable?]
 //      condition [<const> block! frame!]  ; literals not allowed, [1]
 //      body [<const> block! frame!]  ; [A]
 //  ]
@@ -2746,7 +2746,7 @@ DECLARE_NATIVE(WHILE)
 //
 //  "So long as a condition is falsey, evaluate the body"
 //
-//      return: [<null> any-stable?]
+//      return: [<null> void! any-stable?]
 //      condition [<const> block! frame!]  ; literals not allowed, [1]
 //      body [<const> block! frame!]  ; [A]
 //  ]

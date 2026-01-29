@@ -52,7 +52,7 @@ last?: single?: lambda [
 array: func [
     "Makes and initializes a block of a given size"
 
-    return: [<null> block!]
+    return: [block!]
     size "Size or block of sizes for each dimension"
         [integer! block!]
     :^initial "Initial value (will be called each time if action)"
@@ -502,7 +502,7 @@ printf: proc [
 split: func [
     "Split series in pieces: fixed/variable size, fixed number, or delimited"
 
-    return: [<null> block!]
+    return: [block!]
     series [any-series?]
     dlm [
         <opt>  "just return input (in a block if not already)"

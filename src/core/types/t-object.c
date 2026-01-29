@@ -1937,7 +1937,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Frame)
 //
 //  "Creates an OBJECT! from a spec that is not bound into the object"
 //
-//      return: [<null> object!]
+//      return: [object!]
 //      spec "Object spec block, top-level SET-WORD!s will be object keys"
 //          [block! @block! fence!]
 //      :with "Use a parent/prototype context"

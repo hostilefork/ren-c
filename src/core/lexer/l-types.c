@@ -55,7 +55,7 @@ DECLARE_NATIVE(TYPE_OF)
 //
 //  "Give back a cell's heart (e.g. HEART OF ~FOO~ or ''FOO is WORD!)"
 //
-//      return: [<null> datatype!]
+//      return: [datatype!]
 //      value "Antiforms not accepted, use (heart of lift value) if needed"
 //          [element?]
 //  ]
@@ -79,7 +79,7 @@ DECLARE_NATIVE(HEART_OF)
 //
 //  "Return how many quote levels are on a value (quasiforms have 0 quotes)"
 //
-//      return: [<null> integer!]
+//      return: [integer!]
 //      value [element?]
 //  ]
 //
@@ -169,7 +169,7 @@ DECLARE_NATIVE(ANY_SIGILED_Q)  // !!! should %make-types.r produce this?
 //
 //  "Get the length (in series units, e.g. codepoints) of series or other type"
 //
-//      return: [<null> integer!]
+//      return: [integer!]
 //      value [plain?]  ; not quoted/quasi/sigil'd [1]
 //  ]
 //

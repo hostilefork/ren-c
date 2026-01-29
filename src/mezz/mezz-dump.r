@@ -185,7 +185,7 @@ dumps: infix func [
 summarize-obj: func [
     "Block of short lines (roughly 80 columns) about an object or port"
 
-    return: [<null> block!]
+    return: [block!]
     obj [object! port! module!]
     :pattern "Include only fields that match a string or datatype"
         [text! datatype!]

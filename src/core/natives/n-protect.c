@@ -30,12 +30,13 @@
 //
 //  "Return value whose access level doesn't allow mutation to its content"
 //
-//      return: [<null> element?]
+//      return: [element?]
 //      value "Argument to change access to (can be locked or not)"
 //          [element?]  ; !!! affect INTEGER! when it's a bignum?
 //  ]
 //
-DECLARE_NATIVE(CONST) {
+DECLARE_NATIVE(CONST)
+{
     INCLUDE_PARAMS_OF_CONST;
 
     Element* e = Element_ARG(VALUE);
@@ -74,7 +75,7 @@ DECLARE_NATIVE(CONST_Q)
 //
 //  "Return reference with mutable access to its argument (if not LOCK-ed)"
 //
-//      return: [<null> element?]
+//      return: [element?]
 //      value "Argument to change access to (if such access can be granted)"
 //          [element?]  ; !!! affect INTEGER! when it's a bignum?
 //  ]

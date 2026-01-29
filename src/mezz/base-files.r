@@ -167,20 +167,16 @@ delete-dir: proc [
     ]
 ]
 
-script?: func [
+script?: lambda [
     "Checks file, url, or text string for a valid script header"
 
-    return: [<null> blob!]
+    []: [<null> blob!]
     source [file! url! blob! text!]
 ][
     if match [file! url!] source [
         source: read source
     ]
-    transcode-header as blob! source else [
-        return false
-    ] except [
-        return false
-    ]
+    try transcode-header as blob! source
 ]
 
 file-type?: lambda [

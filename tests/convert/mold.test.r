@@ -199,3 +199,8 @@
     ]
     assert [string = "?*+-=<>|:/.%#_$^^@~,"]
 )
+
+(
+    ("" = mold ^void)
+    ("" = form ^void)
+)

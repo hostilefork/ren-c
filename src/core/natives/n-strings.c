@@ -107,7 +107,10 @@ DECLARE_NATIVE(LATIN1_Q)
 //
 //  "Join elements to produce a new value"
 //
-//      return: [<null> any-utf8? any-list? any-sequence? blob!]
+//      return: [
+//          <null> "e.g. join text! []"
+//          any-utf8? any-list? any-sequence? blob!
+//      ]
 //      base "If no base element and no material in rest to join, gives NULL"
 //          [datatype! any-utf8? any-list? any-sequence? blob!]
 //      rest "Plain [...] blocks reduced, @[...] block items used as is"

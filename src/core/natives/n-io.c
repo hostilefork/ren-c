@@ -30,18 +30,24 @@
 //
 //  "Converts a value to a human-readable string"
 //
-//      return: [<null> text!]
+//      return: [text!]
 //      value "The value to form (currently errors on antiforms)"
-//          [element?]
+//          [<opt> element?]
 //  ]
 //
 DECLARE_NATIVE(FORM)
 {
     INCLUDE_PARAMS_OF_FORM;
 
-    Element* elem = Element_ARG(VALUE);
+    Option(Element*) elem = ARG(VALUE);
+    if (not elem) {
+        require (
+          Strand* strand = Make_Strand(0)
+        );
+        return Init_Text(OUT, strand);
+    }
 
-    return Init_Text(OUT, Copy_Form_Element(elem, 0));
+    return Init_Text(OUT, Copy_Form_Element(unwrap elem, 0));
 }
 
 
@@ -92,10 +98,8 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Fundamental)  // catch-all for ExtraHeart*
 //      return: [
 //          ~(text! [<null> integer!])~
 //          "source string, and if truncated returns integer :LIMIT"
-//
-//          <null> "when input is void"
 //      ]
-//      value [element? splice!]
+//      value [<opt> element? splice!]
 //      :flat "No indentation"
 //      :limit "Limit to a certain length"
 //          [integer!]
@@ -105,7 +109,23 @@ DECLARE_NATIVE(MOLD)
 {
     INCLUDE_PARAMS_OF_MOLD;
 
-    Stable* v = ARG(VALUE);
+    Strand* strand;
+    bool truncated;
+
+    if (ARG(VALUE))
+      goto non_void_mold;
+
+  void_mold: {
+
+    require (
+      strand = Make_Strand(0)
+    );
+    truncated = false;
+    goto return_pack;
+
+} non_void_mold: {
+
+    Stable* v = unwrap ARG(VALUE);
 
     DECLARE_MOLDER (mo);
     if (ARG(FLAT))
@@ -115,7 +135,7 @@ DECLARE_NATIVE(MOLD)
         mo->limit = Int32(unwrap ARG(LIMIT));
     }
 
-    Push_Mold(mo);
+    Push_Mold(mo);  // mold will set MOLD_FLAG_TRUNCATED if it truncates
 
     if (Is_Splice(v)) {
         SET_MOLD_FLAG(mo, MOLD_FLAG_SPREAD);
@@ -125,13 +145,17 @@ DECLARE_NATIVE(MOLD)
     else
         Mold_Element(mo, cast(Element*, v));
 
+    truncated = did (mo->opts & MOLD_FLAG_WAS_TRUNCATED);
+    strand = Pop_Molded_Strand(mo);
+
+} return_pack: {
+
     Source* pack = Make_Source_Managed(2);
     Set_Flex_Len(pack, 2);
 
-    Strand* popped = Pop_Molded_Strand(mo);  // sets MOLD_FLAG_TRUNCATED
-    Lift_Cell(Init_Text(Array_At(pack, 0), popped));
+    Lift_Cell(Init_Text(Array_At(pack, 0), strand));
 
-    if (mo->opts & MOLD_FLAG_WAS_TRUNCATED) {
+    if (truncated) {
         assert(ARG(LIMIT));
         Copy_Lifted_Cell(Array_At(pack, 1), unwrap ARG(LIMIT));
     }
@@ -139,7 +163,7 @@ DECLARE_NATIVE(MOLD)
         Init_Quasi_Null(Array_At(pack, 1));
 
     return Init_Pack(OUT, pack);
-}
+}}
 
 
 //
