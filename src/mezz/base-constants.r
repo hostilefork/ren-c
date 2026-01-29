@@ -47,6 +47,7 @@ NUL:       #{00}  ; ^(NULL) no longer legal internal to strings
 
 empty-block: '[]
 none: ~[]~
+blank: '
 quasar: '~
 
 empty-text: ""

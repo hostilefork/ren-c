@@ -230,6 +230,22 @@ export console!: make object! [
             return
         ]
 
+      === BLANK! (no rendering) ===
+
+      ; At time of writing, it's not fully obvious what the handling of BLANK!
+      ; will be.  It doesn't seem that rendering it as a comma makes sense
+      ; (the comma is just how lists "show where the blanks are").  It seems
+      ; to invite errors to mold it as a space or empty string.  So for now
+      ; you simply can't mold an undecorated blank.  But the console needs
+      ; to do something that doesn't trigger an error.
+
+        if blank? v [
+            print unspaced [
+                result _ _ ";" _ "(blank!)"
+            ]
+            return
+        ]
+
       === "ORDINARY" VALUES (non-antiform) ===
 
       ; 1. Molding a freed value would cause an error...which is usually okay

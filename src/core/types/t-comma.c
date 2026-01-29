@@ -23,11 +23,10 @@
 #include "sys-core.h"
 
 
-// The special behavior of commas makes them "glue" their rendering to the
-// thing on their left.
-//
-// !!! Should this be limited to list rendering, and the MOLD of a lone
-// blank doing something special?  Probably so.
+// BLANK! does not have FORM or MOLD behavior at this time.  Decorated forms
+// (like QUOTED! or PINNED! etc.) will render the decoration without anything
+// else additional.  Non-decorated BLANK! shows up as a comma when a List
+// type encounters them--but that molding is done by the list.
 //
 IMPLEMENT_GENERIC(MOLDIFY, Is_Blank)
 {
@@ -37,21 +36,11 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Blank)
     Molder* mo = Cell_Handle_Pointer(Molder, ARG(MOLDER));
     bool form = did ARG(FORM);
 
-    UNUSED(form);
     UNUSED(v);
+    UNUSED(mo);
+    UNUSED(form);
 
-    Size size = Strand_Size(mo->strand);
-    if (
-        size > mo->base.size + 1
-        and *Binary_At(mo->strand, size - 1) == ' '  // not multibyte char
-        and *Binary_At(mo->strand, size - 2) != ','  // also safe compare
-    ){
-        *Binary_At(mo->strand, size - 1) = ',';
-    }
-    else
-        Append_Codepoint(mo->strand, ',');
-
-    return TRASH_OUT;
+    return fail ("BLANK! does not have a molded/formed representation");
 }
 
 

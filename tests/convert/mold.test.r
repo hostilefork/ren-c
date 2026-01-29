@@ -204,3 +204,15 @@
     ("" = mold ^void)
     ("" = form ^void)
 )
+
+; Need more comprehensive molding tests for BLANK!.  But the key insight is
+; that it doesn't mold as a comma... the blank is indicated *by* the comma.
+[
+    (all {
+        block: reduce ['a blank blank 'b]
+        block = [a, , b]
+        "[a, , b]" = mold block
+        "a, , b" = form block
+    })
+    ~???~ !! (mold blank)
+]

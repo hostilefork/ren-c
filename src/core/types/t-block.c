@@ -509,22 +509,29 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_List)
         const Source* array = Cell_Array(v);
         Index index = Series_Index(v);
 
-        REBINT len = Array_Len(array) - index;
+        Length len = Array_Len(array) - index;
         if (len < 0)
             len = 0;
 
-        REBINT n;
-        for (n = 0; n < len;) {
-            DECLARE_ELEMENT (safe);
+        Index n;
+        for (n = 0; n < len; ++n) {
             const Element* item = Array_At(array, index + n);
-            Mold_Or_Form_Element(mo, item, true);
-            n++;
+
+            if (Is_Blank(item))  // BLANK! cannot be FORM'd
+                Append_Codepoint(mo->strand, ',');
+            else
+                Mold_Or_Form_Element(mo, item, true);
+
             if (GET_MOLD_FLAG(mo, MOLD_FLAG_LINES)) {
                 Append_Codepoint(mo->strand, LF);
             }
             else {  // Add a space if needed
                 if (
-                    n < len
+                    n != (len - 1)
+                    and (  // want [a, , b] not [a,, b]
+                        Is_Blank(item)
+                        or (not Is_Blank(item + 1))
+                    )
                     and Strand_Len(mo->strand) != 0
                     and *Binary_Last(mo->strand) != LF
                     and NOT_MOLD_FLAG(mo, MOLD_FLAG_TIGHT)

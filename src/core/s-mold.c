@@ -269,11 +269,11 @@ void Mold_Array_At(
 
     bool first_item = true;
 
-    const Element* item_tail = Array_Tail(a);
-    const Element* item = Array_At(a, index);
-    assert(item <= item_tail);
-    while (item != item_tail) {
-        if (Get_Cell_Flag(item, NEWLINE_BEFORE)) {
+    const Element* tail = Array_Tail(a);
+    const Element* at = Array_At(a, index);
+
+    for (; at != tail; ++at) {
+        if (Get_Cell_Flag(at, NEWLINE_BEFORE)) {
            if (not indented and (sep[1] != '\0')) {
                 ++mo->indent;
                 indented = true;
@@ -287,16 +287,23 @@ void Mold_Array_At(
                 New_Indented_Line(mo);
         }
 
+        if (Is_Blank(at))  // BLANK! cannot be MOLD-ed
+            Append_Codepoint(mo->strand, ',');
+        else
+            Mold_Element(mo, at);
+
         first_item = false;
 
-        Mold_Element(mo, item);
-
-        ++item;
-        if (item == item_tail)
-            break;
-
-        if (Not_Cell_Flag(item, NEWLINE_BEFORE))
+        if (
+            at + 1 != tail
+            and Not_Cell_Flag(at + 1, NEWLINE_BEFORE)
+            and (  // want [a, , b] not [a,, b]
+                Is_Blank(at)
+                or (not Is_Blank(at + 1))
+            )
+        ){
             Append_Codepoint(mo->strand, ' ');
+        }
     }
 
     if (indented)
@@ -412,6 +419,12 @@ void Mold_Or_Form_Cell_Ignore_Quotes(
 
         unnecessary(Drop_Action(sub));  // !! action dropped, should it be?
         Drop_Level(sub);
+
+        if (Is_Failure(out))
+            panic (Cell_Error(out));
+
+        if (not Is_Trash(out))
+            panic (out);  // !!! MOLD is supposed to return trash
 
         if (tildes)
             Append_Codepoint(mo->strand, '~');
