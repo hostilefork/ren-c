@@ -1113,7 +1113,7 @@ apply: func3 [
 
 ; For commentary purposes, e.g. old-append: runs lib.append
 ;
-runs: func3 [action [~void~ action!]] [  ; !! bootstrap has stable void
+runs: func3 [action [void! action!]] [  ; !! bootstrap has stable void
     if void? action [return null]
     return action
 ]
