@@ -80,10 +80,10 @@ print-general-help: proc [] [
 
 
 help-action: proc [
-    frame [frame!]
+    ^action [action!]
     :name [word! tuple! path!]
 ][
-    name: default [label of frame]
+    name: default [label of ^action]
     if name [
         name: uppercase form name
     ] else [
@@ -97,8 +97,7 @@ help-action: proc [
     let refinements: copy []  ; mumble frotz
     let deco-refinements: copy []  ; :mumble :/@(frotz)
 
-    for-each key frame [
-        let param: get:dual key
+    for-each [key param] ^action [
         if param.optional [
             append refinements key
             append deco-refinements decorate param key
@@ -110,7 +109,7 @@ help-action: proc [
 
     ; Output exemplar calling string, e.g. LEFT + RIGHT or FOO A B C
     ;
-    all [infix? frame, not empty? deco-args] then [
+    all [infix? ^action, not empty? deco-args] then [
         print [____ @deco-args.1 name @(spread next deco-args)]
     ] else [
         print [____ name @(spread deco-args) @(spread deco-refinements)]
@@ -123,7 +122,7 @@ help-action: proc [
     ; on all functions, and the `text` of the PARAMETER! is treated as the
     ; description of the function on the whole.
     ;
-    let return-param: return of frame
+    let return-param: return of ^action
 
     print "DESCRIPTION:"
     print [____ (any [return-param.text, "(undocumented)"])]
@@ -373,15 +372,19 @@ help: func [
 source: proc [
     "Prints the source code for an ACTION! (if available)"
 
-    @arg [frame! word! path! tag!]
+    @(arg) [
+        word! tuple! "treat as variable, look it up"
+        frame! "give function source, if available"
+        tag! "get URL! of library identified by tag, e.g. (source <json>)"
+    ]
 ][
     let name
     let f
     switch:type arg [
         tag! [
             f: copy "unknown tag"
-            for-each 'location words of system.locale.library [
-                if location: select load get location arg [
+            for-each [key url] system.locale.library [
+                if location: select load url arg [
                     f: form location.1
                     break
                 ]
@@ -390,7 +393,7 @@ source: proc [
 
         word! path! [
             name: arg
-            if action? (^f: get arg else [
+            if action? (^f: get meta arg else [
                 print [name "is not set to a value"]
                 return
             ]) [
@@ -398,7 +401,7 @@ source: proc [
             ]
         ]
     ] else [
-        name: "anonymous"
+        name: '~anonymous~
         f: arg
     ]
 
@@ -408,7 +411,7 @@ source: proc [
         ]
         not frame? (unrun f) [
             print [
-                name "is" an any [mold opt type of f, "NULL"]
+                mold name "is" an any [mold opt type of f, "NULL"]
                 "and not a FRAME!"
             ]
         ]
@@ -416,21 +419,21 @@ source: proc [
         return
     ]
 
-    let r-param: return of f
+    let ret: ensure parameter! return of f
     let spec: collect [
-        keep:line (opt r-param.text)
+        keep:line (opt ret.text)  ; RETURN:'s text is overall description
 
-        if r-param and (r-param.spec) [
-            keep spread compose [
-                (opt r-param.spec)
-            ]
+        if ret.spec [
+            keep compose ~[
+                return: (ret.spec)
+            ]~
         ]
 
-        for-each [key param] f [
-            keep spread compose [
-                (decorate param key) (opt param.spec)
-                    (opt param.text)
-            ]
+        for-each [key param] runs f [  ; ACTION! enumeration gives PARAMETER!
+            keep compose ~[
+                (decorate param key) (opt param.text)
+                    (opt param.spec)
+            ]~
         ]
     ]
 
@@ -438,13 +441,16 @@ source: proc [
         mold name ":" _ "lambda" _ mold spec
     ]
 
-    ; While all interfaces as far as invocation is concerned has been unified
-    ; under the single ACTION! interface, the issue of getting things like
-    ; some kind of displayable "source" would have to depend on the dispatcher
-    ; used.  For the moment, BODY OF hands back limited information.  Review.
-    ;
-    let body: body of f
+  ; !!! A native implementation could give a link to a GitHub repo so you
+  ; could read the source.
+
+    let body: try body of f
+
     switch:type body [
+        null?/ [
+            print "...native code, no source available..."
+        ]
+
         block! [  ; FUNC, LAMBDA
             print [mold body]
         ]
@@ -452,8 +458,6 @@ source: proc [
         frame! [  ; SPECIALIZE (or DOES of an ACTION!)
             print [mold body]
         ]
-    ] else [
-        print "...native code, no source available..."
     ]
 ]
 

@@ -170,9 +170,9 @@ standard: make object! [  ; can't CONSTRUCT, dependency of MAKE on prior fields
     ; to find #BODY, just asserts the position is an RUNE!.
 
     func-body: [
-        return: couple definitional-return/ binding of $return*
+        return*: couple definitional-return/ binding of $return*
         #BODY
-        ~  ; if you don't call RETURN, the result is a ~ antiform (trash)
+        panic "FUNCTION didn't return (see PROCEDURE, LAMBDA)"
     ]
 
     ; !!! This is the template used for all errors, to which extra fields are
