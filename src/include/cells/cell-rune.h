@@ -348,6 +348,10 @@ INLINE bool Is_Cell_Space_With_Lift_Sigil(
 #define Is_Space(v) /* renders as `_` */ \
     Is_Cell_Space_With_Lift_Sigil(Known_Stable(v), NOQUOTE_3, SIGIL_0)
 
+INLINE bool Is_Newline(Stable* v) {
+    return Is_Rune(v) and ('\n' == opt Codepoint_Of_Rune_If_Single_Char(v));
+}
+
 
 //=//// TRASH! (antiform RUNE!) ///////////////////////////////////////////=//
 //

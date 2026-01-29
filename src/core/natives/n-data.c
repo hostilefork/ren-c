@@ -1411,6 +1411,25 @@ DECLARE_NATIVE(SPACE_Q)
 
 
 //
+//  newline?: native:intrinsic [
+//
+//  "Is VALUE the RUNE! representing a single newline character [#]"
+//
+//      return: [logic!]
+//      value '[any-stable?]
+//  ]
+//
+DECLARE_NATIVE(NEWLINE_Q)
+{
+    INCLUDE_PARAMS_OF_NEWLINE_Q;
+
+    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+
+    return LOGIC_OUT(Is_Newline(v));
+}
+
+
+//
 //  blank?: native:intrinsic [
 //
 //  "Is VALUE a RUNE! consisting only of spaces [_ __ ____ _______ ...]"

@@ -243,42 +243,35 @@ empty?: lambda [
     ]
 ]
 
-; 1. The facility for auto-naming TRASH! only happens if spec has [return: ~]
-;    Since this returns null in addition to trash, we do it ourselves.
+print: procedure [
+    "Output processed value to STDOUT, with newline if any text is output"
 
-print: func [
-    "Output SPACED text with newline, return NULL if line has no output"
-
-    return: [
-        trash! "result invisible in the console when there was output"
-        <null> "if no output was printed"
+    value [
+        <opt> "no output (including no newline) if VOID"
+        text! "output text, empty string still outputs newline"
+        block! "uses SPACED on block (for no spaces, use PRINT UNSPACED [...])"
+        newline? "output just the single newline"
     ]
-    line "Line of text or block, [] has NO output, CHAR! newline allowed"
-        [char? text! block! @any-element?]
 ][
-    if char? line [
-        if line <> newline [
-            panic "PRINT only allows CHAR! of newline (see WRITE-STDOUT)"
+    case [
+        not value [
+            noop
         ]
-        write stdout line
-        return ~#print~  ; [1]
-    ]
-
-    if pinned? line [
-        line: unpin line
-        line: either block? line [
-            mold spread line  ; better than FORM-ing (what is FORM?)
-        ] else [
-            reduce [line]  ; in block, let SPACED handle molding logic
+        text? value [
+            write stdout value
+            write stdout newline
         ]
+        block? value [
+            if value: spaced value [
+                write stdout value
+                write stdout newline
+            ]
+        ]
+        newline? value [
+            write stdout newline
+        ]
+        ~(unreachable)~
     ]
-
-    write stdout (opt spaced line) then [
-        write stdout newline
-        return ~#print~  ; [1]
-    ]
-
-    return null
 ]
 
 echo: proc [
