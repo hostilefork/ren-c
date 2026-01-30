@@ -218,7 +218,7 @@ INLINE Option(LineNumber) Line_Number_Of_Level(Level* L) {
 // "cheats" by using the arity instead of being conditional on which action
 // ID ran.  Consider when reviewing the future of ACTION!.
 //
-#define Level_Num_Args(L) \
+#define Level_Num_Slots(L) \
     ((L)->varlist->content.dynamic.used - 1)  // minus rootvar
 
 #define Level_Spare(L) \
@@ -272,6 +272,7 @@ INLINE ParamList* Level_Varlist(Level* L) {
 
 
 INLINE Details* Ensure_Level_Details(Level* L) {
+    assert(Not_Level_Flag(L, DISPATCHING_INTRINSIC));
     Phase* phase = Level_Phase(L);
     assert(Is_Stub_Details(phase));
     return cast(Details*, phase);
@@ -316,30 +317,6 @@ INLINE Option(const Symbol*) Level_Label(Level* L) {
     }
 #endif
 
-
-
-// ARGS is the parameters and refinements
-// 1-based indexing into the arglist (0 slot is for FRAME! value)
-
-#define Level_Args_Head(L) \
-    (u_cast(Arg*, (L)->rootvar) + 1)
-
-
-INLINE Cell* Level_Arg_Core(Level* L, Unchecked(Ordinal) n, bool optional) {
-    assert(n != 0 and n <= Level_Num_Args(L));
-    assert(Not_Level_Flag(L, DISPATCHING_INTRINSIC));
-    if (optional and Is_Light_Null(u_cast(Value*, L->rootvar) + n))
-        return nullptr;
-    return L->rootvar + n;  // 1-indexed
-}
-
-#if NO_RUNTIME_CHECKS
-    #define Level_Arg(L,n) \
-        (u_cast(Value*, (L)->rootvar) + (n))
-#else
-    #define Level_Arg(L,n) \
-        u_cast(Value*, Level_Arg_Core((L), (n), false))
-#endif
 
 
 #define At_Level(L)                 At_Feed((L)->feed)
@@ -654,113 +631,6 @@ INLINE Result(Level*) Prep_Level_Core(
     Make_Level((executor), TG_End_Feed, (flags))
 
 
-//=//// ARGUMENT AND PARAMETER ACCESS HELPERS ////=///////////////////////////
-//
-// These accessors are what is behind the INCLUDE_PARAMS_OF_XXX macros that
-// are used in natives.  They capture the implicit Level* passed to every
-// DECLARE_NATIVE ('level_') and read the information out cleanly, like this:
-//
-//     DECLARE_PARAM(Value*, 1, FOO);  // when parameter was ^META
-//     DECLARE_PARAM(Stable*, 2, BAR);  // when parameter was non-^META
-//
-// ARG() gives a pointer to the argument's cell, and it will be of the type
-// mentioned in the DECLARE_PARAM().
-//
-// By contract, Rebol functions are allowed to mutate their arguments and
-// refinements just as if they were locals...guaranteeing only their return
-// result as externally visible.  Hence the ARG() cells provide a GC-safe
-// slot for natives to hold values once they are no longer needed.
-//
-// It is also possible to get the PARAMETER! for an argument with `PARAM(FOO)`
-// or `PARAM(BAR)`.
-//
-// 1. Using enum values here for the parameter numbers (as opposed to const
-//    ints of some flavor) pretty much guarantees they will be compile-time
-//    constants in all compilers.
-//
-// 2. Typically the rigor brought in by unused variable and unused argument
-//    warnings is worth the cost.  But we suppress that here.  Reasoning:
-//
-//    * Many cases of using INCLUDE_PARAMS_OF_XXX are used to do partial
-//      processing (e.g. generics) which pass on the work elsewhere.  It's
-//      oppressive to have to mark USED() on variables you don't mention,
-//      and discouraged using clearer ARG() vs ARG_N() accessors.
-//
-//    * There's no corresponding feature for librebol-based natives; e.g.
-//      the INCLUDE_PARAMS_OF_XXX macro only enables rebValue("arg") but
-//      can't warn you if you don't mention all the arguments.
-//
-//    * Conditional suppression of the local typedef is tricky to do when
-//      you use accessors that don't want to use the type, and if it were
-//      unconditionally suppressed then one of the other values would have
-//      to serve as the warning trigger--and that would mean not using the
-//      enum trick that enforces compile-time constancy.
-//
-//    * Being made to mark everything USED() or UNUSED() creates noise that
-//      makes it hard to see the real cases of unused variables that matter.
-//
-//    So the primary idea here is that you get the unused variable warning
-//    when you don't use the arguments that you explicitly create variables
-//    for, e.g. when you say `Value* var = ARG(NAME);` and don't use that.
-//    And we cross our fingers and hope that AI of the future could help
-//    detect when you meant to use an argument but did not (and be able to
-//    say that for librebol-based natives as well).
-//
-
-#define DECLARE_CHECKED_PARAM(T,name,n,opt) \
-    enum { checked_##name##_ = (n) }; /* enum for compile-time const [1] */ \
-    enum { checked_opt_##name##_ = (opt) }; \
-    typedef T checked_type_##name##_; \
-    USED(sizeof(checked_type_##name##_)) /* trust author :-/ [2] */
-
-#define DECLARE_UNCHECKED_PARAM(T,name,n,opt) \
-    enum { unchecked_##name##_ = (n) }; /* enum for compile-time const [1] */ \
-    enum { unchecked_opt_##name##_ = (opt) }; \
-    typedef T unchecked_type_##name##_; \
-    USED(sizeof(unchecked_type_##name##_)) /* trust author :-/ [2] */
-
-#define DECLARE_INTRINSIC_PARAM(name)  /* was used, not used at the moment */ \
-    NOOP  // the INCLUDE_PARAMS_OF_XXX macros still make this, may find a use
-
-#define Erase_ARG(name) \
-    u_cast(Init(Slot), Erase_Cell(Level_Arg(level_, checked_##name##_)))
-
-#define ARG(name) \
-    cast(checked_type_##name##_, \
-        Level_Arg_Core(level_, checked_##name##_, checked_opt_##name##_))
-
-#define Unchecked_ARG(name) \
-    cast(unchecked_type_##name##_, \
-        Level_Arg_Core(level_, unchecked_##name##_, unchecked_opt_##name##_))
-
-#define Element_ARG(name) /* checked build asserts it's an Element */ \
-    As_Element(Level_Arg(level_, checked_##name##_))
-
-#define PARAM_INDEX(name) /* can't use in some macro expansion orders */ \
-    (checked_##name##_)
-
-#define LOCAL(name) /* alias for ARG() when slot is {local} */ \
-    Level_Arg(level_, PARAM_INDEX(name))  // initialized to unset state!
-
-#define Element_LOCAL(name) \
-    As_Element(Level_Arg(level_, PARAM_INDEX(name)))
-
-#define Stable_LOCAL(name) \
-    As_Stable(Level_Arg(level_, PARAM_INDEX(name)))
-
-#define PARAM(name) /* a PARAMETER! (don't use on LOCALs) */ \
-    Phase_Param(Level_Phase(level_), checked_##name##_)
-
-#define ARG_N(n) \
-    As_Stable(Level_Arg(level_, (n)))
-
-#define Element_ARG_N(n) \
-    As_Element(Level_Arg(level_, (n)))
-
-#define PARAM_N(n) \
-    Phase_Param(Level_Phase(level_), (n))
-
-
 // 1. In the case of an abrupt panic, the stack may be unwound without the
 //    participation of code that protected the output Cell as a sanity check,
 //    so it will still be protected.  We could Force_Erase_Cell(), but that
@@ -1050,56 +920,4 @@ INLINE void Disable_Dispatcher_Catching_Of_Throws(Level* L)
     assert(LEVEL_STATE_BYTE(L) != STATE_0);
     assert(Get_Executor_Flag(ACTION, L, DISPATCHER_CATCHES));
     Clear_Executor_Flag(ACTION, L, DISPATCHER_CATCHES);
-}
-
-
-// Shared code for putting a definitional RETURN or YIELD into the first slot
-// (or second slot) of a Level's frame.
-//
-INLINE void Inject_Definitional_Returner(
-    Level* L,
-    const Value* definitional,  // LIB(DEFINITIONAL_RETURN), or YIELD
-    SymId id  // SYM_YIELD, SYM_RETURN
-){
-    Details* details = Ensure_Level_Details(L);
-
-    Index slot_num = Get_Details_Flag(details, METHODIZED) ? 2 : 1;
-
-    assert(
-        Key_Id(Varlist_Key(L->varlist, slot_num)) == Starred_Returner_Id(id)
-    );
-    assert(Is_Base_Managed(L->varlist));
-
-    Value* returner = Level_Arg(L, slot_num);  // should start out specialized
-    assert(Is_Possibly_Unstable_Value_Parameter(returner));
-
-    assert(Not_Cell_Flag(returner, VAR_MARKED_HIDDEN));  // should be seen
-    Init_Action(
-        returner,
-        Frame_Phase(definitional),  // DEFINITIONAL-RETURN or YIELD
-        Canon_Symbol(Starred_Returner_Id(id)),
-        L->varlist  // so knows where to RETURN/YIELD from
-    );
-}
-
-// If DETAILS_FLAG_METHODIZED is set, we need to initialize the `.` slot in
-// the frame with the coupling object.  It will always be the first frame
-// slot if it's there, because Pop_Paramlist() ensures that.
-//
-INLINE void Inject_Methodization_If_Any(Level* L)
-{
-    Details* details = Ensure_Level_Details(L);
-
-    if (Not_Details_Flag(details, METHODIZED))
-        return;
-
-    assert(Key_Id(Phase_Keys_Head(L->varlist)) == SYM_DOT_1);
-
-    Arg* methodization = Level_Args_Head(L);
-
-    Context* coupling = opt Level_Coupling(L);
-
-    // !!! TBD: apply typecheck of methodization against coupled object
-
-    Init_Object(methodization, cast(VarList*, coupling));
 }

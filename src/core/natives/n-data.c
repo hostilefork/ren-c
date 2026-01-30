@@ -793,14 +793,14 @@ DECLARE_NATIVE(LIT_PATH_Q)
 //  "Test if a value type always produces itself in the evaluator"
 //
 //      return: [logic!]
-//      value '[any-value?]
+//      value '[any-stable?]
 //  ]
 //
 DECLARE_NATIVE(ANY_INERT_Q)
 {
     INCLUDE_PARAMS_OF_ANY_INERT_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return LOGIC_OUT(Not_Antiform(v) and Any_Inert(v));
 }
@@ -823,7 +823,7 @@ DECLARE_NATIVE(UNBIND)
 {
     INCLUDE_PARAMS_OF_UNBIND;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     Unbind_Cell_If_Bindable_Core(v);
 
@@ -1152,7 +1152,7 @@ DECLARE_NATIVE(IDENTITY)  // '<-' defined as non-vanishable version [2]
 {
     INCLUDE_PARAMS_OF_IDENTITY;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return COPY_TO_OUT(v);
 }
@@ -1262,7 +1262,7 @@ DECLARE_NATIVE(ANY_STABLE_Q)
 {
     INCLUDE_PARAMS_OF_ANY_STABLE_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Cell_Stable(v));
 }
@@ -1307,7 +1307,7 @@ DECLARE_NATIVE(ANY_WORD_Q)
 {
     INCLUDE_PARAMS_OF_ANY_WORD_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return LOGIC_OUT(Any_Word(v));
 }
@@ -1326,7 +1326,7 @@ DECLARE_NATIVE(NONE_Q)
 {
     INCLUDE_PARAMS_OF_NONE_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_None(v));
 }
@@ -1345,7 +1345,7 @@ DECLARE_NATIVE(TRIPWIRE_Q)
 {
     INCLUDE_PARAMS_OF_TRIPWIRE_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = Unchecked_ARG(VALUE);
 
     return LOGIC_OUT(Is_Tripwire(v));
 }
@@ -1385,7 +1385,7 @@ DECLARE_NATIVE(QUASAR_Q)
 {
     INCLUDE_PARAMS_OF_QUASAR_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Quasar(v));
 }
@@ -1404,7 +1404,7 @@ DECLARE_NATIVE(SPACE_Q)
 {
     INCLUDE_PARAMS_OF_SPACE_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Space(v));
 }
@@ -1423,7 +1423,7 @@ DECLARE_NATIVE(NEWLINE_Q)
 {
     INCLUDE_PARAMS_OF_NEWLINE_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Newline(v));
 }
@@ -1442,7 +1442,7 @@ DECLARE_NATIVE(SPACES_Q)
 {
     INCLUDE_PARAMS_OF_SPACES_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     if (not Is_Rune(v))
         return LOGIC_OUT(false);
@@ -1473,7 +1473,7 @@ DECLARE_NATIVE(HEAVY)
 {
     INCLUDE_PARAMS_OF_HEAVY;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (Is_Light_Null(v))
         return Init_Heavy_Null(OUT);
@@ -1498,7 +1498,7 @@ DECLARE_NATIVE(HEAVY_NULL_Q)
 {
     INCLUDE_PARAMS_OF_HEAVY_NULL_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Heavy_Null(v));
 }
@@ -1517,7 +1517,7 @@ DECLARE_NATIVE(LIGHT)
 {
     INCLUDE_PARAMS_OF_LIGHT;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (not Is_Pack(v))
         return COPY_TO_OUT(v);
@@ -1548,7 +1548,7 @@ DECLARE_NATIVE(DECAY)
 {
     INCLUDE_PARAMS_OF_DECAY;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return COPY_TO_OUT(v);
 }
@@ -1567,7 +1567,7 @@ DECLARE_NATIVE(DECAYABLE_Q)
 {
     INCLUDE_PARAMS_OF_DECAYABLE_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     Ensure_No_Failures_Including_In_Packs(v) except (Error* e) {
         UNUSED(e);
@@ -1596,7 +1596,7 @@ DECLARE_NATIVE(REIFY)
 {
     INCLUDE_PARAMS_OF_REIFY;
 
-    Value* v = Unchecked_ARG(VALUE);
+    Value* v = ARG(VALUE);
     if (Is_Failure(v))
         return COPY_TO_OUT(v);
 
@@ -1676,7 +1676,7 @@ DECLARE_NATIVE(NOANTIFORM)
 {
     INCLUDE_PARAMS_OF_NOANTIFORM;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     if (Is_Antiform(v))
         LIFT_BYTE(v) = NOQUOTE_3;

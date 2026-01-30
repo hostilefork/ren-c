@@ -137,7 +137,7 @@ DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
 
     Value* v;
     if (Is_Cell_A_Bedrock_Hole(param))
-        v = Init_Heavy_Void(LOCAL(VALUE));  // [1]
+        v = Init_Heavy_Void(Sink_LOCAL(VALUE));  // [1]
     else
         v = As_Value(param);
 

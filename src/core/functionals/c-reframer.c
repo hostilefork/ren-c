@@ -309,7 +309,7 @@ Bounce Reframer_Dispatcher(Level* const L)
         error_on_deferred
     ));
 
-    Value* arg = Level_Arg(L, VAL_INT32(param_index));
+    Value* arg = As_Value(Required_Arg_Of_Level(L, VAL_INT32(param_index)));
     Move_Cell(arg, out);
 
     Tweak_Level_Phase(L, Frame_Phase(shim));

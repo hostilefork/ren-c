@@ -43,7 +43,7 @@ DECLARE_NATIVE(NULL_Q)
 {
     INCLUDE_PARAMS_OF_NULL_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);  // we must decay!
+    Value* v = Unchecked_ARG(VALUE);  // we must decay!
 
     if (Is_Light_Null(v))
         return LOGIC_OUT(true);
@@ -76,7 +76,7 @@ DECLARE_NATIVE(OKAY_Q)
 {
     INCLUDE_PARAMS_OF_OKAY_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Okay(v));
 }
@@ -95,7 +95,7 @@ DECLARE_NATIVE(LOGIC_Q)
 {
     INCLUDE_PARAMS_OF_LOGIC_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Logic(v));
 }
@@ -425,7 +425,7 @@ DECLARE_NATIVE(NOT_1)  // see TO-C-NAME
 {
     INCLUDE_PARAMS_OF_NOT_1;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     bool logic = Logical_Test(v);
 
@@ -446,7 +446,7 @@ DECLARE_NATIVE(TO_LOGIC)
 {
     INCLUDE_PARAMS_OF_TO_LOGIC;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     bool logic = Logical_Test(v);
 

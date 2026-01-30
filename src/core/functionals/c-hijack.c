@@ -103,7 +103,7 @@ enum {
 //
 void Push_Redo_Action_Level(Value* out, Level* L1, const Value* run)
 {
-    Source* normals = Make_Source(Level_Num_Args(L1));  // max, e.g. no refines
+    Source* normals = Make_Source(Level_Num_Slots(L1));  // max, e.g. no refines
 
     StackIndex base = TOP_INDEX;  // we push refinements as we find them
 

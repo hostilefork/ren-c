@@ -402,7 +402,7 @@ bool Try_Dispatch_Generic_Core(
     ){
         // !!! skip bad port check for now
         /*if (symid != SYM_MAKE) {
-            VarList* ctx = Cell_Varlist(Level_Arg(L, 1));
+            VarList* ctx = Cell_Varlist(Required_Arg_Of_Level(L, 1));
             if (
                 Varlist_Len(ctx) < MAX_STD_PORT
                 or not Is_Object(Slot_Hack(Varlist_Slot(ctx, STD_PORT_SPEC)))

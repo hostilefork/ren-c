@@ -74,7 +74,7 @@ static Result(bool) Return_Out_For_Conditional_Or_Optional(Level* level_)
 {
     INCLUDE_PARAMS_OF_CONDITIONAL;  // WHEN and OPTIONAL must be compatible
 
-    Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
+    Value* v = Possibly_Unstable(ARG(VALUE));
 
     if (Is_Failure(v))
         return fail (Cell_Error(v));
@@ -98,7 +98,7 @@ static Result(bool) Return_Out_For_Conditional_Or_Optional(Level* level_)
 //  "If VALUE is NULL or VOID, make it VETO, else passthru"
 //
 //      return: [any-value? veto?]
-//      ^value '[any-value?]
+//      ^value '[any-value?]  ; what should CONDITIONAL do with VETO?
 //  ]
 //
 DECLARE_NATIVE(CONDITIONAL)  // usually used via its alias of COND
@@ -316,7 +316,7 @@ DECLARE_NATIVE(DID_1)
 {
     INCLUDE_PARAMS_OF_DID_1;
 
-    Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
+    Value* v = Possibly_Unstable(ARG(VALUE));
 
     if (Is_Light_Null(v) or Is_Void(v) or Is_Failure(v))
         return LOGIC_OUT(false);

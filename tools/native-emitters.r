@@ -6,7 +6,7 @@ Rebol [
     name: Native-Emitters
     rights: --[
         Copyright 2017 Atronix Engineering
-        Copyright 2017 Ren-C Open Source Contributors
+        Copyright 2017-2026 Ren-C Open Source Contributors
         REBOL is a trademark of REBOL Technologies
     ]--
     license: --[
@@ -238,6 +238,8 @@ export emit-include-params-macro: func [
         keep spread spec
     ]
 
+    spec: ~#[native SPEC processed: use PARAM.SPEC in macro generation code]#~
+
   === "GENERATE TEXT! OF INCLUDE_PARAMS_OF_XXX() MACRO" ===
 
     let is-intrinsic: did find proto "native:intrinsic"
@@ -265,6 +267,7 @@ export emit-include-params-macro: func [
                 class: either processing-locals ['local] ['normal]
                 unbind: null
                 unchecked: null
+                spec: null
             ]
             if iter.1 = <'> [  ; unbound parameter
                 param.unbind: okay
@@ -309,7 +312,7 @@ export emit-include-params-macro: func [
                 param.unchecked: okay
                 iter: next iter
             ]
-            if spec: match block! cond try pick cond iter 1 [
+            if param.spec: match block! cond try pick cond iter 1 [
                 iter: next iter
             ]
             else [
@@ -323,9 +326,9 @@ export emit-include-params-macro: func [
             ]
 
             let ctype  ; underlying type (Element, Stable, Value, Param)
-            let copt  ; refinement or <opt>
+            let argmode  ; required, optional, or intrinsic
             case [
-                find cond spec <hole> [ctype: 'Param]
+                find cond param.spec <hole> [ctype: 'Param]
                 param.class = 'meta [ctype: 'Value]
                 param.class = 'literal [ctype: 'Element]
                 (find [  ; !!! bad way of doing this...think of better
@@ -333,9 +336,9 @@ export emit-include-params-macro: func [
                     [element?]
                     [<const> block! frame!]
                     [<opt> element?]
-                ] cond spec) [ctype: 'Element]
+                ] cond param.spec) [ctype: 'Element]
             ] else [
-                if find cond spec <end> [
+                if find cond param.spec <end> [
                     ctype: 'Value
                 ] else [
                     ctype: 'Stable
@@ -343,39 +346,51 @@ export emit-include-params-macro: func [
             ]
 
             case [
-                param.refinement or (find cond spec <opt>) [
-                    copt: 'true
+                param.refinement or (find cond param.spec <opt>) [
+                    argmode: 'ARGMODE_OPTIONAL
                 ]
                 param.class = 'local [
                     assert [not param.refinement]
-                    copt: 'false
+                    argmode: 'ARGMODE_REQUIRED
+                ]
+            ] then [
+                if is-intrinsic and (n = 1) [
+                    panic "Intrinsic argument cannot be optional/refinement"
                 ]
             ] else [
-                copt: 'false
+                if is-intrinsic and (n = 1) [
+                    argmode: 'ARGMODE_INTRINSIC
+                ]
+                else [
+                    argmode: 'ARGMODE_REQUIRED
+                ]
             ]
 
-
-            let cwrap: switch copt [
-                'true ['Option]
-                'false ['Need]
+            let cwrap: switch argmode [
+                'ARGMODE_OPTIONAL ['Option]
+                'ARGMODE_REQUIRED ['Need]
+                'ARGMODE_INTRINSIC ['Need]
                 panic
             ]
 
-            let mode: either param.unchecked ["UNCHECKED"] ["CHECKED"]
+            if is-intrinsic and (n = 1) [
+                assert [param.unchecked]  ; intrinsic args never checked
+            ]
+
+            let checkmode: any [  ; if no relevant constraint, consider checked
+                not param.unchecked
+                all [param.class = 'normal, find cond param.spec 'any-stable?]
+                all [param.class = 'meta, find cond param.spec 'any-value?]
+            ] then [
+                "CHECKED"
+            ] else [
+                "UNCHECKED"
+            ]
 
             append symbols name
 
-            all [
-                is-intrinsic
-                n = 1  ; first parameter
-            ] then [
-                keep cscape [name
-                    "DECLARE_INTRINSIC_PARAM(${NAME})"
-                ]
-            ] else [
-                keep cscape [mode ctype name n copt cwrap
-                    "DECLARE_$<MODE>_PARAM($<CWrap>($<CType>*), ${NAME}, $<n>, $<copt>)"
-                ]
+            keep cscape [checkmode cwrap ctype name n argmode
+                "DECLARE_$<CHECKMODE>_PARAM($<CWrap>($<CType>*), ${NAME}, $<n>, $<ARGMODE>)"
             ]
             n: n + 1
         ]

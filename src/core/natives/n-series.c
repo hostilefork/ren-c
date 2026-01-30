@@ -312,7 +312,7 @@ DECLARE_NATIVE(CHANGE)  // Must be frame-compatible with APPEND, INSERT [A]
     if (dups == 0)
         return COPY_TO_OUT(series);  // Treat CHANGE as no-op if zero dups [1]
 
-    Stable* v = Stable_LOCAL(VALUE);  // CHANGE to void is not no-op (erases)
+    Stable* v = Stable_LOCAL(VALUE);  // CHANGE void is not no-op (erases)
     if (Is_Null(v))
         Init_None(v);  // CHANGE with no value synonym for NONE
 

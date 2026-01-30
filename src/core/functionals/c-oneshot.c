@@ -64,7 +64,7 @@ Bounce Downshot_Dispatcher(Level* const L)  // runs until count is reached
         return NULL_OUT;  // always return null once 0 is reached
     mutable_VAL_INT64(n) -= 1;
 
-    Element* code = As_Element(Level_Arg(L, 1));
+    Element* code = As_Element(Required_Arg_Of_Level(L, 1));
     return DELEGATE_BRANCH(OUT, code);
 }
 
@@ -85,7 +85,7 @@ Bounce Upshot_Dispatcher(Level* const L)  // won't run until count is reached
         return NULL_OUT;  // return null until 0 is reached
     }
 
-    Element* code = As_Element(Level_Arg(L, 1));
+    Element* code = As_Element(Required_Arg_Of_Level(L, 1));
     return DELEGATE_BRANCH(OUT, code);
 }
 

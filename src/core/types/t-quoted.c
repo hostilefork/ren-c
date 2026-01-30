@@ -226,7 +226,7 @@ DECLARE_NATIVE(LIFT)
 {
     INCLUDE_PARAMS_OF_LIFT;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return Copy_Lifted_Cell(OUT, v);
 }
@@ -248,7 +248,7 @@ DECLARE_NATIVE(LIFT_P)
 {
     INCLUDE_PARAMS_OF_LIFT_P;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (Is_Failure(v))
         return COPY_TO_OUT(v);
@@ -257,7 +257,7 @@ DECLARE_NATIVE(LIFT_P)
         return VOID_OUT;
 
     if (Is_Light_Null(v))
-        return Init_Null(OUT);
+        return NULL_OUT;
 
     return Copy_Lifted_Cell(OUT, v);
 }
@@ -276,7 +276,7 @@ DECLARE_NATIVE(UNLIFT)
 {
     INCLUDE_PARAMS_OF_UNLIFT;
 
-    Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
+    Value* v = Possibly_Unstable(Unchecked_ARG(VALUE));
 
     if (not Any_Lifted(v))
         panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
@@ -301,7 +301,7 @@ DECLARE_NATIVE(UNLIFT_P)
 {
     INCLUDE_PARAMS_OF_UNLIFT_P;
 
-    Value* v = Possibly_Unstable(Unchecked_Intrinsic_Arg(LEVEL));
+    Value* v = Possibly_Unstable(Unchecked_ARG(VALUE));
 
     if (Is_Void(v))
         return VOID_OUT;
@@ -331,7 +331,7 @@ DECLARE_NATIVE(ANTIFORM_Q)
 {
     INCLUDE_PARAMS_OF_ANTIFORM_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (Get_Level_Flag(LEVEL, DISPATCHING_INTRINSIC))  // intrinsic shortcut
         return LOGIC_OUT(Is_Antiform(v));
@@ -392,7 +392,7 @@ DECLARE_NATIVE(UNANTI)
 {
     INCLUDE_PARAMS_OF_UNANTI;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = Unchecked_ARG(VALUE);
     LIFT_BYTE(v) = NOQUOTE_3;  // turn to plain form
 
     return COPY_TO_OUT(As_Element(v));
@@ -446,7 +446,7 @@ DECLARE_NATIVE(PACK_Q)
 {
     INCLUDE_PARAMS_OF_PACK_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Pack(v));
 }
@@ -465,7 +465,7 @@ DECLARE_NATIVE(BEDROCK_Q)
 {
     INCLUDE_PARAMS_OF_BEDROCK_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Undecayed_Bedrock(v));
 }
@@ -484,7 +484,7 @@ DECLARE_NATIVE(HOT_POTATO_Q)
 {
     INCLUDE_PARAMS_OF_HOT_POTATO_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Hot_Potato(v));
 }

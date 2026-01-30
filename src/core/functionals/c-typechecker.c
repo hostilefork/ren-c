@@ -68,23 +68,21 @@ DECLARE_NATIVE(TYPECHECKER_ARCHETYPE)
 //
 // See LEVEL_FLAG_DISPATCHING_INTRINSIC for more information.
 //
-Bounce Typechecker_Dispatcher(Level* const L)
+Bounce Typechecker_Dispatcher(Level* const level_)
 {
-    USE_LEVEL_SHORTHANDS (L);
+    INCLUDE_PARAMS_OF_TYPECHECKER_ARCHETYPE;
 
-    Details* details = Level_Intrinsic_Details(L);
+    Details* details = Level_Intrinsic_Details(LEVEL);
     assert(Details_Max(details) == MAX_IDX_TYPECHECKER);
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     if (Is_Null(v))  // stop casual use of (integer? var) when null
         return fail (Error_Type_Test_Null_Raw());
 
     Option(Type) type = Type_Of(v);
 
-    if (Not_Level_Flag(L, DISPATCHING_INTRINSIC)) {
-        INCLUDE_PARAMS_OF_TYPECHECKER_ARCHETYPE;
-
+    if (Not_Level_Flag(LEVEL, DISPATCHING_INTRINSIC)) {
         bool check_datatype = did ARG(TYPE);
         if (check_datatype) {
             if (not Is_Datatype(v))

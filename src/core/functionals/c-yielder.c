@@ -34,7 +34,7 @@
 //
 //  done?: native:intrinsic [
 //
-//  "Detect whether argument is the ~(done)~ dual"
+//  "Detect whether argument is the unstable ~(done)~ PACK! 'hot-potato'"
 //
 //      return: [logic!]
 //      ^value '[any-value?]
@@ -44,7 +44,7 @@ DECLARE_NATIVE(DONE_Q)
 {
     INCLUDE_PARAMS_OF_DONE_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Cell_A_Done_Hot_Potato(v));
 }

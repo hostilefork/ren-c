@@ -898,7 +898,7 @@ Error* Error_Invalid_Arg(Level* L, const Param* param)
 
     const Param* headparam = Phase_Params_Head(Level_Phase(L));
     assert(param >= headparam);
-    assert(param <= headparam + Level_Num_Args(L));
+    assert(param <= headparam + Level_Num_Slots(L));
 
     Index index = 1 + (param - headparam);
 
@@ -906,11 +906,11 @@ Error* Error_Invalid_Arg(Level* L, const Param* param)
 
     const Symbol* param_symbol = Key_Symbol(Phase_Key(Level_Phase(L), index));
 
-    Value* atom_arg = Level_Arg(L, index);
-    Stable* arg = Decay_If_Unstable(atom_arg) except (Error* e) {
+    Value* arg = As_Value(Required_Arg_Of_Level(L, index));
+    Stable* stable = Decay_If_Unstable(arg) except (Error* e) {
         return e;
     }
-    return Error_Invalid_Arg_Raw(label, param_symbol, arg);
+    return Error_Invalid_Arg_Raw(label, param_symbol, stable);
 }
 
 
@@ -938,7 +938,7 @@ Error* Error_Hole_Spans_Newline(Level* L)
 //
 Error* Error_Bad_Intrinsic_Arg_1(Level* const L)
 {
-    Value* arg = Unchecked_Intrinsic_Arg(L);
+    Value* arg = As_Value(Intrinsic_Arg_Of_Level(L, 1));
 
     Details* details = Level_Intrinsic_Details(L);
     Option(const Symbol*) label = Level_Intrinsic_Label(L);

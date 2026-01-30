@@ -162,6 +162,11 @@ INLINE Byte State_Byte_From_Flags(Flags flags)
 // normally, the argument will be in the frame as usual.  A value for the
 // action that is currently running will be in SCRATCH.
 //
+// NOTE: Because decay can call the evaluator (e.g. for GETTER or ALIAS that is
+// decaying) the machinery has to do that before the intrinsic, as we do not
+// want frameless natives on the stack above an evaluation (which might want
+// to introspect the stack and isn't prepared to see an intrinsic there).
+//
 #define LEVEL_FLAG_DISPATCHING_INTRINSIC \
     FLAG_LEFT_BIT(18)
 

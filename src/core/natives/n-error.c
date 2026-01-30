@@ -45,7 +45,7 @@ DECLARE_NATIVE(TRY)
 {
     INCLUDE_PARAMS_OF_TRY;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (Is_Failure(v) or Is_Hot_Potato(v))  // what about Any_Void()? [1]
         return NULL_OUT;
@@ -363,7 +363,7 @@ DECLARE_NATIVE(FAILURE_Q)
 {
     INCLUDE_PARAMS_OF_FAILURE_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Failure(v));
 }
@@ -382,7 +382,7 @@ DECLARE_NATIVE(TRASH_Q)
 {
     INCLUDE_PARAMS_OF_TRASH_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Trash(v));
 }
@@ -401,7 +401,7 @@ DECLARE_NATIVE(ACTION_Q)
 {
     INCLUDE_PARAMS_OF_ACTION_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Action(v));
 }

@@ -151,7 +151,7 @@ DECLARE_NATIVE(ANY_SIGILED_Q)  // !!! should %make-types.r produce this?
 {
     INCLUDE_PARAMS_OF_ANY_SIGILED_Q;
 
-    Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
+    Stable* v = ARG(VALUE);
 
     if (Not_Level_Flag(LEVEL, DISPATCHING_INTRINSIC)) {
         if (ARG(TYPE)) {

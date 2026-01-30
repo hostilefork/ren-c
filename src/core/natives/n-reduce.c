@@ -28,7 +28,7 @@
 //
 //  veto?: native:intrinsic [
 //
-//  "Detect whether argument is the ~(veto)~ dual"
+//  "Detect if VALUE is the undecayable ~(veto)~ 'hot potato' PACK!"
 //
 //      return: [logic!]
 //      ^value '[<veto> any-value?]
@@ -38,7 +38,7 @@ DECLARE_NATIVE(VETO_Q)
 {
     INCLUDE_PARAMS_OF_VETO_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     return LOGIC_OUT(Is_Cell_A_Veto_Hot_Potato(v));
 }

@@ -59,7 +59,7 @@ DECLARE_NATIVE(VOID_Q)
 {
     INCLUDE_PARAMS_OF_VOID_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (Is_Failure(v))
         return COPY_TO_OUT(v);  // typical behavior for type tests on FAILURE!
@@ -88,7 +88,7 @@ DECLARE_NATIVE(ANY_VOID_Q)
 {
     INCLUDE_PARAMS_OF_ANY_VOID_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (Is_Failure(v))
         return COPY_TO_OUT(v);  // typical behavior for type tests on FAILURE!
@@ -114,7 +114,7 @@ DECLARE_NATIVE(HEAVY_VOID_Q)
 {
     INCLUDE_PARAMS_OF_HEAVY_VOID_Q;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     // !!! what about FAILURE!?  Should this panic?
 
@@ -128,7 +128,7 @@ DECLARE_NATIVE(HEAVY_VOID_Q)
 //  "Skip one element ahead, doing no evaluation (see also ELIDE)"
 //
 //      return: [void!]
-//      @skipped "Literal to skip, (comment print -[x]-) disallowed"
+//      @value "Literal to skip, (comment print -[x]-) disallowed"
 //          '[any-list? any-utf8? blob! any-scalar?]
 //  ]
 //
@@ -136,7 +136,7 @@ DECLARE_NATIVE(COMMENT)
 {
     INCLUDE_PARAMS_OF_COMMENT;
 
-    Element* v = As_Element(Unchecked_Intrinsic_Arg(LEVEL));
+    Element* v = Unchecked_ARG(VALUE);
 
     if (not (Any_List(v) or Any_Utf8(v) or Is_Blob(v) or Any_Scalar(v)))
        panic (Error_Bad_Intrinsic_Arg_1(LEVEL));
@@ -151,14 +151,14 @@ DECLARE_NATIVE(COMMENT)
 //  "Argument evaluated, result discarded (not FAILURE!, or packs w/FAILURE!s)"
 //
 //      return: [void!]
-//      ^discarded '[any-stable? pack! void!]
+//      ^value '[any-stable? pack! void!]
 //  ]
 //
 DECLARE_NATIVE(ELIDE)
 {
-    INCLUDE_PARAMS_OF_ELIDE;  // no ARG(DISCARDED), parameter is intrinsic
+    INCLUDE_PARAMS_OF_ELIDE;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = Possibly_Unstable(Unchecked_ARG(VALUE));
 
     require (
       Ensure_No_Failures_Including_In_Packs(v)
@@ -181,7 +181,7 @@ DECLARE_NATIVE(GHOSTLY)
 {
     INCLUDE_PARAMS_OF_GHOSTLY;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (Any_Void(v))
         return VOID_OUT;
@@ -223,7 +223,7 @@ DECLARE_NATIVE(UNVOID)
 {
     INCLUDE_PARAMS_OF_UNVOID;
 
-    Value* v = Unchecked_Intrinsic_Arg(LEVEL);
+    Value* v = ARG(VALUE);
 
     if (Is_Void(v))
         return Init_Heavy_Void(OUT);

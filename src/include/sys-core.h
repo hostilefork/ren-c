@@ -683,7 +683,7 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "sys-throw.h"
 #include "sys-feed.h"
 #include "sys-level.h"  // needs words for frame-label helpers
-#include "sys-intrinsic.h"  // helpers because intrinsics don't process args
+#include "sys-arg.h"
 
 #include "sys-eval.h"  // low-level single-step evaluation API
 #include "sys-continuation.h"
