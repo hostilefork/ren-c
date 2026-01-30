@@ -152,22 +152,19 @@ run-test-cluster: proc [
         ;
         opt some [url! | rune!]
 
-        let expected-id: (~)
-        (expected-id: null)  ; default expects a true result, not error w/id
-
-        opt [
-            expected-id: quasiform! [(expected-id: unquasi expected-id)
+        let expected-id: try [
+            /unquasi quasiform!
+            elide [
                 '!! ahead group!
                 | (panic "~error-id~ must be followed by !! and a GROUP!")
             ]
         ]
-        let group: (~)
-        [
-            group: /unbind group!  ; !!! rethink binding given FENCE! existing
+        let group: [
+            group!  ; !!! rethink binding given FENCE! existing
             | (panic "GROUP! expected in tests")
         ]
         (
-            wrap* isolate group  ; gather top-level declarations
+            wrap* isolate unbind group  ; gather top-level declarations
             run-single-test inside isolate group opt expected-id
         )
     ]]
