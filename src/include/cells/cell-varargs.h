@@ -149,7 +149,7 @@ INLINE bool Is_Block_Style_Varargs(
 }
 
 
-INLINE bool Is_Level_Style_Varargs_Maybe_Null(
+INLINE bool Is_Level_Style_Varargs_Maybe_Nullptr(
     Level* *L_out,
     const Cell* vararg
 ){
@@ -175,7 +175,7 @@ INLINE bool Is_Level_Style_Varargs_May_Panic(
     Level* *L_out,
     const Cell* vararg
 ){
-    if (not Is_Level_Style_Varargs_Maybe_Null(L_out, vararg))
+    if (not Is_Level_Style_Varargs_Maybe_Nullptr(L_out, vararg))
         return false;
 
     if (not *L_out)
@@ -203,7 +203,7 @@ INLINE bool Is_Level_Style_Varargs_May_Panic(
     (CELL_VARARGS_SIGNED_PARAM_INDEX(v) < 0)
 
 
-INLINE const Param* Param_For_Varargs_Maybe_Null(
+INLINE Option(const Param*) Param_For_Varargs_If_There_Is_One(
     const Key* *key,
     const Cell* v
 ){
@@ -223,7 +223,8 @@ INLINE const Param* Param_For_Varargs_Maybe_Null(
             );
         }
 
-        *key = Phase_Key(phase, CELL_VARARGS_SIGNED_PARAM_INDEX(v));
+        if (key)
+            *key = Phase_Key(phase, CELL_VARARGS_SIGNED_PARAM_INDEX(v));
         return Phase_Param(phase, CELL_VARARGS_SIGNED_PARAM_INDEX(v));
     }
 

@@ -48,7 +48,7 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
     enum Reb_Vararg_Op op,
     Option(const Element*) opt_look, // the first value in the varargs input
     Context* binding,
-    const Param *param
+    Option(const Param*) param
 ){
     if (not opt_look) {
         Init_For_Vararg_End(out, op); // exhausted
@@ -57,7 +57,8 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
 
     const Element* look = unwrap opt_look;
 
-    ParamClass pclass = Parameter_Class(param);
+    ParamClass pclass =
+        param ? Parameter_Class(unwrap param) : PARAMCLASS_NORMAL;
 
     if (pclass == PARAMCLASS_NORMAL and Is_Blank(look)) {  // ","
         Init_For_Vararg_End(out, op);
@@ -110,7 +111,7 @@ INLINE bool Vararg_Op_If_No_Advance_Handled(
             panic (Error_Varargs_No_Look_Raw()); // hard quote only
 
         Copy_Cell_May_Bind(out, look, binding);
-        if (Get_Parameter_Flag(param, UNBIND_ARG))
+        if (param and Get_Parameter_Flag(unwrap param, UNBIND_ARG))
             Unbind_Cell_If_Bindable_Core(out);
 
         return true; // only a lookahead, no need to advance
@@ -147,8 +148,11 @@ bool Do_Vararg_Op_Maybe_End_Throws(
     const Cell* vararg
 ){
     const Key* key;
-    const Param* param = Param_For_Varargs_Maybe_Null(&key, vararg);
-    ParamClass pclass = Parameter_Class(param);
+    Option(const Param*) param =
+        Param_For_Varargs_If_There_Is_One(&key, vararg);
+
+    ParamClass pclass =
+        param ? Parameter_Class(unwrap param) : PARAMCLASS_NORMAL;
 
     Option(Level*) vararg_level;
 
@@ -353,7 +357,7 @@ bool Do_Vararg_Op_Maybe_End_Throws(
     if (param) {
         require (
           bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
-            TOP_LEVEL, Known_Unspecialized(param), out
+            TOP_LEVEL, Known_Unspecialized(unwrap param), out
           )
         );
         if (not check) {
@@ -367,7 +371,7 @@ bool Do_Vararg_Op_Maybe_End_Throws(
                 panic (As_Stable(out));
 
             panic (Error_Phase_Arg_Type(
-                unwrap vararg_level, key, param, cast(const Stable*, out))
+                unwrap vararg_level, key, unwrap param, As_Stable(out))
             );
         }
     }
@@ -494,7 +498,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Varargs)
 
     Stable* dual = ARG(DUAL);
     if (Not_Lifted(dual)) {
-        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
+        if (Is_Null_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -600,8 +604,8 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
 
     ParamClass pclass;
     const Key* key;
-    const Param* param = Param_For_Varargs_Maybe_Null(&key, v);
-    if (param == NULL) {
+    Option(const Param*) param = Param_For_Varargs_If_There_Is_One(&key, v);
+    if (not param) {
         pclass = PARAMCLASS_LITERAL;
         require (
           Append_Ascii(mo->strand, "???")  // never bound to arg
@@ -609,7 +613,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
     }
     else {
         DECLARE_ELEMENT (param_word);
-        switch ((pclass = Parameter_Class(param))) {
+        switch ((pclass = Parameter_Class(unwrap param))) {
           case PARAMCLASS_NORMAL: {
             Init_Word(param_word, Key_Symbol(key));
             break; }
@@ -629,7 +633,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
             crash (nullptr);
         };
 
-        if (Get_Parameter_Flag(param, UNBIND_ARG))
+        if (Get_Parameter_Flag(unwrap param, UNBIND_ARG))
             Quote_Cell(param_word);
 
         Mold_Element(mo, param_word);
@@ -655,7 +659,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
             );
         }
     }
-    else if (Is_Level_Style_Varargs_Maybe_Null(&L, v)) {
+    else if (Is_Level_Style_Varargs_Maybe_Nullptr(&L, v)) {
         if (L == NULL) {
             require (
               Append_Ascii(mo->strand, "!!!")
