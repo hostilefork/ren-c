@@ -771,7 +771,7 @@ DECLARE_NATIVE(JOIN)
     Drop_Data_Stack_To(STACK_BASE);
     Drop_Level(SUBLEVEL);
 
-    return NULL_OUT_BREAKING;
+    return NULL_OUT_VETOING;
 }}
 
 

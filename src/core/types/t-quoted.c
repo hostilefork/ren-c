@@ -307,7 +307,7 @@ DECLARE_NATIVE(UNLIFT_P)
         return VOID_OUT;
 
     if (Is_Light_Null(v))
-        return Init_Null(OUT);
+        return NULL_OUT;
 
     return Apply_Cfunc(NATIVE_CFUNC(UNLIFT), LEVEL);
 }

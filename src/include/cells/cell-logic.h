@@ -209,7 +209,7 @@ INLINE bool Is_Lifted_Null(const Value* v) {
 #define Init_Lifted_Null_Signifying_Unspecialized(out)  Init_Lifted_Null(out)
 #define Is_Null_Signifying_Unspecialized(v)  Is_Light_Null(v)
 
-#define Init_Null_Signifying_Break(out)  Init_Null(out)
+#define Init_Null_Signifying_Vetoed(out)  Init_Null(out)
 
 
 //=//// CANON LOGIC TRUTHY: ~OKAY~ ANTIFORM ///////////////////////////////=//

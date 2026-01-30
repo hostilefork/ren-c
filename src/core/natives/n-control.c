@@ -916,7 +916,7 @@ DECLARE_NATIVE(CASE)
     }
 
     if (Is_Cell_Erased(OUT))  // none of the clauses of an :ALL ran a branch
-        return Init_Null(OUT);
+        return NULL_OUT;
 
     return OUT_BRANCHED;
 }}
@@ -1136,7 +1136,7 @@ DECLARE_NATIVE(SWITCH)
     }
 
     if (Is_Cell_Erased(OUT))  // no fallout, and no branches ran
-        return Init_Null(OUT);
+        return NULL_OUT;
 
     return OUT_BRANCHED;
 }}

@@ -410,13 +410,6 @@ enum {
 typedef Flags CollectFlags;
 
 
-typedef enum {
-    LOOP_INTERRUPT_BREAK = 1,
-    LOOP_INTERRUPT_AGAIN,
-    LOOP_INTERRUPT_CONTINUE
-} LoopInterrupt;
-
-
 //=//// TWEAK STATE ENUM /////////////////////////////////////////////////=//
 //
 // TWEAK does the underlying work of GET and SET, but if you call it directly

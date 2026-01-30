@@ -257,7 +257,7 @@ DECLARE_NATIVE(DNS_ACTOR)
         switch (h_errno) {
           case HOST_NOT_FOUND:  // The specified host is unknown
           case NO_ADDRESS:  // (or NO_DATA) name is valid but has no IP
-            return Init_Null(OUT);  // "expected" failures, signal w/null
+            return NULL_OUT;  // "expected" failures, signal w/null
 
           case NO_RECOVERY:
             return "panic -[A nonrecoverable name server error occurred]-";

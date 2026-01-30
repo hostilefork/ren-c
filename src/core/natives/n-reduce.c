@@ -333,7 +333,7 @@ DECLARE_NATIVE(REDUCE)
 
     Drop_Data_Stack_To(STACK_BASE);
     Drop_Level(SUBLEVEL);
-    return NULL_OUT_BREAKING;
+    return NULL_OUT_VETOING;
 }}
 
 
@@ -397,7 +397,7 @@ DECLARE_NATIVE(PACK)
         return bounce;
 
     if (Is_Null(OUT))  // VETO encountered
-        return NULL_OUT_BREAKING;
+        return NULL_OUT_VETOING;
 
     if (Is_Failure(OUT))
         return OUT;  // definitional error (what choices would these be?)
@@ -527,23 +527,22 @@ DECLARE_NATIVE(REDUCE_EACH)
 
 } body_result_in_out: { //////////////////////////////////////////////////////
 
-    if (THROWING) {
-        Option(LoopInterrupt) interrupt;
-        if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
-            goto finished;
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
+        goto finished;
 
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
+    if (Is_Hot_Potato(OUT)) {
+        if (Is_Cell_A_Veto_Hot_Potato(OUT)) {
             breaking = true;
             goto finished;
-
-          case LOOP_INTERRUPT_AGAIN:
-            goto invoke_loop_body;
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;
         }
+
+        if (Is_Cell_A_Retry_Hot_Potato(OUT))
+            goto invoke_loop_body;
     }
+
+    require (
+      Ensure_No_Failures_Including_In_Packs(OUT)
+    );
 
     Disable_Dispatcher_Catching_Of_Throws(LEVEL);
     goto reduce_next;
@@ -559,7 +558,7 @@ DECLARE_NATIVE(REDUCE_EACH)
         return VOID_OUT_UNBRANCHED;
 
     if (breaking)
-        return NULL_OUT_BREAKING;
+        return NULL_OUT_VETOING;
 
     return OUT_BRANCHED;
 }}

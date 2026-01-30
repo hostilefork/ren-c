@@ -398,7 +398,7 @@ Bounce Composer_Executor(Level* const L)
         return OUT;  // !!! Good idea?  Bad idea?
 
     if (Is_Cell_A_Veto_Hot_Potato(OUT)) {
-        Init_Null(OUT);
+        Init_Null_Signifying_Vetoed(OUT);
         goto finished_out_is_null_if_veto;  // compose [a (veto) b] => null
     }
 
@@ -959,7 +959,7 @@ DECLARE_NATIVE(COMPOSE2)
 } string_eval_in_out: { //////////////////////////////////////////////////////
 
     if (Is_Cell_A_Veto_Hot_Potato(OUT))
-        return NULL_OUT_BREAKING;
+        return NULL_OUT_VETOING;
 
     if (Is_Failure(OUT)) {
         Drop_Data_Stack_To(STACK_BASE);

@@ -250,7 +250,7 @@ Bounce Stepper_Executor(Level* L)
             Is_Cell_A_Veto_Hot_Potato(SPARE)
             and Not_Parameter_Flag(param, WANT_VETO)
         ){
-            Init_Null(OUT);
+            Init_Null_Signifying_Vetoed(OUT);
             goto lookahead;
         }
         if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(SPARE)) {

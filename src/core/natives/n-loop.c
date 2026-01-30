@@ -8,7 +8,7 @@
 //=////////////////////////////////////////////////////////////////////////=//
 //
 // Copyright 2012 REBOL Technologies
-// Copyright 2012-2025 Ren-C Open Source Contributors
+// Copyright 2012-2026 Ren-C Open Source Contributors
 // REBOL is a trademark of REBOL Technologies
 //
 // See README.md and CREDITS.md for more information.
@@ -66,43 +66,48 @@
 
 
 //
-//  Throw_Was_Loop_Interrupt: C
+//  Loop_Body_Threw_And_Cant_Catch_Continue: C
 //
-// Determines if a thrown value is either a break or continue.  If so, `val`
-// is mutated to become the throw's argument.  For BREAK this is NULL, and
-// for continue it can be any non-NULL state (including VOID, which must be
-// handled by the caller.)
+// Each loop structure defines its own CONTINUE* instance and binds it into
+// the body.  When CONTINUE* is called it throws the passed value up to its
+// associated loop--and the design is that the loop will treat that caught
+// value the same as if the loop body had evaluated fully and produced it.
 //
-// Returning false means the throw was neither BREAK nor CONTINUE.
+// The special states representing stopping the loop early (BREAK) and doing
+// the loop body again with no increment (AGAIN) are implemented via signals
+// known as "hot potatoes".  These are undecayable packs containing the words
+// ~(veto)~ and ~(retry)~ respectively.  Other values are regarded as just
+// being ordinary CONTINUE results (continue can take an optional parameter,
+// of the value to continue with).
 //
-bool Throw_Was_Loop_Interrupt(
-    Sink(Value) out,
-    Level* loop_level,
-    Sink(Option(LoopInterrupt)) interrupt
+// This function returns true in the case that a situation is neither an
+// ordinary value in `out` or a thrown definitional continue that could be
+// caught and put into `out` as if the body had produced it.  In that case
+// the caller should bubble up the throw by returning THROWN.
+//
+bool Loop_Body_Threw_And_Cant_Catch_Continue(
+    Value* out,  // not Sink() -- leave body result if not catching CONTINUE*
+    Level* loop_level
 ){
+    dont(  // loops haven't all been made stackless--can't assert this yet
+        assert(Get_Executor_Flag(ACTION, loop_level, DISPATCHER_CATCHES))
+    );
+
+    if (not Is_Throwing(loop_level))
+        return false;  // not throwing, so body ran, act as if "caught"
+
     const Stable* label = VAL_THROWN_LABEL(loop_level);
 
-    if (not Is_Frame(label)) {  // Throw label for CONTINUE is the actual native
-        *interrupt = none;
-        return false;
-    }
-
     if (
-        Frame_Phase(label) == Frame_Phase(LIB(DEFINITIONAL_CONTINUE))
+        Is_Frame(label)
+        and Frame_Phase(label) == Frame_Phase(LIB(DEFINITIONAL_CONTINUE))
         and Frame_Coupling(label) == Level_Varlist(loop_level)
     ){
         CATCH_THROWN(out, loop_level);
-        if (Is_Cell_A_Veto_Hot_Potato(out))
-            *interrupt = LOOP_INTERRUPT_BREAK;
-        else if (Is_Cell_A_Retry_Hot_Potato(out))
-            *interrupt = LOOP_INTERRUPT_AGAIN;
-        else
-            *interrupt = LOOP_INTERRUPT_CONTINUE;
-        return true;
+        return false;  // *did* catch
     }
 
-    *interrupt = none;
-    return false;  // caller should let all other thrown values bubble up
+    return true;  // *didn't* catch (caller should let other throws bubble up)
 }
 
 
@@ -368,24 +373,22 @@ static Bounce Loop_Series_Common(
     //
     Index s = Series_Index(start);
     if (s == end) {
-        Option(LoopInterrupt) interrupt = none;
-        do {
+        attempt {
             if (Eval_Branch_Throws(OUT, body)) {
-                if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
+                if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
                     return THROWN;
-
-                switch (unwrap interrupt) {
-                  case LOOP_INTERRUPT_BREAK:
-                    return NULL_OUT_BREAKING;
-
-                  case LOOP_INTERRUPT_AGAIN:
-                    break;  // will keep calling Eval_Branch_Throws()
-
-                  case LOOP_INTERRUPT_CONTINUE:
-                    break;
-                }
             }
-        } while (interrupt == LOOP_INTERRUPT_AGAIN);
+            if (Is_Hot_Potato(OUT)) {
+                if (Is_Cell_A_Veto_Hot_Potato(OUT))
+                    return NULL_OUT_VETOING;
+
+                if (Is_Cell_A_Retry_Hot_Potato(OUT))
+                    again;
+            }
+        }
+        require (
+          Ensure_No_Failures_Including_In_Packs(OUT)
+        );
         return OUT;
     }
 
@@ -403,21 +406,21 @@ static Bounce Loop_Series_Common(
             : *state >= end
     ){
         if (Eval_Branch_Throws(OUT, body)) {
-            Option(LoopInterrupt) interrupt;
-            if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
+            if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
                 return THROWN;
-
-            switch (unwrap interrupt) {
-              case LOOP_INTERRUPT_BREAK:
-                return NULL_OUT_BREAKING;
-
-              case LOOP_INTERRUPT_AGAIN:
-                continue;
-
-              case LOOP_INTERRUPT_CONTINUE:
-                break;
-            }
         }
+
+        if (Is_Hot_Potato(OUT)) {
+            if (Is_Cell_A_Veto_Hot_Potato(OUT))
+                return NULL_OUT_VETOING;
+
+            if (Is_Cell_A_Retry_Hot_Potato(OUT))
+                continue;  // re-run without advancing index
+        }
+
+        require (
+          Ensure_No_Failures_Including_In_Packs(OUT)
+        );
 
         if (
             Type_Of(var) != Type_Of(start)
@@ -464,25 +467,23 @@ static Bounce Loop_Integer_Common(
     // Run only once if start is equal to end...edge case.
     //
     if (start == end) {
-        Option(LoopInterrupt) interrupt = none;
-        do {
+        attempt {
             if (Eval_Branch_Throws(OUT, body)) {
-                if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
+                if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
                     return THROWN;
-
-                switch (unwrap interrupt) {
-                  case LOOP_INTERRUPT_BREAK:
-                    return NULL_OUT_BREAKING;
-
-                  case LOOP_INTERRUPT_AGAIN:
-                    break;  // will keep calling Eval_Branch_Throws()
-
-                  case LOOP_INTERRUPT_CONTINUE:
-                    break;
-                }
             }
-        } while (interrupt == LOOP_INTERRUPT_AGAIN);
 
+            if (Is_Hot_Potato(OUT)) {
+                if (Is_Cell_A_Veto_Hot_Potato(OUT))
+                    return NULL_OUT_VETOING;
+
+                if (Is_Cell_A_Retry_Hot_Potato(OUT))
+                    again;
+            }
+        }
+        require (
+          Ensure_No_Failures_Including_In_Packs(OUT)
+        );
         return OUT_BRANCHED;
     }
 
@@ -495,24 +496,23 @@ static Bounce Loop_Integer_Common(
         return VOID_OUT_UNBRANCHED;  // avoid infinite loops !!!
 
     while (counting_up ? *state <= end : *state >= end) {
-        Option(LoopInterrupt) interrupt = none;
-        do {
+        attempt {
             if (Eval_Branch_Throws(OUT, body)) {
-                if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
+                if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
                     return THROWN;
-
-                switch (unwrap interrupt) {
-                  case LOOP_INTERRUPT_BREAK:
-                    return NULL_OUT_BREAKING;
-
-                  case LOOP_INTERRUPT_AGAIN:
-                    break;  // will keep calling Eval_Branch_Throws()
-
-                  case LOOP_INTERRUPT_CONTINUE:
-                    break;
-                }
             }
-        } while (interrupt == LOOP_INTERRUPT_AGAIN);
+            if (Is_Hot_Potato(OUT)) {
+                if (Is_Cell_A_Veto_Hot_Potato(OUT))
+                    return NULL_OUT_VETOING;
+
+                if (Is_Cell_A_Retry_Hot_Potato(OUT))
+                    again;
+            }
+        }
+
+        require (
+          Ensure_No_Failures_Including_In_Packs(OUT)
+        );
 
         if (not Is_Integer(var))
             panic (Error_Invalid_Type_Raw(Datatype_Of(var)));
@@ -569,25 +569,22 @@ static Bounce Loop_Number_Common(
     // Run only once if start is equal to end...edge case.
     //
     if (s == e) {
-        Option(LoopInterrupt) interrupt = none;
-        do {
+        attempt {
             if (Eval_Branch_Throws(OUT, body)) {
-                if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
+                if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
                     return THROWN;
-
-                switch (unwrap interrupt) {
-                  case LOOP_INTERRUPT_BREAK:
-                    return NULL_OUT_BREAKING;
-
-                  case LOOP_INTERRUPT_AGAIN:
-                    break;  // will keep calling Eval_Branch_Throws()
-
-                  case LOOP_INTERRUPT_CONTINUE:
-                    break;
-                }
             }
-        } while (interrupt == LOOP_INTERRUPT_AGAIN);
+            if (Is_Hot_Potato(OUT)) {
+                if (Is_Cell_A_Veto_Hot_Potato(OUT))
+                    return NULL_OUT_VETOING;
 
+                if (Is_Cell_A_Retry_Hot_Potato(OUT))
+                    again;
+            }
+        }
+        require (
+          Ensure_No_Failures_Including_In_Packs(OUT)
+        );
         return OUT_BRANCHED;
     }
 
@@ -599,21 +596,20 @@ static Bounce Loop_Number_Common(
 
     while (counting_up ? *state <= e : *state >= e) {
         if (Eval_Branch_Throws(OUT, body)) {
-            Option(LoopInterrupt) interrupt;
-            if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
+            if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
                 return THROWN;
-
-            switch (unwrap interrupt) {
-              case LOOP_INTERRUPT_BREAK:
-                return NULL_OUT_BREAKING;
-
-              case LOOP_INTERRUPT_AGAIN:
-                continue;
-
-              case LOOP_INTERRUPT_CONTINUE:
-                break;
-            }
         }
+        if (Is_Hot_Potato(OUT)) {
+            if (Is_Cell_A_Veto_Hot_Potato(OUT))
+                return NULL_OUT_VETOING;
+
+            if (Is_Cell_A_Retry_Hot_Potato(OUT))
+                continue;  // re-run without advancing index
+        }
+
+        require (
+          Ensure_No_Failures_Including_In_Packs(OUT)
+        );
 
         if (not Is_Decimal(var))
             panic (Error_Invalid_Type_Raw(Datatype_Of(var)));
@@ -774,24 +770,23 @@ DECLARE_NATIVE(FOR_SKIP)
           Write_Loop_Slot_May_Unbind_Or_Decay(slot, spare)
         );
 
-        Option(LoopInterrupt) interrupt = none;
-        do {
+        attempt {
             if (Eval_Branch_Throws(OUT, ARG(BODY))) {
-                if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
+                if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
                     return THROWN;
-
-                switch (unwrap interrupt) {
-                  case LOOP_INTERRUPT_BREAK:
-                    return NULL_OUT_BREAKING;
-
-                  case LOOP_INTERRUPT_AGAIN:
-                    break;
-
-                  case LOOP_INTERRUPT_CONTINUE:
-                    break;
-                }
             }
-        } while (interrupt == LOOP_INTERRUPT_AGAIN);
+            if (Is_Hot_Potato(OUT)) {
+                if (Is_Cell_A_Veto_Hot_Potato(OUT))
+                    return NULL_OUT_VETOING;
+
+                if (Is_Cell_A_Retry_Hot_Potato(OUT))
+                    again;
+            }
+        }
+
+        require (
+          Ensure_No_Failures_Including_In_Packs(OUT)
+        );
 
         // Modifications to var are allowed, to another ANY-SERIES? value.
         //
@@ -906,7 +901,7 @@ DECLARE_NATIVE(CYCLE)
 
     switch (STATE) {
       case ST_CYCLE_INITIAL_ENTRY: goto initial_entry;
-      case ST_CYCLE_EVALUATING_BODY: goto body_was_evaluated;
+      case ST_CYCLE_EVALUATING_BODY: goto body_result_or_thrown_in_out;
       default: assert(false);
     }
 
@@ -919,60 +914,58 @@ DECLARE_NATIVE(CYCLE)
     Enable_Dispatcher_Catching_Of_Throws(LEVEL);
     return CONTINUE(OUT, body);
 
-} body_was_evaluated: {  /////////////////////////////////////////////////////
+} body_result_or_thrown_in_out: {  ///////////////////////////////////////////
 
-    if (THROWING)
-        goto handle_thrown;
+  // 1. Most loops can't explicitly return a value and stop looping, since
+  //    that would make it impossible to tell from the outside whether they
+  //    requested a stop or if they'd naturally completed.  It would be
+  //    impossible to propagate a value-bearing break request to aggregate
+  //    looping constructs without invasively rebinding the break.
+  //
+  //    CYCLE is different because it doesn't have any loop exit condition.
+  //    Hence it responds to a STOP request, which lets it return any value.
+  //
+  // 2. Technically, we know CYCLE's body will always run.  We could make an
+  //    exception to having it return void from STOP, or pure NULL.  There's
+  //    probably no good reason to do that, so right now we stick with the
+  //    usual branch policies.  Review if a good use case shows up.
 
-    return CONTINUE(OUT, body);  // no break or stop, so keep going
+    if (THROWING) {
+        const Stable* label = VAL_THROWN_LABEL(LEVEL);
+        if (
+            Is_Frame(label)
+            and Frame_Phase(label) == Frame_Phase(LIB(DEFINITIONAL_STOP))
+            and Frame_Coupling(label) == Level_Varlist(LEVEL)
+        ){
+            CATCH_THROWN(OUT, LEVEL);  // Unlike BREAK, STOP takes an arg--[1]
 
-} handle_thrown: {  /////////////////////////////////////////////////////////
+            if (Is_Light_Null(OUT))
+                return Init_Heavy_Null(OUT);  // NULL usually for BREAK [2]
 
-    // 1. Most loops can't explicitly return a value and stop looping, since
-    //    that would make it impossible to tell from the outside whether they
-    //    requested a stop or if they'd naturally completed.  It would be
-    //    impossible to propagate a value-bearing break request to aggregate
-    //    looping constructs without invasively rebinding the break.
-    //
-    //    CYCLE is different because it doesn't have any loop exit condition.
-    //    Hence it responds to a STOP request, which lets it return any value.
-    //
-    // 2. Technically, we know CYCLE's body will always run.  We could make an
-    //    exception to having it return void from STOP, or pure NULL.  There's
-    //    probably no good reason to do that, so right now we stick with the
-    //    usual branch policies.  Review if a good use case shows up.
-
-    Option(LoopInterrupt) interrupt;
-    if (Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt)) {
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
-            return NULL_OUT_BREAKING;
-
-          case LOOP_INTERRUPT_AGAIN:
-            break;  // plain again
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;  // again and continue are same
+            return OUT;
         }
-
-        return CONTINUE(OUT, body);  // plain continue
     }
 
-    const Stable* label = VAL_THROWN_LABEL(LEVEL);
-    if (
-        Is_Frame(label)
-        and Frame_Phase(label) == Frame_Phase(LIB(DEFINITIONAL_STOP))
-        and Frame_Coupling(label) == Level_Varlist(LEVEL)
-    ){
-        CATCH_THROWN(OUT, LEVEL);  // Unlike BREAK, STOP takes an arg--[1]
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
+        return THROWN;
 
-        if (Is_Light_Null(OUT))
-            return Init_Heavy_Null(OUT);  // NULL usually for BREAK [2]
+    if (Is_Hot_Potato(OUT)) {
+        if (Is_Cell_A_Veto_Hot_Potato(OUT))
+            return NULL_OUT_VETOING;
 
-        return OUT;
+        if (Is_Cell_A_Retry_Hot_Potato(OUT))
+           goto continue_cycling;
     }
 
-    return THROWN;
+    require (
+      Ensure_No_Failures_Including_In_Packs(OUT)
+    );
+
+    goto continue_cycling;
+
+} continue_cycling: { ////////////////////////////////////////////////////////
+
+    return CONTINUE(OUT, body);
 }}
 
 
@@ -1500,22 +1493,17 @@ DECLARE_NATIVE(FOR_EACH)
 
 } body_result_in_spare_or_threw: {  //////////////////////////////////////////
 
-    if (THROWING) {
-        Option(LoopInterrupt) interrupt;
-        if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
-            goto finalize_for_each;
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
+        goto finalize_for_each;
 
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
+    if (Is_Hot_Potato(OUT)) {
+        if (Is_Cell_A_Veto_Hot_Potato(OUT)) {
             breaking = true;
             goto finalize_for_each;
-
-          case LOOP_INTERRUPT_AGAIN:
-            goto invoke_body;
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;
         }
+
+        if (Is_Cell_A_Retry_Hot_Potato(OUT))
+            goto invoke_body;
     }
 
     require (
@@ -1532,7 +1520,7 @@ DECLARE_NATIVE(FOR_EACH)
         return THROWN;
 
     if (breaking)
-        return NULL_OUT_BREAKING;
+        return NULL_OUT_VETOING;
 
     if (Is_Cell_Erased(OUT))
         return VOID_OUT_UNBRANCHED;
@@ -1639,22 +1627,17 @@ DECLARE_NATIVE(EVERY)
     //    It returns trash on skipped bodies, as loop composition breaks
     //    down if we try to keep old values, or return void.
 
-    if (THROWING) {
-        Option(LoopInterrupt) interrupt;
-        if (not Throw_Was_Loop_Interrupt(SPARE, LEVEL, &interrupt))
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(SPARE, LEVEL))
+        goto finalize_every;
+
+    if (Is_Hot_Potato(SPARE)) {
+        if (Is_Cell_A_Veto_Hot_Potato(SPARE)) {
+            Init_Null_Signifying_Vetoed(OUT);
             goto finalize_every;
-
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
-            Init_Null(OUT);
-            goto finalize_every;
-
-          case LOOP_INTERRUPT_AGAIN:
-            goto invoke_body;
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;
         }
+
+        if (Is_Cell_A_Retry_Hot_Potato(SPARE))
+            goto invoke_body;
     }
 
     if (Any_Void(SPARE)) {
@@ -1809,48 +1792,45 @@ DECLARE_NATIVE(REMOVE_EACH)
 
     invoke_loop_body: {  /////////////////////////////////////////////////////
 
-    // 1. When a BREAK happens there is no change applied to the series.  It's
-    //    conceivable that might not be what people want--and that if they did
-    //    want that, they would likely use a MAP-EACH or something to generate
-    //    a new series.  But NULL is reserved for when loops break, so there
-    //    would not be a way to get the removal count in this case.  Hence it
-    //    is semantically easiest to say BREAK goes along with "no effect".
-
         if (Eval_Any_List_At_Throws(OUT, body, SPECIFIED)) {
-            Option(LoopInterrupt) interrupt;
-            if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt)) {
+            if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL)) {
                 threw = true;
                 goto finalize_remove_each;
             }
-
-            switch (unwrap interrupt) {
-              case LOOP_INTERRUPT_BREAK:
-                breaking = true;  // break semantics are no-op [1]
-                assert(start < len);
-                goto finalize_remove_each;
-
-              case LOOP_INTERRUPT_AGAIN:
-                goto invoke_loop_body;
-
-              case LOOP_INTERRUPT_CONTINUE:
-                break;
-            }
         }
 
-  } process_body_result: {  //////////////////////////////////////////////////
+  } process_body_result: {
 
     // The only signals allowed are OKAY, NULL, and VOID.  This likely catches
     // more errors than allowing any Logical_Test() value to mean "remove"
     // (e.g. use DID MATCH or NOT MATCH instead of just MATCH).
     //
-    // 1. The reason VOID is tolerated is because CONTINUE with no argument
+    // 1. BREAK/VETO means there is no change applied to the series.  It's
+    //    conceivable that might not be what people want--and that if they did
+    //    want that, they would likely use a MAP-EACH or something to generate
+    //    a new series.  But NULL is reserved for when loops break, so there
+    //    would not be a way to get the removal count in this case.  Hence it
+    //    is semantically easiest to say BREAK goes along with "no effect".
+    //
+    // 2. The reason VOID is tolerated is because CONTINUE with no argument
     //    acts as if the body returned VOID.  This is a general behavioral
     //    rule for loops, and it's most useful if that doesn't remove.
 
         bool keep;
 
+        if (Is_Hot_Potato(OUT)) {
+            if (Is_Cell_A_Veto_Hot_Potato(OUT)) {
+                breaking = true;  // break semantics are no-op [1]
+                assert(start < len);
+                goto finalize_remove_each;
+            }
+
+            if (Is_Cell_A_Retry_Hot_Potato(OUT))
+                goto invoke_loop_body;
+        }
+
         if (Any_Void(OUT)) {
-            keep = true;  // treat same as logic false (e.g. don't remove) [1]
+            keep = true;  // treat same as logic false (e.g. don't remove) [2]
             goto handle_keep_or_no_keep;
         }
 
@@ -2040,7 +2020,7 @@ DECLARE_NATIVE(REMOVE_EACH)
         return THROWN;
 
     if (breaking)
-        return NULL_OUT_BREAKING;
+        return NULL_OUT_VETOING;
 
     assert(Type_Of(As_Stable(OUT)) == Type_Of(data));
 
@@ -2221,29 +2201,23 @@ DECLARE_NATIVE(MAP)
     //
     //        map-each 'x [1 2 3] [opt if even? x [x * 10]] => [20]
 
-    if (THROWING) {
-        Option(LoopInterrupt) interrupt;
-        if (not Throw_Was_Loop_Interrupt(SPARE, LEVEL, &interrupt))
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(SPARE, LEVEL))
+        goto finalize_map;
+
+    if (Is_Hot_Potato(SPARE)) {
+        if (Is_Cell_A_Veto_Hot_Potato(SPARE)) {
+            Init_Null_Signifying_Vetoed(OUT);
             goto finalize_map;
-
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
-            Init_Null(OUT);
-            goto finalize_map;
-
-          case LOOP_INTERRUPT_AGAIN:
-            goto invoke_loop_body;
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;
         }
+        if (Is_Cell_A_Retry_Hot_Potato(SPARE))
+            goto invoke_loop_body;
     }
 
     if (Any_Void(SPARE))
         goto next_iteration;  // okay to skip
 
     if (Is_Cell_A_Veto_Hot_Potato(SPARE)) {
-        Init_Null(OUT);
+        Init_Null_Signifying_Vetoed(OUT);
         goto finalize_map;
     }
 
@@ -2279,7 +2253,7 @@ DECLARE_NATIVE(MAP)
     if (Not_Cell_Erased(OUT)) {  // only modifies on break or veto
         assert(Is_Light_Null(OUT));  // BREAK or VETO, so *must* return null
         Drop_Data_Stack_To(STACK_BASE);
-        return NULL_OUT_BREAKING;
+        return NULL_OUT_VETOING;
     }
 
     return Init_Block(  // always returns block unless break [1]
@@ -2355,22 +2329,20 @@ DECLARE_NATIVE(REPEAT)
 
 } body_result_in_out: {  /////////////////////////////////////////////////////
 
-    if (THROWING) {
-        Option(LoopInterrupt) interrupt;
-        if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
-            return THROWN;
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
+        return THROWN;
 
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
-            return NULL_OUT_BREAKING;
+    if (Is_Hot_Potato(OUT)) {
+        if (Is_Cell_A_Veto_Hot_Potato(OUT))
+            return NULL_OUT_VETOING;
 
-          case LOOP_INTERRUPT_AGAIN:
+        if (Is_Cell_A_Retry_Hot_Potato(OUT))
             goto invoke_loop_body;
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;
-        }
     }
+
+    require (
+      Ensure_No_Failures_Including_In_Packs(OUT)
+    );
 
     if (Is_Logic(count)) {
         assert(Cell_Logic(count) == true);  // false already returned
@@ -2478,22 +2450,20 @@ DECLARE_NATIVE(FOR)
 
 } body_result_in_out: {  /////////////////////////////////////////////////////
 
-    if (THROWING) {
-        Option(LoopInterrupt) interrupt;
-        if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
-            return THROWN;
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
+        return THROWN;
 
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
-            return NULL_OUT_BREAKING;
+    if (Is_Hot_Potato(OUT)) {
+        if (Is_Cell_A_Veto_Hot_Potato(OUT))
+            return NULL_OUT_VETOING;
 
-          case LOOP_INTERRUPT_AGAIN:
+        if (Is_Cell_A_Retry_Hot_Potato(OUT))
             goto invoke_loop_body;
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;
-        }
     }
+
+    require (
+      Ensure_No_Failures_Including_In_Packs(OUT)
+    );
 
     Fixed(Slot*) slot = Varlist_Fixed_Slot(Cell_Varlist(vars), 1);
 
@@ -2582,23 +2552,15 @@ DECLARE_NATIVE(INSIST)
   //    and the result UNMETA'd.  That would mean all pack quasiforms would
   //    be considered truthy.
 
-    if (THROWING) {
-        Option(LoopInterrupt) interrupt;
-        if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
-            return THROWN;
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
+        return THROWN;
 
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
-            return NULL_OUT_BREAKING;
+    if (Is_Hot_Potato(OUT)) {
+        if (Is_Cell_A_Veto_Hot_Potato(OUT))
+            return NULL_OUT_VETOING;
 
-          case LOOP_INTERRUPT_AGAIN:
+        if (Is_Cell_A_Retry_Hot_Potato(OUT))
             goto loop_again;
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;
-        }
-
-        // continue acts like body evaluated to its argument [1]
     }
 
     if (Any_Void(OUT))
@@ -2688,22 +2650,20 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 
 } body_eval_in_out: { ////////////////////////////////////////////////////////
 
-    if (THROWING) {
-        Option(LoopInterrupt) interrupt;
-        if (not Throw_Was_Loop_Interrupt(OUT, LEVEL, &interrupt))
-            return THROWN;
+    if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
+        return THROWN;
 
-        switch (unwrap interrupt) {
-          case LOOP_INTERRUPT_BREAK:
-            return NULL_OUT_BREAKING;
+    if (Is_Hot_Potato(OUT)) {
+        if (Is_Cell_A_Veto_Hot_Potato(OUT))
+            return NULL_OUT_VETOING;
 
-          case LOOP_INTERRUPT_AGAIN:
+        if (Is_Cell_A_Retry_Hot_Potato(OUT))
             goto invoke_loop_body;
-
-          case LOOP_INTERRUPT_CONTINUE:
-            break;
-        }
     }
+
+    require (
+      Ensure_No_Failures_Including_In_Packs(OUT)
+    );
 
     Disable_Dispatcher_Catching_Of_Throws(LEVEL);
     goto evaluate_condition;

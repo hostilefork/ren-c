@@ -88,3 +88,64 @@
         not try m.key
     ]
 )
+
+; VETO (used with CONTINUE* to implement BREAK)
+[
+    (
+        [1 ~null~] = collect [
+            keep lift map-each x [1 2 3] [
+                if even? x [
+                    break  ; throws ~(veto)~ via CONTINUE* to MAP-EACH
+                ]
+                keep x  ; body does -not- evaluate to VETO
+            ]
+        ]
+    )
+
+    (
+        veto-if-even: lambda [x] [cond non [even?] x]
+
+        [1 2 ~null~] = collect [
+            keep lift map-each x [1 2 3] [
+                continue*: ~  ; disables CONTINUE, BREAK, AGAIN...
+                keep x
+                veto-if-even x  ; MAP-EACH body evaluates to VETO
+            ]
+        ]
+    )
+]
+
+; RETRY (used with CONTINUE* to implement AGAIN)
+[
+    (
+        [1 2 2 3 [1 2 3]] = collect [
+            keep map-each x [1 2 3] {
+                last-x: static [null]
+                keep x
+                if x <> last-x [
+                    last-x: x
+                    if even? x [again]
+                ]
+                x
+            }
+        ]
+    )
+
+    (
+        retry-if-even: lambda [x] [non [even?] x else [~(retry)~]]
+
+        [1 2 2 3 [1 2 3]] = collect [
+            keep map-each x [1 2 3] {
+                continue*: ~
+                last-x: static [null]
+                keep x
+                if x <> last-x [
+                    last-x: x
+                    retry-if-even x
+                ] else [
+                    x
+                ]
+            }
+        ]
+    )
+]

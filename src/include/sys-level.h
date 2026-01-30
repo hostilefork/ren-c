@@ -829,8 +829,8 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
     #define NULL_OUT /* `return NULL_OUT` is better than `return nullptr` */ \
         x_cast(Bounce, Init_Null(OUT))  // ...see [3] for why it's better!
 
-    #define NULL_OUT_BREAKING /* separate macro for VETOING not worth it */ \
-        x_cast(Bounce, Init_Null_Signifying_Break(OUT))  // [3]
+    #define NULL_OUT_VETOING /* Note that BREAK is implemented via VETO */ \
+        x_cast(Bounce, Init_Null_Signifying_Vetoed(OUT))  // [3]
 
     #define LOGIC_OUT(b) \
         ((b) == true ? BOUNCE_OKAY : nullptr)  // no Init_Okay/Null()! [4]
