@@ -87,16 +87,21 @@
 // they can be this can save when delegating code, on needing to call a cycle
 // of trampoline.
 //
+// NOTE: A nullptr coming from this means *the bounce was reducible*.  e.g.
+// if it was just a nulled cell, then that would be put in OUT and it will
+// return `none` (which is a zero-ish state like nullptr is, but here we
+// are interpreting it differently than a typical nullptr Bounce).
+//
 Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
     if (b == OUT) {  // common case, made fastest
         assert(Is_Cell_Readable(OUT));  // must write output, even if just void
-        return nullptr;
+        return none;
     }
 
     if (b == nullptr) {  // API and internal code can both return `nullptr`
         if (not g_failure) {
             Init_Null(OUT);
-            return nullptr;
+            return none;
         }
 
         // if g_failure is set, nullptr came from `return fail()` not a
@@ -125,7 +130,7 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
         g_ds.num_refs_extant = save_extant;
       #endif
 
-        return nullptr;
+        return none;
     }
 
     if (Is_Bounce_Wild(b))
@@ -133,7 +138,7 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
 
     if (b == BOUNCE_OKAY) {  // BOUNCE_OKAY is just LIB(OKAY) (fixed pointer)
         Init_Okay(OUT);  // ...optimization doesn't write OUT, but we do here
-        return nullptr;  // essential to typechecker intrinsic optimization...
+        return none;  // essential to typechecker intrinsic optimization...
     }
 
   copy_api_cell_to_out_and_release_it: {
@@ -143,7 +148,7 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
         assert(Is_Api_Value(v));
         Copy_Cell(OUT, v);
         Release_Api_Value_If_Unmanaged(v);
-        return nullptr;
+        return none;
     }
 
 } turn_utf8_into_delegated_code: {
@@ -175,11 +180,11 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
     if (cp[0] == '~') {
         if (cp[1] == '\0') {
             Init_Void(L->out);
-            return nullptr;  // make return "~" fast!
+            return none;  // make return "~" fast!
         }
         if (cp[1] == '#' and cp[2] == '~' and cp[3] == '\0') {
             Init_Tripwire(L->out);
-            return nullptr;  // make return "~#~" fast!
+            return none;  // make return "~#~" fast!
         }
     }
 
