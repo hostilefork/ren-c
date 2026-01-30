@@ -669,6 +669,13 @@ DECLARE_NATIVE(UNWIND)
 //
 //  Typecheck_Coerce_Return_Uses_Spare_And_Scratch: C
 //
+// 1. It may be that tighter controls should be put on, that you must say
+//    you return FAILURE! in order to return failures (or at least say that
+//    you return ANY-VALUE?).  It probably should -not- be the case that a
+//    function have to annotate beyond ANY-VALUE? to say that a hot potato
+//    is returned, in particular ~(veto)~.  Because generic constructs like
+//    CASE are already saying they can return ANY-VALUE?.
+//
 Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
     Level* L,  // Level whose spare/scratch used (not necessarily return level)
     const Cell* param,  // parameter for the RETURN (may be quoted)
@@ -687,8 +694,8 @@ Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
     if (Not_Parameter_Checked_Or_Coerced(param))
         return true;  // skip all typechecking and coercion
 
-    if (Is_Failure(v))
-        return true;  // for now, all functions allow definitional errors
+    if (Is_Failure(v) or Is_Hot_Potato(v))
+        return true;  // for now, all functions allow these [1]
 
     trap (
       bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(L, param, v)
@@ -704,7 +711,7 @@ Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
 //  "RETURN, giving a result to the caller"
 //
 //      return: []
-//      ^value [<hole> any-value?]
+//      ^value [<hole> <veto> any-value?]
 //      :run "Reuse stack level for another call (<redo> uses locals/args too)"
 //      ;   [<variadic> any-stable?]  ; would force this frame managed
 //  ]
@@ -849,7 +856,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
 //  "RETURN, giving a result to the caller"
 //
 //      return: []
-//      ^value [<hole> any-value?]
+//      ^value [<hole> <veto> any-value?]
 //      :run "Reuse stack level for another call (<redo> uses locals/args too)"
 //      ;   [<variadic> any-stable?]  ; would force this frame managed
 //  ]

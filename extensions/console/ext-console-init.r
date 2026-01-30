@@ -113,12 +113,26 @@ export console!: make object! [
 
     print-result: proc [
         ^v "Value (done with meta parameter to handle unstable isotopes)"
-            [any-value?]
+            [<veto> any-value?]
         <.>
     ][
         ignore ^last-result: ^v  ; don't decay, suppress FAILURE! propagation
 
-      === HANDLE FAILURE! FIRST ===
+      === HANDLE HOT POTATOES (INCLUDING VETO) FIRST ===
+
+      ; The ~(veto)~ hot potato is handled by relatively few functions.  But
+      ; one of those functions is VETO?, so we can identify it for printing
+      ; out in the console.
+
+        if hot-potato? ^v [
+            v: mold lift ^v
+            print unspaced [
+                result _ "\" v "\" _ _ --[; antiform (pack!) "hot potato"]--
+            ]
+            return
+        ]
+
+      === HANDLE FAILURE! SECOND ===
 
       ; Typical type checks (e.g. INTEGER?, VOID? and such) panic on FAILURE!,
       ; so test for these first.

@@ -517,7 +517,7 @@ DECLARE_NATIVE(GENERATOR)  // could also be made in LIB with SPECIALIZE
 //
 //      return: [any-value?]
 //      ^value "Value to yield (will be return value on re-entry) or DONE"
-//          [any-value?]
+//          [<veto> any-value?]
 //      :final "Yield, but also signal the yielder or generator is done"
 //  ]
 //

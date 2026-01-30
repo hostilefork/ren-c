@@ -44,7 +44,7 @@ probe: func [  ; note: do not want VANISHABLE, else `1 + 2 probe eval []` is 3
     "Debug print a molded value and returns that same value"
 
     return: [any-value?]
-    ^value [any-value?]
+    ^value [<veto> any-value?]
 ][
     ; Remember this is early in the boot, so many things not defined.
 
@@ -57,8 +57,6 @@ probe: func [  ; note: do not want VANISHABLE, else `1 + 2 probe eval []` is 3
 
     return ^value
 ]
-
-ghostly: vanishable identity/  ; avoids ghosts being turned into empty packs
 
 compose: specialize compose2/ [pattern: '()]  ; use template binding if not @()
 

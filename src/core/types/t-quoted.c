@@ -219,7 +219,7 @@ DECLARE_NATIVE(UNQUASI)
 //  "antiforms -> quasiforms, adds a quote to rest"
 //
 //      return: [quoted! quasiform!]
-//      ^value '[any-value?]
+//      ^value '[<veto> any-value?]  ; LIFT lifts ~(veto)~, too
 //  ]
 //
 DECLARE_NATIVE(LIFT)
@@ -319,7 +319,7 @@ DECLARE_NATIVE(UNLIFT_P)
 //  "Tells you whether argument is a stable or unstable antiform"
 //
 //      return: [logic!]
-//      ^value '[any-value?]
+//      ^value '[<veto> any-value?]  ; want to report ~(veto)~ antiform
 //      :type
 //  ]
 //

@@ -590,15 +590,14 @@ fail: func [
     "Make unstable FAILURE! antiform state (RESCUE, EXCEPT, TRY can intercept)"
 
     return: [failure!]
-    reason "ERROR! value, ID, URL, message text, or failure spec"
-        [
-            <hole>  ; non-specific failure
-            error!  ; already constructed error
-            @word!  ; invalid-arg error with variable name/value
-            text!  ; textual error message
-            block!  ; mixture of object error spec and message
-            word! path! url!  ; increasing specificity of error ID
-        ]
+    reason [
+        <hole> "non-specific failure"
+        error! "already constructed error"
+        @word! "invalid-arg error with variable name/value"
+        text! "textual error message"
+        block! "mixture of object error spec and message"
+        word! path! url! "increasing specificity of error ID"
+    ]
     :blame "Point to variable or parameter to blame"
         [word! frame!]
 ][
