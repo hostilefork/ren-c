@@ -854,7 +854,7 @@ Result(Length) Modify_String_Or_Blob(  // returns tail of insertions [1]
 
     if (strand) {
         if (Strand_Len(strand) < Size_Of(Cell))  // small not kept
-            Free_Bookmarks_Maybe_Null(strand);
+            Free_Bookmarks_Maybe_Nullptr(strand);
 
       #if DEBUG_BOOKMARKS_ON_MODIFY
         Check_Bookmarks_Debug(strand);

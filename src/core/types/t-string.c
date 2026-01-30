@@ -82,7 +82,7 @@ Utf8(*) Non_Const_Correct_Strand_At(const Strand* s, REBLEN at)
 
   #if DEBUG_SPORADICALLY_DROP_BOOKMARKS
     if (book and SPORADICALLY(100)) {
-        Free_Bookmarks_Maybe_Null(s);
+        Free_Bookmarks_Maybe_Nullptr(s);
         book = nullptr;
     }
   #endif
@@ -797,7 +797,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
         Size size_old = Strand_Size(s);
 
         Remove_Flex_Units_And_Update_Used(s, offset, size);
-        Free_Bookmarks_Maybe_Null(s);
+        Free_Bookmarks_Maybe_Nullptr(s);
         Term_Strand_Len_Size(s, tail - len, size_old - size);
 
         return COPY_TO_OUT(v); }
@@ -895,9 +895,9 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_String)
         if (index == 0 and Get_Stub_Flag(s, DYNAMIC))
             Unbias_Flex(s, false);
 
-        Free_Bookmarks_Maybe_Null(s);  // review!
+        Free_Bookmarks_Maybe_Nullptr(s);  // review!
         Size offset = String_Byte_Offset_For_Index(v, index);
-        Free_Bookmarks_Maybe_Null(s);
+        Free_Bookmarks_Maybe_Nullptr(s);
 
         Term_Strand_Len_Size(s, index, offset);
         return COPY_TO_OUT(v); }

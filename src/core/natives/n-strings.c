@@ -1184,7 +1184,7 @@ DECLARE_NATIVE(ENLINE)
     // ASCII range, and CR and LF are ASCII.  So as long as the "sliding" is
     // done in terms of byte sizes and not character lengths, it should work.
 
-    Free_Bookmarks_Maybe_Null(s);  // !!! Could this be avoided sometimes?
+    Free_Bookmarks_Maybe_Nullptr(s);  // !!! Could this be avoided sometimes?
 
     Byte* bp = Strand_Head(s); // expand may change the pointer
     Size tail = Strand_Size(s); // size in bytes after expansion

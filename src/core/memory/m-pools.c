@@ -1120,7 +1120,7 @@ Stub* Diminish_Stub(Stub* s)
 
     switch (Stub_Flavor(s)) {  // flavors that clean, but can't spare misc [1]
       case FLAVOR_NONSYMBOL:
-        Free_Bookmarks_Maybe_Null(cast(Strand*, s));
+        Free_Bookmarks_Maybe_Nullptr(cast(Strand*, s));
         break;
 
       case FLAVOR_SYMBOL:

@@ -310,7 +310,7 @@ INLINE BookmarkList* Alloc_BookmarkList(void) {
     return books;
 }
 
-INLINE void Free_Bookmarks_Maybe_Null(const Strand* str) {
+INLINE void Free_Bookmarks_Maybe_Nullptr(const Strand* str) {
     assert(not Is_Strand_Symbol(str));
     BookmarkList* book = opt Link_Bookmarks(str);
     if (book) {
