@@ -417,7 +417,7 @@ static Result(Option(SymId)) Get_Parse_Value(
         return fail ("RULE should not look up to quasiforms");
 
     if (Is_Antiform(out_value)) {
-        if (Is_Nulled(out_value))
+        if (Is_Null(out_value))
             return fail (Error_Bad_Null(rule));
 
         if (Is_Logic(out_value) or Is_Splice(out_value))
@@ -1428,7 +1428,7 @@ DECLARE_NATIVE(SUBPARSE)
             return THROWN;
 
         if (veto) {
-            Init_Nulled(ARG(POSITION));  // treat as mismatch
+            Init_Null(ARG(POSITION));  // treat as mismatch
             goto post_match_processing;
         }
 
@@ -1657,7 +1657,7 @@ DECLARE_NATIVE(SUBPARSE)
                     goto pre_rule;
 
                 if (Is_Cell_A_Veto_Hot_Potato(eval)) {
-                    Init_Nulled(ARG(POSITION));  // treat as mismatch
+                    Init_Null(ARG(POSITION));  // treat as mismatch
                     goto post_match_processing;
                 }
 
@@ -1697,7 +1697,7 @@ DECLARE_NATIVE(SUBPARSE)
                 if (Logical_Test(condition))
                     goto pre_rule;
 
-                Init_Nulled(ARG(POSITION));  // not found
+                Init_Null(ARG(POSITION));  // not found
                 goto post_match_processing; }
 
               case SYM_ACCEPT: {
@@ -1753,7 +1753,7 @@ DECLARE_NATIVE(SUBPARSE)
                 goto return_thrown; }
 
               case SYM_PARSE_VETO:  // skip to next alternate
-                Init_Nulled(ARG(POSITION));  // not found
+                Init_Null(ARG(POSITION));  // not found
                 FETCH_NEXT_RULE(L);
                 goto post_match_processing;
 
@@ -2156,7 +2156,7 @@ DECLARE_NATIVE(SUBPARSE)
             if (interrupted) {  // ACCEPT or REJECT ran
                 assert(i != THROWN_FLAG);
                 if (i == END_FLAG)
-                    Init_Nulled(ARG(POSITION));
+                    Init_Null(ARG(POSITION));
                 else
                     P_POS = i;
                 break;
@@ -2187,7 +2187,7 @@ DECLARE_NATIVE(SUBPARSE)
         //
         if (i == END_FLAG) {  // this match failed
             if (count < mincount) {
-                Init_Nulled(ARG(POSITION));  // num matches not enough
+                Init_Null(ARG(POSITION));  // num matches not enough
             }
             else {
                 // just keep index as is.
@@ -2204,7 +2204,7 @@ DECLARE_NATIVE(SUBPARSE)
         //
         if (P_POS == i and (P_FLAGS & PF_FURTHER)) {
             if (not (P_FLAGS & PF_LOOPING))
-                Init_Nulled(ARG(POSITION));  // fail the rule, not loop
+                Init_Null(ARG(POSITION));  // fail the rule, not loop
             break;
         }
 
@@ -2217,9 +2217,9 @@ DECLARE_NATIVE(SUBPARSE)
     // up...but at the very least, such checks should only be needed right
     // after potential group executions (which includes subrules).
     //
-    if (not Is_Nulled(ARG(POSITION)))
+    if (not Is_Null(ARG(POSITION)))
         if (P_POS > P_INPUT_LEN)
-            Init_Nulled(ARG(POSITION));  // not found
+            Init_Null(ARG(POSITION));  // not found
 
 
     //==////////////////////////////////////////////////////////////////==//
@@ -2238,15 +2238,15 @@ DECLARE_NATIVE(SUBPARSE)
 
     if (P_FLAGS & PF_STATE_MASK) {
         if (P_FLAGS & PF_NOT) {
-            if ((P_FLAGS & PF_NOT2) and not Is_Nulled(ARG(POSITION)))
-                Init_Nulled(ARG(POSITION));  // not found
+            if ((P_FLAGS & PF_NOT2) and not Is_Null(ARG(POSITION)))
+                Init_Null(ARG(POSITION));  // not found
             else {
                 Copy_Cell(ARG(POSITION), ARG(INPUT));
                 P_POS = begin;
             }
         }
 
-        if (not Is_Nulled(ARG(POSITION))) {
+        if (not Is_Null(ARG(POSITION))) {
             //
             // Set count to how much input was advanced
             //
@@ -2326,7 +2326,7 @@ DECLARE_NATIVE(SUBPARSE)
                     // is hard to get composability on such things.
                     //
                     if (P_FLAGS & PF_TRY)  // don't just leave alone
-                        Init_Nulled(OUT);
+                        Init_Null(OUT);
                     else if (P_FLAGS & PF_OPTIONAL)
                         Init_Void_Signifying_Unset(OUT);
                 }
@@ -2452,7 +2452,7 @@ DECLARE_NATIVE(SUBPARSE)
         set_or_copy_word = nullptr;
     }
 
-    if (Is_Nulled(ARG(POSITION))) {
+    if (Is_Null(ARG(POSITION))) {
         if (P_FLAGS & PF_ONE_RULE)
             goto return_null;
 
@@ -2482,7 +2482,7 @@ DECLARE_NATIVE(SUBPARSE)
 
 } return_null: {
 
-    return Init_Nulled(OUT);
+    return Init_Null(OUT);
 
 } return_thrown: {
 

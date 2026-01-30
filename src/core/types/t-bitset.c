@@ -106,7 +106,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Bitset)
     }
 
     Init_Blob(v, bset);
-    Init_Nulled_Signifying_Unspecialized(LOCAL(FORM));  // form = false
+    Init_Null_Signifying_Unspecialized(LOCAL(FORM));  // form = false
     Bounce bounce = GENERIC_CFUNC(MOLDIFY, Is_Blob)(LEVEL);
     assert(Is_Trash(Value_From_Bounce(bounce)));
     // !!! generically it could BOUNCE_CONTINUE...
@@ -650,7 +650,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Bitset)
 
     Stable* dual = ARG(DUAL);
     if (Not_Lifted(dual)) {
-        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
+        if (Is_Null_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));

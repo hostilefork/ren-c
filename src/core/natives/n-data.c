@@ -1209,7 +1209,7 @@ DECLARE_NATIVE(FREE_Q)
 
     Stable* v = ARG(VALUE);
 
-    if (Is_Nulled(v))
+    if (Is_Null(v))
         return LOGIC_OUT(false);
 
     if (not Cell_Payload_1_Needs_Mark(v))  // freeable values have Flex in payload payload1

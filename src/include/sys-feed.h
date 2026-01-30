@@ -355,7 +355,7 @@ INLINE void Force_Variadic_Feed_At_Cell_Or_End_May_Panic(Feed* feed)
   //    legal to put an END in L->value unless the array is actually over, so
   //    get another pointer out of the va_list and keep going.
 
-    if (not feed->p) {  // libRebol's NULL (prohibited as an Is_Nulled() CELL)
+    if (not feed->p) {  // libRebol's NULL (prohibited as an Is_Null() CELL)
 
         feed->p = g_feed_null_substitute;
 

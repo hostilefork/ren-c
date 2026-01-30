@@ -384,8 +384,8 @@ DECLARE_NATIVE(PACK)
         }
 
         assert(Is_Block(block));
-        assert(Is_Nulled(LOCAL(PREDICATE)));
-        Init_Nulled_Signifying_Unspecialized(LOCAL(PREDICATE));
+        assert(Is_Null(LOCAL(PREDICATE)));
+        Init_Null_Signifying_Unspecialized(LOCAL(PREDICATE));
         Set_Level_Flag(LEVEL, REDUCE_IS_ACTUALLY_PACK);
     }
 
@@ -396,7 +396,7 @@ DECLARE_NATIVE(PACK)
     if (bounce)  // REDUCE wants more EVALs...final value not in OUT yet
         return bounce;
 
-    if (Is_Nulled(OUT))  // VETO encountered
+    if (Is_Null(OUT))  // VETO encountered
         return NULL_OUT_BREAKING;
 
     if (Is_Failure(OUT))

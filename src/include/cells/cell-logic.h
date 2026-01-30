@@ -76,7 +76,7 @@
 //    a null pointer to represent the optional state.  By promising this
 //    is the case, clients of the API can write `if (value)` or `if (!value)`
 //    as tests for the null state...with no need to release cell handles
-//    for nulls.  Hence there is no `isRebolNull()` API.
+//    for nulls.  Hence there is no `rebIsNull()` API.
 //
 //    HOWEVER: The definition which must be used is `nullptr` and not C's
 //    macro for NULL, because NULL may just be defined as just the integer 0.
@@ -113,7 +113,7 @@ INLINE Stable* Init_Logic_Untracked(Init(Stable) out, bool logic) {
 #define Init_Logic(out,flag) \
     TRACK(Init_Logic_Untracked((out), (flag)))
 
-#define Init_Nulled(out) /* name helps avoid confusion [B] */ \
+#define Init_Null(out) /* name helps avoid confusion [B] */ \
     TRACK(Init_Word_Untracked( \
         Possibly_Antiform(out), \
         FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | (not CELL_FLAG_LOGIC_IS_OKAY),  \
@@ -155,9 +155,16 @@ INLINE bool Cell_Logic_Core(const Stable* v) {
 //    functions aggressively.)  However, the Ensure_Readable() adds overhead
 //    in many checked builds...all the more reasons to not add another call!
 //
-// 2. To avoid confusing the test for whether cell contents are the null
-//    representation with the test for if a pointer itself is C's NULL, it is
-//    called "Is_Nulled()" instead of "Is_Null()".
+// 2. If you are uninitiated to the codebase, you might think `Is_Null(v)`
+//    was defined as `(v == nullptr)`.  `Is_Nulled()` was used as the name for
+//    this macro for many years.  But as antiform WORD! ~null~ cells never
+//    make it into API handles and nullptr is how they are experienced...this
+//    is a purely internal distinction.  As Gemini points out:
+//
+//    "The 'tax' of clunky naming is paid every time you read or write code,
+//    whereas the 'confusion' of a C developer is a one-time cost of entry to
+//    the codebase.  If you're already disciplined about using nullptr for C's
+//    null concept, the ambiguity is significantly reduced."
 //
 
 #define Is_Light_Null(v) /* test allowed on potentially unstable values */ \
@@ -167,7 +174,7 @@ INLINE bool Cell_Logic_Core(const Stable* v) {
         FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
             | (not CELL_FLAG_LOGIC_IS_OKAY)))
 
-#define Is_Nulled(v) /* test for stable values, name avoids confusion [2] */ \
+#define Is_Null(v) /* test for stable values, don't confuse w/nullptr [2] */ \
     ((Ensure_Readable(Possibly_Antiform(v))->header.bits & ( \
         CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_LOGIC_IS_OKAY \
     )) == ( \
@@ -198,11 +205,11 @@ INLINE bool Is_Lifted_Null(const Value* v) {
 // these macros help find those places if it's of interest later.
 //
 
-#define Init_Nulled_Signifying_Unspecialized(out)  Init_Nulled(out)
+#define Init_Null_Signifying_Unspecialized(out)  Init_Null(out)
 #define Init_Lifted_Null_Signifying_Unspecialized(out)  Init_Lifted_Null(out)
-#define Is_Nulled_Signifying_Unspecialized(v)  Is_Light_Null(v)
+#define Is_Null_Signifying_Unspecialized(v)  Is_Light_Null(v)
 
-#define Init_Nulled_Signifying_Break(out)  Init_Nulled(out)
+#define Init_Null_Signifying_Break(out)  Init_Null(out)
 
 
 //=//// CANON LOGIC TRUTHY: ~OKAY~ ANTIFORM ///////////////////////////////=//
@@ -256,7 +263,7 @@ INLINE bool Is_Lifted_Null(const Value* v) {
 // legal on all stable states.
 //
 #define Logical_Test(v) \
-    (not Is_Nulled(Known_Stable(v)))
+    (not Is_Null(Known_Stable(v)))
 
 
 //=//// "HEAVY NULLS" (BLOCK! Antiform Pack with `~null~` in it) //////////=//

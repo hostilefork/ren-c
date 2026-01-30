@@ -196,7 +196,7 @@ Bounce Group_Branch_Executor(Level* const L)
   //    the callsite.
 
     if (Is_Cell_Erased(spare_with))
-        Init_Nulled(spare_with);
+        Init_Null(spare_with);
 
     require (
       Level* sub = Make_Level(
@@ -916,7 +916,7 @@ DECLARE_NATIVE(CASE)
     }
 
     if (Is_Cell_Erased(OUT))  // none of the clauses of an :ALL ran a branch
-        return Init_Nulled(OUT);
+        return Init_Null(OUT);
 
     return OUT_BRANCHED;
 }}
@@ -1136,7 +1136,7 @@ DECLARE_NATIVE(SWITCH)
     }
 
     if (Is_Cell_Erased(OUT))  // no fallout, and no branches ran
-        return Init_Nulled(OUT);
+        return Init_Null(OUT);
 
     return OUT_BRANCHED;
 }}
@@ -1234,7 +1234,7 @@ DECLARE_NATIVE(DEFAULT)
         require (  // may need decay [2]
             Stable* out = Decay_If_Unstable(OUT)
         );
-        if (not (Is_Nulled(out) or Is_None(out)))
+        if (not (Is_Null(out) or Is_None(out)))
             return OUT;  // consider it a "value" [3]
     }
 

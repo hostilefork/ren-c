@@ -257,7 +257,7 @@ DECLARE_NATIVE(DIR_ACTOR)
     //=//// CLOSE //////////////////////////////////////////////////////////=//
 
       case SYM_CLOSE:
-        Init_Nulled(Slot_Init_Hack(state_slot));
+        Init_Null(Slot_Init_Hack(state_slot));
         return COPY_TO_OUT(port);
 
     //=//// QUERY //////////////////////////////////////////////////////////=//

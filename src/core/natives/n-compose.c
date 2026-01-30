@@ -186,7 +186,7 @@ static void Push_Composer_Level(
 // 1. If you write something like `compose @ (void)/3:`, it tried to leave
 //    behind something like the "SET-INTEGER!" of `3:`.
 //
-// 2. See Try_Pop_Sequence_Or_Element_Or_Nulled() for how reduced cases like
+// 2. See Pop_Sequence_Or_Element_Or_Null() for how reduced cases like
 //    `(void).1` will turn into just INTEGER!, not `.1` -- this is in contrast
 //    to `(space).1` which does turn into `.1`
 //
@@ -206,7 +206,7 @@ static Result(Stable*) Finalize_Composer_Level(
 ){
     Stable* out = As_Stable(L->out);
 
-    if (Is_Nulled(out)) {  // a composed slot evaluated to VETO error antiform
+    if (Is_Null(out)) {  // a composed slot evaluated to VETO error antiform
         Drop_Data_Stack_To(L->baseline.stack_base);
         return out;
     }
@@ -222,7 +222,7 @@ static Result(Stable*) Finalize_Composer_Level(
 
     if (Any_Sequence_Type(heart)) {
         trap (
-          Pop_Sequence_Or_Element_Or_Nulled(
+          Pop_Sequence_Or_Element_Or_Null(
             out,
             Heart_Of_Builtin_Fundamental(As_Element(composee)),
             L->baseline.stack_base
@@ -238,7 +238,7 @@ static Result(Stable*) Finalize_Composer_Level(
         assert(LIFT_BYTE(composee) & NONQUASI_BIT);  // no anti/quasi forms
         Count num_quotes = Quotes_Of(As_Element(composee));
 
-        if (not Is_Nulled(out))  // don't add quoting levels (?)
+        if (not Is_Null(out))  // don't add quoting levels (?)
             Quotify_Depth(As_Element(out), num_quotes);
         return out;
     }
@@ -398,7 +398,7 @@ Bounce Composer_Executor(Level* const L)
         return OUT;  // !!! Good idea?  Bad idea?
 
     if (Is_Cell_A_Veto_Hot_Potato(OUT)) {
-        Init_Nulled(OUT);
+        Init_Null(OUT);
         goto finished_out_is_null_if_veto;  // compose [a (veto) b] => null
     }
 
@@ -561,7 +561,7 @@ Bounce Composer_Executor(Level* const L)
 
     Drop_Level(SUBLEVEL);
 
-    if (Is_Nulled(out)) {
+    if (Is_Null(out)) {
         // compose:deep [a (void)/(void) b] => path makes null, vaporize it
     }
     else {

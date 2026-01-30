@@ -174,7 +174,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Port)
     Option(Ordinal) n = Find_Symbol_In_Context(actor, verb, strict);
 
     if (not n)
-        Init_Nulled(SCRATCH);
+        Init_Null(SCRATCH);
     else {
         require (
           Read_Slot_Meta(
@@ -210,7 +210,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Port)
           Stable* out = Decay_If_Unstable(OUT)
         );
 
-        if (Is_Nulled(out))
+        if (Is_Null(out))
             return nullptr;  // !!! `read dns://` returns nullptr on failure
 
         if ((ARG(STRING) or ARG(LINES)) and not Is_Text(out)) {
@@ -336,7 +336,7 @@ Result(Option(Stable*)) Get_Port_Path_From_Spec(
     require (
       Read_Slot(out, Obj_Slot(spec, STD_PORT_SPEC_HEAD_REF))
     );
-    if (Is_Nulled(out))
+    if (Is_Null(out))
         return fail (Error_Invalid_Spec_Raw(spec));
 
     if (Is_Url(out)) {

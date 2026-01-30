@@ -134,7 +134,7 @@ Bounce Yielder_Dispatcher(Level* const L)
 
     switch (STATE) {  // Can't use STATE byte for "mode" (see ST_YIELDER enum)
       case ST_YIELDER_INVOKED: {
-        if (Is_Nulled(original_frame))
+        if (Is_Null(original_frame))
             goto begin_body;  // first run, haven't set original frame yet
 
         if (Is_Frame(original_frame))
@@ -147,7 +147,7 @@ Bounce Yielder_Dispatcher(Level* const L)
         goto invoke_yielder_that_abruptly_panicked; }
 
       case ST_YIELDER_RUNNING_BODY: {
-        if (not Is_Nulled(yielded_lifted))  // YIELD is suspending us
+        if (not Is_Null(yielded_lifted))  // YIELD is suspending us
             goto yielding;
 
         goto body_finished_or_threw; }
@@ -177,7 +177,7 @@ Bounce Yielder_Dispatcher(Level* const L)
   //    when the body finishes running.  The result of the body evaluation is
   //    not used, so write it to SPARE (which is preserved in suspension).
 
-    assert(Is_Nulled(original_frame));  // each call needs [1]
+    assert(Is_Null(original_frame));  // each call needs [1]
     Force_Level_Varlist_Managed(L);
     Init_Frame(original_frame, Level_Varlist(L), Level_Label(L), UNCOUPLED);
 
@@ -201,7 +201,7 @@ Bounce Yielder_Dispatcher(Level* const L)
   // becomes the top of the stack, and gets bounced to, and it's what bubbles
   // the value in OUT.
 
-    if (Is_Nulled(plug)) {  // no plug, must be YIELD of a RAISED...
+    if (Is_Null(plug)) {  // no plug, must be YIELD of a RAISED...
         assert(Is_Lifted_Failure(yielded_lifted));
 
         if (Is_Cell_A_Done_Hot_Potato(yielded_lifted)) {
@@ -230,7 +230,7 @@ Bounce Yielder_Dispatcher(Level* const L)
   //
   //     >> g: generator [g]  ; not legal!
 
-    if (Is_Nulled(plug))
+    if (Is_Null(plug))
         panic (Error_Yielder_Reentered_Raw());
 
   //=//// RECLAIM ORIGINAL YIELDER'S VARLIST IDENTITY /////////////////////=//
@@ -294,7 +294,7 @@ Bounce Yielder_Dispatcher(Level* const L)
   //    received as an arg (YIELD cached it in details before unwinding).
 
     Replug_Stack(yielder_level, plug);
-    assert(Is_Nulled(plug));  // Replug wiped, make GC safe
+    assert(Is_Null(plug));  // Replug wiped, make GC safe
 
     Level* yield_level = TOP_LEVEL;
     assert(yield_level != L);
@@ -304,7 +304,7 @@ Bounce Yielder_Dispatcher(Level* const L)
     assume (
       Unlift_Cell_No_Decay(yield_level->out)
     );
-    Init_Nulled(yielded_lifted);
+    Init_Null(yielded_lifted);
 
     assert(STATE == ST_YIELDER_INVOKED);
     STATE = ST_YIELDER_RUNNING_BODY;  // resume where the last YIELD left off
@@ -345,10 +345,10 @@ Bounce Yielder_Dispatcher(Level* const L)
 
     Stable* body = Details_Element_At(details, IDX_YIELDER_BODY);
     assert(Is_Block(body));  // clean up details for GC [2]
-    Init_Nulled(body);
+    Init_Null(body);
 
-    assert(Is_Nulled(plug));
-    assert(Is_Nulled(yielded_lifted));
+    assert(Is_Null(plug));
+    assert(Is_Null(yielded_lifted));
 
     assert(Is_Frame(original_frame));
 
@@ -480,9 +480,9 @@ DECLARE_NATIVE(YIELDER)
     Details* details = Ensure_Frame_Details(OUT);
 
     assert(Is_Block(Details_At(details, IDX_YIELDER_BODY)));
-    Init_Nulled(Details_At(details, IDX_YIELDER_ORIGINAL_FRAME));
-    Init_Nulled(Details_At(details, IDX_YIELDER_PLUG));
-    Init_Nulled(Details_At(details, IDX_YIELDER_YIELDED_LIFTED));
+    Init_Null(Details_At(details, IDX_YIELDER_ORIGINAL_FRAME));
+    Init_Null(Details_At(details, IDX_YIELDER_PLUG));
+    Init_Null(Details_At(details, IDX_YIELDER_YIELDED_LIFTED));
 
     return OUT;
 }
@@ -580,12 +580,12 @@ DECLARE_NATIVE(DEFINITIONAL_YIELD)
     assert(Details_Dispatcher(yielder_details) == &Yielder_Dispatcher);
 
     Stable* plug = Details_At(yielder_details, IDX_YIELDER_PLUG);
-    assert(Is_Nulled(plug));
+    assert(Is_Null(plug));
 
     Stable* yielded_lifted = Details_At(
         yielder_details, IDX_YIELDER_YIELDED_LIFTED
     );
-    assert(Is_Nulled(yielded_lifted));
+    assert(Is_Null(yielded_lifted));
 
   //=//// IF YIELD:FINAL OR RAISED ERROR, THROW YIELD'S ARGUMENT //////////=//
 

@@ -128,11 +128,11 @@
 static bool g_api_initialized = false;
 
 
-// The API tolerates internal cells that are Is_Nulled(), but all handles that
+// The API tolerates internal cells that are Is_Null(), but all handles that
 // are Is_Api_Value() mustn't be nulled.  nullptr is the only currency exposed
 // to the clients of the API for NULL.
 //
-INLINE const Value* Nullptr_If_Nulled(const Value* value) {
+INLINE const Value* Nullptr_If_Nulled_Cell(const Value* value) {
     if (Is_Light_Null(value))
         return nullptr;
     return value;
@@ -1089,7 +1089,7 @@ const RebolBaseInternal* API_rebArgR(
             Value* v = As_Value(arg);
             return cast(
                 RebolBaseInternal*,
-                Nullptr_If_Nulled(v)
+                Nullptr_If_Nulled_Cell(v)
             );
         }
     }
@@ -1371,7 +1371,7 @@ RebolValue* API_rebValue(
 
     if (Is_Light_Null(v)) {
         Free_Value(v);
-        return nullptr;  // No NULLED cells in API, see Nullptr_If_Nulled()
+        return nullptr;  // No NULLED cells in API, see Nullptr_If_Nulled_Cell()
     }
 
     Set_Base_Root_Bit(v);
@@ -1484,7 +1484,7 @@ RebolValue* API_rebUndecayed(
 
     if (Is_Light_Null(v)) {
         Free_Value(v);
-        return nullptr;  // No NULLED cells in API, see Nullptr_If_Nulled()
+        return nullptr;  // No NULLED cells in API, see Nullptr_If_Nulled_Cell()
     }
 
     Set_Base_Root_Bit(v);
@@ -1560,7 +1560,7 @@ RebolValue* API_rebRescue2(
 
     if (Is_Lifted_Null(v)) {
         Free_Value(v);
-        *value = nullptr;  // No NULLED cells in API, see Nullptr_If_Nulled()
+        *value = nullptr;  // No NULLED cells in API, see Nullptr_If_Nulled_Cell()
         return nullptr;
     }
 
@@ -2287,7 +2287,7 @@ char* API_rebSpellOpt(
         panic (e);
     }
 
-    if (Is_Nulled(v))
+    if (Is_Null(v))
         return nullptr;
 
     size_t size = Spell_Into(nullptr, 0, v);
@@ -2421,7 +2421,7 @@ REBWCHAR* API_rebSpellWideOpt(
         panic (e);
     }
 
-    if (Is_Nulled(v))
+    if (Is_Null(v))
         return nullptr;
 
     REBLEN len = Spell_Into_Wide(nullptr, 0, v);
@@ -2521,7 +2521,7 @@ unsigned char* API_rebBytesOpt(  // unsigned char, no Byte required by API
         panic (e);
     }
 
-    if (Is_Nulled(v)) {
+    if (Is_Null(v)) {
         *size_out = 0;
         return nullptr;  // opt on input makes void, means null out
     }

@@ -762,7 +762,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
       case ST_FRAME_FILLER_UNLABELED_EVAL_STEP:
         if (THROWING)
             goto finalize_maybe_throwing;
-        if (Is_Nulled(iterator)) {
+        if (Is_Null(iterator)) {
             assert(ARG(RELAX));
             goto handle_next_item;
         }
@@ -795,7 +795,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
         or not (single = Try_Get_Sequence_Singleheart(at))
         or not (Singleheart_Has_Trailing_Blank(unwrap single))
     ){
-        if (Is_Nulled(iterator))
+        if (Is_Null(iterator))
             goto handle_discarded_item;
 
         goto handle_unlabeled_item;
@@ -860,7 +860,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
 
             Shutdown_Evars(e);
             Free_Memory(EVARS, e);
-            Init_Nulled(iterator);
+            Init_Null(iterator);
             param = nullptr;  // we're throwing away the evaluated product
             break;
         }
@@ -935,13 +935,13 @@ Bounce Native_Frame_Filler_Core(Level* level_)
   //    happen after we have delegated to the function.  But should DELEGATE()
   //    itself rule that out automatically?  It asserts for now.
 
-    if (Is_Nulled(iterator))
+    if (Is_Null(iterator))
         assert(ARG(RELAX));
     else {
         EVARS *e = Cell_Handle_Pointer(EVARS, iterator);
         Shutdown_Evars(e);
         Free_Memory(EVARS, e);
-        Init_Nulled(iterator);
+        Init_Null(iterator);
     }
 
     if (THROWING)

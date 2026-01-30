@@ -290,7 +290,7 @@ DECLARE_NATIVE(TRANSCODE)
 
     if (ARG(NEXT)) {
         if (TOP_INDEX == STACK_BASE) {
-            Init_Nulled(OUT);
+            Init_Null(OUT);
         }
         else {
             assert(TOP_INDEX == STACK_BASE + 1);

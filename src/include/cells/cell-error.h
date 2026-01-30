@@ -60,7 +60,7 @@ INLINE void Force_Location_Of_Error(Error* error, Level* L) {
     require (
       Read_Slot(where, &vars->where)
     );
-    if (Is_Nulled(where))
+    if (Is_Null(where))
         Set_Location_Of_Error(error, L);
 }
 

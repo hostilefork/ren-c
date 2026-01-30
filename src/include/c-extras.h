@@ -203,13 +203,14 @@
 //     variadic_print("print me", "and me", "stop @ NULL", (char*)NULL);
 //
 // Since libRebol hinges on a premise of making the internal ~null~ signifier
-// interface as a C NULL pointer, and hinges on variadics, this is a problem.
+// interface as a C NULL pointer, and requires variadics, this is a problem.
 // Rather than introduce a "new" abstraction or macro, this adds a simple
 // macro to C.
 //
-// This also means that NULL can be used in comments for the Rebol concept,
-// as opposed to the C idea (though NULLED may be clearer, depending on
-// context).  Either way, when discussing C's "0 pointer", say `nullptr`.
+// This also means that "null" can be used in comments for the Rebol concept,
+// as opposed to the C idea (though you might say "nulled cell" in contexts
+// where both are in play).  Either way, when when discussing C's "0 pointer",
+// say `nullptr`.
 //
 
 #if NO_CPLUSPLUS_11

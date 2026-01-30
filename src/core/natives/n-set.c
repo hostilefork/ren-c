@@ -388,7 +388,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
             goto skip_circled_check;  // we checked it wasn't circled
         }
 
-        Init_Nulled(OUT);
+        Init_Null(OUT);
     }
     else {
         Copy_Cell(OUT, pack_at_lifted);

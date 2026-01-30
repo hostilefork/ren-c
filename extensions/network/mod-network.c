@@ -482,7 +482,7 @@ void on_new_connection(uv_stream_t *server, int status) {
     VarList* client = Copy_Varlist_Shallow_Managed(listener_port_ctx);
     Push_Lifeguard(client);
 
-    Init_Nulled(
+    Init_Null(
         Slot_Init_Hack(Varlist_Slot(client, STD_PORT_DATA))  // "be sure" (?)
     );
 
@@ -619,7 +619,7 @@ void on_read_alloc(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
         bufsize = *(unwrap rebreq->length) - rebreq->actual;  // suggestion?
 
     Binary* bin;
-    if (Is_Nulled(port_data)) {
+    if (Is_Null(port_data)) {
         bin = Make_Binary(bufsize);
         Init_Blob(port_data, bin);
     }
@@ -679,7 +679,7 @@ void on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 
     Stable* port_data = Stable_Slot_Hack(Varlist_Slot(port_ctx, STD_PORT_DATA));
 
-    if (Is_Nulled(port_data))
+    if (Is_Null(port_data))
         assert(nread <= 0);  // can happen, e.g. "connection reset by peer" [1]
     else
         assert(Is_Blob(port_data));
@@ -699,7 +699,7 @@ void on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
         // it at the termination before the READ?  Clear it for now just to
         // catch errors where partial data would be used as if it were okay,
 
-        Init_Nulled(port_data);  // already null if no on_read_alloc() [1]
+        Init_Null(port_data);  // already null if no on_read_alloc() [1]
 
         /* uv_read_stop(stream); */  // asserts when error or EOF [2]
         stream->data = nullptr;
@@ -803,7 +803,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
     // characters, a likely oversight from the addition of unicode).
     //
     Stable* port_data = Stable_Slot_Hack(Varlist_Slot(ctx, STD_PORT_DATA));
-    assert(Is_Blob(port_data) or Is_Nulled(port_data));
+    assert(Is_Blob(port_data) or Is_Null(port_data));
 
     SOCKREQ *sock;
     Stable* state = Stable_Slot_Hack(Varlist_Slot(ctx, STD_PORT_STATE));
@@ -815,7 +815,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
         // !!! The Make_Devreq() code would zero out the struct, so to keep
         // things compatible while ripping out the devreq code this must too.
         //
-        assert(Is_Nulled(state));
+        assert(Is_Null(state));
         require (
           sock = Alloc_On_Heap(SOCKREQ)
         );
@@ -854,7 +854,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
             Stable* local_id = Stable_Slot_Hack(
                 Obj_Slot(spec, STD_PORT_SPEC_NET_LOCAL_ID)
             );
-            if (Is_Nulled(local_id))
+            if (Is_Null(local_id))
                 sock->local_port_number = 0;  // let the system pick
             else if (Is_Integer(local_id))
                 sock->local_port_number = VAL_INT32(local_id);
@@ -864,7 +864,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
                 );
 
 
-            if (Is_Nulled(arg)) {  // No host, must be a LISTEN socket:
+            if (Is_Null(arg)) {  // No host, must be a LISTEN socket:
                 sock->local_port_number =
                     Is_Integer(port_id) ? VAL_INT32(port_id) : 8000;
 

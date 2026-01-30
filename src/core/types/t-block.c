@@ -334,7 +334,7 @@ REBINT Find_In_Array(
 
     const Stable* stable_pattern = As_Stable(pattern);
 
-    if (Is_Nulled(stable_pattern)) {  // never match [1]
+    if (Is_Null(stable_pattern)) {  // never match [1]
         *len = 0;
         return NOT_FOUND;
     }
@@ -1015,7 +1015,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
     if (n < 0)
         return NULL_OUT_SLOT_UNAVAILABLE;
     if (n >= Series_Len_Head(series)) {
-        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual)) {
+        if (Is_Null_Signifying_Tweak_Is_Pick(dual)) {
             Init_Void(OUT);
             return LIFT_OUT_FOR_DUAL_PICK;  // treat out of bounds as void
         }
@@ -1023,7 +1023,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Series)
     }
 
     if (Not_Lifted(dual)) {
-        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
+        if (Is_Null_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));

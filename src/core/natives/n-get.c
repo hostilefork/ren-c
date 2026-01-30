@@ -101,7 +101,7 @@ Result(None) Get_Var_In_Scratch_To_Out(
     Level* level_,  // OUT may be FAILURE! antiform, see [A]
     Option(Element*) steps_out  // no GROUP!s if nulled
 ){
-    heeded (Init_Nulled_Signifying_Tweak_Is_Pick(OUT));
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
 
     Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
         level_,

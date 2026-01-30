@@ -95,7 +95,7 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
 
     if (b == nullptr) {  // API and internal code can both return `nullptr`
         if (not g_failure) {
-            Init_Nulled(OUT);
+            Init_Null(OUT);
             return nullptr;
         }
 
@@ -352,7 +352,7 @@ Bounce Action_Executor(Level* L)
 
       skip_fulfilling_arg_for_now:
         assert(Not_Action_Executor_Flag(L, DOING_PICKUPS));
-        assert(Is_Nulled_Signifying_Unspecialized(ARG));  // couldn't leave erased
+        assert(Is_Null_Signifying_Unspecialized(ARG));  // couldn't leave erased
         continue;
 
   //=//// ACTUAL LOOP BODY ////////////////////////////////////////////////=//
@@ -439,7 +439,7 @@ Bounce Action_Executor(Level* L)
                     goto continue_fulfilling;
                 }
 
-                Init_Nulled_Signifying_Unspecialized(Erase_Cell(ARG));
+                Init_Null_Signifying_Unspecialized(Erase_Cell(ARG));
                 goto skip_fulfilling_arg_for_now;  // ^-- can't leave erased
             }
         }
@@ -844,7 +844,7 @@ Bounce Action_Executor(Level* L)
             goto fulfill_and_any_pickups_done;
         }
 
-        assert(Is_Nulled_Signifying_Unspecialized(ARG));  // had to init
+        assert(Is_Null_Signifying_Unspecialized(ARG));  // had to init
 
         Set_Action_Executor_Flag(L, DOING_PICKUPS);
         goto fulfill_arg;
@@ -932,7 +932,7 @@ Bounce Action_Executor(Level* L)
                 Mark_Typechecked(ARG);
                 continue;  // !!! standardize hole to the parameter?
             }
-            Init_Nulled(ARG);
+            Init_Null(ARG);
         }
 
         assert(LIFT_BYTE(ARG) != BEDROCK_0);
@@ -944,13 +944,13 @@ Bounce Action_Executor(Level* L)
         ){
             Set_Action_Executor_Flag(L, TYPECHECK_ONLY);
             Mark_Typechecked(ARG);
-            Init_Nulled(OUT);
+            Init_Null(OUT);
             continue;
         }
 
         if (Get_Parameter_Flag(PARAM, UNDO_OPT)) {
             if (Any_Void(arg)) {  // accepts empty pack -or- void
-                Init_Nulled(ARG);
+                Init_Null(ARG);
                 Mark_Typechecked(ARG);  // null rejected
                 continue;
             }

@@ -1200,7 +1200,7 @@ static Result(bool) Loop_Each_Next_Maybe_Done(Level* level_)
             assert(not les->data);
             Value* generated = rebUndecayed(rebRUN(les->generator));
             if (not generated)
-                Init_Nulled(SPARE);
+                Init_Null(SPARE);
             else
                 Copy_Cell(SPARE, generated);  // need mutable, non-nulled cell
             rebRelease(generated);
@@ -1399,7 +1399,7 @@ void Shutdown_Loop_Each(Stable* iterator)
         Shutdown_Evars(&les->u.evars);
 
     Free_Memory(LoopEachState, les);
-    Init_Nulled(iterator);
+    Init_Null(iterator);
 }
 
 
@@ -1646,7 +1646,7 @@ DECLARE_NATIVE(EVERY)
 
         switch (unwrap interrupt) {
           case LOOP_INTERRUPT_BREAK:
-            Init_Nulled(OUT);
+            Init_Null(OUT);
             goto finalize_every;
 
           case LOOP_INTERRUPT_AGAIN:
@@ -1666,7 +1666,7 @@ DECLARE_NATIVE(EVERY)
       Stable* spare = Decay_If_Unstable(SPARE)
     );
     if (not Logical_Test(spare)) {
-        Init_Nulled(OUT);
+        Init_Null(OUT);
     }
     else if (Is_Cell_Erased(OUT) or not Is_Light_Null(OUT)) {
         Move_Cell(OUT, SPARE);
@@ -1775,7 +1775,7 @@ DECLARE_NATIVE(REMOVE_EACH)
         Fixed(Slot*) slot = Varlist_Fixed_Slots(&slot_tail, varlist);
         for (; slot != slot_tail; ++slot) {
             if (index == len) {  // Y on 2nd step of remove-each [x y] "abc"
-                Init_Nulled(SPARE);
+                Init_Null(SPARE);
                 require (
                   Write_Loop_Slot_May_Unbind_Or_Decay(slot, SPARE)
                 );
@@ -1862,7 +1862,7 @@ DECLARE_NATIVE(REMOVE_EACH)
         if (Is_Okay(out)) {  // pure logic required [1]
             keep = false;  // okay is remove
         }
-        else if (Is_Nulled(out)) {  // don't remove
+        else if (Is_Null(out)) {  // don't remove
             keep = true;
             Init_Heavy_Null(OUT);  // NULL reserved for BREAK signal
         }
@@ -2228,7 +2228,7 @@ DECLARE_NATIVE(MAP)
 
         switch (unwrap interrupt) {
           case LOOP_INTERRUPT_BREAK:
-            Init_Nulled(OUT);
+            Init_Null(OUT);
             goto finalize_map;
 
           case LOOP_INTERRUPT_AGAIN:
@@ -2243,7 +2243,7 @@ DECLARE_NATIVE(MAP)
         goto next_iteration;  // okay to skip
 
     if (Is_Cell_A_Veto_Hot_Potato(SPARE)) {
-        Init_Nulled(OUT);
+        Init_Null(OUT);
         goto finalize_map;
     }
 

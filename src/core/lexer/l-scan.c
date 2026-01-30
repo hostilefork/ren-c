@@ -465,7 +465,7 @@ static void Update_Error_Near_For_Line(
     if (transcode->file)
         Init_File(Slot_Init_Hack(&vars->file), unwrap transcode->file);
     else
-        Init_Nulled(Slot_Init_Hack(&vars->file));
+        Init_Null(Slot_Init_Hack(&vars->file));
 
     Init_Integer(Slot_Init_Hack(&vars->line), transcode->line);  // different
 }
@@ -3252,7 +3252,7 @@ Bounce Scanner_Executor(Level* level_)
     require (
       Read_Slot(nearest, &vars->nearest)
     );
-    if (Is_Nulled(nearest))  // only update if it doesn't have it [1]
+    if (Is_Null(nearest))  // only update if it doesn't have it [1]
         Update_Error_Near_For_Line(
             error, transcode, transcode->line, transcode->line_head
         );

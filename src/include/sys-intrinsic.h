@@ -41,7 +41,7 @@
 //
 // * Intrinsics can only return Bounce values of: nullptr, BOUNCE_OKAY,
 //   and the Level's out pointer.  nullptr can mean NEEDFUL_RESULT_0
-//   (fail/panic) or Init_Nulled(OUT) (falsey)
+//   (fail/panic) or Init_Null(OUT) (falsey)
 
 
 

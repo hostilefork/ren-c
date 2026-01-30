@@ -426,7 +426,7 @@ void Replug_Stack(Level* base, Stable* plug) {
     Stub* stub = Extract_Cell_Handle_Stub(plug);
     Set_Stub_Unreadable(stub);  // indicate diminished, but skip cleaner
     GC_Kill_Stub(stub);
-    Init_Nulled(plug);  // no longer needed
+    Init_Null(plug);  // no longer needed
 
     g_ts.top_level = L;  // make the jump deeper into the stack official...
 }}

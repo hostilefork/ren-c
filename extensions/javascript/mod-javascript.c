@@ -252,7 +252,7 @@ INLINE Stable* Value_From_Value_Id(heapaddr_t id) {
         return nullptr;
 
     Stable* v = cast(Stable*, Pointer_From_Heapaddr(id));
-    assert(not Is_Nulled(v));  // API speaks in nullptr only
+    assert(not Is_Null(v));  // API speaks in nullptr only
     return v;
 }
 
@@ -663,7 +663,7 @@ EXTERN_C void API_rebRejectNative_internal(
     if (error == nullptr) {  // Signals halt...not normal error [3]
         TRACE("JavaScript_Dispatcher() => throwing a halt");
 
-        Init_Nulled(OUT);
+        Init_Null(OUT);
     }
     else {
         assert(Is_Error(error));

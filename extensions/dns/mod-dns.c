@@ -182,7 +182,7 @@ DECLARE_NATIVE(DNS_ACTOR)
 
         Stable* host = Stable_Slot_Hack(Obj_Slot(spec, STD_PORT_SPEC_NET_HOST));
 
-        if (Is_Nulled(host)) {
+        if (Is_Null(host)) {
             //
             // Semantics of `read dns://` are open-ended.  Rebol2 gives back
             // the machine name.  Passing empty string to Windows's
@@ -257,7 +257,7 @@ DECLARE_NATIVE(DNS_ACTOR)
         switch (h_errno) {
           case HOST_NOT_FOUND:  // The specified host is unknown
           case NO_ADDRESS:  // (or NO_DATA) name is valid but has no IP
-            return Init_Nulled(OUT);  // "expected" failures, signal w/null
+            return Init_Null(OUT);  // "expected" failures, signal w/null
 
           case NO_RECOVERY:
             return "panic -[A nonrecoverable name server error occurred]-";

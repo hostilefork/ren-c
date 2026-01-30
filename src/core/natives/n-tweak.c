@@ -126,7 +126,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
         Data_Stack_At(Stable, picker_index)
     );
 
-    dual_arg = Init_Nulled_Signifying_Tweak_Is_Pick(Erase_ARG(DUAL));
+    dual_arg = Init_Null_Signifying_Tweak_Is_Pick(Erase_ARG(DUAL));
     USED(dual_arg);
 
 }} push_sub_if_necessary: {
@@ -175,7 +175,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     assert(sub == TOP_LEVEL);
     unnecessary(Drop_Action(sub));  // !! action is dropped, should it be?
 
-    if (Is_Nulled_Signifying_Slot_Unavailable(Level_Spare(parent)))
+    if (Is_Null_Signifying_Slot_Unavailable(Level_Spare(parent)))
         goto return_without_unbinding;
 
     Dual* dual_spare = As_Dual(Level_Spare(parent));
@@ -426,7 +426,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     Stable* stable_spare = As_Stable(Level_Spare(parent));
     if (Is_Logic(stable_spare)) {  // "success" even if unavailable [1]
         possibly(Is_Okay_Signifying_No_Writeback(stable_spare));
-        possibly(Is_Nulled_Signifying_Slot_Unavailable(stable_spare));
+        possibly(Is_Null_Signifying_Slot_Unavailable(stable_spare));
         goto return_success;
     }
 
@@ -749,7 +749,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 } calculate_pick_stack_limit: {
 
     StackIndex limit = stackindex_top;
-    if (Is_Nulled_Signifying_Tweak_Is_Pick(out))
+    if (Is_Null_Signifying_Tweak_Is_Pick(out))
         limit = stackindex_top + 1;
 
     if (stackindex == limit)
@@ -775,7 +775,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
             panic (unwrap error);
         }
 
-        if (Is_Nulled_Signifying_Slot_Unavailable(As_Stable(SPARE))) {
+        if (Is_Null_Signifying_Slot_Unavailable(As_Stable(SPARE))) {
           treat_like_pick_absent_signal:
             Copy_Cell(SPARE, Data_Stack_At(Element, stackindex));
             error = Error_Bad_Pick_Raw(As_Element(SPARE));
@@ -848,8 +848,8 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     //    (it just re-lifted it) so the undecayed won't make an unstable
     //    value here if the picker wasn't ^META.
 
-    if (Is_Nulled_Signifying_Tweak_Is_Pick(out)) {
-        assert(Is_Nulled(TOP_STABLE));
+    if (Is_Null_Signifying_Tweak_Is_Pick(out)) {
+        assert(Is_Null(TOP_STABLE));
       #if RUNTIME_CHECKS
         Unprotect_Cell(OUT);
       #endif
@@ -892,7 +892,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         goto return_success;
     }
 
-    if (Is_Nulled_Signifying_Slot_Unavailable(spare_writeback_dual)) {
+    if (Is_Null_Signifying_Slot_Unavailable(spare_writeback_dual)) {
         error = Error_Bad_Pick_Raw(Data_Stack_At(Element, stackindex));
         if (
             mode != ST_TWEAK_TWEAKING
@@ -921,7 +921,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     assert(error);
   #if RUNTIME_CHECKS
     Unprotect_Cell(OUT);
-    if (Is_Nulled_Signifying_Tweak_Is_Pick(OUT))
+    if (Is_Null_Signifying_Tweak_Is_Pick(OUT))
         Corrupt_Cell_If_Needful(OUT);  // so you don't think it picked null
   #endif
 

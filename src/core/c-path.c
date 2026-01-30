@@ -136,7 +136,7 @@ DECLARE_NATIVE(PICK)
     heeded (Init_Quasar(SCRATCH));  // carries flags...
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    Init_Nulled_Signifying_Tweak_Is_Pick(OUT);
+    Init_Null_Signifying_Tweak_Is_Pick(OUT);
 
     STATE = 1;
 

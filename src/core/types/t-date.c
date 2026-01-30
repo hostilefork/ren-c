@@ -830,7 +830,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
  dispatch_pick_or_poke: {
 
     if (Not_Lifted(dual)) {
-        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
+        if (Is_Null_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));
@@ -855,14 +855,14 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
 
       case SYM_TIME:
         if (not Does_Date_Have_Time(date))
-            Init_Nulled(OUT);
+            Init_Null(OUT);
         else
             Init_Time_Nanoseconds(OUT, nano);  // tz adjusted nano
         break;
 
       case SYM_ZONE:
         if (not Does_Date_Have_Zone(date))  // un-adjusted zone (obviously!)
-            Init_Nulled(OUT);
+            Init_Null(OUT);
         else
             Init_Time_Nanoseconds(
                 OUT,
@@ -900,7 +900,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
 
       case SYM_HOUR:
         if (not Does_Date_Have_Time(date))
-            Init_Nulled(OUT);
+            Init_Null(OUT);
         else {
             REB_TIMEF time;
             Split_Time(nano, &time);  // tz adjusted time
@@ -910,7 +910,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
 
       case SYM_MINUTE:
         if (not Does_Date_Have_Time(date))
-            Init_Nulled(OUT);
+            Init_Null(OUT);
         else {
             REB_TIMEF time;
             Split_Time(nano, &time);  // tz adjusted time
@@ -920,7 +920,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
 
       case SYM_SECOND:
         if (not Does_Date_Have_Time(date))
-            Init_Nulled(OUT);
+            Init_Null(OUT);
         else {
             REB_TIMEF time;
             Split_Time(nano, &time);  // tz adjusted time
@@ -973,7 +973,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
         break;
 
       case SYM_TIME:
-        if (Is_Nulled(poke)) {  // clear out the time component
+        if (Is_Null(poke)) {  // clear out the time component
             nano = NO_DATE_TIME;
             zone = NO_DATE_ZONE;
         }
@@ -990,7 +990,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Date)
         goto check_nanoseconds;
 
       case SYM_ZONE:
-        if (Is_Nulled(poke)) {  // clear out the zone component
+        if (Is_Null(poke)) {  // clear out the zone component
             zone = NO_DATE_ZONE;
         }
         else {

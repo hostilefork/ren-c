@@ -257,7 +257,7 @@ DECLARE_NATIVE(LIFT_P)
         return VOID_OUT;
 
     if (Is_Light_Null(v))
-        return Init_Nulled(OUT);
+        return Init_Null(OUT);
 
     return Copy_Lifted_Cell(OUT, v);
 }
@@ -307,7 +307,7 @@ DECLARE_NATIVE(UNLIFT_P)
         return VOID_OUT;
 
     if (Is_Light_Null(v))
-        return Init_Nulled(OUT);
+        return Init_Null(OUT);
 
     return Apply_Cfunc(NATIVE_CFUNC(UNLIFT), LEVEL);
 }

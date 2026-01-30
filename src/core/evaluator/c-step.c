@@ -250,11 +250,11 @@ Bounce Stepper_Executor(Level* L)
             Is_Cell_A_Veto_Hot_Potato(SPARE)
             and Not_Parameter_Flag(param, WANT_VETO)
         ){
-            Init_Nulled(OUT);
+            Init_Null(OUT);
             goto lookahead;
         }
         if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(SPARE)) {
-            Init_Nulled(SPARE);
+            Init_Null(SPARE);
         }
         else if (Parameter_Class(param) != PARAMCLASS_META) {
           require (
@@ -878,8 +878,8 @@ Bounce Stepper_Executor(Level* L)
     // http://stackoverflow.com/questions/17061967/c-switch-and-jump-tables
     //
     // Subverting the jump table optimization with specialized branches for
-    // fast tests like Any_Inert() and IS_NULLED_OR_VOID_OR_END() has shown
-    // to reduce performance in practice.  The compiler does the right thing.
+    // fast tests historically were shown to reduce performance.  Review if
+    // better tricks have come along.
     //
     // 1. The Stepper_Executor()'s state bytes are a superset of the
     //    Heart_Of() of processed values.  See the ST_STEPPER_XXX enumeration.
@@ -1194,7 +1194,7 @@ Bounce Stepper_Executor(Level* L)
         );
         if (Not_Cell_Stable(OUT)) {
             if (Is_Void(OUT) or Is_Trash(OUT))
-                Init_Nulled(OUT);
+                Init_Null(OUT);
             else if (Is_Action(OUT))
                 Deactivate_Action(OUT);
             else

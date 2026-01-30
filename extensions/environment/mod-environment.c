@@ -111,7 +111,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Environment)
     Option(const Stable*) poke;  // set to nullptr if removing
 
     if (Not_Lifted(dual)) {
-        if (Is_Nulled_Signifying_Tweak_Is_Pick(dual))
+        if (Is_Null_Signifying_Tweak_Is_Pick(dual))
             goto handle_pick;
 
         panic (Error_Bad_Poke_Dual_Raw(dual));

@@ -77,7 +77,7 @@ Bounce Typechecker_Dispatcher(Level* const L)
 
     Stable* v = Stable_Decayed_Intrinsic_Arg(LEVEL);
 
-    if (Is_Nulled(v))  // stop casual use of (integer? var) when null
+    if (Is_Null(v))  // stop casual use of (integer? var) when null
         return fail (Error_Type_Test_Null_Raw());
 
     Option(Type) type = Type_Of(v);
@@ -349,7 +349,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
         }
 
         if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(SPARE)) {
-            Init_Nulled(SPARE);
+            Init_Null(SPARE);
         }
         else if (Parameter_Class(param) != PARAMCLASS_META) {
           require (
@@ -845,7 +845,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
 
         return (
             Is_Possibly_Unstable_Value_Okay(v)
-            or Is_Nulled_Signifying_Unspecialized(v)
+            or Is_Null_Signifying_Unspecialized(v)
         );
     }
 
@@ -1251,7 +1251,7 @@ DECLARE_NATIVE(MATCH)
     Stable* test = ARG(TEST);
     Stable* v = ARG(VALUE);
 
-    if (Is_Nulled(v))  // [1]
+    if (Is_Null(v))  // [1]
         panic ("NULL input to MATCH not currently allowed, use TYPECHECK");
 
     if (not Typecheck_Uses_Spare_And_Scratch(LEVEL, v, test, SPECIFIED))

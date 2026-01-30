@@ -570,13 +570,13 @@ INLINE Result(Element*) Pop_Sequence(
 // to the WORD! '.' -- this could be extended to allow more blanks to get words
 // like `///` if that were deemed interesting.
 //
-INLINE Result(Stable*) Pop_Sequence_Or_Element_Or_Nulled(
+INLINE Result(Stable*) Pop_Sequence_Or_Element_Or_Null(
     Init(Stable) out,
     Heart sequence_heart,
     StackIndex base
 ){
     if (TOP_INDEX == base)  // nothing to pop
-        return Init_Nulled(out);
+        return Init_Null(out);
 
     if (TOP_INDEX - 1 == base) {  // only one item, use as-is if possible
         Move_Cell(out, TOP_ELEMENT);  // ensures element

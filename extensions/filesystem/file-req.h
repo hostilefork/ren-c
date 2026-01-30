@@ -110,7 +110,7 @@ INLINE Option(FileReq*) Filereq_Of_Port(const Stable* port)
     require (
       Read_Slot(state, state_slot)
     );
-    if (Is_Nulled(state))
+    if (Is_Null(state))
         return nullptr;  // no filereq, port not open
     if (not Is_Blob(state))
         panic ("Expected filereq to be a BLOB! or NULL");

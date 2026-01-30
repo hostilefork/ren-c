@@ -1494,7 +1494,7 @@ Result(None) Read_Slot_Meta(Sink(Value) out, const Slot* slot)
     assert(not Is_Cell_A_Bedrock_Drain(slot));
 
     if (Is_Cell_A_Bedrock_Hole(slot)) {
-        Init_Nulled_Signifying_Unspecialized(out);
+        Init_Null_Signifying_Unspecialized(out);
         return none;
     }
 

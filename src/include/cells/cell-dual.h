@@ -354,15 +354,15 @@ INLINE bool Is_Bedrock_Dual_An_Accessor(const Dual* dual) {
     x_cast(Bounce, Lift_Cell(OUT))
 
 #define LIFT_NULL_OUT_FOR_DUAL_PICK \
-    x_cast(Bounce, Lift_Cell(Init_Nulled(OUT)))  // lifted null: present + null
+    x_cast(Bounce, Lift_Cell(Init_Null(OUT)))  // lifted null: present + null
 
 #define NULL_OUT_SLOT_UNAVAILABLE  NULL_OUT  // non-lifted null: not present [1]
 
-#define Init_Nulled_Signifying_Slot_Unavailable(cell)  Init_Nulled(cell)
-#define Is_Nulled_Signifying_Slot_Unavailable(cell)  Is_Nulled(cell)
+#define Init_Null_Signifying_Slot_Unavailable(cell)  Init_Null(cell)
+#define Is_Null_Signifying_Slot_Unavailable(cell)  Is_Null(cell)
 
-#define Init_Nulled_Signifying_Tweak_Is_Pick(dual)  Init_Nulled(dual)
-#define Is_Nulled_Signifying_Tweak_Is_Pick(dual)  Is_Nulled(dual)
+#define Init_Null_Signifying_Tweak_Is_Pick(dual)  Init_Null(dual)
+#define Is_Null_Signifying_Tweak_Is_Pick(dual)  Is_Null(dual)
 
 #define OUT_UNLIFTED_DUAL_INDIRECT_PICK \
     (assert(not Any_Lifted(OUT)), x_cast(Bounce, OUT))  // e.g. ALIAS, GETTER

@@ -43,7 +43,7 @@ DECLARE_NATIVE(TYPE_OF)
 
     Stable* v = ARG(VALUE);
 
-    if (Is_Nulled(v))
+    if (Is_Null(v))
         return fail (Error_Type_Of_Null_Raw());  // caller can TRY if meant
 
     return COPY_TO_OUT(Datatype_Of(v));

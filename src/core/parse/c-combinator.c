@@ -347,7 +347,7 @@ DECLARE_NATIVE(OPT_COMBINATOR)
         return OUT;  // so return its result
 
     Copy_Cell(remainder, input);  // convey no progress made
-    return Init_Nulled(OUT);  // null result
+    return Init_Null(OUT);  // null result
 }}
 
 

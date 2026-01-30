@@ -1304,7 +1304,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     if (not slot)
         return NULL_OUT_SLOT_UNAVAILABLE;
 
-    if (Is_Nulled_Signifying_Tweak_Is_Pick(ARG(DUAL)))
+    if (Is_Null_Signifying_Tweak_Is_Pick(ARG(DUAL)))
         goto handle_pick;
 
     goto handle_poke;

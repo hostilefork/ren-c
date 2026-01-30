@@ -846,7 +846,7 @@ DECLARE_NATIVE(VACANCY_Q)
       Stable* stable = Decay_If_Unstable(v)
     );
 
-    return LOGIC_OUT(Is_Nulled(stable) or Is_None(stable));
+    return LOGIC_OUT(Is_Null(stable) or Is_None(stable));
 }
 
 

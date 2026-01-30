@@ -379,7 +379,7 @@ void Set_Location_Of_Error(
     DECLARE_STABLE (nearest);
     require (Read_Slot(nearest, &vars->nearest));
 
-    if (Is_Nulled(nearest))  // don't override scanner data [4]
+    if (Is_Null(nearest))  // don't override scanner data [4]
         Init_Near_For_Level(Slot_Init_Hack(&vars->nearest), where);
 
     L = where;
@@ -470,8 +470,8 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
         varlist = Copy_Varlist_Shallow_Managed(root_error);
 
         vars = ERR_VARS(varlist);
-        /*assert(Is_Nulled(&vars->type));*/  // TEMP! IGNORE
-        /*assert(Is_Nulled(&vars->id));*/
+        /*assert(Is_Null(&vars->type));*/  // TEMP! IGNORE
+        /*assert(Is_Null(&vars->id));*/
 
         require (
           Strand* copy = Copy_String_At(arg)
@@ -525,7 +525,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
                     Is_Text(Stable_Slot_Hack(correct_message))
                     or Is_Block(Stable_Slot_Hack(correct_message))
                 );
-                if (not Is_Nulled(message))
+                if (not Is_Null(message))
                     return fail (Error_Invalid_Error_Raw(arg));
 
                 Copy_Cell(
@@ -565,12 +565,12 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
         // good for general purposes.
 
         if (not (
-            (Is_Word(id) or Is_Nulled(id))
-            and (Is_Word(type) or Is_Nulled(type))
+            (Is_Word(id) or Is_Null(id))
+            and (Is_Word(type) or Is_Null(type))
             and (
                 Is_Block(message)
                 or Is_Text(message)
-                or Is_Nulled(message)
+                or Is_Null(message)
             )
         )){
             panic (Error_Invalid_Error_Raw(Varlist_Archetype(varlist)));
@@ -641,8 +641,8 @@ Error* Make_Error_From_Vaptr_Managed(
     DECLARE_STABLE (type);
     const Stable* message;  // Stack values ("movable") are allowed
     if (not id) {
-        Init_Nulled(id_value);
-        Init_Nulled(type);
+        Init_Null(id_value);
+        Init_Null(type);
         message = va_arg(*vaptr, const Stable*);
     }
     else {
@@ -706,7 +706,7 @@ Error* Make_Error_From_Vaptr_Managed(
             const void *p = va_arg(*vaptr, const void*);
 
             if (p == nullptr) {
-                Init_Nulled(slot);  // we permit both nulled cells and nullptr
+                Init_Null(slot);  // we permit both nulled cells and nullptr
             }
             else switch (Detect_Rebol_Pointer(p)) {
               case DETECTED_AS_END :
@@ -927,7 +927,7 @@ Error* Error_Hole_Spans_Newline(Level* L)
     if (label)
         Init_Word(action_name, unwrap label);
     else
-        Init_Nulled(action_name);
+        Init_Null(action_name);
 
     panic (Error_Hole_Spans_Newline_Raw(param_name, action_name));
 }
@@ -1416,7 +1416,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Error)
     // Protect against recursion. !!!!
     //
     if (not form) {
-        Init_Nulled_Signifying_Unspecialized(LOCAL(FORM));  // form = false;
+        Init_Null_Signifying_Unspecialized(LOCAL(FORM));  // form = false;
         return GENERIC_CFUNC(MOLDIFY, Any_Context)(LEVEL);
     }
 

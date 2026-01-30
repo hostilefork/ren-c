@@ -905,13 +905,13 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
 //    from a native.  See Native_Copy_Result_Untracked() for why.
 //
 // 2. The idea of NULL_OUT or VOID_OUT etc. is that there's an operation done
-//    on the output cell (Init_Nulled(OUT), Init_Void(OUT)).  BRANCHED_OUT
+//    on the output cell (Init_Null(OUT), Init_Void(OUT)).  BRANCHED_OUT
 //    might imply something simliar, like (Init_Branched(OUT)), but we break
 //    the pattern to and say OUT_BRANCHED to help cue that what you're
 //    returning is OUT's contents as-is, *asserting* that it was branched.
 //
 // 3. Once it was relatively trivial to say `return nullptr;` vs to say
-//    `return Init_Nulled(OUT);`, so it wasn't considered to be any big
+//    `return Init_Null(OUT);`, so it wasn't considered to be any big
 //    savings to not return the output cell pointer directly.  That was
 //    before Result(T), where more complex discernment is needed on the 0
 //    bounce state to decide if it's an error or not.  It's now worth it to
@@ -919,7 +919,7 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
 //
 // 4. Intrinsic typecheckers must return BOUNCE_OKAY or nullptr, so that they
 //    do not overwrite OUT.  This means that trying to make LOGIC(b) "more
-//    efficient by doing Init_Okay(OUT) or Init_Nulled(OUT) will break things.
+//    efficient by doing Init_Okay(OUT) or Init_Null(OUT) will break things.
 //
 // 5. `panic (UNHANDLED);` is a shorthand for something that's written often
 //    enough in IMPLEMENT_GENERIC() handlers that it seems worthwhile.
@@ -957,13 +957,13 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
         x_cast(Bounce, Init_Void_Signifying_Unbranched(OUT))
 
     #define NULL_OUT /* `return NULL_OUT` is better than `return nullptr` */ \
-        x_cast(Bounce, Init_Nulled(OUT))  // ...see [3] for why it's better!
+        x_cast(Bounce, Init_Null(OUT))  // ...see [3] for why it's better!
 
     #define NULL_OUT_BREAKING /* separate macro for VETOING not worth it */ \
-        x_cast(Bounce, Init_Nulled_Signifying_Break(OUT))  // [3]
+        x_cast(Bounce, Init_Null_Signifying_Break(OUT))  // [3]
 
     #define LOGIC_OUT(b) \
-        ((b) == true ? BOUNCE_OKAY : nullptr)  // no Init_Okay/Nulled()! [4]
+        ((b) == true ? BOUNCE_OKAY : nullptr)  // no Init_Okay/Null()! [4]
 
     #define TRASH_OUT  TRACK(Native_Trash_Result_Untracked(level_))
 
