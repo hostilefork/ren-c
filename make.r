@@ -1428,7 +1428,7 @@ libr3-core: make rebmake.object-library-class [
         ]
     ]]
     append depends spread map-each 'w file-base.generated [
-        gen-obj w %prep/ (<no-options> [])
+        gen-obj // [w %prep/ options: []]
     ]
 ]
 
@@ -1444,9 +1444,9 @@ main: make libr3-core [
 
     depends: reduce [
         either user-config.main [
-            gen-obj user-config.main (<no-directory> null) (<no-options> [])
+            gen-obj // [user-config.main directory: null options: []]
         ][
-            gen-obj file-base.main (join src-dir %main/) (<no-options> [])
+            gen-obj // [file-base.main (join src-dir %main/) options: []]
         ]
     ]
 ]
