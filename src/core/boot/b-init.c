@@ -351,10 +351,6 @@ static void Init_Root_Vars(void)
 
 } make_other_things: {
 
-    known_nullptr(g_feed_null_substitute) = Init_Lifted_Null(Alloc_Value());
-    Set_Cell_Flag(g_feed_null_substitute, FEED_HINT_ANTIFORM);
-    Protect_Cell(g_feed_null_substitute);
-
     require (
       known_nullptr(g_dispatcher_table) = Make_Flex(
         FLAG_FLAVOR(FLAVOR_DISPATCHERTABLE) | STUB_FLAG_DYNAMIC,
@@ -374,8 +370,6 @@ static void Shutdown_Root_Vars(void)
     Erase_Bounce_Wild(g_bounce_continuation);
     Erase_Bounce_Wild(g_bounce_delegation);
     Erase_Bounce_Wild(g_bounce_suspend);
-
-    rebReleaseAndNull(&g_feed_null_substitute);
 }
 
 

@@ -80,7 +80,7 @@
 typedef struct StubStruct Stub;  // forward decl for DEBUG_USE_UNION_PUNS
 
 
-//=//// BITS 0-7: NODE FLAGS //////////////////////////////////////////////=//
+//=//// BITS 0-7: BASE FLAGS //////////////////////////////////////////////=//
 //
 // See the defininitions of BASE_FLAG_XXX for the design points explaining
 // why the first byte of cells and stubs are engineered with these specific
@@ -351,8 +351,6 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 //
 #define CELL_FLAG_HINT \
     FLAG_LEFT_BIT(26)
-
-#define CELL_FLAG_FEED_HINT_ANTIFORM  CELL_FLAG_HINT
 
 
 //=//// CELL_FLAG_PROTECTED ///////////////////////////////////////////////=//

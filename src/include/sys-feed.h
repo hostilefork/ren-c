@@ -139,19 +139,11 @@ INLINE const Element* At_Feed(Feed* feed) {
     assert(Not_Feed_Flag(feed, NEEDS_SYNC));
     assert(feed->p != &PG_Feed_At_End);
 
-    const Element* elem = cast(Element*, feed->p);
-    if (
-        feed->p == &feed->fetched  // CELL_FLAG_NOTE may have other meaning!
-        and Get_Cell_Flag(elem, FEED_HINT_ANTIFORM)  // if not in this location
-    ){
-        DECLARE_VALUE (temp);
-        Copy_Cell(temp, elem);
-        assume (  // we put the flag on; we know it's a valid lift to unlift
-            Unlift_Cell_No_Decay(temp)
-        );
-        panic (Error_Bad_Antiform(temp));
-    }
-    return elem;
+    const Value* v = cast(Value*, feed->p);
+    if (Is_Antiform(v))
+        panic (Error_Bad_Antiform(v));
+
+    return As_Element(v);
 }
 
 INLINE const Element* Try_At_Feed(Feed* feed) {
@@ -215,38 +207,59 @@ INLINE void Finalize_Variadic_Feed(Feed* feed) {
 }
 
 
-// Function used by the scanning machinery when transforming a pointer from
-// the variadic API feed (the pointer already identified as a cell).
+// Antiforms aren't legal as "source code", so we use transformation trickery
+// to turn instances of antiforms into source code that evaluates to them.
 //
-// 1. The API enforces use of C's nullptr (0) as the signal for ~null~
-//    antiforms.  (That's handled by a branch that skips this routine.)
-//    But internally, cells have an antiform WORD! payload for this case,
-//    and those internal cells are legal to pass to the API.
+// The @ followed by a stable antiform will turn into a quasiform, and drop
+// the @ from the scan.  In evaluative contexts this reconstitutes the stable
+// antiform.  (In non-evaluative contexts it'll just be a quasiform; we could
+// also error on this case if it's not "top-level" in the scan.  But see what
+// happens if we tolerate it for now.)
 //
-// 2. Various mechanics rely on the array feed being a "generic array", that
-//    can be put into a TYPE_BLOCK.  This means it cannot hold antiforms
-//    (or voids).  But we want to hold antiforms and voids in suspended
-//    animation in case there is an @ or ^ operator in the feed that will
-//    turn them back into those forms.  So in those cases, lift it and set a
-//    cell flag to notify the machinery about the strange case.  (`At_Feed()`
-//    will error on it, but the @ and ^ code don't use `At_Feed()`)
+// An ^ followed by a stable or unstable antiform will turn the antiform into
+// a quasiform, but leave the ^ there.  This way if the antiform is actually
+// a void, it will be a vanishing one.  Similarly, it will just be an ^
+// followed by a quasiform in non-evaluative contexts.
 //
-INLINE const Element* Copy_Reified_Variadic_Feed_Cell(
-    Sink(Element) out,
-    const Value* v
+INLINE Result(None) Push_Reified_Feed_Cell_May_Rewrite_Stack(
+    const Value* v,
+    StackIndex stack_base
 ){
-    if (Is_Antiform(v)) {
-        if (Is_Light_Null(v))
-            assert(not Is_Api_Value(v));  // only internals can be nulled [1]
-
-        Copy_Lifted_Cell(out, v);
-        Set_Cell_Flag(out, FEED_HINT_ANTIFORM);  // `@` and `^` can handle [2]
+    if (not Is_Antiform(v)) {
+        Copy_Cell(PUSH(), v);
+        return none;
     }
-    else
-        Copy_Cell(out, As_Element(v));
 
-    return out;
-}
+    if (TOP_INDEX == stack_base)  // no preceding element in pushed code...
+        goto return_fail;  // ...hence no operator to mitigate antiform
+
+    if (Is_Pinned_Blank(TOP_STABLE)) {
+        DROP();  // drop the @ so pushed quasiform will evaluate;
+
+        if (Is_Cell_Stable(v))
+            Copy_Lifted_Cell(PUSH(), v);
+        else {
+            DECLARE_VALUE (temp);
+            Copy_Cell(temp, v);
+            trap (
+                Decay_If_Unstable(temp)
+            );
+            Copy_Lifted_Cell(PUSH(), temp);
+        }
+        return none;
+    }
+
+    if (Is_Metaform_Blank(TOP_STABLE)) {
+        dont(DROP());  // leave the ^ - eval'd quasiform will be as-is
+
+        Copy_Lifted_Cell(PUSH(), v);
+        return none;
+    }
+
+  return_fail: { /////////////////////////////////////////////////////////////
+
+    return fail ("Antiform in feed with no @ or ^ to handle it");
+}}
 
 
 // As we feed forward, we're supposed to be freeing this--it is not managed
@@ -304,13 +317,9 @@ INLINE Option(const Element*) Try_Reify_Variadic_Feed_At(
         // vs. putting it in fetched/MARKED_TEMPORARY...but that makes
         // this more convoluted.  Review.
 
-        Stable* single = As_Stable(Stub_Cell(inst1));
-        feed->p = single;
-        feed->p = Copy_Reified_Variadic_Feed_Cell(
-            &feed->fetched,
-            cast(Stable*, feed->p)
-        );
-        rebRelease(single);  // *is* the instruction
+        Value* v = Stub_Cell(inst1);
+        feed->p = Copy_Cell(&feed->fetched, v);
+        rebRelease(v);  // *is* the instruction
         break; }
 
         // This lets you use a symbol and it assumes you want a WORD!.  If all
@@ -357,7 +366,7 @@ INLINE void Force_Variadic_Feed_At_Cell_Or_End_May_Panic(Feed* feed)
 
     if (not feed->p) {  // libRebol's NULL (prohibited as an Is_Null() CELL)
 
-        feed->p = g_feed_null_substitute;
+        feed->p = LIB(NULL);
 
     } else switch (Detect_Rebol_Pointer(feed->p)) {
 
@@ -365,12 +374,9 @@ INLINE void Force_Variadic_Feed_At_Cell_Or_End_May_Panic(Feed* feed)
         feed->p = &PG_Feed_At_End;
         break;  // va_end() handled by Free_Feed() logic
 
-      case DETECTED_AS_CELL: {
-        const Value* v = u_cast(Value*, feed->p);
-        if (Is_Antiform(v)) {  // only acceptable if @ or ^ process it
-            Copy_Lifted_Cell(&feed->fetched, v);
-            Set_Cell_Flag(&feed->fetched, FEED_HINT_ANTIFORM);
-        }
+      case DETECTED_AS_CELL: {  // antiforms handled specially in feeds
+        const Value* v = cast(Value*, feed->p);
+        Copy_Cell(&feed->fetched, v);
         break; }
 
       case DETECTED_AS_STUB:  // e.g. rebQ, rebU, or a rebR() handle

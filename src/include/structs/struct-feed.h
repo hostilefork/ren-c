@@ -191,7 +191,7 @@ typedef struct {
     // is returned by Fetch_Next_in_Feed(), where arbitrary mutations can
     // be applied without corrupting the value they operate on.
     //
-    Element fetched;
+    Value fetched;
 
     // Feed sources are expressed as Stub-sized "splice" units.  This is big
     // enough for a cell to hold an array and an index, but it also lets

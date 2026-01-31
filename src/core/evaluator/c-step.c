@@ -86,7 +86,7 @@
 // value of that is.  These macros help make the code less ambiguous.
 //
 #undef At_Level
-#define L_next              cast(const Element*, L->feed->p)
+#define L_next              cast(const Value*, L->feed->p)
 
 #define L_next_gotten_raw   (&L->feed->gotten)
 #define L_next_gotten  (not Is_Gotten_Invalid(L_next_gotten_raw))
@@ -351,14 +351,11 @@ Bounce Stepper_Executor(Level* L)
         L_current_gotten_raw, L_next_gotten_raw
     );
 
-    if (Get_Cell_Flag(L_next, FEED_HINT_ANTIFORM)) {
-        assert(Is_Quasiform(L_next));
+    if (Is_Antiform(L_next))
         panic ("Antiform passed in through API, must use @ or ^ operators");
-    }
-    assert(LIFT_BYTE(L_next) >= NOQUOTE_3);  // enforced by API
-    Copy_Cell(CURRENT, L_next);
-    Fetch_Next_In_Feed(L->feed);
 
+    Copy_Cell(CURRENT, As_Element(L_next));
+    Fetch_Next_In_Feed(L->feed);
 
 } look_ahead_for_left_literal_infix: { ///////////////////////////////////////
 
@@ -385,7 +382,13 @@ Bounce Stepper_Executor(Level* L)
     //    reevaluation.  L_binding's conditionality should be reviewed for
     //    relevance in the modern binding model.
 
-    if (Is_Feed_At_End(L->feed) or Is_Blank(L_next))
+    if (Is_Feed_At_End(L->feed))
+        goto give_up_backward_quote_priority;
+
+    if (Is_Antiform(L_next))
+        panic ("Antiform passed in through API, must use @ or ^ operators");
+
+    if (Is_Blank(As_Element(L_next)))
         goto give_up_backward_quote_priority;
 
     assert(not L_next_gotten);  // Fetch_Next_In_Feed() cleared it
@@ -403,8 +406,11 @@ Bounce Stepper_Executor(Level* L)
       case TYPE_WORD: {
         Copy_Cell(PUSH(), CURRENT);
 
-        heeded (Copy_Cell(CURRENT, L_next));  // v-- L_binding bad here [2]
-        Bind_Cell_If_Unbound(CURRENT, Feed_Binding(L->feed));
+        heeded (Copy_Cell(CURRENT, As_Element(L_next)));
+        Bind_Cell_If_Unbound(
+            CURRENT,
+            Feed_Binding(L->feed)  // L_binding bad here [2]
+          );
         Metafy_Cell(CURRENT);  // need for unstable lookup
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
@@ -472,7 +478,10 @@ Bounce Stepper_Executor(Level* L)
     Copy_Cell_May_Bind(OUT, CURRENT, L_binding);  // left side in OUT [1]
 
     Force_Blit_Cell(L_current_gotten_raw, L_next_gotten_raw);
-    Copy_Cell(CURRENT, L_next);  // CURRENT now invoking word (->-, OF, =>)
+    Copy_Cell(
+        CURRENT,  // CURRENT now invoking word (->-, OF, =>)
+        As_Element(L_next)
+      );
     Fetch_Next_In_Feed(L->feed);  // ...now skip that invoking word
 
     if (
@@ -627,30 +636,22 @@ Bounce Stepper_Executor(Level* L)
   //
   //      https://forum.rebol.info/t/why-isnt-a-precise-synonym-for-the/2215
   //
-  // 3. We know all feed items w/FEED_HINT_ANTIFORM were synthesized in the
-  //    feed and so it should be safe to tweak the flag.  Doing so lets us
-  //    use The_Next_In_Feed() and Just_Next_In_Feed() which use At_Feed()
-  //    that will error on FEED_HINT_ANTIFORM to prevent suspended-animation
-  //    antiforms from being seen by any other part of the code.
 
     if (Is_Feed_At_End(L->feed))  // no literal to take as argument
         panic (Error_Need_Non_End(CURRENT));
 
     assert(Not_Feed_Flag(L->feed, NEEDS_SYNC));
-    const Element* elem = cast(Element*, L->feed->p);
 
-    bool antiform = Get_Cell_Flag(elem, FEED_HINT_ANTIFORM);  // [2]
-    Clear_Cell_Flag(m_cast(Element*, elem), FEED_HINT_ANTIFORM);  // [3]
-
-    Just_Next_In_Feed(L->out, L->feed);  // !!! review infix interop
-
-    if (antiform) {  // exception [2]
-        Undecayed_Antiformize_Unbound_Quasiform(L->out);  // we lifted, it's ok
+    if (Is_Antiform(L_next)) {
+        Copy_Cell(OUT, L_next);
         trap (
           Decay_If_Unstable(L->out)  // use ^ instead if you want unstable
         );
+        Fetch_Next_In_Feed(L->feed);
     }
-
+    else {  // need to honor CELL_FLAG_CONST, etc.
+        Just_Next_In_Feed(L->out, L->feed);  // !!! review infix interop
+    }
     goto lookahead;
 
 } default: { //// MISCELLANEOUS PINNED! TYPE /////////////////////////////////
@@ -732,10 +733,8 @@ Bounce Stepper_Executor(Level* L)
     if (Is_Feed_At_End(L->feed))  // no literal to take as argument
         panic (Error_Need_Non_End(CURRENT));
 
-    if (Get_Cell_Flag(L_next, FEED_HINT_ANTIFORM)) {
+    if (Is_Antiform(L_next)) {  // special featur: tolerate antiforms as-is
         Copy_Cell(OUT, L_next);
-        Undecayed_Antiformize_Unbound_Quasiform(OUT);  // all antiforms legal
-
         Fetch_Next_In_Feed(L->feed);
         goto lookahead;
     }
@@ -1694,8 +1693,11 @@ Bounce Stepper_Executor(Level* L)
       case TYPE_WORD: {  // only WORD! does infix now (TBD: CHAIN!) [2]
         Copy_Cell(PUSH(), OUT);  // save out if infix wants it...
 
-        heeded (Copy_Cell(CURRENT, L_next));  // v-- L_binding bad here [2]
-        Bind_Cell_If_Unbound(CURRENT, Feed_Binding(L->feed));
+        heeded (Copy_Cell(CURRENT, As_Element(L_next)));
+        Bind_Cell_If_Unbound(
+            CURRENT,
+            Feed_Binding(L->feed)  // L_binding bad here [2]
+          );
         Metafy_Cell(CURRENT);  // need for unstable lookup
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
@@ -1752,10 +1754,10 @@ Bounce Stepper_Executor(Level* L)
         not L_next_gotten
         or (
             not (
-                Is_Word(L_next)
+                Is_Word(As_Element(L_next))
                 and Is_Action(L_next_gotten_raw)
             )
-            and not Is_Frame(L_next)
+            and not Is_Frame(As_Element(L_next))
         )
         or not (infix_mode = Frame_Infix_Mode(L_next_gotten_raw))
     ){

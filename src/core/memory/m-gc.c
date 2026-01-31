@@ -489,6 +489,9 @@ static void Propagate_All_GC_Marks(void)
 // (unless told that it's not truncated, e.g. a debug mode that calls it
 // before any items are consumed).
 //
+// 1. va_copy() came into existence in C99, so this should not be called
+//    during garbage collection... only in error reporting or debug modes.
+//
 void Reify_Variadic_Feed_As_Array_Feed(
     Feed* feed,
     bool truncated
@@ -502,8 +505,10 @@ void Reify_Variadic_Feed_As_Array_Feed(
             Init_Quasi_Word(PUSH(), CANON(OPTIMIZED_OUT));
 
         do {
-            Copy_Cell_May_Bind(PUSH(), At_Feed(feed), Feed_Binding(feed));
-            assert(Not_Antiform(TOP));
+            const Value* v = cast(Value*, feed->p);
+            require (  // panic during GC is bad! [1]
+              Push_Reified_Feed_Cell_May_Rewrite_Stack(v, base)
+            );
             Fetch_Next_In_Feed(feed);
         } while (Not_Feed_At_End(feed));
 

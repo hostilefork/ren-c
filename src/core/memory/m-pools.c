@@ -1280,11 +1280,11 @@ void Assert_Pointer_Detection_Working(void)
     assert(Detect_Rebol_Pointer("") == DETECTED_AS_UTF8);
     assert(Detect_Rebol_Pointer("asdf") == DETECTED_AS_UTF8);
 
-    Cell* cell = g_feed_null_substitute;
+    Cell* cell = g_auto_trash_param;
     assert(Detect_Rebol_Pointer(cell) == DETECTED_AS_CELL);
     UNUSED(cell);
 
-    const Stub* stub = Word_Symbol(g_feed_null_substitute);
+    const Stub* stub = unwrap Parameter_Spec(g_auto_trash_param);
     assert(Detect_Rebol_Pointer(stub) == DETECTED_AS_STUB);
     UNUSED(stub);
 
