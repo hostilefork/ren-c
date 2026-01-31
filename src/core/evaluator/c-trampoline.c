@@ -222,8 +222,8 @@ Bounce Trampoline_From_Top_Maybe_Root(void)
         ){
             CATCH_THROWN(L->out, L);
 
-            if (Get_Level_Flag(L, AFRAID_OF_GHOSTS) and Is_Void(L->out))
-                Mark_Level_Out_As_Ghostly_Void(L);
+            if (Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY) and Is_Void(L->out))
+                Note_Level_Out_As_Void_To_Make_Heavy(L);
 
             goto result_in_out;
         }

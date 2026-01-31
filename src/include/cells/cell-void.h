@@ -1,6 +1,6 @@
 //
 //  file: %cell-void.h
-//  summary: "Unstable Antiform State of ~()~ Used For Opting Out"
+//  summary: "Unstable Antiform States of ~ and ~()~ Used For Vanishing"
 //  project: "Rebol 3 Interpreter and Run-time (Ren-C branch)"
 //  homepage: https://github.com/metaeducation/ren-c/
 //

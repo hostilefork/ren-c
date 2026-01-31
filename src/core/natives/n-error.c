@@ -94,7 +94,7 @@ DECLARE_NATIVE(ENRECOVER)
       Level* L = Make_Level_At(
         &Evaluator_Executor,
         code,
-        LEVEL_FLAG_AFRAID_OF_GHOSTS  // EVAL-like semantics?
+        LEVEL_FLAG_VANISHABLE_VOIDS_ONLY  // EVAL-BLOCK!-like semantics?
     ));
     Init_Void(Evaluator_Primed_Cell(L));
 

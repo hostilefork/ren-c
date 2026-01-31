@@ -256,7 +256,7 @@ DECLARE_NATIVE(REDUCE)
         goto process_out;
 
     if (Is_Void(SPARE))
-        goto next_reduce_step;  // don't pass ghosts to predicate [1]
+        goto next_reduce_step;  // don't pass voids to predicate [1]
 
     SUBLEVEL->executor = &Just_Use_Out_Executor;
     STATE = ST_REDUCE_RUNNING_PREDICATE;

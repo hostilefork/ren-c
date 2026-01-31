@@ -203,7 +203,7 @@ Bounce Group_Branch_Executor(Level* const L)
         &Evaluator_Executor,
         LEVEL->feed,
         (not LEVEL_FLAG_FORCE_HEAVY_BRANCH)
-            | (not LEVEL_FLAG_AFRAID_OF_GHOSTS)  // all voids act same here
+            | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // all voids act same
     ));
     Init_Void(Evaluator_Primed_Cell(sub));
     Push_Level_Erase_Out_If_State_0(SCRATCH, sub);
@@ -516,8 +516,8 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
   // 1. If you write (^x: all [<expr> ^value]) and ^value is a VOID!, you
   //    want the safety of the eval step to turn that void into a heavy
-  //    void which will cause the ANY to panic.  Only vanishable functions
-  //    like ELIDE should disappear by default.
+  //    void which will cause the ANY to panic, so you don't assign <expr>
+  //    to X.  Only vanishable functions should disappear by default.
   //
   // 2. If ANY/ALL succeed, they can't return VOID! or light null because
   //    that wouldn't be usable with ELSE/THEN.  But it wants to see VOID!,
@@ -536,7 +536,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
     Flags flags = (
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
-            | LEVEL_FLAG_AFRAID_OF_GHOSTS  // safety regarding last step [1]
+            | LEVEL_FLAG_VANISHABLE_VOIDS_ONLY  // safety for last step [1]
             | (not LEVEL_FLAG_FORCE_HEAVY_BRANCH)  // must see voids [2]
     );
 
@@ -803,10 +803,9 @@ DECLARE_NATIVE(CASE)
 } condition_result_in_spare: {  //////////////////////////////////////////////
 
   // 1. Expressions between branches are allowed to vaporize via vanishable
-  //    functions (e.g. ELIDE), but due to EVAL_FLAG AFRAID_OF_GHOSTS things
-  //    in the evaluation stepping mode, non-vanishable functions (things
-  //    like `if` or `opt`) will produce HEAVY VOID, and be seen in-band as
-  //    actual case values:
+  //    functions (e.g. ELIDE), but due to LEVEL_FLAG_VANISHABLE_VOIDS_ONLY,
+  //    non-vanishable functions (things like `if` or `opt`) will produce
+  //    HEAVY VOID, and be seen in-band as actual case values:
   //
   //        >> condition: null
   //        >> case [opt if condition [<a>] [print "Whoops?"] [<hmm>]]

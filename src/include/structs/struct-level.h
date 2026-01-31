@@ -79,14 +79,15 @@ STATIC_ASSERT(LEVEL_FLAG_1_IS_FALSE == BASE_FLAG_UNREADABLE);
 STATIC_ASSERT(LEVEL_FLAG_4_IS_TRUE == BASE_FLAG_CELL);
 
 
-//=//// LEVEL_FLAG_AFRAID_OF_GHOSTS /////////////////////////////////////////=//
+//=//// LEVEL_FLAG_VANISHABLE_VOIDS_ONLY //////////////////////////////////=//
 //
-// This marks levels that want to avoid the production of VOID! antiforms.
-// The flag is inherited by pushed levels, but if a function is specifically
-// marked as VANISHABLE then it will override the level's preference...and
-// there's also the `^` operator to make arbitrary evaluations voidable.
+// An evaluation step for a Level in this state that produces a VOID! will
+// turn that VOID! into an empty pack (heavy void) unless it comes from the
+// identity operator (`^`) or a function marked as vanishable.
 //
-#define LEVEL_FLAG_AFRAID_OF_GHOSTS \
+// The flag is inherited by pushed levels.
+//
+#define LEVEL_FLAG_VANISHABLE_VOIDS_ONLY \
     FLAG_LEFT_BIT(5)
 
 

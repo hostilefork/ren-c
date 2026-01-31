@@ -158,7 +158,7 @@ INLINE Value* Init_Void_Untracked(Init(Value) out) {
     Lift_Cell(Init_Void(out))
 
 
-//=//// GHOSTLY VOID! FLAG ////////////////////////////////////////////////=//
+//=//// "VOID TO MAKE HEAVY" FLAG /////////////////////////////////////////=//
 //
 // The Stepper_Executor() needs to turn VOID! into an empty PACK! if the
 // evaluation is "afraid of ghosts" (e.g. a multi-step operation that hasn't
@@ -168,12 +168,12 @@ INLINE Value* Init_Void_Untracked(Init(Value) out) {
 // the VOID! to carry the signal.
 //
 // 1. The flag is in the positive sense (i.e. if the flag is set, the VOID!
-//    is overwritten), because this way when the overwrite happens it also
+//    gets overwritten), because this way when the overwrite happens it also
 //    clears the flag, so Stepper_Executor() doesn't leak a stray signal that
 //    could have meaning to the next step (e.g. CELL_FLAG_NOTE is used by
 //    frame processing for tracking if a FRAME! cell has been typechecked)
 //
-// 2. Since "ghostly voids" only exist in OUT cells, it may be possible to
+// 2. Since "void to make heavy" voids only exist in OUT cells, we might could
 //    check the header against a fixed bit pattern without masking...since it
 //    is known that OUT cells don't (currently) have format bits on the cell.
 //    But this could run afoul of fancier uses of extra header bits that
@@ -181,20 +181,20 @@ INLINE Value* Init_Void_Untracked(Init(Value) out) {
 //    the masking for now.
 //
 
-#define CELL_FLAG_OUT_NOTE_GHOSTLY_VOID /* set if it *is* ghostly [1] */ \
+#define CELL_FLAG_OUT_NOTE_VOID_TO_MAKE_HEAVY /* set if needs change [1] */ \
     CELL_FLAG_NOTE
 
-#define Mark_Level_Out_As_Ghostly_Void(L) \
-    ((L)->out->header.bits |= CELL_FLAG_OUT_NOTE_GHOSTLY_VOID)
+#define Note_Level_Out_As_Void_To_Make_Heavy(L) \
+    ((L)->out->header.bits |= CELL_FLAG_OUT_NOTE_VOID_TO_MAKE_HEAVY)
 
-#define CELL_MASK_GHOSTLY_VOID \
-    (FLAG_KIND_BYTE(TYPE_BLANK) \
+#define CELL_MASK_VOID_TO_MAKE_HEAVY \
+    (FLAG_KIND_BYTE(HEART_BLANK_SIGNIFYING_VOID) \
         | FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1) \
-        | CELL_FLAG_OUT_NOTE_GHOSTLY_VOID)
+        | CELL_FLAG_OUT_NOTE_VOID_TO_MAKE_HEAVY)
 
-#define Is_Level_Out_Ghostly_Void(L) /* check with one mask operation [2] */ \
-    (((L)->out->header.bits & CELL_MASK_GHOSTLY_VOID) \
-        == CELL_MASK_GHOSTLY_VOID)
+#define Is_Level_Out_Noted_Void_To_Make_Heavy(L) /* one mask operation [2] */ \
+    (((L)->out->header.bits & CELL_MASK_VOID_TO_MAKE_HEAVY) \
+        == CELL_MASK_VOID_TO_MAKE_HEAVY)
 
 
 //=//// VOID! UNSET INTENT DOCUMENTATION //////////////////////////////////=//

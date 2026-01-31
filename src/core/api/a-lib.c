@@ -1236,7 +1236,8 @@ static Result(None) Undecayed_Run_Valist_And_Call_Va_End(  // va_end()s [1]
     Level* L = Make_Level(
         &Evaluator_Executor,
         feed,
-        LEVEL_MASK_NONE | (not LEVEL_FLAG_AFRAID_OF_GHOSTS)  // !!! correct?
+        LEVEL_MASK_NONE
+            | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // !!! correct?
     ) except (Error* e) {
         Free_Feed(feed);
         return fail (e);

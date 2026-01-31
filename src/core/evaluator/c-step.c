@@ -120,7 +120,7 @@
 #define Make_Action_Sublevel(action) \
     Make_Level(&Action_Executor, L->feed, \
       Get_Cell_Flag(action, WEIRD_VANISHABLE) ? LEVEL_MASK_NONE \
-        : (L->flags.bits & LEVEL_FLAG_AFRAID_OF_GHOSTS))
+        : (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY))
 
 
 //
@@ -285,11 +285,11 @@ Bounce Stepper_Executor(Level* L)
             panic ("Intrinsic dispatcher returned Irreducible Bounce");
 
         if (
-            Get_Level_Flag(L, AFRAID_OF_GHOSTS)
+            Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY)
             and Not_Cell_Flag(CURRENT, WEIRD_VANISHABLE)
             and Is_Void(OUT)
         ){
-            Mark_Level_Out_As_Ghostly_Void(L);
+            Note_Level_Out_As_Void_To_Make_Heavy(L);
         }
 
         Clear_Level_Flag(L, DISPATCHING_INTRINSIC);
@@ -589,8 +589,8 @@ Bounce Stepper_Executor(Level* L)
       Coerce_To_Antiform(OUT)
     );
 
-    if (Get_Level_Flag(L, AFRAID_OF_GHOSTS) and Is_Void(OUT))
-        Mark_Level_Out_As_Ghostly_Void(L);  // avoid accidents [2]
+    if (Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY) and Is_Void(OUT))
+        Note_Level_Out_As_Void_To_Make_Heavy(L);  // avoid accidents [2]
 
     STATE = cast(StepperState, TYPE_QUASIFORM);  // can't leave STATE_0
     goto lookahead;
@@ -759,7 +759,7 @@ Bounce Stepper_Executor(Level* L)
   // 1. We don't want situations like `^x: (<expr> ^y)` to assign <expr> to x
   //    just because y incidentally held a VOID!.  You need to be explicit
   //    with `^x: (<expr> ^ ^y)` to get that behavior, which would bypass the
-  //    LEVEL_FLAG_AFRAID_OF_GHOSTS which sequential evaluations in
+  //    LEVEL_FLAG_VANISHABLE_VOIDS_ONLY which sequential evaluations in
   //    Evaluator_Executor() use by default.
 
     heeded (CURRENT);
@@ -772,8 +772,8 @@ Bounce Stepper_Executor(Level* L)
 
     possibly(Not_Cell_Stable(OUT));
 
-    if (Get_Level_Flag(L, AFRAID_OF_GHOSTS) and Is_Void(OUT))
-        Mark_Level_Out_As_Ghostly_Void(L);  // avoid accidents [1]
+    if (Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY) and Is_Void(OUT))
+        Note_Level_Out_As_Void_To_Make_Heavy(L);  // avoid accidents [1]
 
     goto lookahead;
 
@@ -918,13 +918,13 @@ Bounce Stepper_Executor(Level* L)
 
     if (Is_Level_At_End(L)) {  // EVAL [,] must make VOID! [2]
         Init_Void(OUT);
-        dont(Mark_Level_Out_As_Ghostly_Void(L));
+        dont(Note_Level_Out_As_Void_To_Make_Heavy(L));
         goto finished;
     }
 
     if (In_Debug_Mode(64)) {  // simulate VOID! generation, sometimes [3]
         Init_Void(OUT);
-        dont(Mark_Level_Out_As_Ghostly_Void(L));
+        dont(Note_Level_Out_As_Void_To_Make_Heavy(L));
         goto finished;
     }
 
@@ -1175,7 +1175,7 @@ Bounce Stepper_Executor(Level* L)
             &Evaluator_Executor,
             CURRENT,
             L_binding,
-            LEVEL_MASK_NONE | (not LEVEL_FLAG_AFRAID_OF_GHOSTS)
+            LEVEL_MASK_NONE | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)
         ));
         Init_Void(Evaluator_Primed_Cell(sub));
         Push_Level_Erase_Out_If_State_0(SPARE, sub);
@@ -1261,7 +1261,7 @@ Bounce Stepper_Executor(Level* L)
     Invalidate_Gotten(L_next_gotten_raw);  // arbitrary code changes variables
 
     Flags flags = LEVEL_MASK_NONE
-        | (not LEVEL_FLAG_AFRAID_OF_GHOSTS);  // group semantics, not EVAL [1]
+        | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY);  // group semantics [1]
 
     require (
       Level* sub = Make_Level_At_Inherit_Const(
@@ -1923,7 +1923,7 @@ Bounce Stepper_Executor(Level* L)
 
     Clear_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);  // [1]
 
-    if (Is_Level_Out_Ghostly_Void(L))  // [2]
+    if (Is_Level_Out_Noted_Void_To_Make_Heavy(L))  // [2]
         Init_Heavy_Void(OUT);
 
   #if RUNTIME_CHECKS

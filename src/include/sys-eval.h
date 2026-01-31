@@ -171,7 +171,7 @@ INLINE bool Eval_Any_List_At_Core_Throws(
 }
 
 #define Eval_Any_List_At_Throws(out,list,binding) \
-    Eval_Any_List_At_Core_Throws(out, LEVEL_FLAG_AFRAID_OF_GHOSTS, \
+    Eval_Any_List_At_Core_Throws(out, LEVEL_FLAG_VANISHABLE_VOIDS_ONLY, \
         (list), (binding))
 
 

@@ -375,7 +375,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
     Flags flags = LEVEL_MASK_NONE;
 
     if (Is_Block(source))
-        flags |= LEVEL_FLAG_AFRAID_OF_GHOSTS;  // for EVAL:STEP consistency [1]
+        flags |= LEVEL_FLAG_VANISHABLE_VOIDS_ONLY;  // consistent EVAL:STEP [1]
     else {
         assert(Is_Group(source));
         if (ARG(STEP))

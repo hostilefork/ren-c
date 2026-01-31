@@ -57,9 +57,9 @@
 //    inline GROUP!, which prioritizes the idea that `expr` and `(expr)` will
 //    behave equivalently.
 //
-//    This manifests in terms of if you pass in LEVEL_FLAG_AFRAID_OF_GHOSTS
+//    This manifests in terms of passing in LEVEL_FLAG_VANISHABLE_VOIDS_ONLY
 //    at the beginning of the evaluation.  If you don't, then the evaluator
-//    only becomes "afraid" of voids (none-ifying the non-VANISHABLE cases)
+//    only starts turning voids into empty packs (in the non-VANISHABLE cases)
 //    once it sees a non-VOID! result.
 //
 //        void? eval [^ comment "hi"]    ; => ~okay~
@@ -110,7 +110,7 @@ static Level* Level_For_Stepping(Level* L) {  // see [A]
 //    (Note: The reason preloading was initially offered to clients was to
 //    allow a choice of HEAVY VOID vs. VOID, so contexts where vaporization
 //    would be "risky" could avoid VOID!.  A systemic and powerful way of
-//    controlling vaporization arose from LEVEL_FLAG_AFRAID_OF_GHOSTS which
+//    controlling vanishing came from LEVEL_FLAG_VANISHABLE_VOIDS_ONLY which
 //    gives a best-of-both-worlds approach: allowing multi-step evaluation
 //    contexts to convert void to heavy void in steps for functions that are
 //    not intrinically "VANISHABLE", with an operator to override the void
@@ -131,7 +131,7 @@ Bounce Evaluator_Executor(Level* const L)
     switch (STATE) {
       case ST_EVALUATOR_INITIAL_ENTRY:
         assert(Not_Level_Flag(L, TRAMPOLINE_KEEPALIVE));
-        possibly(Get_Level_Flag(L, AFRAID_OF_GHOSTS));  // GROUP! doesn't [B]
+        possibly(Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY));  // not GROUP! [B]
         assert(Is_Void(PRIMED));  // all cases VOID! at the moment [1]
         goto initial_entry;
 
@@ -153,7 +153,7 @@ Bounce Evaluator_Executor(Level* const L)
             &Stepper_Executor,
             L->feed,
             LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
-                | (L->flags.bits & LEVEL_FLAG_AFRAID_OF_GHOSTS)  // see [B]
+                | (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // [B]
         ));
         Push_Level_Erase_Out_If_State_0(OUT, sub);
 
@@ -198,7 +198,7 @@ Bounce Evaluator_Executor(Level* const L)
 
   // 1. Note that unless a function is declared as VANISHABLE, any VOID! it
   //    tries to return will be converted to empty PACK! for safety when in
-  //    an evaluation step marked by LEVEL_FLAG_AFRAID_OF_GHOSTS.  You have to
+  //    an evaluation step with LEVEL_FLAG_VANISHABLE_VOIDS_ONLY.  You have to
   //    override this explicitly with the `^` operator when you actually want
   //    a void...whether it's from a non-vanishable function or just a
   //    quasiform or ^META variable fetch.
@@ -232,8 +232,8 @@ Bounce Evaluator_Executor(Level* const L)
         goto start_new_step;  // leave previous result as-is in PRIMED
     }
 
-    possibly(Get_Level_Flag(step_level, AFRAID_OF_GHOSTS));
-    Set_Level_Flag(step_level, AFRAID_OF_GHOSTS);  // always unafraid now [B]
+    possibly(Get_Level_Flag(step_level, VANISHABLE_VOIDS_ONLY));
+    Set_Level_Flag(step_level, VANISHABLE_VOIDS_ONLY);  // always set now [B]
 
     if (Is_Level_At_End(step_level)) {
         possibly(Is_Failure(OUT));

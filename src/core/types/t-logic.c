@@ -499,7 +499,7 @@ INLINE bool Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
                     Deactivate_Action(OUT);
                 else
                     panic (
-                        ":WORD! or :TUPLE! unstable not ghost/trash/action"
+                        ":WORD! or :TUPLE! unstable not void/trash/action"
                     );
             }
         }

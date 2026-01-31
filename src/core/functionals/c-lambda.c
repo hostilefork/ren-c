@@ -137,7 +137,7 @@ Bounce Lambda_Dispatcher(Level* const L)
     Tweak_Cell_Binding(spare_rebound, L->varlist);
 
     Flags flags = LEVEL_MASK_NONE
-        | (not LEVEL_FLAG_AFRAID_OF_GHOSTS);  // allow vanish [1]
+        | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY);  // allow vanish [1]
 
     require (
       Level* sub = Make_Level_At_Core(

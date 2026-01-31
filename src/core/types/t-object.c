@@ -2085,7 +2085,7 @@ DECLARE_NATIVE(CONSTRUCT)
   //    of SET; this should be calling the internals for SET.  But also,
   //    CONSTRUCT may be dialected, e.g. (construct [a (10) ~b~ ^c]) to
   //    line up with the function locals dialect.  Just to get the system
-  //    working, this mimics SET's tolerance of trash and ghost.
+  //    working, this mimics SET's tolerance of trash and void.
 
     Value* adjusted_spare;
     if (Is_Non_Meta_Assignable_Unstable_Antiform(SPARE))  // [1] :-/

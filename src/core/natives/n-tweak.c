@@ -813,7 +813,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
                 continue;  // last non-meta pick can be unstable if hot-potato
             }
             if (Is_Lifted_Void(As_Stable(SPARE))) {
-                goto treat_like_pick_absent_signal;  // like before ghost pick
+                goto treat_like_pick_absent_signal;  // like before void pick
             }
             error = Error_Unstable_Non_Meta_Raw(
                 Data_Stack_At(Element, stackindex)
