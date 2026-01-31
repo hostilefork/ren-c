@@ -2576,79 +2576,94 @@ DECLARE_NATIVE(INSIST)
 }}
 
 
-static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
+// The WHILE native is used to implement UNTIL as well, with just a simple
+// flag to control if the exit condition for the loop is truthy or falsey.
+//
+#define LEVEL_FLAG_WHILE_IS_ACTUALLY_UNTIL  LEVEL_FLAG_MISCELLANEOUS
+
+
+//
+//  while: native [  ; note: UNTIL shares this implementation
+//
+//  "So long as a condition is not NULL, evaluate the body"
+//
+//      return: [<null> void! any-stable?]
+//      condition [<const> block! frame!]
+//      body [<const> block! frame!]  ; [A]
+//  ]
+//
+DECLARE_NATIVE(WHILE)
 {
-    INCLUDE_PARAMS_OF_WHILE;  // must have same parameters as UNTIL
+    INCLUDE_PARAMS_OF_WHILE;
 
     Element* condition = Element_ARG(CONDITION);
     Element* body = Element_ARG(BODY);
 
     enum {
-        ST_WHILE_OR_UNTIL_INITIAL_ENTRY = STATE_0,
-        ST_WHILE_OR_UNTIL_EVALUATING_CONDITION,
-        ST_WHILE_OR_UNTIL_EVALUATING_BODY
+        ST_WHILE_INITIAL_ENTRY = STATE_0,
+        ST_WHILE_EVALUATING_CONDITION,
+        ST_WHILE_EVALUATING_BODY
     };
 
     switch (STATE) {
-      case ST_WHILE_OR_UNTIL_INITIAL_ENTRY:
-        goto initial_entry;
-
-      case ST_WHILE_OR_UNTIL_EVALUATING_CONDITION:
-        goto condition_eval_in_spare;
-
-      case ST_WHILE_OR_UNTIL_EVALUATING_BODY:
-        goto body_eval_in_out;
-
-      default:
-        assert(false);
+      case ST_WHILE_INITIAL_ENTRY: goto initial_entry;
+      case ST_WHILE_EVALUATING_CONDITION: goto condition_result_in_spare;
+      case ST_WHILE_EVALUATING_BODY: goto body_result_in_out_or_thrown;
+      default: assert(false);
     }
 
   initial_entry: {  //////////////////////////////////////////////////////////
 
-  // 1. We *could* have CONTINUE in the *condition* as well as the body of a
-  //    WHILE/UNTIL skip the execution of the body of that loop, and run the
-  //    condition again.  :-/
-  //
-  //    That *may* be interesting for some stylized usage that puts complex
-  //    branching code in a condition.  But it adds some cost, and would
-  //    override the default meaning of CONTINUE continuing some enclosing
-  //    loop...which is free, and enables other strange stylized usages.
+  // 1. The condition can already signal to end *this* loop by being falsey.
+  //    It can "break" the loop and return NULL by evaluating to ~(veto)~,
+  //    or skip the body and re-run itself with ~(retry)~.  So it's better if
+  //    CONTINUE* in the condition stays bound to enclosing loops.
 
-    STATE = ST_WHILE_OR_UNTIL_EVALUATING_CONDITION;  // set before catching
-
-    Add_Definitional_Continue(body, LEVEL);  // not condition [1]
+    Add_Definitional_Continue(body, LEVEL);  // just body, not condition [1]
+    goto evaluate_condition;
 
 } evaluate_condition: {  /////////////////////////////////////////////////////
 
-    STATE = ST_WHILE_OR_UNTIL_EVALUATING_CONDITION;
+    STATE = ST_WHILE_EVALUATING_CONDITION;
+
+    assert(Not_Executor_Flag(ACTION, LEVEL, DISPATCHER_CATCHES));
     return CONTINUE(SPARE, condition);
 
-} condition_eval_in_spare: {  ////////////////////////////////////////////////
+} condition_result_in_spare: {  //////////////////////////////////////////////
 
-    if (Is_Cell_A_Done_Hot_Potato(SPARE))
-        goto return_out;
+    if (Is_Hot_Potato(SPARE)) {
+        if (Is_Cell_A_Done_Hot_Potato(SPARE))
+            goto return_out;  // treat DONE as iterator exhausted
+
+        if (Is_Cell_A_Retry_Hot_Potato(SPARE))
+            goto evaluate_condition;  // skip body and run condition again
+
+        if (Is_Cell_A_Veto_Hot_Potato(SPARE))
+            return NULL_OUT_VETOING;  // break loop and return null
+    }
 
     require (
       Stable* spare = Decay_If_Unstable(SPARE)
     );
     bool logic = Logical_Test(spare);
 
-    if (is_while) {
-        if (not logic)
-            goto return_out;  // falsey condition => last body result
-    }
-    else {  // is_until
+    if (Get_Level_Flag(LEVEL, WHILE_IS_ACTUALLY_UNTIL)) {  // until loop
         if (logic)
             goto return_out;  // truthy condition => last body result
+    }
+    else {  // while loop
+        if (not logic)
+            goto return_out;  // falsey condition => last body result
     }
 
 } invoke_loop_body: {
 
-    STATE = ST_WHILE_OR_UNTIL_EVALUATING_BODY;  // body result => OUT
+    STATE = ST_WHILE_EVALUATING_BODY;  // body result => OUT
+
     Enable_Dispatcher_Catching_Of_Throws(LEVEL);  // for break/continue
     return CONTINUE_BRANCH(OUT, body, SPARE);
 
-} body_eval_in_out: { ////////////////////////////////////////////////////////
+} body_result_in_out_or_thrown: { ////////////////////////////////////////////
 
     if (Loop_Body_Threw_And_Cant_Catch_Continue(OUT, LEVEL))
         return THROWN;
@@ -2678,43 +2693,21 @@ static Bounce While_Or_Until_Native_Core(Level* level_, bool is_while)
 
 
 //
-//  while: native [
-//
-//  "So long as a condition is truthy, evaluate the body"
-//
-//      return: [<null> void! any-stable?]
-//      condition [<const> block! frame!]  ; literals not allowed, [1]
-//      body [<const> block! frame!]  ; [A]
-//  ]
-//
-DECLARE_NATIVE(WHILE)
-//
-// 1. It was considered if `while true [...]` should infinite loop, and then
-//    `while false [...]` never ran.  However, that could lead to accidents
-//    like `while x > 10 [...]` instead of `while [x > 10] [...]`.  It is
-//    safer to require a BLOCK! vs. falling back on such behaviors.
-//
-//    (It's now easy for people to make their own weird polymorphic loops.)
-{
-    bool is_while = true;
-    return While_Or_Until_Native_Core(LEVEL, is_while);
-}
-
-
-//
 //  until: native [
 //
-//  "So long as a condition is falsey, evaluate the body"
+//  "So long as a condition is NULL, evaluate the body"
 //
 //      return: [<null> void! any-stable?]
-//      condition [<const> block! frame!]  ; literals not allowed, [1]
+//      condition [<const> block! frame!]
 //      body [<const> block! frame!]  ; [A]
 //  ]
 //
 DECLARE_NATIVE(UNTIL)
-//
-// 1. See WHILE:1
 {
-    bool is_while = false;
-    return While_Or_Until_Native_Core(LEVEL, is_while);
+    INCLUDE_PARAMS_OF_WHILE;  // UNTIL must have same parameters as WHILE
+
+    if (STATE == STATE_0)
+        Set_Level_Flag(LEVEL, WHILE_IS_ACTUALLY_UNTIL);  // invert condition
+
+    return Apply_Cfunc(NATIVE_CFUNC(WHILE), LEVEL);
 }

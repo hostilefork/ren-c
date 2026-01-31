@@ -80,23 +80,84 @@
     1 = f1
 )
 
-; CONTINUE out of a condition continues any enclosing loop (it does not mean
-; continue the LOOP whose condition it appears in)
+; WHILE loops can return PACK!
 (
-    n: 1
-    sum: 0
-    while [n < 10] [
-        n: n + 1
-        if n = 0 [
-            while [continue] [
-                panic "inner LOOP body should not run"
-            ]
-            panic "code after inner LOOP should not run"
-        ]
-        sum: sum + 1
+    count: 0
+    '~('1 '2)~ = lift while [count < 1] [
+        count: count + 1
+        pack [count count + 1]
     ]
-    sum = 9
 )
+
+; CONTINUE out of a condition continues any enclosing loop (it does not mean
+; continue the WHILE whose condition it appears in)
+;
+; However, evaluating the condition to ~(retry)~ will skip the body and run
+; the condition again.
+[
+    (all {
+        n: 0
+        body-completions: 0
+        expected: length of [1 3 5 7 9]
+        heavy-void? while [n < 10] [
+            n: n + 1
+            if even? n [
+                while [continue] [
+                    panic "inner LOOP body should not run"
+                ]
+                panic "code after inner LOOP should not run"
+            ]
+            body-completions: me + 1
+        ]
+        body-completions = expected
+    })
+
+    (all {
+        n: 0
+        body-completions: 0
+        expected: length of [1 3 5 7 9]
+        expected = while [n: n + 1, either even? n [~(retry)~] [n < 10]] [
+            body-completions: me + 1
+        ]
+        body-completions = expected
+    })
+]
+
+
+; BREAK out of a condition breaks any enclosing loop (it does not mean
+; break the WHILE whose condition it appears in)
+;
+; However, evaluating the condition to ~(veto)~ will end the loop and return
+; a NULL.
+[
+    (all {
+        n: 0
+        body-completions: 0
+        expected: length of [1 2 3 4]
+        null = while [n < 10] [
+            n: n + 1
+            if n = 5 [
+                while [break] [
+                    panic "inner LOOP body should not run"
+                ]
+                panic "code after inner LOOP should not run"
+            ]
+            body-completions: me + 1
+        ]
+        body-completions = expected
+    })
+
+    (all {
+        n: 0
+        body-completions: 0
+        expected: length of [1 2 3 4]
+        null = while [n: n + 1, either n = 5 [~(veto)~] [n < 10]] [
+            body-completions: me + 1
+        ]
+        body-completions = expected
+    })
+]
+
 
 ; THROW should stop the loop
 (1 = catch [let cycling: 'yes while [yes? cycling] [throw 1 cycling: 'no]])
