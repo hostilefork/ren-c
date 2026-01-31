@@ -100,20 +100,26 @@ typedef struct StubStruct Stub;  // forward decl for DEBUG_USE_UNION_PUNS
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// * VAR_MARKED_HIDDEN -- This uses the BASE_FLAG_MARKED bit on args in
-//   action frames, and in particular specialization uses it to denote which
-//   arguments in a frame are actually specialized.  This helps notice the
-//   difference during an APPLY of encoded partial refinement specialization
-//   encoding from just a user putting random values in a refinement slot.
+// * SLOT_MARKED_HIDDEN -- This uses the BASE_FLAG_MARKED bit on args in
+//   VarLists, corresponding to the usermode PROTECT:HIDE feature (which was
+//   fairly half-baked, but preserved in Ren-C due to applicability in
+//   FRAME! VarLists).
 //
-// * PARAMSPEC_SPOKEN_FOR -- When parameters are optimizing the blocks they
+// * PARAM_MARKED_SEALED -- Since Param* are Slot*, this is really the same
+//   thing as SLOT_MARKED_HIDDEN, but used when the particular emphasis is
+//   in FRAME! ParamLists.  This is the mechanic by which AUGMENT can add
+//   new parameters to a function frame that "override" existing specialized
+//   parameters, potentially having the same names.
+//
+// * TYPE_MARKED_SPOKEN_FOR -- When parameters are optimizing the blocks they
 //   receive, this is applied to any elements whose information was subsumed
 //   into parameter flags or optimization bytes.  If the parameter could not
 //   be fully optimized and needs to process the array, then anything with
 //   this mark on it can be skipped.
 //
-#define CELL_FLAG_VAR_MARKED_HIDDEN         BASE_FLAG_MARKED
-#define CELL_FLAG_PARAMSPEC_SPOKEN_FOR      BASE_FLAG_MARKED
+#define CELL_FLAG_SLOT_MARKED_HIDDEN        BASE_FLAG_MARKED
+#define CELL_FLAG_PARAM_MARKED_SEALED       BASE_FLAG_MARKED
+#define CELL_FLAG_TYPE_MARKED_SPOKEN_FOR    BASE_FLAG_MARKED
 
 
 //=//// CELL_FLAG_DONT_MARK_PAYLOAD_1 //////////////////////////////////////=//
@@ -372,17 +378,10 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 // applied... but it will be overwritten if you put another value in that
 // particular location.
 //
-// * STACK_NOTE_SEALED -- When building exemplar frames on the stack, you want
-//   to observe when a value should be marked as VAR_MARKED_HIDDEN.  But you
-//   aren't allowed to write "sticky" cell format bits on stack elements.  So
-//   the more ephemeral "note" is used on the stack element and then changed
-//   to the sticky flag on the paramlist when popping.
-//
 #define CELL_FLAG_NOTE \
     FLAG_LEFT_BIT(28)
 
 #define CELL_FLAG_NOTE_REMOVE  CELL_FLAG_NOTE
-#define CELL_FLAG_STACK_NOTE_SEALED  CELL_FLAG_NOTE
 
 // !!! These two should likely be unified, review the mechanics
 #define CELL_FLAG_SCRATCH_VAR_NOTE_ONLY_ACTION  CELL_FLAG_NOTE

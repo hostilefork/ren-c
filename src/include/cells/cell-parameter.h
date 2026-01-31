@@ -441,10 +441,19 @@ INLINE bool Not_Parameter_Checked_Or_Coerced(const Cell* cell) {
 // indicates they are then fixed at a value and hence specialized--so not part
 // of the public interface of the function.
 //
+// 1. CELL_FLAG_NOTE could be used for another meaning on PARAMETER! holes,
+//    since typechecking them is not meaningful.  But that would be somewhat
+//    obfuscating, so just assure it's not set for now.
+//
+// 2. CELL_FLAG_MARKED should also not be set, because you can't "seal" an
+//    unspecialized parameter.  It might be harder to reuse that flag for
+//    other purposes, as some generic enumerations check that flag and assume
+//    things can't be unspecialized parameters as set.
+//
 INLINE bool Is_Specialized(const Param* p) {
     if (Is_Cell_A_Bedrock_Hole(p)) {
-        assert(Not_Cell_Flag(p, PARAM_NOTE_TYPECHECKED));
-        assert(Not_Cell_Flag(p, VAR_MARKED_HIDDEN));
+        assert(Not_Cell_Flag(p, PARAM_NOTE_TYPECHECKED));  // [1]
+        assert(Not_Cell_Flag(p, PARAM_MARKED_SEALED));  // [2]
         return false;
     }
     return true;
@@ -465,7 +474,7 @@ INLINE const Slot* Known_Unspecialized(const Param* p) {
 // doing masking operations to preserve CELL_MASK_PERSIST.  So when proxying
 // specialized slots we can just take the bits directly.
 //
-// 1. "sealed" parameters in the ParamList carry CELL_FLAG_VAR_MARKED_HIDDEN.
+// 1. "sealed" parameters in the ParamList have CELL_FLAG_PARAM_MARKED_SEALED.
 //    This is integral to how AUGMENT can add symbols to a frame which exist
 //    already as locals or specialized parameters in the augmentee's frame.
 //    When optimized builds use Mem_Copy() to get the frame's arguments, we
@@ -484,7 +493,7 @@ INLINE const Slot* Known_Unspecialized(const Param* p) {
         Param* out,
         const Param* p
     ){
-        possibly(Get_Cell_Flag(p, VAR_MARKED_HIDDEN));  // [1]
+        possibly(Get_Cell_Flag(p, PARAM_MARKED_SEALED));  // [1]
         Blit_Cell_Untracked(out, p);
         Clear_Cell_Flag(out, PROTECTED);  // [2]
         return out;

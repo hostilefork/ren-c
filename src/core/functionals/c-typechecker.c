@@ -503,7 +503,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
 
   // 1. Some elements in the parameter spec array are accounted for in type
   //    checking by flags or optimization bytes.  There is no need to check
-  //    those here, just check things that don't have PARAMSPEC_SPOKEN_FOR.
+  //    those here, just check things that don't have TYPE_MARKED_SPOKEN_FOR.
   //
   // 2. [~word!~] matches QUASI-WORD? and ['integer!] matches QUOTED-INTEGER?
   //    and [''~any-series?~] matches DOUBLE_QUOTED-QUASI-ANY-SERIES?... etc.
@@ -512,14 +512,14 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
   //    on the meaning of quasiform or quoted WORD!s in the type spec, and
   //    we apply that further to sequences [e.g. [word!: /tuple!]]
   //
-  // 3. While TAG! will have PARAMSPEC_SPOKEN_FOR in a PARAMETER!, it does not
+  // 3. While TAG! will have TYPE_MARKED_SPOKEN_FOR in a PARAMETER!, it does not
   //    in a plain BLOCK! used with TYPECHECK.  TYPECHECK could pay to convert
   //    BLOCK! to PARAMETER! but it's cheaper if we are willing to process a
   //    block on the fly.  This handles <null> and <void> tags but it should
   //    probably have behavior for <opt> and other parameter spec tags, though
   //    it's tricky given that typecheck can't mutate the incoming value.
 
-    if (Get_Cell_Flag(at, PARAMSPEC_SPOKEN_FOR))  // already checked [1]
+    if (Get_Cell_Flag(at, TYPE_MARKED_SPOKEN_FOR))  // already checked [1]
         goto continue_loop;
 
     if (
@@ -899,7 +899,7 @@ bool Typecheck_Uses_Spare_And_Scratch(
     derived = SPECIFIED;
     match_all = false;
 
-    goto call_unoptimized_checker;  // for spec items not PARAMSPEC_SPOKEN_FOR
+    goto call_unoptimized_checker;  // for spec items not TYPE_MARKED_SPOKEN_FOR
 
 }} handle_non_parameter: {
 

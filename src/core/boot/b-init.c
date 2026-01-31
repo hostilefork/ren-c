@@ -275,7 +275,7 @@ static void Init_Action_Spec_Tags(void)
     Mem_Fill(optimized, 0, sizeof(uintptr_t));
 
     Set_Parameter_Flag(param, TRASH_DEFINITELY_OK);
-    Set_Cell_Flag(w, PARAMSPEC_SPOKEN_FOR);
+    Set_Cell_Flag(w, TYPE_MARKED_SPOKEN_FOR);
 
     Set_Parameter_Flag(param, AUTO_TRASH);
 

@@ -100,7 +100,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
 
           continue_unspecialized:
 
-            assert(Not_Cell_Flag(param, VAR_MARKED_HIDDEN));
+            assert(Not_Cell_Flag(param, PARAM_MARKED_SEALED));
             Blit_Param_Unprotect_If_Debug(arg, param);
 
             if (binder)

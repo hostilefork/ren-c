@@ -185,7 +185,7 @@ void Init_Evars(EVARS *e, const Element* v) {
 //
 // 1. A simple specialization of a function would provide a value that the
 //    function should see as an argument when it runs.  But layers above that
-//    will use VAR_MARKED_HIDDEN so higher abstractions will not be aware of
+//    will use PARAM_MARKED_SEALED so higher abstractions will not be aware of
 //    that specialized-out variable.
 //
 //    (Put another way: when a function copies an exemplar and uses it as its
@@ -205,7 +205,7 @@ bool Try_Advance_Evars(EVARS *e) {
             e->slot = unwrap Sea_Slot(
                 cast(SeaOfVars*, e->ctx), Word_Symbol(e->word), true
             );
-            if (Get_Cell_Flag(e->slot, VAR_MARKED_HIDDEN))
+            if (Get_Cell_Flag(e->slot, SLOT_MARKED_HIDDEN))
                 continue;
             e->keybuf = Word_Symbol(e->word);
             e->key = &e->keybuf;
@@ -233,14 +233,14 @@ bool Try_Advance_Evars(EVARS *e) {
             e->slot ? ++e->slot : nullptr
         )
     ){
-        if (e->slot and Get_Cell_Flag(e->slot, VAR_MARKED_HIDDEN))
+        if (e->slot and Get_Cell_Flag(e->slot, SLOT_MARKED_HIDDEN))
             continue;  // user-specified hidden bit, on the variable itself
 
         if (e->param) {
             if (
                 Get_Cell_Flag(
                     e->param,
-                    VAR_MARKED_HIDDEN  // hidden bit on *exemplar* [1]
+                    PARAM_MARKED_SEALED  // hidden bit on *exemplar* [1]
                 )){
                 assert(Is_Specialized(e->param));  // *not* anti PARAMETER!
                 continue;
@@ -731,7 +731,7 @@ SeaOfVars* Copy_Sea_Managed(SeaOfVars* original) {
 //
 // !!! Copying a context used to be more different from copying an ordinary
 // array.  But at the moment, much of the difference is that the marked bit
-// in cells gets duplicated (so new context has the same VAR_MARKED_HIDDEN
+// in cells gets duplicated (so new context has the same SLOT_MARKED_HIDDEN
 // settings on its variables).  Review if the copying can be cohered better.
 //
 VarList* Copy_Varlist_Extra_Managed(
@@ -770,7 +770,7 @@ VarList* Copy_Varlist_Extra_Managed(
         Copy_Cell_Core(  // trying to duplicate slot precisely
             dest,
             u_cast(Cell*, src),  // !!! PRECISE SLOT DUP (includes accessors)
-            CELL_MASK_ALL  // include VAR_MARKED_HIDDEN, PARAM_NOTE_TYPECHECKED
+            CELL_MASK_ALL  // include SLOT_MARKED_HIDDEN, PARAM_NOTE_TYPECHECKED
         );
 
         Flags flags = BASE_FLAG_MANAGED;  // !!! Review, which flags?
@@ -1376,7 +1376,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
         break;
 
       case SYM_HIDE:
-        Set_Cell_Flag(slot, VAR_MARKED_HIDDEN);
+        Set_Cell_Flag(slot, SLOT_MARKED_HIDDEN);
         break;
 
       default:

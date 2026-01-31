@@ -187,7 +187,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
   // The spec processing loop jumps here when the item's influence is fully
   // captured by PARAMETER_FLAG_XXX and the optimization bytes.
 
-    Set_Cell_Flag(dest, PARAMSPEC_SPOKEN_FOR);
+    Set_Cell_Flag(dest, TYPE_MARKED_SPOKEN_FOR);
     goto loop;
 
 } cant_optimize: {  //////////////////////////////////////////////////////////
@@ -195,7 +195,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
   // The spec processing loop jumps here when there's not an optimization
   // captured by PARAMETER_FLAG_XXX and the optimization bytes, and hence if
   // the optimization checks fail the typechecker has to physically walk the
-  // spec array and test the non-PARAMSPEC_SPOKEN_FOR items before deciding
+  // spec array and test the non-TYPE_MARKED_SPOKEN_FOR items before deciding
   // the typecheck failed.
 
     flags |= PARAMETER_FLAG_INCOMPLETE_OPTIMIZATION;
@@ -209,7 +209,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
 } process_spec_item_if_not_at_tail: {  ///////////////////////////////////////
 
-  // Each spec item gets processed, and if PARAMETER_FLAG_PARAMSPEC_SPOKEN_FOR
+  // Each spec item gets processed, and if PARAMETER_FLAG_TYPE_MARKED_SPOKEN_FOR
   // is not set then it will be considered an incomplete optimization, and
   // it may be necessary for typechecking to walk the spec block to avoid any
   // false negatives.
@@ -474,7 +474,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
     Freeze_Source_Shallow(copy);  // !!! copy and freeze should likely be deep
 
-    assert(Not_Cell_Flag(TOP_SLOT, VAR_MARKED_HIDDEN));
+    assert(Not_Cell_Flag(TOP_SLOT, PARAM_MARKED_SEALED));
     CELL_PARAMETER_PAYLOAD_2_FLAGS(TOP_SLOT) = flags;
 
     STATE = saved_state;

@@ -318,6 +318,12 @@ INLINE Cell* Data_Stack_Cell_At(StackIndex i) {
 
 // Note: g_ds.movable_top is just TOP, but accessing TOP asserts on ENDs
 //
+// 1. In theory, we could pre-erase the cells when expanding the stack, and
+//    then assume no one ever writes CELL_MASK_PERSIST bits into a stack cell.
+//    But erasing a cell is cheap (setting one platform-sized pointer slot
+//    to zero), and guards against a lot of leakage and mistakes.  Plus it
+//    lets people use persistent bits on the stack cells.
+//
 INLINE OnStack(Init(Slot)) PUSH(void) {
     Assert_No_DataStack_Pointers_Extant();
 
@@ -330,7 +336,7 @@ INLINE OnStack(Init(Slot)) PUSH(void) {
     assert(Is_Cell_Poisoned(g_ds.movable_top));
   #endif
 
-    Erase_Cell(g_ds.movable_top);
+    Force_Erase_Cell(g_ds.movable_top);  // erases CELL_MASK_PERSIST bits [1]
     return g_ds.movable_top;
 }
 

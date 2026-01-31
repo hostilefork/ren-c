@@ -920,14 +920,14 @@ Bounce Action_Executor(Level* L)
 
     for (; KEY != KEY_TAIL; ++KEY, ++PARAM, ++ARG) {
         if (Is_Specialized(PARAM)) {  // no typecheck info in this layer
-            if (Not_Cell_Flag(PARAM, VAR_MARKED_HIDDEN)) {
-                possibly(Get_Cell_Flag(ARG, VAR_MARKED_HIDDEN));
-                Clear_Cell_Flag(ARG, VAR_MARKED_HIDDEN);
+            if (Not_Cell_Flag(PARAM, PARAM_MARKED_SEALED)) {
+                possibly(Get_Cell_Flag(ARG, PARAM_MARKED_SEALED));
+                Clear_Cell_Flag(ARG, PARAM_MARKED_SEALED);
             }
             continue;  // digging should typecheck the ARG if not sealed [4]
         }
 
-        assert(Not_Cell_Flag(ARG, VAR_MARKED_HIDDEN));
+        assert(Not_Cell_Flag(ARG, PARAM_MARKED_SEALED));
 
         if (Is_Typechecked(ARG))  // residual typechecks from another pass...
             continue;  // !!! possibly not valid in redo situations?  Review.
@@ -1089,9 +1089,9 @@ Bounce Action_Executor(Level* L)
         PARAM = Phase_Params_Head(details);
 
         for (; KEY != KEY_TAIL; ++KEY, ++PARAM, ++ARG) {
-            if (Get_Cell_Flag(PARAM, VAR_MARKED_HIDDEN)) {
+            if (Get_Cell_Flag(PARAM, PARAM_MARKED_SEALED)) {
                 assert(inputs_only);
-                assert(Get_Cell_Flag(ARG, VAR_MARKED_HIDDEN));
+                assert(Get_Cell_Flag(ARG, PARAM_MARKED_SEALED));
                 continue;
             }
 

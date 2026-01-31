@@ -102,7 +102,7 @@ DECLARE_NATIVE(AUGMENT)
         Copy_Cell(PUSH(), param);
 
         if (Is_Specialized(param))
-            Set_Cell_Flag(TOP, STACK_NOTE_SEALED);  // seal parameters [1]
+            Set_Cell_Flag(TOP, PARAM_MARKED_SEALED);  // seal parameters [1]
     }
 
 } add_parameters_from_spec: {

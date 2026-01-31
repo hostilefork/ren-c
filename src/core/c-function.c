@@ -682,27 +682,16 @@ Result(ParamList*) Pop_Paramlist(
         const Symbol* symbol = Word_Symbol(Data_Stack_Cell_At(stackindex));
         OnStack(Param*) slot = Data_Stack_At(Param, stackindex + 1);
 
-        assert(Not_Cell_Flag(slot, VAR_MARKED_HIDDEN));  // use NOTE_SEALED
-
         // "Sealed" parameters do not count in the binding.  See AUGMENT for
         // notes on why we do this (you can augment a function that has a
         // local called `x` with a new parameter called `x`, and that's legal.)
         //
-        bool hidden;
-        if (Get_Cell_Flag(slot, STACK_NOTE_SEALED)) {
+        if (Get_Cell_Flag(slot, PARAM_MARKED_SEALED)) {
             assert(Is_Specialized(slot));
-
-            // !!! This flag was being set on an uninitialized param, with the
-            // remark "survives copy over".  But the copy puts the flag on
-            // regardless below.  Was this specific to RETURNs?
-            //
-            hidden = true;
         }
         else {
             if (not Try_Add_Binder_Index(binder, symbol, 1020))
                 duplicate = symbol;
-
-            hidden = false;
         }
 
         *key = symbol;
@@ -711,15 +700,12 @@ Result(ParamList*) Pop_Paramlist(
             param,
             slot,
             CELL_MASK_COPY
-                | CELL_FLAG_VAR_MARKED_HIDDEN
+                | CELL_FLAG_PARAM_MARKED_SEALED
         );
         if (Is_Cell_A_Bedrock_Hole(param))
             Set_Parameter_Flag(param, FINAL_TYPECHECK);
         else
             Set_Cell_Flag(param, PARAM_NOTE_TYPECHECKED);  // locals "checked"
-
-        if (hidden)
-            Set_Cell_Flag(param, VAR_MARKED_HIDDEN);
 
       #if DEBUG_PROTECT_PARAM_CELLS
         Protect_Cell(param);
