@@ -2904,7 +2904,7 @@ parsify: func [
     ]
 
     if not comb: any [  ; datatype dispatch, special case sequences [6]
-        if any-sequence? r [any [
+        ghostly if any-sequence? r [any [
             all [
                 blank? last r
                 comb: try state.combinators.(as type of r '*.)  ; hack!

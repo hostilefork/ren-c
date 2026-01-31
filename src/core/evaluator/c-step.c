@@ -1691,7 +1691,7 @@ Bounce Stepper_Executor(Level* L)
 
     switch (opt Type_Of_Unchecked(L_next)) {
       case TYPE_WORD: {  // only WORD! does infix now (TBD: CHAIN!) [2]
-        Copy_Cell(PUSH(), OUT);  // save out if infix wants it...
+        Blit_Cell(PUSH(), OUT);  // save out if infix wants it...
 
         heeded (Copy_Cell(CURRENT, As_Element(L_next)));
         Bind_Cell_If_Unbound(
@@ -1728,7 +1728,7 @@ Bounce Stepper_Executor(Level* L)
 
         STATE = saved_state;
         Corrupt_Cell_If_Needful(CURRENT);
-        Copy_Cell(OUT, TOP);
+        Force_Blit_Cell(OUT, TOP);
         DROP();
         break; }  // need to check for lookahead
 

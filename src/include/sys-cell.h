@@ -1244,6 +1244,14 @@ INLINE Cell* Force_Blit_Cell_Untracked(Cell* out, const Cell* c) {
     out->header = c->header;
     out->extra = c->extra;
     out->payload = c->payload;
+
+  #if DEBUG_TRACK_COPY_PRESERVES
+    out->file = c->file;
+    out->line = c->line;
+    out->tick = c->tick;
+    out->touch = c->touch;
+  #endif
+
     return out;
 }
 
@@ -1254,10 +1262,11 @@ INLINE Cell* Blit_Cell_Untracked(Cell* out, const Cell* c) {
    return Force_Blit_Cell_Untracked(out, c);
 }
 
-#define Blit_Cell(out,c)   TRACK(Blit_Cell_Untracked(out, c))
+#define Blit_Cell(out,c) \
+    MAYBE_TRACK(Blit_Cell_Untracked(out, c))
 
 #define Force_Blit_Cell(out,c) \
-    TRACK(Force_Blit_Cell_Untracked(out, c))
+    MAYBE_TRACK(Force_Blit_Cell_Untracked(out, c))
 
 
 //=//// CELL CONST INHERITANCE ////////////////////////////////////////////=//
