@@ -209,7 +209,7 @@ INLINE Element* Init_Relative_Block_At(
 
 INLINE Stable* Splicify(Exact(Stable*) v) {
     assert(Any_List(v) and LIFT_BYTE(v) == NOQUOTE_3);
-    KIND_BYTE(v) = TYPE_BLOCK;  // splice drops knowledge of list type
+    KIND_BYTE(v) = HEART_BLOCK_SIGNIFYING_SPLICE;  // forget former list type
     Tweak_Cell_Binding(u_cast(Element*, v), UNBOUND);
     Stably_Antiformize_Unbound_Fundamental(v);
     assert(Is_Splice(v));
@@ -217,7 +217,7 @@ INLINE Stable* Splicify(Exact(Stable*) v) {
 }
 
 INLINE Stable* Init_Splice_Untracked(Init(Stable) out, const Source* a) {
-    Init_Block(out, a);
+    Init_Any_List(out, HEART_BLOCK_SIGNIFYING_SPLICE, a);
     Stably_Antiformize_Unbound_Fundamental(out);
     assert(Is_Splice(out));
     return out;

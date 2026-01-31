@@ -573,10 +573,16 @@ for-each [pseudo spec] [
 
 first-antiform-index: index
 
+antiheart-aliases: copy []
+
 max-type: ~
 
 for-each-datatype 't [  ; now generate bytes for antiforms
     if t.antiname [
+        append antiheart-aliases cscape [t
+            --[#define HEART_${T.NAME}_SIGNIFYING_${T.ANTINAME}  HEART_ENUM(${T.NAME})]--
+        ]
+
         append memberships cscape [t
             --[/* $<t.antiname> - $<index> */  (0)]--
         ]
@@ -849,6 +855,14 @@ e-hearts/emit [rebs --[
     #define MAX_TYPEBYTE_ELEMENT  cast(TypeByte, TYPE_QUOTED)
 
     #define MAX_TYPEBYTE  cast(TypeByte, $<MAX-TYPE>)
+
+    /*
+     * ANTIFORM HEART ALIASES
+     *
+     * Helps avoid needing to annotate why you're using a strange heart value
+     * to indicate an antiform in source.
+     */
+    $[Antiheart-Aliases]
 
     /*
      * SINGLEHEART OPTIMIZED SEQUENCE DETECTION

@@ -6,7 +6,7 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Copyright 2012-2025 Ren-C Open Source Contributors
+// Copyright 2012-2026 Ren-C Open Source Contributors
 // Copyright 2012 REBOL Technologies
 // REBOL is a trademark of REBOL Technologies
 //
@@ -42,7 +42,9 @@
 //
 
 INLINE Value* Init_Pack_Untracked(Init(Value) out, const Source* a) {
-    Init_Any_List_At_Core_Untracked(out, TYPE_GROUP, a, 0, SPECIFIED);
+    Init_Any_List_At_Core_Untracked(
+        out, HEART_GROUP_SIGNIFYING_PACK, a, 0, SPECIFIED
+    );
     Unstably_Antiformize_Unbound_Fundamental(out);
     assert(Is_Pack(out));
     return out;
@@ -53,7 +55,7 @@ INLINE Value* Init_Pack_Untracked(Init(Value) out, const Source* a) {
 
 #define Init_Lifted_Pack(out,a) \
     TRACK(Quasify_Isotopic_Fundamental(Init_Any_List_At_Core_Untracked( \
-        (out), TYPE_GROUP, (a), 0, SPECIFIED)))
+        (out), HEART_GROUP_SIGNIFYING_PACK, (a), 0, SPECIFIED)))
 
 
 //=//// "HEAVY VOID" (EMPTY PACK! ANTIFORM) ///////////////////////////////=//
@@ -77,7 +79,7 @@ INLINE bool Is_Heavy_Void_Core(const Value* v) {
 
 INLINE Element* Init_Lifted_Heavy_Void_Untracked(Sink(Element) out) {
     Init_Any_List_At_Core_Untracked(
-        out, TYPE_GROUP, EMPTY_ARRAY, 0, SPECIFIED
+        out, HEART_GROUP_SIGNIFYING_PACK, EMPTY_ARRAY, 0, SPECIFIED
     );
     Quasify_Isotopic_Fundamental(out);
     return out;

@@ -357,7 +357,7 @@ INLINE bool Is_Newline(Stable* v) {
 
 INLINE bool Is_Tripwire_Core(Value* v) {
     if (not Cell_Has_Lift_Sigil_Heart(
-        v, UNSTABLE_ANTIFORM_1, SIGIL_0, TYPE_RUNE
+        v, UNSTABLE_ANTIFORM_1, SIGIL_0, HEART_RUNE_SIGNIFYING_TRASH
     )){
         return false;
     }
@@ -382,7 +382,7 @@ INLINE Value* Init_Tripwire_Untracked(Init(Value) out) {
 
 
 INLINE Value* Init_Labeled_Trash(Init(Value) out, const Symbol* label) {
-    Init_Utf8_Non_String_From_Strand(out, TYPE_RUNE, label);
+    Init_Utf8_Non_String_From_Strand(out, HEART_RUNE_SIGNIFYING_TRASH, label);
     Unstably_Antiformize_Unbound_Fundamental(out);
     assert(Is_Trash(out));
     return out;

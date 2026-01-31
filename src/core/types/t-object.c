@@ -1321,7 +1321,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     Context* c = Cell_Context(context);
 
     if (  // !!! BUGGY, new system needed
-        KIND_BYTE(OUT) == TYPE_FRAME
+        KIND_BYTE(OUT) == HEART_FRAME_SIGNIFYING_ACTION
         and LIFT_BYTE_RAW(OUT) == UNSTABLE_ANTIFORM_1
         and Frame_Coupling(OUT) == UNCOUPLED
         and Stub_Flavor(c) == FLAVOR_VARLIST

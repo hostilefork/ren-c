@@ -329,7 +329,10 @@ void Assert_Cell_Marked_Correctly(const Cell* v)
         Assert_Flex_Term_If_Needed(a);
         assert(Is_Base_Marked(a));
 
-        if (heart == TYPE_FENCE and LIFT_BYTE(v) == STABLE_ANTIFORM_2) {
+        if (
+            heart == HEART_FENCE_SIGNIFYING_DATATYPE
+            and LIFT_BYTE(v) == STABLE_ANTIFORM_2
+        ){
             const Stable* value = cast(Stable*, v);
             assert(
                 Datatype_Type(value)

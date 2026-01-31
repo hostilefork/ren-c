@@ -354,7 +354,7 @@ INLINE Element* Reify_If_Antiform(Value* v) {
 //
 
 INLINE Stable* Stably_Antiformize_Unbound_Fundamental_Core(Stable* v) {
-    assert(Heart_Of(v) != TYPE_WORD);  // no LOGIC_IS_OKAY handling
+    assert(Heart_Of(v) != HEART_WORD_SIGNIFYING_LOGIC);  // no LOGIC_IS_OKAY
     assert(LIFT_BYTE(v) == NOQUOTE_3);
     assert(Is_Stable_Antiform_Heart(Heart_Of_Unsigiled_Isotopic(v)));
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))
@@ -364,7 +364,7 @@ INLINE Stable* Stably_Antiformize_Unbound_Fundamental_Core(Stable* v) {
 }
 
 INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
-    assert(Heart_Of(v) != TYPE_WORD);  // no LOGIC_IS_OKAY handling
+    assert(Heart_Of(v) != HEART_WORD_SIGNIFYING_LOGIC);  // no LOGIC_IS_OKAY
     assert(LIFT_BYTE_RAW(v) == NOQUOTE_3);
     assert(Not_Stable_Antiform_Heart(Heart_Of_Unsigiled_Isotopic(v)));
     if (Is_Bindable_Heart(Unchecked_Heart_Of(v)))

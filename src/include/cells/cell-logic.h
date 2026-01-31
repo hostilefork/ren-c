@@ -238,14 +238,16 @@ INLINE bool Is_Lifted_Null(const Value* v) {
     ((Ensure_Readable(Possibly_Unstable(v))->header.bits & ( \
         CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_LOGIC_IS_OKAY \
     )) == ( \
-        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) \
+            | FLAG_HEART(HEART_WORD_SIGNIFYING_LOGIC) \
             | CELL_FLAG_LOGIC_IS_OKAY))
 
 #define Is_Okay(v) \
     ((Ensure_Readable(Possibly_Antiform(v))->header.bits & ( \
         CELL_MASK_HEART_AND_SIGIL_AND_LIFT | CELL_FLAG_LOGIC_IS_OKAY \
     )) == ( \
-        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) | FLAG_HEART(TYPE_WORD) \
+        FLAG_LIFT_BYTE(STABLE_ANTIFORM_2) \
+            | FLAG_HEART(HEART_WORD_SIGNIFYING_LOGIC) \
             | CELL_FLAG_LOGIC_IS_OKAY))
 
 

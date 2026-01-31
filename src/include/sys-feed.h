@@ -834,7 +834,7 @@ INLINE Value* Undecayed_Antiformize_Unbound_Quasiform(Exact(Value*) v) {
         assert(not Cell_Binding(v));
 
     switch (unwrap Heart_Of(v)) {
-      case TYPE_WORD:
+      case HEART_WORD_SIGNIFYING_LOGIC:
         if (Word_Id(v) == SYM_OKAY)
             Set_Cell_Flag(v, LOGIC_IS_OKAY);  // see %cell-logic.h
         else
@@ -842,16 +842,16 @@ INLINE Value* Undecayed_Antiformize_Unbound_Quasiform(Exact(Value*) v) {
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;
         break;
 
-      case TYPE_BLOCK:
-      case TYPE_FRAME:
-      case TYPE_FENCE:
-      case TYPE_RUNE:
+      case HEART_BLOCK_SIGNIFYING_SPLICE:
+      case HEART_FRAME_SIGNIFYING_ACTION:
+      case HEART_FENCE_SIGNIFYING_DATATYPE:
+      case HEART_RUNE_SIGNIFYING_TRASH:
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;
         break;
 
-      case TYPE_GROUP:
-      case TYPE_BLANK:
-      case TYPE_ERROR:
+      case HEART_GROUP_SIGNIFYING_PACK:
+      case HEART_BLANK_SIGNIFYING_VOID:
+      case HEART_ERROR_SIGNIFYING_FAILURE:
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;
         break;
 

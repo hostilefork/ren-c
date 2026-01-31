@@ -87,23 +87,23 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
     Option(Heart) heart = Heart_Of(elem);
 
     switch (opt heart) {
-      case TYPE_FRAME: {  // ACTION! (coerced most frequently?)
+      case HEART_FRAME_SIGNIFYING_ACTION: {
         if (Frame_Lens(elem))
             Tweak_Frame_Lens_Or_Label(elem, ANONYMOUS);  // show only inputs
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // [1]
         break; }
 
-      case TYPE_BLOCK: {  // SPLICE! (second most frequent?)
+      case HEART_BLOCK_SIGNIFYING_SPLICE: {
         Tweak_Cell_Binding(elem, UNBOUND);  // [2]
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // [1]
         break; }
 
-      case TYPE_GROUP: {  // PACK! (should packs validate their elements?)
+      case HEART_GROUP_SIGNIFYING_PACK: {
         Tweak_Cell_Binding(elem, UNBOUND);  // [2]
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // [1]
         break; }
 
-      case TYPE_FENCE: {  // DATATYPE! (canonize binding)
+      case HEART_FENCE_SIGNIFYING_DATATYPE: {
         Option(Patch*) patch;
         if (
             Series_Len_At(elem) != 1
@@ -121,7 +121,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // [1]
         break; }
 
-      case TYPE_WORD: {  // KEYWORD!
+      case HEART_WORD_SIGNIFYING_LOGIC: {
         elem->header.bits &= ~(
             CELL_FLAG_TYPE_SPECIFIC_A | CELL_FLAG_TYPE_SPECIFIC_B
         );
@@ -140,12 +140,12 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]
         break; }
 
-      case TYPE_RUNE:  // TRASH!
+      case HEART_RUNE_SIGNIFYING_TRASH:
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
 
-      case TYPE_BLANK:  // VOID!
-      case TYPE_ERROR:  // FAILURE! (any special work here?)
+      case HEART_BLANK_SIGNIFYING_VOID:
+      case HEART_ERROR_SIGNIFYING_FAILURE:
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
 

@@ -50,9 +50,9 @@
 INLINE bool Is_Stable_Antiform_Heart(Heart heart) {
     assert(Any_Isotopic_Type(heart));
     return (
-        heart == TYPE_WORD  // Is_Logic()
-        or heart == TYPE_BLOCK  // Is_Splice()
-        or heart == TYPE_FENCE  // Is_Datatype()
+        heart == HEART_WORD_SIGNIFYING_LOGIC
+        or heart == HEART_BLOCK_SIGNIFYING_SPLICE
+        or heart == HEART_FENCE_SIGNIFYING_DATATYPE
     );
 }
 
