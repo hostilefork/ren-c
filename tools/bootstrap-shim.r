@@ -113,8 +113,8 @@ sys.util/recover [
             return eval-free f
         ]
         f.next: okay
-        let block: (  ; no SET-BLOCK in boot, no # in boot (space -> #)
-            compose [(space) (join chain! [_ f.next3])]  ; synth optional
+        let block: (  ; no SET-BLOCK in boot, no ' or _ to make BLANK!/SPACE!
+            compose [(space) (join chain! [blank f.next3])]  ; synth optional
         )
         return eval compose [(setify block) eval-free f]
     ]
