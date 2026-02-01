@@ -205,7 +205,6 @@ Bounce Group_Branch_Executor(Level* const L)
         (not LEVEL_FLAG_FORCE_HEAVY_BRANCH)
             | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // all voids act same
     ));
-    Init_Void(Evaluator_Primed_Cell(sub));
     Push_Level_Erase_Out_If_State_0(SCRATCH, sub);
 
     STATE = ST_GROUP_BRANCH_RUNNING_GROUP;

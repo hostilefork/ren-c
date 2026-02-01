@@ -96,8 +96,6 @@ DECLARE_NATIVE(ENRECOVER)
         code,
         LEVEL_FLAG_VANISHABLE_VOIDS_ONLY  // EVAL-BLOCK!-like semantics?
     ));
-    Init_Void(Evaluator_Primed_Cell(L));
-
     Push_Level_Erase_Out_If_State_0(OUT, L);
 
     STATE = ST_ENRECOVER_EVALUATING;

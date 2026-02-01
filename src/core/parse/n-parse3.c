@@ -479,7 +479,6 @@ bool Process_Group_For_Parse_Throws(
         &Evaluator_Executor, group, derived, LEVEL_MASK_NONE
       )
     );
-    Init_Void(Evaluator_Primed_Cell(sub));
     Push_Level_Erase_Out_If_State_0(eval, sub);
 
     if (Trampoline_With_Top_As_Root_Throws())

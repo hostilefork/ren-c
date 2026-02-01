@@ -1177,7 +1177,6 @@ Bounce Stepper_Executor(Level* L)
             L_binding,
             LEVEL_MASK_NONE | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)
         ));
-        Init_Void(Evaluator_Primed_Cell(sub));
         Push_Level_Erase_Out_If_State_0(SPARE, sub);
         STATE = ST_STEPPER_SET_GROUP;
         return CONTINUE_SUBLEVEL(sub); }
@@ -1271,9 +1270,6 @@ Bounce Stepper_Executor(Level* L)
         L_binding,
         flags
     ));
-
-    Value* primed = Evaluator_Primed_Cell(sub);
-    Init_Void(primed);  // want to vaporize if all voids [1]
 
     Push_Level_Erase_Out_If_State_0(OUT, sub);
     return CONTINUE_SUBLEVEL(sub);

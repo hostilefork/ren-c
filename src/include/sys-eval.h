@@ -52,16 +52,6 @@
 //
 
 
-
-// See Evaluator_Executor().  This helps document the places where the primed
-// result is being loaded.
-//
-INLINE Sink(Value) Evaluator_Primed_Cell(Level* L) {
-    assert(L->executor == &Evaluator_Executor);
-    Force_Erase_Cell_Untracked(&L->u.eval.primed);
-    return &L->u.eval.primed;
-}
-
 // !!! This is for historical non-stackless code, which needs a place to write
 // output for a stepper that has a lifetime at least as long as the Level.
 // e.g. this is illegal:
@@ -168,7 +158,6 @@ INLINE bool Eval_Any_List_At_Core_Throws(
         context,
         flags
     ));
-    Init_Void(Evaluator_Primed_Cell(L));
 
     return Trampoline_Throws(out, L);
 }

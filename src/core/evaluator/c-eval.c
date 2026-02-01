@@ -97,9 +97,9 @@ Bounce Evaluator_Executor(Level* const L)
   // has its own Level.
   //
   // 1. If Stepper_Executor() pushes levels with TRAMPOLINE_KEEPALIVE, then
-  //    the `L` that Evaluator_Executor() gets might not be the TOP_LEVEL.
-  //    climbing the stack is very slightly "inefficient" but the optimized
-  //    case of not having a sublevel doesn't pay the cost.
+  //    the `L` that Evaluator_Executor() gets might not be the prior of
+  //    TOP_LEVEL.  Climbing the stack is very slightly "inefficient" but the
+  //    optimized case of not having a sublevel doesn't pay that "cost".
 
     switch (STATE) {
       case ST_EVALUATOR_INITIAL_ENTRY:
@@ -119,28 +119,18 @@ Bounce Evaluator_Executor(Level* const L)
 
 } initial_entry: {  //////////////////////////////////////////////////////////
 
-  // 1. Before a level is created for Evaluator_Executor(), the creator should
-  //    set the "primed" value for what they want as a result if there are
-  //    no non-invisible evaluations.  Theoretically any preloaded value is
-  //    possible (and we may want to expose that as a feature e.g. in EVAL).
-  //    But for now, VOID! is the presumed initial value at all callsites.
-  //
-  //    (Note: The reason preloading was initially offered to clients was to
-  //    allow a choice of HEAVY VOID vs. VOID, so contexts where vaporization
-  //    would be "risky" could avoid VOID!.  A systemic and powerful way of
-  //    controlling vanishing came from LEVEL_FLAG_VANISHABLE_VOIDS_ONLY which
-  //    gives a best-of-both-worlds approach: allowing multi-step evaluation
-  //    contexts to convert void to heavy void in steps for functions that are
-  //    not intrinically "VANISHABLE", with an operator to override the void
-  //    suppression.  But preloading is kept as it may be useful later.)
-
     possibly(L != TOP_LEVEL);
     possibly(Get_Level_Flag(L, TRAMPOLINE_KEEPALIVE));
 
     possibly(Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY));  // see flag definition
 
-    assert(Is_Void(PRIMED));  // all cases VOID! at the moment [1]
-    Set_Cell_Flag(PRIMED, PRIMED_NOTE_DISCARDABLE);  // void discardable
+    unnecessary(Force_Erase_Cell(PRIMED));  // !!! Prep_Level() does this ATM
+    Init_Blank_Untracked(
+        PRIMED,
+        FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1)
+            | CELL_FLAG_PRIMED_NOTE_DISCARDABLE
+    );
+    assert(Is_Void(PRIMED));
 
     Sync_Feed_At_Cell_Or_End_May_Panic(L->feed);
 

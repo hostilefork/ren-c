@@ -601,7 +601,6 @@ void Startup_Natives(const Element* boot_natives)
         LEVEL_MASK_NONE
             | LEVEL_FLAG_VANISHABLE_VOIDS_ONLY  // irrelevant, won't vaporize!
     ));
-    Init_Void(Evaluator_Primed_Cell(L));
     Push_Level_Erase_Out_If_State_0(dual_step, L);
 
   setup_native_dispatcher_enumeration: {

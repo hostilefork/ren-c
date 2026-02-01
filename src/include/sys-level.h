@@ -542,19 +542,6 @@ INLINE void Drop_Level(Level* L)
 }
 
 
-// 1. The evaluator executor uses some of its fixed-size storage in the Level
-//    for a cell, which the GC marks when it sees &Evaluator_Executor as what
-//    runs that level.  But recycling is done in the trampoline before the
-//    level gets a chance to run.  So it's hard for the GC to know if it's
-//    okay to mark at "current" cell.  We cheaply erase the cell in case the
-//    executor is the evaluator (it's just writing a single zero).  Review.
-//
-// 2. Previously just TOP_STACK was captured in L->baseline.stack_base, but
-//    then redundantly captured via a Snap_State() in Push_Level().  The
-//    responsibilities of Prep_Level() vs Push_Level() aren't clearly laid
-//    out, but some clients do depend on the StackIndex being captured before
-//    Push_Level() is called, so this snaps the whole baseline here.
-//
 INLINE Result(Level*) Prep_Level_Core(
     Executor* executor,
     Result(void*) preallocated,
@@ -582,20 +569,42 @@ INLINE Result(Level*) Prep_Level_Core(
 
     L->alloc_value_list = L;  // doubly link list, terminates in `L`
 
-    Corrupt_If_Needful(L->u);
-
   #if DEBUG_LEVEL_LABELS  // only applicable to L->u.action.label levels...
     L->label_utf8 = nullptr;  // ...but in Level for easy C watchlisting
   #endif
-
-    Snap_State(&L->baseline);  // [2] (also see notes on `baseline` in Level)
 
   #if TRAMPOLINE_COUNTS_TICKS
     L->tick = g_tick;
   #endif
 
+  corrupt_union_that_is_custom_per_executor: {
+
+  // 1. There's currently a situation where a Level can get pushed, and then
+  //    the Trampoline can run a Recycle() before the Level gets a chance to
+  //    run its STATE_0 `initial_entry`.  This means we can't leave bad bits
+  //    in places the GC expects to check.
+  //
+  //    This should be reviewed, as there would be advantages to giving each
+  //    Level a chance to initialize its executor-specific union storage
+  //    before any GC can run.  But the problem is that in an `initial_entry`
+  //    one Level may push another.  So this could hold off recycling
+  //    indefinitely, which would be a problem.
+
+    Corrupt_If_Needful(L->u);
+    Force_Erase_Cell(&L->u.eval.primed);  // must be valid before Recycle [1]
+
+} snapshot_baseline_state: {
+
+  // Previously just TOP_STACK was captured in L->baseline.stack_base, but
+  // then redundantly captured via a Snap_State() in Push_Level().  The
+  // responsibilities of Prep_Level() vs Push_Level() aren't clearly laid out,
+  // but some clients do depend on the StackIndex being captured before
+  // Push_Level() is called, so this snaps the whole baseline here.
+
+    Snap_State(&L->baseline);  // (also see notes on `baseline` in Level)
+
     return L;
-}
+}}
 
 #define Make_Level(executor,feed,flags) \
     Prep_Level_Core(executor, Raw_Pooled_Alloc(LEVEL_POOL), (feed), (flags))

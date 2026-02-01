@@ -53,8 +53,8 @@
 //     http://www.rebol.net/r3blogs/0086.html
 //
 
-INLINE Element* Init_Blank_Untracked(Init(Element) out) {
-    Reset_Cell_Header_Noquote(out, CELL_MASK_BLANK);
+INLINE Element* Init_Blank_Untracked(Init(Element) out, Flags flags) {
+    Reset_Cell_Header(out, CELL_MASK_BLANK | flags);
     Tweak_Cell_Binding(out, UNBOUND);  // Is_Bindable_Heart() due to niche use
     Corrupt_Unused_Field(out->payload.split.one.corrupt);
     Corrupt_Unused_Field(out->payload.split.two.corrupt);
@@ -63,7 +63,7 @@ INLINE Element* Init_Blank_Untracked(Init(Element) out) {
 }
 
 #define Init_Blank(out) \
-    TRACK(Init_Blank_Untracked(out))
+    TRACK(Init_Blank_Untracked((out), FLAG_LIFT_BYTE(NOQUOTE_3)))
 
 
 //=//// DECORATED BLANK! ("," DOES NOT RENDER) ////////////////////////////=//
@@ -144,18 +144,15 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
 // evaluation can be preserved.
 //
 
-INLINE Value* Init_Void_Untracked(Init(Value) out) {
-    Init_Blank_Untracked(out);
-    Unstably_Antiformize_Unbound_Fundamental(out);
-    assert(Is_Void(out));
-    return out;
-}
+#define Init_Void_Untracked(out) \
+    Init_Blank_Untracked((out), FLAG_LIFT_BYTE(UNSTABLE_ANTIFORM_1))
 
 #define Init_Void(out) \
     TRACK(Init_Void_Untracked(out))
 
 #define Init_Lifted_Void(out) \
-    Lift_Cell(Init_Void(out))
+    Init_Blank_Untracked(Possibly_Unstable(out), \
+        FLAG_LIFT_BYTE(QUASIFORM_4))
 
 
 //=//// "VOID TO MAKE HEAVY" FLAG /////////////////////////////////////////=//

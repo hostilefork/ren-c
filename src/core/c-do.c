@@ -252,13 +252,13 @@ bool Pushed_Continuation(
               FEED_MASK_DEFAULT | (branch->header.bits & FEED_FLAG_CONST)
             )
         );
+
         require (
           Level* L = Make_Level(
             &Evaluator_Executor, feed, flags
         ));
-        Init_Void(Evaluator_Primed_Cell(L));
-
         Push_Level_Erase_Out_If_State_0(out, L);
+
         goto pushed_continuation; }
 
       case TYPE_CHAIN: {  // effectively REDUCE

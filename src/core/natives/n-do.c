@@ -390,8 +390,6 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
         source,  // all lists treated the same [1]
         flags
     ));
-    if (not ARG(STEP))
-        Init_Void(Evaluator_Primed_Cell(sub));
     Push_Level_Erase_Out_If_State_0(OUT, sub);
 
     if (not ARG(STEP))  // plain evaluation to end, maybe void/none

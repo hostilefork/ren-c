@@ -1243,8 +1243,6 @@ static Result(None) Undecayed_Run_Valist_And_Call_Va_End(  // va_end()s [1]
         return fail (e);
     }
 
-    Init_Void(Evaluator_Primed_Cell(L));
-
     if (run_flags & RUN_VA_FLAG_INTERRUPTIBLE)
         L->flags.bits &= (~ LEVEL_FLAG_UNINTERRUPTIBLE);
     else
@@ -1453,7 +1451,6 @@ void API_rebPushContinuation_internal(
     require (
       Level* L = Make_Level_At(&Evaluator_Executor, block, flags)
     );
-    Init_Void(Evaluator_Primed_Cell(L));
     Push_Level_Erase_Out_If_State_0(u_cast(Value*, out), L);
 }
 
