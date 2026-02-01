@@ -1018,6 +1018,7 @@ void Needful_Panic_Abruptly(const char* error) {
 #define needful_impossible /* (cond) */   NEEDFUL_STATIC_ASSERT_DECLTYPE_BOOL
 #define needful_definitely /* (cond) */   NEEDFUL_STATIC_ASSERT_DECLTYPE_BOOL
 
+#define needful_inapplicable /* (expr) */ NEEDFUL_STATIC_ASSERT_DECLTYPE_VALID
 #define needful_unnecessary /* (expr) */  NEEDFUL_STATIC_ASSERT_DECLTYPE_VALID
 #define needful_dont /* (expr) */         NEEDFUL_STATIC_ASSERT_DECLTYPE_VALID
 #define needful_cant /* (expr) */         NEEDFUL_STATIC_ASSERT_DECLTYPE_VALID
@@ -1164,6 +1165,7 @@ void Needful_Panic_Abruptly(const char* error) {
     #define impossible /* (cond) */  needful_impossible
     #define definitely /* (cond) */  needful_definitely
 
+    #define inapplicable /* (expr) */ needful_inapplicable
     #define unnecessary /* (expr) */  needful_unnecessary
     #define dont /* (expr) */         needful_dont
     #define cant /* (expr) */         needful_cant

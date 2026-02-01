@@ -101,7 +101,10 @@ INLINE void Reset_Evaluator_Erase_Out(Level* L) {
         or L->executor == &Inert_Stepper_Executor
         or L->executor == &Evaluator_Executor
     );
-    LEVEL_STATE_BYTE(L) = STATE_0;
+    L->flags.bits &= (~ (
+        FLAG_STATE_BYTE(255)  // set state byte to 0
+            | EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE  // what else?
+    ));
     Erase_Cell(L->out);
 }
 

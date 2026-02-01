@@ -211,8 +211,6 @@ Bounce Stepper_Executor(Level* L)
     if (THROWING)
         return THROWN;  // no state to clean up
 
-    assert(L == TOP_LEVEL);
-
     assert(TOP_INDEX >= STACK_BASE);  // e.g. REDUCE accrues
     assert(OUT != SPARE);  // overwritten by temporary calculations
 
@@ -251,6 +249,7 @@ Bounce Stepper_Executor(Level* L)
             and Not_Parameter_Flag(param, WANT_VETO)
         ){
             Init_Null_Signifying_Vetoed(OUT);
+            Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
             goto lookahead;
         }
         if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(SPARE)) {
@@ -293,6 +292,7 @@ Bounce Stepper_Executor(Level* L)
         }
 
         Clear_Level_Flag(L, DISPATCHING_INTRINSIC);
+        Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
         goto lookahead; }
       #endif
 
@@ -308,7 +308,8 @@ Bounce Stepper_Executor(Level* L)
       case ST_STEPPER_SET_BLOCK:
         goto set_block_rightside_in_out;
 
-      case TYPE_FRAME:
+      case TYPE_FRAME:  // TBD: PURE functions not discardable
+        Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
         goto lookahead;
 
       case ST_STEPPER_BIND_OPERATOR_EVALUATING:
@@ -327,12 +328,11 @@ Bounce Stepper_Executor(Level* L)
         assert(false);
     }
 
-  #if RUNTIME_CHECKS
-    Evaluator_Expression_Checks_Debug(L);
-  #endif
-
-
   start_new_expression: {  ///////////////////////////////////////////////////
+
+  #if RUNTIME_CHECKS
+    /*Evaluator_Expression_Checks_Debug(L);*/
+  #endif
 
     Sync_Feed_At_Cell_Or_End_May_Panic(L->feed);
 
@@ -1261,7 +1261,8 @@ Bounce Stepper_Executor(Level* L)
     Invalidate_Gotten(L_next_gotten_raw);  // arbitrary code changes variables
 
     Flags flags = LEVEL_MASK_NONE
-        | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY);  // group semantics [1]
+        | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // group semantics [1]
+        | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE;  // need to check OUT_IS_DISCARDABLE
 
     require (
       Level* sub = Make_Level_At_Inherit_Const(
@@ -1278,6 +1279,11 @@ Bounce Stepper_Executor(Level* L)
     return CONTINUE_SUBLEVEL(sub);
 
 } group_or_meta_group_result_in_out: {
+
+    L->flags.bits |= (
+        SUBLEVEL->flags.bits & EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE
+    );
+    Drop_Level(SUBLEVEL);
 
     if (Is_Group(CURRENT))
         goto lookahead;  // not decayed, result is good
@@ -1324,6 +1330,7 @@ Bounce Stepper_Executor(Level* L)
         possibly(Not_Cell_Stable(OUT));  // unmeta'd item [1]
     }
 
+    Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
     goto lookahead;
 
 
@@ -1523,6 +1530,7 @@ Bounce Stepper_Executor(Level* L)
 
     Invalidate_Gotten(L_next_gotten_raw);  // cache tampers with lookahead [1]
 
+    Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
     goto lookahead;
 
 } set_group_result_in_spare: {
@@ -1581,6 +1589,7 @@ Bounce Stepper_Executor(Level* L)
     require (
       Set_Block_From_Instructions_On_Stack_To_Out(L)
     );
+    Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
     goto lookahead;
 
 
@@ -1933,6 +1942,7 @@ Bounce Stepper_Executor(Level* L)
     STATE = ST_STEPPER_FINISHED_DEBUG;  // must reset to STATE_0 if reused
   #endif
 
+    possibly(Not_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE));
     return OUT;
 
 

@@ -89,6 +89,8 @@ not-in-context:     "$1 is not in the specified context"
 
 trash-condition:    "Can't conditionally test TRASH!: $1"
 
+discarded-value:    "Non-discardable value discarded: $1"
+
 hole-spans-newline: "$1 is a <hole> param of $2, and can't span a newline"
 
 collectable-bound:  "Collectable $1 bound, use :PREBOUND if intended"

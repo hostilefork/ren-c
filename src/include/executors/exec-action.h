@@ -87,7 +87,7 @@
 // it starts running dispatch it has to leave the byte to the dispatcher.
 //
 #define ACTION_EXECUTOR_FLAG_IN_DISPATCH \
-    LEVEL_FLAG_26
+    LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT
 
 #define Is_Level_Fulfilling_Or_Typechecking(L) \
     Not_Executor_Flag(ACTION, L, IN_DISPATCH)
@@ -135,7 +135,7 @@
 // meaning during dispatch if desired (e.g. DELEGATE_CONTROL)
 //
 #define ACTION_EXECUTOR_FLAG_DOING_PICKUPS \
-    LEVEL_FLAG_28
+    LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE
 
 
 //=//// ACTION_EXECUTOR_FLAG_DISPATCHER_CATCHES ///////////////////////////=//

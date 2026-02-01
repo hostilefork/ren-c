@@ -356,3 +356,25 @@
     rtest: lambda ['@op [word!] '@thing] [reeval op thing]
     -1 = rtest negate 1
 )
+
+; Discardability
+[
+    ~discarded-value~ !! (
+        1 okay
+    )
+    ~discarded-value~ !! (
+        (1) okay
+    )
+    ~discarded-value~ !! (
+        ((1)) okay
+    )
+    (
+        ["else"] = (if 1 = 2 ["then"] ["else"] comment "vanish")
+    )
+    ~discarded-value~ !! (
+        if 1 = 2 ["then"] ["else"] comment "vanish" ~okay~
+    )
+    (
+        all [1 2 3] ~okay~
+    )
+]

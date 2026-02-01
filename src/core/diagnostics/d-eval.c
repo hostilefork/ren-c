@@ -293,6 +293,8 @@ void Evaluator_Expression_Checks_Debug(Level* L)
 {
     assert(L == TOP_LEVEL); // should be topmost level, still
 
+    assert(Not_Executor_Flag(EVAL, L, OUT_IS_DISCARDABLE));
+
     assert(Not_Executor_Flag(EVAL, L, DIDNT_LEFT_QUOTE_PATH));
     if (Not_Executor_Flag(EVAL, L, FULFILLING_ARG))
         assert(Not_Feed_Flag(L->feed, NO_LOOKAHEAD));
@@ -388,6 +390,7 @@ void Evaluator_Exit_Checks_Debug(Level* L) {
             | LEVEL_FLAG_UNINTERRUPTIBLE
             | EVAL_EXECUTOR_FLAG_FULFILLING_ARG
             | EVAL_EXECUTOR_FLAG_NO_RESIDUE
+            | EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE
         );
 
         if (filtered != 0) {

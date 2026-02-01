@@ -890,6 +890,11 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
 // downshift, and some pathological case (like Cascaders calling Cascaders
 // in some big regress) may be bad, but it seems rare.  May be removed.
 //
+// 1. If the Evaluator_Executor() runs the Stepper_Executor() and that stepper
+//    has pushed a LEVEL_FLAG_TRAMPOLINE_KEEPALIVE Level, you wind up with
+//    a deeper stack of Levels that triggers this assert.  This needs a review
+//    because the mechanism here is confusing.
+//
 #if NO_RUNTIME_CHECKS
     #define Adjust_Level_For_Downshift(L)  TOP_LEVEL
 #else
@@ -898,7 +903,8 @@ INLINE void Native_Copy_Result_Untracked(Level* L, const Value* v) {
         while (temp != L) {  // Cascaders can downshift Cascaders, etc.
             temp = temp->prior;
             assert(
-                temp->executor == &To_Or_As_Checker_Executor
+                temp->executor == &Evaluator_Executor  // stepper [1]
+                or temp->executor == &To_Or_As_Checker_Executor
                 or temp->executor == &Cascader_Executor
                 or temp->executor == &Copy_Quoter_Executor
             );

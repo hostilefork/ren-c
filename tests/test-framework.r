@@ -93,7 +93,7 @@ run-single-test: proc [
         ]
 
         quasi? result [
-            "test returned antiform:" (mold:limit result 40)
+            spaced ["test returned antiform:" (mold:limit result 40)]
         ]
         (elide result: unlift result)
 

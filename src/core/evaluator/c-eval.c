@@ -6,7 +6,7 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Copyright 2022-2025 Ren-C Open Source Contributors
+// Copyright 2022-2026 Ren-C Open Source Contributors
 //
 // See README.md and CREDITS.md for more information
 //
@@ -18,153 +18,156 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// The Evaluator_Executor() just calls Stepper_Executor() consecutively,
-// and if the output is invisible (e.g. the result of a COMMENT, ELIDE, etc.)
-// it won't overwrite the previous output.
+// The Evaluator_Executor() just calls Stepper_Executor() consecutively, and
+// if the output is invisible (e.g. the result of a COMMENT, ELIDE, ()) it
+// won't overwrite the previous output.
 //
 // This facilitates features like:
 //
 //    >> eval [1 + 2 comment "hi"]
 //    == 3
 //
-// The 1 + 2 evaluated to 3.  If we merely called the Stepper_Executor()
-// again on the same output cell, the comment would evaluate to an antiform
-// comma e.g. a VOID (~ antiform).  That would overwrite the 3.  So the
-// Evaluator_Executor() has a holding cell for the last result that it does
-// not overwrite when invisible content comes along as the next value.
+// The 1 + 2 evaluated to 3.  If we called the Stepper_Executor() directly
+// again on the same output cell, the comment would write a VOID! cell there.
+// That would overwrite the 3.  So the Evaluator_Executor() has a holding cell
+// ("PRIMED") for the last result that it does not overwrite when invisible
+// content comes along as the next value.
 //
 //=//// NOTES /////////////////////////////////////////////////////////////=//
 //
-// A. The reason this isn't done with something like a DO_TO_END flag that
-//    controls a mode of the Stepper_Executor() is so the stepper can
-//    have its own Level in a debugger.  If it didn't have its own Level,
-//    then in order to keep alive it could not return a result to the
-//    Trampoline until it had reached the end.  Thus, a generalized debugger
-//    watching for finalized outputs would only see one final output--instead
-//    of watching one be synthesized for each step.
+// A. The reason Evaluator_Executor() exists and isn't just a modality of the
+//    Stepper_Executor() (e.g. something like a DO_TO_END flag) is so there
+//    can be a mode where the stepper has its own Level in a debugger.  If it
+//    couldn't do that, then in order to keep alive it could not return a
+//    result to the Trampoline until it reached the end.  Thus, a generalized
+//    debugger watching for finalized outputs would only see one final output,
+//    vs. watching one be synthesized for each step.
 //
 //    ...BUT a performance trick in Evaluator_Executor() is that if you're NOT
-//    debugging, it can actually avoid making its own Level structure.  It's
+//    debugging, it can actually avoid a separate Level for the stepper.  It's
 //    able to use a Cell in the Level structure for its holding of the last
-//    result, and actually just passes through to the Stepper_Executor().
-//
-// B. There are effectively two different ways to model multi-step evaluation
-//    in terms of how VOID! (the ~ antiform) is treated.  One is a sort of
-//    regimented approach where the idea is that you want the aggregate
-//    evaluation of a BLOCK! to be something that is comprised of distinct
-//    EVAL:STEP calls, which handle VOID! in an identical way on each step.
-//    The other modality is more based around the idea of things like an
-//    inline GROUP!, which prioritizes the idea that `expr` and `(expr)` will
-//    behave equivalently.
-//
-//    This manifests in terms of passing in LEVEL_FLAG_VANISHABLE_VOIDS_ONLY
-//    at the beginning of the evaluation.  If you don't, then the evaluator
-//    only starts turning voids into empty packs (in the non-VANISHABLE cases)
-//    once it sees a non-VOID! result.
-//
-//        void? eval [^ comment "hi"]    ; => ~okay~
-//        void? (eval [^ comment "hi"])  ; => should also be ~okay~
-//
-//    But if you start afraid, then all are identically afraid, e.g.:
-//
-//        eval:step [eval [^ comment "hi"]]    ; => HEAVY VOID, not VOID!
-//        eval:step [^ eval [^ comment "hi"]]  ; => VOID!
-//
-//    This divergence of evaluator styles is a natural outcome of the needs
-//    of EVAL-the-function and GROUP!-the-syntax-tool.  They are different
-//    by necessity.
+//    result, and call the Stepper_Executor() on the same Level* (`L`).
 //
 
 #include "sys-core.h"
 
 
-#define PRIMED  &L->u.eval.primed
+#define PRIMED  (&L->u.eval.primed)
 
 
-static bool Using_Sublevel_For_Stepping(Level* L) {  // see [A]
-    if (L == TOP_LEVEL)
-        return false;
-    assert(TOP_LEVEL->prior == L);
-    assert(TOP_LEVEL->executor == &Stepper_Executor);
-    return true;
-}
-
-static Level* Level_For_Stepping(Level* L) {  // see [A]
-    if (L == TOP_LEVEL)
-        return L;
-    assert(TOP_LEVEL->prior == L);
-    assert(TOP_LEVEL->executor == &Stepper_Executor);
-    return TOP_LEVEL;
-}
+// The Stepper keeps track of whether its output Cell is discardable or not.
+// We have to do the next eval to know if it's going to be invisible (and
+// if it is, then the previous result may not count as discarded):
+//
+//   >> if 1 = 1 [print "then"] [print "else"] elide print "Vanish!"
+//   then
+//   Vanish!
+//   == [print "else"]  ; would have been an error if PRINT not ELIDE'd
+//
+// So we need to save the DISCARDABLE flag somewhere.  The PRIMED cell is a
+// convenient place, but maybe there's a cheaper way to do it?
+//
+// Note: Bit chosen to match EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE
+//
+#define CELL_FLAG_PRIMED_NOTE_DISCARDABLE  CELL_FLAG_NOTE
 
 
 //
 //  Evaluator_Executor: C
 //
-// 1. *Before* a level is created for Evaluator_Executor(), the creator should
-//    set the "primed" value for what they want as a result if there
-//    are no non-invisible evaluations.  Theoretically any preloaded value is
-//    possible (and we may want to expose that as a feature e.g. in EVAL).
-//    But for now, VOID! is the presumed initial value at all callsites.
-//
-//    (Note: The reason preloading was initially offered to clients was to
-//    allow a choice of HEAVY VOID vs. VOID, so contexts where vaporization
-//    would be "risky" could avoid VOID!.  A systemic and powerful way of
-//    controlling vanishing came from LEVEL_FLAG_VANISHABLE_VOIDS_ONLY which
-//    gives a best-of-both-worlds approach: allowing multi-step evaluation
-//    contexts to convert void to heavy void in steps for functions that are
-//    not intrinically "VANISHABLE", with an operator to override the void
-//    suppression.  But preloading is kept as it may be useful later.)
-//
 Bounce Evaluator_Executor(Level* const L)
 {
     USE_LEVEL_SHORTHANDS (L);
 
-    enum {
-        ST_EVALUATOR_INITIAL_ENTRY = STATE_0,
-        ST_EVALUATOR_STEPPING
-    };
-
     if (THROWING)
         return THROWN;  // no state to clean up
 
+    Level* stepper;  // Level w/Stepper_Executor() may be same as L [A]
+
+    enum {
+        ST_EVALUATOR_INITIAL_ENTRY = STATE_0,
+        ST_EVALUATOR_STEPPING_IN_SUBLEVEL = ST_STEPPER_RESERVED_FOR_EVALUATOR
+    };
+
+  dispatch_on_state: {
+
+  // When the Evaluator_Executor() and Stepper_Executor() are running in the
+  // same Level, the STATE byte will be one of the ST_STEPPER_XXX states.
+  // But one state is reserved by the Stepper to say the Evaluator_Executor()
+  // has its own Level.
+  //
+  // 1. If Stepper_Executor() pushes levels with TRAMPOLINE_KEEPALIVE, then
+  //    the `L` that Evaluator_Executor() gets might not be the TOP_LEVEL.
+  //    climbing the stack is very slightly "inefficient" but the optimized
+  //    case of not having a sublevel doesn't pay the cost.
+
     switch (STATE) {
       case ST_EVALUATOR_INITIAL_ENTRY:
-        assert(Not_Level_Flag(L, TRAMPOLINE_KEEPALIVE));
-        possibly(Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY));  // not GROUP! [B]
-        assert(Is_Void(PRIMED));  // all cases VOID! at the moment [1]
         goto initial_entry;
 
-      default:  // if using same level as Stepper, it takes all other states
-        if (Using_Sublevel_For_Stepping(L)) {
-            assert(STATE == ST_EVALUATOR_STEPPING);
-            goto step_done_with_result_in_out;
-        }
-        goto call_stepper_executor_directly;  // callback on behalf of stepper
+      case ST_EVALUATOR_STEPPING_IN_SUBLEVEL: {
+        possibly(TOP_LEVEL->prior != L);  // if stepper pushed a KEEPALIVE [1]
+        stepper = TOP_LEVEL;
+        while (stepper->prior != L)
+            stepper = stepper->prior;
+        goto step_done_with_result_in_out; }
+
+      default:  // ST_STEPPER_XXX states (Stepper_Executor() using same Level)
+        stepper = L;
+        goto call_stepper_executor_directly;
     }
 
-  initial_entry: {  //////////////////////////////////////////////////////////
+} initial_entry: {  //////////////////////////////////////////////////////////
+
+  // 1. Before a level is created for Evaluator_Executor(), the creator should
+  //    set the "primed" value for what they want as a result if there are
+  //    no non-invisible evaluations.  Theoretically any preloaded value is
+  //    possible (and we may want to expose that as a feature e.g. in EVAL).
+  //    But for now, VOID! is the presumed initial value at all callsites.
+  //
+  //    (Note: The reason preloading was initially offered to clients was to
+  //    allow a choice of HEAVY VOID vs. VOID, so contexts where vaporization
+  //    would be "risky" could avoid VOID!.  A systemic and powerful way of
+  //    controlling vanishing came from LEVEL_FLAG_VANISHABLE_VOIDS_ONLY which
+  //    gives a best-of-both-worlds approach: allowing multi-step evaluation
+  //    contexts to convert void to heavy void in steps for functions that are
+  //    not intrinically "VANISHABLE", with an operator to override the void
+  //    suppression.  But preloading is kept as it may be useful later.)
+
+    possibly(L != TOP_LEVEL);
+    possibly(Get_Level_Flag(L, TRAMPOLINE_KEEPALIVE));
+
+    possibly(Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY));  // see flag definition
+
+    assert(Is_Void(PRIMED));  // all cases VOID! at the moment [1]
+    Set_Cell_Flag(PRIMED, PRIMED_NOTE_DISCARDABLE);  // void discardable
 
     Sync_Feed_At_Cell_Or_End_May_Panic(L->feed);
 
     if (In_Debug_Mode(64)) {
         require (
-          Level* sub = Make_Level(  // sublevel to hook steps, see [A]
+          stepper = Make_Level(  // sublevel to hook steps, see [A]
             &Stepper_Executor,
             L->feed,
             LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
                 | (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // [B]
         ));
-        Push_Level_Erase_Out_If_State_0(OUT, sub);
+        Push_Level_Erase_Out_If_State_0(OUT, stepper);
 
-        if (Is_Level_At_End(sub)) {
+        STATE = ST_EVALUATOR_STEPPING_IN_SUBLEVEL;  // before `goto finished;`
+
+        if (Is_Level_At_End(stepper)) {
             Init_Void(OUT);
             goto finished;
         }
 
-        STATE = ST_EVALUATOR_STEPPING;
-        return CONTINUE_SUBLEVEL(sub);  // executors *must* catch
+        inapplicable(  // Executor, not a Dispatcher (always catches throws)
+            Enable_Dispatcher_Catching_Of_Throws(stepper)
+        );
+        return CONTINUE_SUBLEVEL(stepper);
     }
+
+    stepper = L;
 
     if (Is_Level_At_End(L)) {
         Init_Void(OUT);
@@ -173,26 +176,16 @@ Bounce Evaluator_Executor(Level* const L)
 
     goto call_stepper_executor_directly;
 
-} start_new_step: {  /////////////////////////////////////////////////////////
-
-    if (Using_Sublevel_For_Stepping(L)) {
-        Reset_Evaluator_Erase_Out(SUBLEVEL);
-        return BOUNCE_CONTINUE;
-    }
-
-    Reset_Evaluator_Erase_Out(L);
-    goto call_stepper_executor_directly;
-
 } call_stepper_executor_directly: {  /////////////////////////////////////////
 
-    assert(not Using_Sublevel_For_Stepping(L));
+    assert(stepper == L);
 
     Bounce bounce = Stepper_Executor(L);
 
-    if (bounce == OUT)  // completed step, possibly reached end of feed
+    if (bounce == OUT)  // completed step, possibly reached end of feed [1]
         goto step_done_with_result_in_out;
 
-    return bounce;  // requesting a continuation on behalf of the stepper
+    return bounce;  // continuation/throw/etc. on behalf of the stepper
 
 } step_done_with_result_in_out: {  ///////////////////////////////////////////
 
@@ -209,48 +202,83 @@ Bounce Evaluator_Executor(Level* const L)
   //        >> failure? (fail "some error" comment "invisible")
   //        == \~okay~\  ; anti
   //
-  //    But consider:
+  //    But consider things like:
   //
-  //        >> data: []
-  //
-  //        >> take [] append data 'a
-  //        ** Error: Can't take from empty block
-  //
-  //        >> data
-  //        == [a]
+  //        call "shell command"  ; FAILURE! if nonzero exit code
+  //        call "shell command critically dependent on prior's success"
   //
   //    You can't wait until you know if the next evaluation is invisible to
   //    escalate FAILURE! to panic.  Things don't stop running soon enough.
 
-    Level* step_level = Level_For_Stepping(L);
-
     if (Is_Void(OUT)) {  // ELIDE, COMMENT, (^ EVAL []) etc. [1]
-        if (Is_Level_At_End(step_level)) {
+        if (Is_Level_At_End(stepper)) {
             Move_Cell(OUT, PRIMED);
             goto finished;
         }
         goto start_new_step;  // leave previous result as-is in PRIMED
     }
 
-    possibly(Get_Level_Flag(step_level, VANISHABLE_VOIDS_ONLY));
-    Set_Level_Flag(step_level, VANISHABLE_VOIDS_ONLY);  // always set now [B]
+    if (Not_Cell_Flag(PRIMED, PRIMED_NOTE_DISCARDABLE)) {  // see flag define
+      #if RUNTIME_CHECKS
+        Value* primed = PRIMED;  // easier to inspect in C watchlist
+        USED(primed);
+      #endif
+        panic (Error_Discarded_Value_Raw(PRIMED));
+    }
 
-    if (Is_Level_At_End(step_level)) {
+    possibly(Get_Level_Flag(stepper, VANISHABLE_VOIDS_ONLY));
+    Set_Level_Flag(stepper, VANISHABLE_VOIDS_ONLY);  // always set now [B]
+
+    if (Is_Level_At_End(stepper)) {
         possibly(Is_Failure(OUT));
         goto finished;
     }
 
-    require (  // panic if error seen before final step [2]
+    require (  // panic if failure seen before final step [2]
       Ensure_No_Failures_Including_In_Packs(OUT)
     );
+
     Move_Cell(PRIMED, OUT);  // make current result the preserved one
+
+    STATIC_ASSERT(
+        EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE
+            == CELL_FLAG_PRIMED_NOTE_DISCARDABLE
+    );
+    PRIMED->header.bits |= (  // remember discardability as bit on PRIMED
+        stepper->flags.bits & EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE
+    );
 
     goto start_new_step;
 
+} start_new_step: {  /////////////////////////////////////////////////////////
+
+  // 1. The STATE byte has to be reset to zero on each evaluator step.  But
+  //    if sharing a Level, you only want the Evaluator_Executor()'s code for
+  //    `initial_entry:` to run once.  The trick is that when the stepper is
+  //    reset, we immediately calls the stepper again, before returning to
+  //    the trampoline.  So it never re-enters with zero.
+
+    Reset_Evaluator_Erase_Out(stepper);
+
+    if (STATE == ST_EVALUATOR_STEPPING_IN_SUBLEVEL)
+        return BOUNCE_CONTINUE;
+
+    definitely(STATE == STATE_0);  // `initial_entry` won't see zero again [1]
+    goto call_stepper_executor_directly;  // ...Stepper_Executor() changes it
+
 } finished: {  ///////////////////////////////////////////////////////////////
 
-    if (Using_Sublevel_For_Stepping(L))
-        Drop_Level(SUBLEVEL);
+  // 1. We want error parity in ((1) print "HI") with (1 print "Hi"), and this
+  //    is accomplished by examining the discardability bit on the Level for
+  //    the overall step.  But since this bit is tracked by the Stepper, if
+  //    the Evaluator_Executor() has its own Level we have to copy the bit.
+
+    if (STATE == ST_EVALUATOR_STEPPING_IN_SUBLEVEL) {
+        L->flags.bits |= (  // proxy from stepper to evaluator [1]
+            stepper->flags.bits & EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE
+        );
+        Drop_Level(stepper);
+    }
 
     if (Get_Level_Flag(L, FORCE_HEAVY_BRANCH))
         Force_Cell_Heavy(L->out);

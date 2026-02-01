@@ -53,7 +53,7 @@
 //=//// SCAN_EXECUTOR_FLAG_26 /////////////////////////////////////////////=//
 //
 #define SCAN_EXECUTOR_FLAG_26 \
-    LEVEL_FLAG_26
+    LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT
 
 
 //=//// SCAN_EXECUTOR_FLAG_27 /////////////////////////////////////////////=//
@@ -70,7 +70,7 @@
 // check by putting this flag on the scan.
 //
 #define SCAN_EXECUTOR_FLAG_INTERSTITIAL_SCAN \
-    LEVEL_FLAG_28
+    LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE
 
 
 //=//// SCAN_EXECUTOR_FLAG_SAVE_LEVEL_DONT_POP_ARRAY //////////////////////=//

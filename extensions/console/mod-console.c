@@ -404,10 +404,15 @@ DECLARE_NATIVE(CONSOLE)
 
         "let ^old-quit*: ^sys.contexts.user.quit*",
 
+        "let code': code",
+        "if block? code' [",  // !!! REVIEW: use OBJECT! or something cleaner
+            "while [rune? code'.1] [code': next code']",  // skip #issues
+        "]",
+
         "sys.util/recover [",  // pollutes stack trace [3]
             "catch [",  // definitional quit (custom THROW) [4]
                 "sys.contexts.user.quit*: cascade [lift/ throw/]",
-                "result': lift eval code",
+                "result': lift eval code'",
                 "throw ~null~",  // this throw is unlifted, won't run THEN
             "] then (caught' -> [",  // QUIT* lifts throw, so QUIT* runs THEN
                 "unlift caught' also [",

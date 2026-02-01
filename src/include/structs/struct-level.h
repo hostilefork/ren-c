@@ -81,9 +81,32 @@ STATIC_ASSERT(LEVEL_FLAG_4_IS_TRUE == BASE_FLAG_CELL);
 
 //=//// LEVEL_FLAG_VANISHABLE_VOIDS_ONLY //////////////////////////////////=//
 //
-// An evaluation step for a Level in this state that produces a VOID! will
-// turn that VOID! into an empty pack (heavy void) unless it comes from the
-// identity operator (`^`) or a function marked as vanishable.
+// There are effectively two different ways to model multi-step evaluation in
+// terms of how VOID! (the ~ antiform) is treated:
+//
+// * A regimented approach where the idea is that you want the aggregate
+//   evaluation of a BLOCK! to be something that is comprised of distinct
+//   EVAL:STEP calls, which handle VOID! in an identical way on each step.
+//
+// * The other modality is based around the idea of things like inline GROUP!,
+//   which prioritizes that `expr` and `(expr)` will behave equivalently.
+//
+// This manifests in terms of passing in LEVEL_FLAG_VANISHABLE_VOIDS_ONLY at
+// the beginning of the evaluation.
+//
+// If you *don't* pass the flag, the evaluator only starts turning voids into
+// empty packs (in the non-VANISHABLE cases) after seeing a non-VOID! result.
+//
+//     void? eval [^ comment "hi"]    ; => ~okay~
+//     void? (eval [^ comment "hi"])  ; => should also be ~okay~
+//
+// But if you *do* pass the flag, all steps require vanishability, e.g.:
+//
+//     eval:step [eval [^ comment "hi"]]    ; => HEAVY VOID, not VOID!
+//     eval:step [^ eval [^ comment "hi"]]  ; => VOID!
+//
+// This divergence of evaluator styles is a natural outcome of the needs of
+// EVAL-the-function and GROUP!-the-syntax.  They are different by necessity.
 //
 // The flag is inherited by pushed levels.
 //
@@ -231,15 +254,20 @@ INLINE Byte State_Byte_From_Flags(Flags flags)
 // like Get_Action_Executor_Flag() / Get_Eval_Executor_Flag() etc.
 //
 
-#define LEVEL_FLAG_24    FLAG_LEFT_BIT(24)
-#define LEVEL_FLAG_25    FLAG_LEFT_BIT(25)
-#define LEVEL_FLAG_26    FLAG_LEFT_BIT(26)
-#define LEVEL_FLAG_27    FLAG_LEFT_BIT(27)
-#define LEVEL_FLAG_28    FLAG_LEFT_BIT(28)
-STATIC_ASSERT(LEVEL_FLAG_28 == CELL_FLAG_NOTE);  // useful for optimization?
-#define LEVEL_FLAG_29    FLAG_LEFT_BIT(29)
-#define LEVEL_FLAG_30    FLAG_LEFT_BIT(30)
-#define LEVEL_FLAG_31    FLAG_LEFT_BIT(31)
+#define LEVEL_FLAG_24                        FLAG_LEFT_BIT(24)
+#define LEVEL_FLAG_25                        FLAG_LEFT_BIT(25)
+
+#define LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT    FLAG_LEFT_BIT(26)
+STATIC_ASSERT(LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT == CELL_FLAG_HINT);
+
+#define LEVEL_FLAG_27                        FLAG_LEFT_BIT(27)
+
+#define LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE    FLAG_LEFT_BIT(28)
+STATIC_ASSERT(LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE == CELL_FLAG_NOTE);
+
+#define LEVEL_FLAG_29                        FLAG_LEFT_BIT(29)
+#define LEVEL_FLAG_30                        FLAG_LEFT_BIT(30)
+#define LEVEL_FLAG_31                        FLAG_LEFT_BIT(31)
 
 STATIC_ASSERT(31 < 32);  // otherwise LEVEL_FLAG_XXX too high
 

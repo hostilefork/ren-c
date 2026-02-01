@@ -47,13 +47,7 @@
 //=//// EVAL_EXECUTOR_FLAG_26 /////////////////////////////////////////////=//
 //
 #define EVAL_EXECUTOR_FLAG_26 \
-    LEVEL_FLAG_26
-
-
-//=//// EVAL_EXECUTOR_FLAG_27 /////////////////////////////////////////////=//
-//
-#define EVAL_EXECUTOR_FLAG_27 \
-    LEVEL_FLAG_27
+    LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT
 
 
 //=//// EVAL_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH //////////////////////////=//
@@ -73,7 +67,39 @@
 // There is a parallel flag in ACTION_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH
 //
 #define EVAL_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH \
-    LEVEL_FLAG_28
+    LEVEL_FLAG_27
+
+
+//=//// EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE /////////////////////////////=//
+//
+// We want to know when evaluations without side-effects are discarded, as
+// that is indicative of an error.  Like this IF missing its ELSE:
+//
+//     >> if 1 = 1 [print "then"] [print "else"] print "Woo!"
+//     then
+//     Woo!
+//     ** PANIC: Non-discardable value discarded: [print "else"]
+//
+// So discardability is implemented as a flag on evaluator Levels.  But since
+// it's not traced on a per-Cell basis (like a generic CELL_FLAG_DISCARDABLE)
+// this means a function's internal mechanics are irrelevant...values that
+// are synthesized by a function are considered discardable:
+//
+//     >> if 1 = 1 [if 2 = 2 [print "then"] [print "else"]] print "Boo!"
+//     then
+//     Boo!
+//
+// The can of worms opened up by a generic CELL_FLAG_DISCARDABLE would be big.
+// Forwarding and triaging a flag that by-definition vanishes on assignments
+// is essentially a problem already addressed by unstable antiforms (like
+// FAILURE!).  It's too much for average non-error-handling code to have to
+// be concerned with.  So this is just a low-impact "light" and helpful
+// feature that doesn't leak its concerns beyond individual EVAL:STEPs.
+//
+// Note: Bit chosen to match CELL_FLAG_PRIMED_NOTE_DISCARDABLE
+//
+#define EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE \
+    LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE
 
 
 //=//// EVAL_EXECUTOR_FLAG_NO_RESIDUE /////////////////////////////////////=//
@@ -186,7 +212,9 @@ typedef enum {
     ST_STEPPER_SET_BLOCK,
     ST_STEPPER_SET_GROUP,
 
-    ST_STEPPER_NONZERO_STATE  // sometimes just can't leave state at 0
+    ST_STEPPER_NONZERO_STATE,  // sometimes just can't leave state at 0
+
+    ST_STEPPER_RESERVED_FOR_EVALUATOR  // evaluator uses when has own Level
 } StepperState;
 
 // There's a rule that the Level's OUT has to be fresh if it's in the

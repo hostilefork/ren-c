@@ -748,7 +748,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
     if (not coupling)
         panic (Error_Archetype_Invoked_Raw());
 
-    possibly(Level_Label(LEVEL) == CANON(RETURN));  // common renaming [1]
+    possibly(Level_Label(LEVEL) == CANON(RETURN_P));  // common renaming [1]
 
     Level* target_level = Level_Of_Varlist_May_Panic(unwrap coupling);
     Details* target_details = Ensure_Level_Details(target_level);
