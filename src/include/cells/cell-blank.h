@@ -1,6 +1,6 @@
 //
-//  file: %cell-comma.h
-//  summary: "BLANK! Datatype and VOID! Antiform of ~"
+//  file: %cell-blank.h
+//  summary: "BLANK! Datatype (decorates as [~ ' $ ^^ @ ~]) and VOID! Antiform"
 //  project: "Rebol 3 Interpreter and Run-time (Ren-C branch)"
 //  homepage: https://github.com/metaeducation/ren-c/
 //
@@ -87,7 +87,8 @@ INLINE Element* Init_Blank_Untracked(Init(Element) out, Flags flags) {
 //
 
 #define Init_Sigiled_Blank(out,sigil) \
-    Add_Cell_Sigil(Init_Blank(out), (sigil))
+    TRACK(Init_Blank_Untracked( \
+        (out), FLAG_LIFT_BYTE(NOQUOTE_3) | FLAG_SIGIL(sigil)))
 
 #define Is_Cell_Blank_With_Lift_Sigil(v, lift_byte, sigil) \
     Cell_Has_Lift_Sigil_Heart( \

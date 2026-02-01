@@ -640,18 +640,18 @@ INLINE Error* Cell_Error(const Cell* c);
 
 #include "cells/cell-pair.h"
 
-#include "cells/cell-series.h"
-#include "cells/cell-array.h"
-
 #include "cells/cell-sigil.h"
-#include "cells/cell-comma.h"  // includes VOID! atm
-#include "cells/cell-void.h"
+
+#include "cells/cell-blank.h"  // includes VOID!
+
+#include "cells/cell-series.h"
+#include "cells/cell-list.h"  // includes PACK!, HEAVY VOID
 
 #include "cells/cell-word.h"  // needs to know about QUOTED! for binding
 #include "cells/cell-logic.h"  // ~okay~ and ~null~ WORD! antiforms
 
 #include "cells/cell-string.h"
-#include "cells/cell-binary.h"
+#include "cells/cell-blob.h"
 
 #include "cells/cell-context.h"
 #include "cells/cell-frame.h"

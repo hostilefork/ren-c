@@ -1,4 +1,46 @@
-// %cell-binary.h
+//
+//  file: %cell-blob.h
+//  summary: "Series type holding Binary data"
+//  project: "Ren-C Interpreter and Run-time"
+//  homepage: https://github.com/metaeducation/ren-c/
+//
+//=////////////////////////////////////////////////////////////////////////=//
+//
+// Copyright 2012-2026 Ren-C Open Source Contributors
+// REBOL is a trademark of REBOL Technologies
+//
+// See README.md and CREDITS.md for more information.
+//
+// Licensed under the Lesser GPL, Version 3.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// https://www.gnu.org/licenses/lgpl-3.0.html
+//
+//=////////////////////////////////////////////////////////////////////////=//
+//
+// Datatype for holding byte data.  In Ren-C, BLOB! holding UTF-8 data can
+// be aliased as TEXT! (which enforces further edits of the binary data to
+// be constrained to UTF-8).
+//
+//    >> b: #{48656C6C6F2C20576F726C6421}  ; "Hello, World!"
+//
+//    >> as text! b
+//    == "Hello, World!"
+//
+//=//// NOTES /////////////////////////////////////////////////////////////=//
+//
+// A. BLOB! was called BINARY! in Rebol2 and R3-Alpha.  The name was changed
+//    for several reasons:
+//
+//    * "BINARY" has other connotations like "base-two" or "executable code"
+//
+//    * `Binary` is the name of the Stub subclass holding the Byte data, so
+//      "Blob" distinguishes the Cell subclass (which holds a Binary* and an
+//      Index) from the Stub.
+//
+//    * BLOB! is a shorter word.
+//
 
 INLINE const Binary* Cell_Binary(const Cell* cell) {
     assert(Unchecked_Heart_Of(cell) == TYPE_BLOB);
