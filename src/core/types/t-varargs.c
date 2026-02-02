@@ -619,7 +619,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Varargs)
             break; }
 
           case PARAMCLASS_LITERAL: {
-            Pinify_Cell(Init_Word(param_word, Key_Symbol(key)));
+            Add_Cell_Sigil(Init_Word(param_word, Key_Symbol(key)), SIGIL_PIN);
             break; }
 
           case PARAMCLASS_SOFT: {

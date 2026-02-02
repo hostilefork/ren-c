@@ -166,7 +166,7 @@ DECLARE_NATIVE(WRITE)
 
         if (ARG(LINES)) {
             if (Is_Block(data))
-                Pinify_Cell(data);  // don't reduce
+                Add_Cell_Sigil(data, SIGIL_PIN);  // don't reduce
             Api(Stable*) delimited = rebStable("delimit:tail newline @", data);
             if (not delimited)  // e.g. [] input
                 return COPY_TO_OUT(port);

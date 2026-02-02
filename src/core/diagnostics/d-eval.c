@@ -213,7 +213,7 @@ static void Evaluator_Shared_Checks_Debug(Level* const L)
 
         heeded (Copy_Cell(SCRATCH, L_next));
         Bind_Cell_If_Unbound(As_Element(SCRATCH), L_binding);
-        Metafy_Cell(As_Element(SCRATCH));
+        Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         StateByte saved_state = STATE;

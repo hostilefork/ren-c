@@ -418,8 +418,7 @@ DECLARE_NATIVE(CRASH)
     Element* info = As_Element(param);
 
     if (Is_Tied_Form_Of(WORD, info)) {  // interpret as value to diagnose
-        Clear_Cell_Sigil(info);
-        Add_Cell_Sigil(info, SIGIL_META);  // permissive GET
+        Force_Cell_Sigil(info, SIGIL_META);  // permissive GET
         Quote_Cell(info);
         Api(Value*) fetched = rebValue(CANON(GET), info);
         Copy_Cell(SPARE, fetched);

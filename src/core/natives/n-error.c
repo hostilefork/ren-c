@@ -304,7 +304,7 @@ DECLARE_NATIVE(TRAP)
 
     Element* return_word = Init_Word(SCRATCH, CANON(RETURN_P));  // [1]
     Bind_Cell_If_Unbound(return_word, Feed_Binding(LEVEL->feed));
-    Metafy_Cell(return_word);  // want to get ACTION!s (unstable)
+    Add_Cell_Sigil(return_word, SIGIL_META);  // want ACTION!s (unstable)
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
 

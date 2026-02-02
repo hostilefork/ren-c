@@ -110,7 +110,7 @@ INLINE KindByte Kind_From_Sigil_And_Heart(Option(Sigil) sigil, HeartEnum heart)
 //    to give you ^@foo.  Also, the Add_Cell_Sigil() function would be paying to
 //    mask out bits a lot of time when it's not needed.  So if you really
 //    intend to sigilize a plain form, make that clear at the callsite by
-//    writing e.e. `Metafy_Cell(Clear_Cell_Sigil(elem))`.
+//    writing e.e. `Force_Cell_Sigil(elem)`.
 //
 
 INLINE bool Any_Sigilable_Type(Option(Type) t) {  // build on sequencable [1]
@@ -126,32 +126,31 @@ INLINE bool Any_Sigiled_Type(Option(Type) t)
 #define Any_Sigilable(cell) \
     Any_Sigilable_Type(Type_Of(cell))
 
-INLINE Element* Add_Cell_Sigil(Element* elem, Sigil sigil) {
-    assert(Unlifted_Cell_Has_Sigil(SIGIL_0, elem));  // no quotes/quasi [2]
-    assert(Any_Sigilable(elem));
-    elem->header.bits |= FLAG_SIGIL(sigil);
-    return elem;
-}
-
-INLINE Element* Clear_Cell_Sigil(Element* elem) {
-    assert(LIFT_BYTE(elem) == NOQUOTE_3);  // no quotes/quasiforms
+INLINE Element* Clear_Cell_Sigil(Element* v) {
+    assert(LIFT_BYTE(v) == NOQUOTE_3);  // no quotes/quasiforms
 
   #if RUNTIME_CHECKS
-    bool had_sigil = did (elem->header.bits & CELL_MASK_SIGIL);
+    bool had_sigil = did (v->header.bits & CELL_MASK_SIGIL);
   #endif
 
-    elem->header.bits &= (~ CELL_MASK_SIGIL);
+    v->header.bits &= (~ CELL_MASK_SIGIL);
 
   #if RUNTIME_CHECKS
-    assert(not had_sigil or Any_Sigilable(elem));
+    assert(not had_sigil or Any_Sigilable(v));
   #endif
 
-    return elem;
+    return v;
 }
 
-#define Metafy_Cell(elem)  Add_Cell_Sigil((elem), SIGIL_META)
-#define Pinify_Cell(elem)  Add_Cell_Sigil((elem), SIGIL_PIN)
-#define Tieify_Cell(elem)  Add_Cell_Sigil((elem), SIGIL_TIE)
+INLINE Element* Add_Cell_Sigil(Element* v, Sigil sigil) {
+    assert(Unlifted_Cell_Has_Sigil(SIGIL_0, v));  // no quotes/quasi [2]
+    assert(Any_Sigilable(v));
+    v->header.bits |= FLAG_SIGIL(sigil);
+    return v;
+}
+
+#define Force_Cell_Sigil(v,sigil) \
+    Add_Cell_Sigil(Clear_Cell_Sigil(v), (sigil))  // [2]
 
 INLINE Element* Copy_Kind_Byte(Element* out, const Element* in) {
     KIND_BYTE(out) = KIND_BYTE(in);

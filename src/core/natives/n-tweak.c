@@ -495,8 +495,8 @@ Option(Error*) Trap_Push_Steps_To_Stack(
     if (Is_Tuple(scratch_var) or Is_Meta_Form_Of(TUPLE, scratch_var))
         goto handle_scratch_var_as_sequence;
 
-    if (Is_Pinned_Form_Of(BLOCK, scratch_var))
-        goto handle_scratch_var_as_pinned_steps_block;
+    if (Is_Tied_Form_Of(BLOCK, scratch_var))
+        goto handle_scratch_var_as_tied_steps_block;
 
     error = Error_Bad_Value(scratch_var);
     goto return_error;
@@ -653,7 +653,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
 
     goto return_success;
 
-} handle_scratch_var_as_pinned_steps_block: {
+} handle_scratch_var_as_tied_steps_block: {
 
     const Element* tail;
     const Element* head = List_At(&tail, scratch_var);
@@ -991,7 +991,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
     else
         Init_Block(unwrap steps_out, Pop_Source_From_Stack(base));
 
-    Pinify_Cell(unwrap steps_out);  // steps are @[bl o ck] or @word
+    Add_Cell_Sigil(unwrap steps_out, SIGIL_TIE);  // $[bl o ck] or $word steps
 
     return SUCCESS;
 }
@@ -1012,7 +1012,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 //              <opt>
 //              word! tuple!
 //              ^word! ^tuple!
-//              @block!
+//              $block!
 //          ]
 //      dual "Ordinary GET or SET with lifted value (unlifts), else dual"
 //          [

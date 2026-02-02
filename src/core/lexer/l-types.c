@@ -389,7 +389,7 @@ DECLARE_NATIVE(OF)
 } have_sym_of: { /////////////////////////////////////////////////////////////
 
     heeded (Init_Word(SCRATCH, sym_of));
-    Metafy_Cell(As_Element(SCRATCH));
+    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
     heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));

@@ -484,7 +484,7 @@ INLINE bool Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
             assume (
               Unsingleheart_Sequence(scratch)
             );
-            Metafy_Cell(scratch);
+            Add_Cell_Sigil(scratch, SIGIL_META);
         }
 
         require (

@@ -3031,7 +3031,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
             SPARE,
             Pop_Source_From_Stack(stackindex_path_head - 1)
         );
-        Pinify_Cell(items);  // don't want to evaluate
+        Add_Cell_Sigil(items, SIGIL_PIN);  // don't want to evaluate
         Api(Stable*) email = rebStable("as email! delimit -[.]-", items);
 
         Element* scratch = Copy_Cell(SCRATCH, As_Element(email));

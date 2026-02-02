@@ -62,8 +62,7 @@ DECLARE_NATIVE(DRAIN_Q)
     bool is_drain;
 
     if (Is_Tied(v)) {
-        Clear_Cell_Sigil(v);
-        Metafy_Cell(v);
+        Force_Cell_Sigil(v, SIGIL_META);
 
         Quote_Cell(v);
         Stable* result = rebStable(CANON(TWEAK), v, "()");
@@ -99,7 +98,7 @@ DECLARE_NATIVE(HOLE_Q)
 
     if (Is_Tied(v)) {
         Clear_Cell_Sigil(v);
-        Metafy_Cell(v);
+        Add_Cell_Sigil(v, SIGIL_META);
 
         Quote_Cell(v);
         Stable* result = rebStable(CANON(TWEAK), v, "()");

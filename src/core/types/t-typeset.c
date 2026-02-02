@@ -368,7 +368,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
   //    should be optimizing for if that happens.
 
     assert(Is_Word(As_Element(SCRATCH)));
-    Metafy_Cell(As_Element(SCRATCH));  // want unstable lookup (ACTION!, etc)
+    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);  // want ACTION!, etc
 
     if (Not_Parameter_Checked_Or_Coerced(TOP_SLOT))
         goto cant_optimize;  // Typecheck will work, but slowly [2]

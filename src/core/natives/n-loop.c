@@ -186,7 +186,7 @@ DECLARE_NATIVE(CONTINUE)
     INCLUDE_PARAMS_OF_CONTINUE;
 
     heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
-    Metafy_Cell(As_Element(SCRATCH));
+    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
     heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
@@ -241,7 +241,7 @@ DECLARE_NATIVE(BREAK)
     INCLUDE_PARAMS_OF_BREAK;
 
     heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
-    Metafy_Cell(As_Element(SCRATCH));
+    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
     heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
@@ -289,7 +289,7 @@ DECLARE_NATIVE(AGAIN)
     INCLUDE_PARAMS_OF_AGAIN;
 
     heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
-    Metafy_Cell(As_Element(SCRATCH));
+    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
     heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));

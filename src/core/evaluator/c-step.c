@@ -411,7 +411,7 @@ Bounce Stepper_Executor(Level* L)
             CURRENT,
             Feed_Binding(L->feed)  // L_binding bad here [2]
           );
-        Metafy_Cell(CURRENT);  // need for unstable lookup
+        Add_Cell_Sigil(CURRENT, SIGIL_META);  // for unstable lookup
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         StateByte saved_state = STATE;
@@ -988,7 +988,7 @@ Bounce Stepper_Executor(Level* L)
 
     assert(not Sigil_Of(CURRENT));
 
-    Metafy_Cell(CURRENT);  // now needed for unstable lookup (ACTION!)
+    Add_Cell_Sigil(CURRENT, SIGIL_META);  // for unstable lookup (ACTION!)
 
     heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
@@ -1183,7 +1183,7 @@ Bounce Stepper_Executor(Level* L)
 
       case LEADING_BLANK_AND(WORD):  // :FOO -turn voids to null
       case LEADING_BLANK_AND(TUPLE): {  // :a.b.c - same
-        heeded (Metafy_Cell(CURRENT));
+        heeded (Add_Cell_Sigil(CURRENT, SIGIL_META));
         Bind_Cell_If_Unbound(CURRENT, L_binding);
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
@@ -1703,7 +1703,7 @@ Bounce Stepper_Executor(Level* L)
             CURRENT,
             Feed_Binding(L->feed)  // L_binding bad here [2]
           );
-        Metafy_Cell(CURRENT);  // need for unstable lookup
+        Add_Cell_Sigil(CURRENT, SIGIL_META);  // need for unstable lookup
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
         StateByte saved_state = STATE;

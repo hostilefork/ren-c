@@ -50,6 +50,37 @@
 #include "sys-core.h"
 
 
+
+//
+//  Set_Var_In_Scratch_To_Out: C
+//
+// !!! As this code is refactored and figured out, the goal should be that
+// the mechanics of SET-the-NATIVE are available as a C function...so this
+// should handle things like turning VOID! to null if the variable is `:VAR`,
+// or enforcing it's an ACTION! if `/VAR`, or the set should be a no-op if
+// the variable is `_`, etc.  This is an ongoing process which is making more
+// sense over time.
+//
+Result(None) Set_Var_In_Scratch_To_Out(
+    Level* level_,  // OUT may be FAILURE! antiform, see [A]
+    Option(Element*) steps_out  // no GROUP!s if nulled
+){
+    Lift_Cell(OUT);  // must be lifted to be taken literally in dual protocol
+    Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
+        level_,
+        steps_out,
+        ST_TWEAK_SETTING
+    );
+    require (
+      Unlift_Cell_No_Decay(OUT)
+    );
+    if (e)
+        return fail (unwrap e);
+
+    return none;
+}
+
+
 // When a SET-BLOCK! is being processed for multi-returns, it may encounter
 // leading-SPACE chains as in ([foo :bar]: 10).  Once the work of extracting
 // the real variable from the path is done and pushed to the stack, this bit
@@ -243,10 +274,10 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
                 panic (Error_Bad_Antiform(spare));
 
             if (Is_Pinned_Form_Of(GROUP, scratch)) {
-                Pinify_Cell(As_Element(spare));  // add @ decoration
+                Add_Cell_Sigil(As_Element(spare), SIGIL_PIN);  // add @
             }
             else if (Is_Meta_Form_Of(GROUP, scratch)) {
-                Metafy_Cell(As_Element(spare));  // add ^ decoration
+                Add_Cell_Sigil(As_Element(spare), SIGIL_META);  // add ^
             }
             else
                 assert(Is_Group(scratch));
@@ -482,7 +513,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 //              ^ ^word! ^tuple! "Undecayed assignment"
 //              group! "If :GROUPS, retrigger SET based on evaluated value"
 //              block! "Use SET-BLOCK dialect, same as ([...]: ...)"
-//              @block!
+//              $block! "Series of calculated GET:STEPS or SET:STEPS"
 //          ]
 //      ^value "Will be decayed if TARGET not BLOCK! or metavariables"
 //          [any-value? pack! failure!]

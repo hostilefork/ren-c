@@ -229,7 +229,7 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
 
     heeded (Copy_Cell(SCRATCH, At_Feed(L->feed)));
     Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(L->feed));
-    Metafy_Cell(As_Element(SCRATCH));  // need for unstable lookup
+    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);  // for unstable lookup
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {

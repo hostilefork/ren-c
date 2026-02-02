@@ -99,7 +99,7 @@ INLINE void Reset_Evaluator_Erase_Out(Level* L) {
 }
 
 #define Init_Pushed_Refinement(out,symbol) \
-    Pinify_Cell(Init_Word((out), (symbol)))
+    Add_Cell_Sigil(Init_Word((out), (symbol)), SIGIL_PIN)
 
 INLINE Element* Init_Pushable_Refinement_Bound(
     Sink(Element) out,
@@ -107,7 +107,7 @@ INLINE Element* Init_Pushable_Refinement_Bound(
     Context* context,
     Index index
 ){
-    Pinify_Cell(Init_Word_Bound(out, symbol, context));
+    Add_Cell_Sigil(Init_Word_Bound(out, symbol, context), SIGIL_PIN);
     CELL_WORD_INDEX_I32(out) = index;
     return out;
 }

@@ -1213,8 +1213,7 @@ DECLARE_NATIVE(DEFAULT)
     );
 
     Element* scratch_var = Copy_Cell(SCRATCH, target);
-    Clear_Cell_Sigil(scratch_var);
-    Add_Cell_Sigil(scratch_var, SIGIL_META);  // for the fetch, always use ^META
+    Force_Cell_Sigil(scratch_var, SIGIL_META);  // for fetch, always use ^META
 
     if (slashed) { assume (
         Blank_Head_Or_Tail_Sequencify(  // put slash back for the write
@@ -1241,7 +1240,7 @@ DECLARE_NATIVE(DEFAULT)
 
 } branch_result_in_out: {  ///////////////////////////////////////////////////
 
-    assert(Is_Pinned(As_Element(SCRATCH)));  // steps is the "var" to set
+    assert(Is_Tied(As_Element(SCRATCH)));  // steps is the "var" to set
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS) except (Error* e) {

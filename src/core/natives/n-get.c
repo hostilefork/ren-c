@@ -155,8 +155,7 @@ Result(None) Get_Word_Or_Tuple(
         var,  // have to do before SPARE erase, in case (v = SPARE)
         context
     ));
-    Clear_Cell_Sigil(As_Element(SCRATCH));  // may be already meta
-    Metafy_Cell(As_Element(SCRATCH));
+    Force_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);  // maybe meta already
 
     Force_Erase_Cell(SPARE);  // clears protection bit
 
@@ -671,7 +670,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
 //
 //      return: [
 //          any-value?             "will be decayed if not ^META input"
-//          ~(@block! any-value?)~ "Give :STEPS as well as the result value"
+//          ~($block! any-value?)~ "Give :STEPS as well as the result value"
 //          failure!               "Passthru even it skips the assign"
 //      ]
 //      target "Word or tuple or path, or calculated sequence steps (from GET)"
@@ -682,7 +681,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
 //              block!  "Recursively GET items into a PACK!"
 //              path!   "Specialize action specified by path"
 //              group!  "If :GROUPS, retrigger GET based on evaluated value"
-//              @block!
+//              $block! "Series of calculated GET:STEPS or SET:STEPS"
 //          ]
 //      {dual-ignore}  ; for frame compatibility with TWEAK [1]
 //      :groups "Allow GROUP! Evaluations"
@@ -774,29 +773,6 @@ DECLARE_NATIVE(GET)
 
 
 //
-//  Set_Var_In_Scratch_To_Out: C
-//
-Result(None) Set_Var_In_Scratch_To_Out(
-    Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    Option(Element*) steps_out  // no GROUP!s if nulled
-){
-    Lift_Cell(OUT);  // must be lifted to be taken literally in dual protocol
-    Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-        level_,
-        steps_out,
-        ST_TWEAK_SETTING
-    );
-    require (
-      Unlift_Cell_No_Decay(OUT)
-    );
-    if (e)
-        return fail (unwrap e);
-
-    return none;
-}
-
-
-//
 //  defined?: native [
 //
 //  "Check to see if a variable is defined (unset is considered defined)"
@@ -814,7 +790,7 @@ DECLARE_NATIVE(DEFINED_Q)
     INCLUDE_PARAMS_OF_DEFINED_Q;
 
     heeded (Copy_Cell(SCRATCH, Element_ARG(TARGET)));
-    Metafy_Cell(As_Element(SCRATCH));
+    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
 

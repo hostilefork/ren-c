@@ -650,7 +650,7 @@ DECLARE_NATIVE(LET)
             assert(Heart_Of(vars) == TYPE_CHAIN);
     }
     if (Is_Metaform(vars))
-        Metafy_Cell(where);
+        Add_Cell_Sigil(where, SIGIL_META);
 
     Corrupt_If_Needful(vars);  // if in spare, we may have overwritten
 
@@ -1385,8 +1385,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
             dummy_sym = cast(SymId, cast(int, dummy_sym) + 1);
 
             Element* copy = Copy_Cell_May_Bind(slot, item, binding);
-            Clear_Cell_Sigil(copy);
-            Metafy_Cell(copy);
+            Force_Cell_Sigil(copy, SIGIL_META);  // make it $word
             LIFT_BYTE(slot) = BEDROCK_0;
             assert(Is_Cell_A_Bedrock_Alias(slot));  // alias uses ^META [1]
         }
