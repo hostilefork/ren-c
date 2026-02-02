@@ -360,7 +360,7 @@ void Evaluator_Exit_Checks_Debug(Level* L) {
     Evaluator_Shared_Checks_Debug(L);
 
     assert(Not_Cell_Flag(L->out, NOTE));
-    assert(Not_Cell_Flag(L->out, HINT));
+    assert(not Is_Base_Marked(L->out));
 
     if (Not_Level_At_End(L) and not Level_Is_Variadic(L)) {
         if (Level_Array_Index(L) > Array_Len(Level_Array(L))) {

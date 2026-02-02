@@ -88,7 +88,10 @@ Result(None) Set_Var_In_Scratch_To_Out(
 // for the phase after the right hand side is evaluated--vs. making it pick
 // apart the path again.
 //
-#define CELL_FLAG_STACK_HINT_OPTIONAL  CELL_FLAG_HINT
+// !!! This should be an intrinsic ability of SET, we shouldn't need to turn
+// the leading colon into a flag.
+//
+#define CELL_FLAG_STACK_WEIRD_OPTIONAL  CELL_FLAG_WEIRD
 
 
 //
@@ -290,7 +293,7 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
     Corrupt_Cell_If_Needful(SCRATCH);  // look at stack top now
 
     if (is_optional)  // so next phase won't worry about leading slash
-        Set_Cell_Flag(TOP, STACK_HINT_OPTIONAL);
+        Set_Cell_Flag(TOP, STACK_WEIRD_OPTIONAL);
 
     if (is_action)
         Set_Cell_Flag(TOP, SCRATCH_VAR_NOTE_ONLY_ACTION);
@@ -388,7 +391,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 
     bool is_optional = Get_Cell_Flag(
         Data_Stack_Cell_At(stackindex_var),
-        STACK_HINT_OPTIONAL
+        STACK_WEIRD_OPTIONAL
     );
 
     bool is_action = Get_Cell_Flag(
