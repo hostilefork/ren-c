@@ -937,7 +937,11 @@ Bounce Action_Executor(Level* L)
                 Mark_Typechecked(ARG);
                 continue;  // !!! standardize hole to the parameter?
             }
-            Init_Null(ARG);
+            if (Get_Parameter_Flag(PARAM, REFINEMENT)) {
+                Init_Null(ARG);
+                continue;
+            }
+            panic (Error_No_Arg(Level_Label(L), Key_Symbol(KEY)));
         }
 
         assert(LIFT_BYTE(ARG) != BEDROCK_0);
