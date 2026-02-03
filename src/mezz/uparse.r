@@ -632,7 +632,7 @@ default-combinators: make map! [
         ; we can't leave it as unset).  Review.
         ;
         pending: none  ; !!! but (parse [a] [accept keep 'a]) should error...
-        state/return pack [^value pending]
+        state/return* pack [^value pending]
     ]
 
     === INDEX and MEASUREMENT COMBINATORS ===
