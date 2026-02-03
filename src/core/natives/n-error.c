@@ -32,22 +32,25 @@
 //  "Suppress PANIC escalation from PANIC!s and 'hot potatoes', return NULL"
 //
 //      return: [<null> any-value?]
-//      ^value '[<veto> any-value? failure! hot-potato? any-void?]
+//      ^value '[<veto> any-value? failure! hot-potato?]
 //  ]
 //
 DECLARE_NATIVE(TRY)
 //
-// 1. If you TRY something, you might be intending to test it for logic, e.g.
-//    (if try ... [...]).  So voids were historically converted to nulls.
-//    But this probably doesn't make sense; and void preservation should be
-//    done most of the time.  A separate "void to null" intrinsic may be
-//    needed, vs. folding that into TRY.
+// 1. The current idea is that you use DID if you are just looking for a
+//    LOGIC! result to know something wasn't VOID!, NULL, FAILURE!, or a
+//    hot potato.  So write (if did ...) instead of (if try ...).
+//
+//    This means there's less of a compelling case for TRY to turn voids into
+//    nulls (although maybe it still should--waiting to see if there is a
+//    truly motivating example for or against it).  For now it just passes
+//    them through.
 {
     INCLUDE_PARAMS_OF_TRY;
 
     Value* v = ARG(VALUE);
 
-    if (Is_Failure(v) or Is_Hot_Potato(v))  // what about Any_Void()? [1]
+    if (Is_Failure(v) or Is_Hot_Potato(v))  // not counting Any_Void() [1]
         return NULL_OUT;
 
     return COPY_TO_OUT(v);  // !!! also tolerates other antiforms, should it?
