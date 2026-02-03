@@ -64,7 +64,12 @@ DECLARE_NATIVE(REEVAL)
     Copy_Cell(Evaluator_Level_Current(sub), v);  // evaluator's CURRENT
     Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
 
-    if (Trampoline_Throws(OUT, sub))  // review: rewrite stackless
+    definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+    Push_Level(OUT, sub);  // review: rewrite stackless
+    bool threw = Trampoline_With_Top_As_Root_Throws();
+    Drop_Level(sub);
+
+    if (threw)
         return THROWN;
 
     return OUT;
@@ -241,7 +246,8 @@ DECLARE_NATIVE(SHOVE)
     require (
       Push_Action(sub, shovee, infix_mode)  // know if it's infix [2]
     );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    dont(Erase_Cell(OUT));  // infix wants OUT, LEVEL_STATE_BYTE not STATE_0
+    Push_Level(OUT, sub);
     return DELEGATE_SUBLEVEL(sub);
 }
 
@@ -390,7 +396,8 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
         source,  // all lists treated the same [1]
         flags
     ));
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+    Push_Level(OUT, sub);
 
     if (not ARG(STEP))  // plain evaluation to end, maybe void/none
         return DELEGATE_SUBLEVEL(sub);
@@ -470,7 +477,8 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
       Level* sub = Make_Level(  // need evaluation in a sublevel [3]
         &Evaluator_Executor, L->feed, LEVEL_MASK_NONE
     ));
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+    Push_Level(OUT, sub);
     return DELEGATE_SUBLEVEL(sub);
 
 } single_step_result_in_out: {  //////////////////////////////////////////////
@@ -578,7 +586,8 @@ DECLARE_NATIVE(EVAL_FREE)
 
     Begin_Action(L, PREFIX_0);
 
-    Push_Level_Erase_Out_If_State_0(OUT, L);
+    definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+    Push_Level(OUT, L);
 
     STATE = ST_EVAL_FREE_EVALUATING;
     return CONTINUE_SUBLEVEL(L);
@@ -726,7 +735,8 @@ Bounce Native_Frame_Filler_Core(Level* level_)
         args,
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
     ));
-    Push_Level_Erase_Out_If_State_0(SPARE, L);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, L);
 
     require (
       EVARS *e = Alloc_On_Heap(EVARS)
@@ -1055,8 +1065,23 @@ DECLARE_NATIVE(_S_S)  // [_s]lash [_s]lash (see TO-C-NAME)
         Copy_Cell(ARG(OPERATION), As_Element(stable_out));
     }
 
+} reset_level_for_apply_state_0: {
+
+  // STATE_0 expects OUT, SPARE, and SCRATCH to be erased.  We assert we
+  // used the cells to make sure we're not wasting work (if above changes)
+
+    assert(Not_Cell_Erased(SPARE));
+    Erase_Cell(SPARE);
+    assert(Not_Cell_Erased(OUT));
+    Erase_Cell(OUT);
+    assert(Not_Cell_Erased(SCRATCH));
+    Erase_Cell(SCRATCH);
+
     STATE = STATE_0;  // reset state for APPLY so it looks like initial entry
+
     Set_Level_Flag(LEVEL, _S_S_DELEGATING);  // [2]
+
+    goto delegate_to_apply;
 
 } delegate_to_apply: { ///////////////////////////////////////////////////////
 
@@ -1110,7 +1135,8 @@ DECLARE_NATIVE(RUN)
     require (
       Level* sub = Make_Action_Sublevel(level_)
     );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+    Push_Level(OUT, sub);
     require (
       Push_Action(sub, action, PREFIX_0)
     );

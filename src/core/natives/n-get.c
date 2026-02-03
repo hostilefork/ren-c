@@ -426,12 +426,18 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
 
     Copy_Cell(PUSH(), at);
 
+    Level* L = TOP_LEVEL;
     require (
-      Level* sub = Make_End_Level(&Action_Executor, LEVEL_MASK_NONE)
+      Level* sub = Make_End_Level(
+        &Action_Executor,
+        LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK
+      )
     );
+    dont(Erase_Cell(Level_Spare(L)));  // spare read before erase
+    Push_Level(Level_Spare(L), sub);
 
     error = Trap_Call_Pick_Refresh_Dual_In_Spare(
-        TOP_LEVEL,
+        L,
         sub,
         TOP_INDEX,
         false  // not tweaking, so do indirection
@@ -540,8 +546,8 @@ Result(Value*) Meta_Get_Var(
                 &Stepper_Executor,
                 LEVEL_MASK_NONE | FLAG_STATE_BYTE(1)  // rule for trampoline
             ));
-
-            Push_Level_Erase_Out_If_State_0(out, level_);
+            dont(Erase_Cell(out));  // ??? why is LEVEL_STATE_BYTE 1 ???
+            Push_Level(out, level_);
 
             heeded (Copy_Cell_May_Bind(SCRATCH, var, context));
             heeded (Corrupt_Cell_If_Needful(SPARE));

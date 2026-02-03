@@ -278,8 +278,8 @@ DECLARE_NATIVE(JOIN)
           sub = Make_Level(&Inert_Stepper_Executor, feed, flags)
         );
     }
-
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, sub);
 
     if (delimiter)
         assert(Not_Cell_Flag(unwrap delimiter, DELIMITER_NOTE_PENDING));

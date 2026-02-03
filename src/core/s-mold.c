@@ -389,6 +389,10 @@ void Mold_Or_Form_Cell_Ignore_Quotes(
             &Action_Executor, LEVEL_MASK_NONE
         )
       );
+        DECLARE_VALUE (out);
+        definitely(Is_Cell_Erased(out));
+        Push_Level(out, sub);
+
       require (
         Push_Action(sub, LIB(MOLDIFY), PREFIX_0)
       );
@@ -408,10 +412,6 @@ void Mold_Or_Form_Cell_Ignore_Quotes(
             Mark_Typechecked(cast(Param*, LOCAL(FORM)));
             Set_Executor_Flag(ACTION, sub, IN_DISPATCH);
         }
-
-        DECLARE_VALUE (out);
-        Push_Level_Erase_Out_If_State_0(out, sub);
-        UNUSED(out);  // information was written to molder
 
         bool threw = Trampoline_With_Top_As_Root_Throws();
         if (threw)  // don't want to return casual error you can TRY from

@@ -412,7 +412,7 @@ DECLARE_NATIVE(OF)
     assert(Is_Frame(Evaluator_Level_Current(sub)));
     Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
 
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    Push_Level(Erase_Cell(OUT), sub);
 
     return DELEGATE_SUBLEVEL(sub);  // !!! could/should we replace this level?
 }}

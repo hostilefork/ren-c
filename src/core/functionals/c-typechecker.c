@@ -395,7 +395,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
         &Action_Executor,
         FLAG_STATE_BYTE(ST_ACTION_TYPECHECKING) | flags
     ));
-    Push_Level_Erase_Out_If_State_0(SCRATCH, sub);  // sub's out is L->scratch
+    Push_Level(Erase_Cell(SCRATCH), sub);  // sub's out is L->scratch
     require (
       Push_Action(sub, predicate, PREFIX_0)
     );

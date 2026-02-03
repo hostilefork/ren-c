@@ -826,7 +826,8 @@ DECLARE_NATIVE(LET)
     Copy_Cell(Evaluator_Level_Current(sub), spare);
     Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
 
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    dont(Erase_Cell(OUT));  // LEVEL_STATE_BYTE is not STATE_0
+    Push_Level(OUT, sub);
 
     STATE = ST_LET_EVAL_STEP;
     return CONTINUE_SUBLEVEL(sub);

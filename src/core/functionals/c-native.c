@@ -601,7 +601,8 @@ void Startup_Natives(const Element* boot_natives)
         LEVEL_MASK_NONE
             | LEVEL_FLAG_VANISHABLE_VOIDS_ONLY  // irrelevant, won't vaporize!
     ));
-    Push_Level_Erase_Out_If_State_0(dual_step, L);
+    definitely(Is_Cell_Erased(dual_step));  // DECLARE_VALUE erases
+    Push_Level(dual_step, L);
 
   setup_native_dispatcher_enumeration: {
 

@@ -462,6 +462,10 @@ INLINE void Push_Level_Dont_Inherit_Interruptibility(
     assert(not TOP_LEVEL or Not_Level_Flag(TOP_LEVEL, DISPATCHING_INTRINSIC));
 
   #if RUNTIME_CHECKS
+    assert(L->prior == nullptr);  // Prep_Level_Core() should null it
+  #endif
+
+  #if RUNTIME_CHECKS
     assert(
         out != &L->feed->gotten
         and out != &L->spare
@@ -479,8 +483,12 @@ INLINE void Push_Level_Dont_Inherit_Interruptibility(
     );
   #endif
 
-    if (not (L->flags.bits & FLAG_STATE_BYTE(255)))  // no FLAG_STATE_BYTE()
-        Erase_Cell(out);  // STATE_0 requires erased cell [1]
+    if (
+        LEVEL_STATE_BYTE(L) == STATE_0
+        and Not_Level_Flag(L, DEBUG_STATE_0_OUT_NOT_ERASED_OK)
+    ){
+        assert(Is_Cell_Erased(out));  // STATE_0 requires erased cell [1]
+    }
 
     L->out = out;  // must be a valid cell for GC [3]
 
@@ -498,7 +506,7 @@ INLINE void Push_Level_Dont_Inherit_Interruptibility(
     assert(L->alloc_value_list == L);
 }
 
-INLINE void Push_Level_Erase_Out_If_State_0_Core(  // inherit interrupt [4]
+INLINE void Push_Level_Core(  // inherit interrupt [4]
     Contra(Value) out,  // prohibit passing Element/Stable/Slot as output [1]
     Level* L
 ){
@@ -506,8 +514,8 @@ INLINE void Push_Level_Erase_Out_If_State_0_Core(  // inherit interrupt [4]
     L->flags.bits |= L->prior->flags.bits & LEVEL_FLAG_UNINTERRUPTIBLE;  // [4]
 }
 
-#define Push_Level_Erase_Out_If_State_0(out,L) \
-    Push_Level_Erase_Out_If_State_0_Core(Possibly_Unstable(out), (L))
+#define Push_Level(out,L) \
+    Push_Level_Core(Possibly_Unstable(out), (L))
 
 INLINE void Update_Expression_Start(Level* L) {
     assert(
@@ -542,6 +550,15 @@ INLINE void Drop_Level(Level* L)
 }
 
 
+// 1. We separate Level pushing into two steps: the Make_Level() and the
+//    Push_Level().  You have to do both...because the Level has to be put
+//    into the Level stack in order to be safe for GC.  But the separation
+//    buys us the ability to not cram too many parameters into one function
+//    (e.g. we can pass the output cell separately, and have different
+//    kinds of interruptibility indicated by different pushes).  But there
+//    can't be any panic() between the Make and the Push...and the Push
+//    itself cannot panic.
+//
 INLINE Result(Level*) Prep_Level_Core(
     Executor* executor,
     Result(void*) preallocated,
@@ -551,6 +568,11 @@ INLINE Result(Level*) Prep_Level_Core(
     trap (
       Level* L = u_downcast preallocated
     );
+
+  #if RUNTIME_CHECKS
+    L->prior = nullptr;
+  #endif
+
     L->flags.bits = flags | LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE;
 
     L->feed = feed except (Error* e) {

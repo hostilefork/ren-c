@@ -159,7 +159,10 @@ INLINE bool Eval_Any_List_At_Core_Throws(
         flags
     ));
 
-    return Trampoline_Throws(out, L);
+    Push_Level(Erase_Cell(out), L);
+    bool threw = Trampoline_With_Top_As_Root_Throws();
+    Drop_Level(L);
+    return threw;
 }
 
 #define Eval_Any_List_At_Throws(out,list,binding) \
@@ -195,7 +198,11 @@ INLINE bool Eval_Element_Core_Throws(
       Level* L = Make_Level(&Stepper_Executor, feed, flags)
     );
 
-    return Trampoline_Throws(out, L);
+    Push_Level(Erase_Cell(out), L);
+    bool threw = Trampoline_With_Top_As_Root_Throws();
+    Drop_Level(L);
+
+    return threw;
 }
 
 #define Eval_Value_Throws(out,value,context) \

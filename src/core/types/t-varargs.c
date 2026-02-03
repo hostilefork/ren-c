@@ -196,7 +196,7 @@ bool Do_Vararg_Op_Maybe_End_Throws(
                 shared,
                 EVAL_EXECUTOR_FLAG_FULFILLING_ARG
             ));
-            Push_Level_Erase_Out_If_State_0(out, L_temp);
+            Push_Level(Erase_Cell(out), L_temp);
 
             // Note: a sublevel is not needed here because this is a single use
             // level, whose state can be overwritten.
@@ -302,7 +302,10 @@ bool Do_Vararg_Op_Maybe_End_Throws(
             require (
               Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
             );
-            if (Trampoline_Throws(out, sub))  // !!! Stackful, should yield!
+            Push_Level(Erase_Cell(out), sub);
+            bool threw = Trampoline_With_Top_As_Root_Throws();
+            Drop_Level(sub);
+            if (threw)  // !!! Stackful, should yield!
                 return true;
 
             if (pclass != PARAMCLASS_META) {

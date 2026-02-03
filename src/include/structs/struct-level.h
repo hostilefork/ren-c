@@ -208,9 +208,24 @@ INLINE Byte State_Byte_From_Flags(Flags flags)
     FLAG_LEFT_BIT(19)
 
 
-//=//// LEVEL_FLAG_20 /////////////////////////////////////////////////////=//
+//=//// LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK ////////////////////////=//
 //
-#define LEVEL_FLAG_20 \
+// The trampoline will catch cases where you are in STATE_0 and the OUT Cell
+// is not erased.  However, that comes a bit late and is annoying to find
+// the specific Level that had the problem.
+//
+// But we don't want pushing levels to erase the cell in STATE_0.  For one
+// thing, the cell may already be erased and it would be redundant.  But also
+// sometimes you want to push a level that points at a destination cell, and
+// use the destination cell's value to fill some other parts of the level
+// before evaluating it...and erase it when you're ready (which needs to be
+// before the trampoline runs).
+//
+// Rather than come up with separate entry points to level creation for this
+// we do it with a debug flag--since there are many free flags at this time.
+// If flags are more scarce this could be a 64-bit-build only flag.
+//
+#define LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK \
     FLAG_LEFT_BIT(20)
 
 

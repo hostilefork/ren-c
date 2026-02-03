@@ -2018,7 +2018,8 @@ DECLARE_NATIVE(CONSTRUCT)
     require (
       Level* sub = Make_Level_At(executor, spec, flags)
     );
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, sub);
 
 } continue_processing_spec: {  ////////////////////////////////////////////////
 

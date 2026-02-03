@@ -687,7 +687,8 @@ Bounce Action_Executor(Level* L)
             require (
               Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
             );
-            Push_Level_Erase_Out_If_State_0(ARG, sub);  // duplicate erase!
+            possibly(Is_Light_Null(ARG));  // !!! review
+            Push_Level(Erase_Cell(ARG), sub);
 
             return CONTINUE_SUBLEVEL(sub); }
 
@@ -763,7 +764,8 @@ Bounce Action_Executor(Level* L)
                 require (
                   Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
                 );
-                Push_Level_Erase_Out_If_State_0(ARG, sub);  // not state 0
+                dont(Erase_Cell(ARG));  // LEVEL_STATE_BYTE is not STATE_0
+                Push_Level(ARG, sub);
                 return CONTINUE_SUBLEVEL(sub);
             }
             else if (Is_Soft_Escapable_Group(cast(Element*, ARG))) {
@@ -1250,6 +1252,10 @@ Result(None) Push_Action(
     const Value* frame,  // can be ACTION! or FRAME!
     Option(InfixMode) infix_mode
 ){
+  #if RUNTIME_CHECKS
+    assert(L->prior != nullptr);  // must be pushed
+  #endif
+
     assert(L->executor == &Action_Executor);
 
     assert(Not_Action_Executor_Flag(L, FULFILL_ONLY));

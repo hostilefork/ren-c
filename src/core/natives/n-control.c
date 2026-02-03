@@ -205,7 +205,8 @@ Bounce Group_Branch_Executor(Level* const L)
         (not LEVEL_FLAG_FORCE_HEAVY_BRANCH)
             | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // all voids act same
     ));
-    Push_Level_Erase_Out_If_State_0(SCRATCH, sub);
+    definitely(Is_Cell_Erased(SCRATCH));  // we are in STATE_0
+    Push_Level(SCRATCH, sub);
 
     STATE = ST_GROUP_BRANCH_RUNNING_GROUP;
     return CONTINUE_SUBLEVEL(sub);
@@ -542,7 +543,8 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
     require (
       Level* sub = Make_Level_At(executor, block, flags)
     );
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, sub);
 
     if (Is_Level_At_End(sub))
         goto reached_end;
@@ -776,8 +778,8 @@ DECLARE_NATIVE(CASE)
         cases,
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
     ));
-
-    Push_Level_Erase_Out_If_State_0(SPARE, L);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, L);
 
     assert(Is_Cell_Erased(OUT));  // erased if STATE_0
     assert(Is_Cell_Erased(SPARE));  // erased if STATE_0
@@ -994,8 +996,8 @@ DECLARE_NATIVE(SWITCH)
         cases,
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
     ));
-
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, sub);
 
 } next_switch_step: {  ///////////////////////////////////////////////////////
 

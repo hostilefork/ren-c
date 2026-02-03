@@ -187,7 +187,8 @@ DECLARE_NATIVE(REDUCE)
         &Stepper_Executor,
         FLAG_STATE_BYTE(ST_STEPPER_REEVALUATING)
     ));
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+    Push_Level(OUT, sub);
 
     Copy_Cell(Evaluator_Level_Current(sub), v);
     Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
@@ -202,7 +203,8 @@ DECLARE_NATIVE(REDUCE)
         v,  // TYPE_BLOCK or TYPE_GROUP
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // reused for each step
     ));
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, sub);
 
     goto next_reduce_step;
 
@@ -479,7 +481,8 @@ DECLARE_NATIVE(REDUCE_EACH)
     trap (
       Level* sub = Make_Level_At(executor, block, flags)
     );
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, sub);
 
 } reduce_next: { ////////////////////////////////////////////////////////////
 

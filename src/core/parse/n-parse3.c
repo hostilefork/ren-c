@@ -251,7 +251,7 @@ static bool Subparse_Throws(
 ){
     assert(Any_Series_Type(Heart_Of(input)));
 
-    Push_Level_Erase_Out_If_State_0(out, L);
+    Push_Level(Erase_Cell(out), L);
 
     require (
       Push_Action(L, LIB(SUBPARSE), PREFIX_0)
@@ -479,7 +479,8 @@ bool Process_Group_For_Parse_Throws(
         &Evaluator_Executor, group, derived, LEVEL_MASK_NONE
       )
     );
-    Push_Level_Erase_Out_If_State_0(eval, sub);
+    definitely(Is_Cell_Erased(eval));  // DECLARE_VALUE erases
+    Push_Level(eval, sub);
 
     if (Trampoline_With_Top_As_Root_Throws())
         return true;

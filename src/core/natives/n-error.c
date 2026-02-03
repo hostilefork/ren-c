@@ -96,7 +96,8 @@ DECLARE_NATIVE(ENRECOVER)
         code,
         LEVEL_FLAG_VANISHABLE_VOIDS_ONLY  // EVAL-BLOCK!-like semantics?
     ));
-    Push_Level_Erase_Out_If_State_0(OUT, L);
+    definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+    Push_Level(OUT, L);
 
     STATE = ST_ENRECOVER_EVALUATING;
     Enable_Dispatcher_Catching_Of_Throws(LEVEL);  // fail not caught by default
@@ -178,7 +179,8 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
             code,  // TYPE_BLOCK or TYPE_GROUP
             flags
         ));
-        Push_Level_Erase_Out_If_State_0(SPARE, sub);
+        definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+        Push_Level(SPARE, sub);
 
         if (Is_Level_At_End(sub))
             goto finished;

@@ -176,7 +176,7 @@ Bounce Inliner_Dispatcher(Level* const L)
     require (
       Level* sub = Make_Level(&Stepper_Executor, L->feed, LEVEL_MASK_NONE)
     );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    Push_Level(Erase_Cell(OUT), sub);
 
     return DELEGATE_SUBLEVEL(sub);
 }}
@@ -276,7 +276,7 @@ DECLARE_NATIVE(INLINE)
     require (
       Level* sub = Make_Level(&Stepper_Executor, level_->feed, LEVEL_MASK_NONE)
     );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    Push_Level(Erase_Cell(OUT), sub);
 
     return DELEGATE_SUBLEVEL(sub);
 }}

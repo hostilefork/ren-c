@@ -445,7 +445,9 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
     require (
       Level* sub = Make_Level_At(executor, arg, flags)
     );
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);
+    definitely(Is_Cell_Erased(SPARE));  // we are in STATE_0
+    Push_Level(SPARE, sub);
+
     if (Is_Level_At_End(sub))
         goto finished;
 

@@ -171,7 +171,7 @@ static void Push_Composer_Level(
         ),
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // allows stack accumulation
     ));
-    Push_Level_Erase_Out_If_State_0(out, sub);  // sublevel may fail
+    Push_Level(Erase_Cell(out), sub);  // sublevel may fail
 
     sub->u.compose.main_level = main_level;   // pass options [2]
     sub->u.compose.changed = false;
@@ -835,7 +835,8 @@ DECLARE_NATIVE(COMPOSE2)
             Level* sub = Make_Scan_Level(transcode, TG_End_Feed, flags);
             sub->baseline.stack_base = base;  // we will drop to this
 
-            Push_Level_Erase_Out_If_State_0(OUT, sub);
+            unnecessary(Erase_Cell(OUT));  // LEVEL_STATE_BYTE is not STATE_0
+            Push_Level(OUT, sub);
 
           #if RUNTIME_CHECKS
             --pattern_depth;
@@ -848,7 +849,8 @@ DECLARE_NATIVE(COMPOSE2)
             Level* prior = sub->prior;
             transcode->saved_levels = prior;
             sub->baseline.stack_base = base;  // we drop to here before scan
-            Push_Level_Erase_Out_If_State_0(OUT, sub);
+            unnecessary(Erase_Cell(OUT));  // LEVEL_STATE_BYTE is not STATE_0
+            Push_Level(OUT, sub);
             sub = prior;
 
           #if RUNTIME_CHECKS

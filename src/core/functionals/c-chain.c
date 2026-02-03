@@ -67,7 +67,8 @@ Level* Push_Downshifted_Level(Value* out, Level* L) {
     require (
       Level* sub = Make_Level(&Action_Executor, L->feed, flags)
     );
-    Push_Level_Erase_Out_If_State_0(out, sub);
+    dont(Erase_Cell(out));  // ??? or, erase if STATE_0?
+    Push_Level(out, sub);
     assert(sub->varlist == nullptr);
     sub->varlist = L->varlist;
     assert(Misc_Runlevel(sub->varlist) == L);

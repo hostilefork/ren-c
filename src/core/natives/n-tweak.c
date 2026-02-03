@@ -93,7 +93,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
   adjust_antiform_pick_if_needed: {
 
     Dual* dual_spare = As_Dual(Level_Spare(parent));
-    if (Is_Lifted_Antiform(Level_Spare(parent))) {
+    if (Is_Lifted_Antiform(dual_spare)) {
         adjusted = Heart_Of_Unsigiled_Isotopic(dual_spare);
         Option(Error*) e = Trap_Adjust_Lifted_Antiform_For_Tweak(dual_spare);
         if (e)
@@ -129,29 +129,31 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     dual_arg = Init_Null_Signifying_Tweak_Is_Pick(Erase_ARG(DUAL));
     USED(dual_arg);
 
-}} push_sub_if_necessary: {
+}} erase_parent_spare_now_that_we_are_done_extracting_it: {
 
-    if (sub == TOP_LEVEL)
-        Erase_Cell(Level_Spare(parent));
-    else
-        Push_Level_Erase_Out_If_State_0(Level_Spare(parent), sub);
+    assert(sub->out == Level_Spare(parent));
+    Erase_Cell(sub->out);
 
 } adjust_frame_arguments_now_that_its_safe_to_panic: {
 
     if (Any_Lifted(picker_arg)) {  // literal x.'y or x.('y) => 'y
         Known_Stable_Unlift_Cell(picker_arg);
 
-        if (Is_Logic(picker_arg))
+        if (Is_Logic(picker_arg)) {
+            Drop_Action(sub);
             return Error_User(
                 "PICK with logic picker never allowed"
             );
+        }
     }
     else {
         Element* pick_instruction = As_Element(picker_arg);
-        if (Sigil_Of(pick_instruction))
+        if (Sigil_Of(pick_instruction)) {
+            Drop_Action(sub);
             return Error_User(
                 "PICK instruction cannot have sigil for variable access"
             );
+        }
     }
 
 } call_tweak: {
@@ -291,12 +293,10 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
     value_arg = u_cast(Value*, Erase_ARG(DUAL));
 
-} push_sub: {
+} erase_parent_spare_now_that_we_are_done_extracting_it: {
 
-    Push_Level_Erase_Out_If_State_0(
-        Level_Spare(parent),  // SPARE becomes writeback
-        sub
-    );
+    assert(sub->out == Level_Spare(parent));
+    Erase_Cell(sub->out);
 
 } adjust_frame_arguments_now_that_its_safe_to_panic: {
 
@@ -304,10 +304,12 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         if (Any_Lifted(picker_arg)) {  // literal x.'y or x.('y) => 'y
             Known_Stable_Unlift_Cell(picker_arg);
 
-            if (Is_Logic(picker_arg))
+            if (Is_Logic(picker_arg)) {
+                Drop_Action(sub);
                 return Error_User(
                     "PICK with logic picker never allowed"
                 );
+            }
 
             if (Is_Any_Lifted_Void(TOP_ELEMENT)) // don't know if was ^META :-(
                 break;  // remove signal
@@ -323,6 +325,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
               Unlift_Cell_No_Decay(sub_spare)
             );
             Decay_If_Unstable(sub_spare) except (Error* e) {
+                Drop_Action(sub);
                 return e;
             }
             Copy_Cell(TOP_ELEMENT, Lift_Cell(sub_spare));
@@ -351,6 +354,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         }
 
         if (Get_Cell_Flag(scratch_var, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
+            Drop_Action(sub);
             return Error_User(
                 "/word: and /obj.field: assignments need ACTION!"
             );
@@ -380,6 +384,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
           Unlift_Cell_No_Decay(sub_spare)
         );
         Decay_If_Unstable(sub_spare) except (Error* e) {
+            Drop_Action(sub);
             return e;
         };
         Copy_Lifted_Cell(TOP_ELEMENT, sub_spare);
@@ -708,8 +713,6 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     assert(Not_Cell_Readable(SPARE));
   #endif
 
-    Flags flags = LEVEL_MASK_NONE;  // reused, top level, no keepalive needed
-
     Sink(Stable) spare_location_dual = SPARE;
 
     StackIndex stackindex_top;
@@ -731,6 +734,15 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     stackindex_top = TOP_INDEX;  // capture "top of stack" before push
 
     Copy_Cell(PUSH(), As_Stable(OUT));
+
+    require (
+      Level* sub = Make_End_Level(
+        &Action_Executor,
+        LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK
+      )
+    );
+    dont(Erase_Cell(SPARE));  // spare read before erase
+    Push_Level(SPARE, sub);
 
   poke_again: { //////////////////////////////////////////////////////////////
 
@@ -757,10 +769,6 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
   keep_picking_until_last_step: {
 
-    require (
-      Level* sub = Make_End_Level(&Action_Executor, flags)
-    );
-
     for (; stackindex != limit; ++stackindex, Restart_Action_Level(sub)) {
         bool dont_indirect = (
             (mode == ST_TWEAK_TWEAKING) and (stackindex == limit - 1)
@@ -768,18 +776,13 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         error = Trap_Call_Pick_Refresh_Dual_In_Spare(
             level_, sub, stackindex, dont_indirect
         );
-        if (error) {
-            if (sub->varlist)
-                Drop_Action(sub);  // drop any varlist, if it exists
-            Drop_Level(sub);
+        if (error)
             panic (unwrap error);
-        }
 
         if (Is_Null_Signifying_Slot_Unavailable(As_Stable(SPARE))) {
           treat_like_pick_absent_signal:
             Copy_Cell(SPARE, Data_Stack_At(Element, stackindex));
             error = Error_Bad_Pick_Raw(As_Element(SPARE));
-            Drop_Level(sub);
             if (
                 stackindex == limit - 1
                 and not Is_Metaform(Data_Stack_At(Element, stackindex))
@@ -818,14 +821,11 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
             error = Error_Unstable_Non_Meta_Raw(
                 Data_Stack_At(Element, stackindex)
             );
-            Drop_Level(sub);
             goto return_error;
         }
 
         continue;  // if not last pick in tuple, pick again from this product
     }
-
-    Drop_Level(sub);
 
 }} check_for_updater: {
 
@@ -861,22 +861,11 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
     // as we go back through the list of steps to update any bits that are
     // required to update in the referencing cells.
 
-    require (
-      Level* sub = Make_End_Level(&Action_Executor, flags)
-    );
-
     error = Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         level_,
         sub,
         stackindex  // picker_index
     );
-    if (sub != TOP_LEVEL) {
-        assert(error);  // ack, fix!
-        Push_Level_Erase_Out_If_State_0(SPARE, sub);
-    }
-    if (sub->varlist)
-        Drop_Action(sub);
-    Drop_Level(sub);
 
     if (error)
         goto return_error;
@@ -914,6 +903,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
     --stackindex_top;
 
+    Restart_Action_Level(sub);
     goto poke_again;
 
 }} return_error: { ///////////////////////////////////////////////////////////
@@ -925,7 +915,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         Corrupt_Cell_If_Needful(OUT);  // so you don't think it picked null
   #endif
 
-    Drop_Data_Stack_To(base);
+    Drop_Level(sub);
     goto finalize_and_return;
 
 } return_success: { //////////////////////////////////////////////////////////
@@ -934,6 +924,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
     assert(not error);
 
+    Drop_Level(sub);
     DROP();  // drop pushed cell for decaying OUT/etc.
 
     goto finalize_and_return;

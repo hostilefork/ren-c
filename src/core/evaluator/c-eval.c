@@ -142,7 +142,8 @@ Bounce Evaluator_Executor(Level* const L)
             LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
                 | (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // [B]
         ));
-        Push_Level_Erase_Out_If_State_0(OUT, stepper);
+        definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+        Push_Level(OUT, stepper);
 
         STATE = ST_EVALUATOR_STEPPING_IN_SUBLEVEL;  // before `goto finished;`
 

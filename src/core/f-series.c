@@ -460,6 +460,10 @@ Result(bool) Equal_Values(const Stable* s, const Stable* t, bool strict)
         FLAG_STATE_BYTE(ST_ACTION_TYPECHECKING)
     ));
 
+    DECLARE_VALUE (value_out);
+    definitely(Is_Cell_Erased(value_out));
+    Push_Level(value_out, L);
+
     require (
       Push_Action(L, LIB(EQUAL_Q), PREFIX_0)
     );
@@ -473,9 +477,8 @@ Result(bool) Equal_Values(const Stable* s, const Stable* t, bool strict)
     Copy_Lifted_Cell(Erase_ARG(VALUE2), t);
     Init_Logic(Erase_ARG(RELAX), relax);
 
-    DECLARE_VALUE (value_out);
-
-    bool threw = Trampoline_Throws(value_out, L);
+    bool threw = Trampoline_With_Top_As_Root_Throws();
+    Drop_Level(L);
     if (threw)
         return fail (Error_No_Catch_For_Throw(TOP_LEVEL));
 
@@ -528,7 +531,9 @@ bool Try_Lesser_Value(Sink(bool) lesser, const Stable* s, const Stable* t)
         &Action_Executor,
         FLAG_STATE_BYTE(ST_ACTION_TYPECHECKING)
     ));
-
+    DECLARE_VALUE (value_out);
+    definitely(Is_Cell_Erased(value_out));
+    Push_Level(value_out, L);
     require (
       Push_Action(L, LIB(LESSER_Q), PREFIX_0)
     );
@@ -539,9 +544,8 @@ bool Try_Lesser_Value(Sink(bool) lesser, const Stable* s, const Stable* t)
     Copy_Cell(Erase_ARG(VALUE1), s);
     Copy_Cell(Erase_ARG(VALUE2), t);
 
-    DECLARE_VALUE (value_out);
-
-    bool threw = Trampoline_Throws(value_out, L);
+    bool threw = Trampoline_With_Top_As_Root_Throws();
+    Drop_Level(L);
     if (threw)
         panic (Error_No_Catch_For_Throw(TOP_LEVEL));
 

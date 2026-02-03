@@ -119,9 +119,9 @@
 
 #define Make_Action_Sublevel(action) \
     Make_Level(&Action_Executor, L->feed, \
-      Get_Cell_Flag(action, WEIRD_VANISHABLE) ? LEVEL_MASK_NONE \
-        : (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY))
-
+        LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK \
+            | (Get_Cell_Flag(action, WEIRD_VANISHABLE) ? 0 \
+            : (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)))
 
 //
 // SET-WORD! and SET-TUPLE! want to do roughly the same thing as the first step
@@ -151,7 +151,7 @@ INLINE Level* Maybe_Rightward_Continuation_Needed(Level* L)
         L->feed,
         flags  // inert optimize adjusted the flags to jump in mid-eval
     ));
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    Push_Level(Erase_Cell(OUT), sub);
 
     return sub;
 }
@@ -518,10 +518,12 @@ Bounce Stepper_Executor(Level* L)
     require (
       Level* sub = Make_Action_Sublevel(L_current_gotten_raw)
     );
+    Push_Level(OUT, sub);
     require (
       Push_Action(sub, L_current_gotten_raw, infix_mode)
     );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);  // infix_mode sets state
+    if (infix_mode == PREFIX_0)  // sets STATE_0 for level
+        Erase_Cell(OUT);
     goto process_action;
 
 
@@ -950,14 +952,15 @@ Bounce Stepper_Executor(Level* L)
 
     Option(InfixMode) infix_mode = Frame_Infix_Mode(CURRENT);
 
-    require (
-      Level* sub = Make_Action_Sublevel(CURRENT)
-    );
+  require (
+    Level* sub = Make_Action_Sublevel(CURRENT)
+  );
     assert(Is_Cell_Erased(OUT));  // so nothing on left [1]
-    require (
-      Push_Action(sub, CURRENT, infix_mode)
-    );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);  // infix_mode sets state
+    Push_Level(OUT, sub);
+
+  require (
+    Push_Action(sub, CURRENT, infix_mode)
+  );
 
     goto process_action;
 
@@ -1119,20 +1122,20 @@ Bounce Stepper_Executor(Level* L)
         require (
           Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
         );
-        Push_Level_Erase_Out_If_State_0(SPARE, sub);
+        Push_Level(Erase_Cell(SPARE), sub);
         STATE = ST_STEPPER_CALCULATING_INTRINSIC_ARG;
         return CONTINUE_SUBLEVEL(sub);
     }
   #endif
 
     require (
-      Level* sub = Make_Action_Sublevel(OUT)
+      Level* sub = Make_Action_Sublevel(OUT)  // OUT not erased yet
     );
+    Push_Level(OUT, sub);
     require (
-      Push_Action(sub, OUT, infix_mode)  // before OUT erased [2]
+      Push_Action(sub, OUT, infix_mode)
     );
     Erase_Cell(OUT);  // want OUT clear, even if infix_mode sets state nonzero
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
 
     goto process_action;
 
@@ -1177,7 +1180,7 @@ Bounce Stepper_Executor(Level* L)
             L_binding,
             LEVEL_MASK_NONE | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)
         ));
-        Push_Level_Erase_Out_If_State_0(SPARE, sub);
+        Push_Level(Erase_Cell(SPARE), sub);
         STATE = ST_STEPPER_SET_GROUP;
         return CONTINUE_SUBLEVEL(sub); }
 
@@ -1234,14 +1237,14 @@ Bounce Stepper_Executor(Level* L)
 } handle_action_in_out_with_refinements_pushed: {
 
     require (
-      Level* sub = Make_Action_Sublevel(OUT)
+      Level* sub = Make_Action_Sublevel(OUT)  // OUT not erased yet
     );
     sub->baseline.stack_base = STACK_BASE;  // refinements
-
+    Push_Level(OUT, sub);
     require (
       Push_Action(sub, OUT, PREFIX_0)
     );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);  // not infix, sub state is 0
+    Erase_Cell(OUT);  // not infix, sub state is 0
     goto process_action;
 
 
@@ -1271,7 +1274,7 @@ Bounce Stepper_Executor(Level* L)
         flags
     ));
 
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    Push_Level(Erase_Cell(OUT), sub);
     return CONTINUE_SUBLEVEL(sub);
 
 } group_or_meta_group_result_in_out: {
@@ -1901,15 +1904,18 @@ Bounce Stepper_Executor(Level* L)
     // of parameter fulfillment.  We want to reuse the OUT value and get it
     // into the new function's frame.
 
-    require (
-      Level* sub = Make_Action_Sublevel(L_next_gotten_raw)
-    );
-    require (
-      Push_Action(sub, L_next_gotten_raw, infix_mode)
-    );
+  require (
+    Level* sub = Make_Action_Sublevel(L_next_gotten_raw)
+  );
+    Push_Level(OUT, sub);
+
+  require (
+    Push_Action(sub, L_next_gotten_raw, infix_mode)
+  );
     Fetch_Next_In_Feed(L->feed);
 
-    Push_Level_Erase_Out_If_State_0(OUT, sub);  // infix_mode sets state
+    if (infix_mode == PREFIX_0)  // infix_mode sets STATE_0 if prefix
+        Erase_Cell(OUT);
     goto process_action;
 
 

@@ -1214,12 +1214,14 @@ RebolValue* API_rebArg(
 //    that it intends to represent a nulled cell as the first va_list item.
 //
 static Result(None) Undecayed_Run_Valist_And_Call_Va_End(  // va_end()s [1]
-    Sink(Value) out,
+    Contra(Value) out,
     Flags run_flags,  // RUN_VA_FLAG_INTERRUPTIBLE, etc.
     RebolContext* binding,
     const void* p,  // null vaptr means void* array [2] else first param [3]
     Option(void*) vaptr  // guides interpretation of p [4]
 ){
+    assert(Is_Cell_Erased(out));
+
     trap (
       Feed* feed = Make_Variadic_Feed(
         p, v_cast(va_list*, opt vaptr), FEED_MASK_DEFAULT
@@ -1248,6 +1250,7 @@ static Result(None) Undecayed_Run_Valist_And_Call_Va_End(  // va_end()s [1]
     else
         L->flags.bits |= LEVEL_FLAG_UNINTERRUPTIBLE;
 
+    definitely(Is_Cell_Erased(out));  // checked on entry
     Push_Level_Dont_Inherit_Interruptibility(out, L);
     bool threw = Trampoline_With_Top_As_Root_Throws();
     Drop_Level(L);
@@ -1260,7 +1263,7 @@ static Result(None) Undecayed_Run_Valist_And_Call_Va_End(  // va_end()s [1]
 
 
 static Result(None) Run_Valist_And_Call_Va_End(  // va_end() handled [1]
-    Sink(Stable) out,
+    Contra(Stable) out,
     Flags run_flags,  // RUN_VA_FLAG_INTERRUPTIBLE, etc.
     RebolContext* binding,
     const void* p,  // null vaptr means void* array [2] else first param [3]
@@ -1318,12 +1321,11 @@ bool API_rebRunCoreThrows_internal(  // use interruptible or non macros [2]
     assert(Is_Base_Managed(binding));
     Tweak_Feed_Binding(feed, cast(Context*, binding));
 
-    Sink(Value) atom_out = u_cast(Value*, out);
+    Sink(Value) value_out = u_cast(Value*, out);
     require (
       Level* L = Make_Level(&Stepper_Executor, feed, flags)
     );
-    Push_Level_Erase_Out_If_State_0(atom_out, L);
-
+    Push_Level(Erase_Cell(value_out), L);
     if (Trampoline_With_Top_As_Root_Throws()) {
         Drop_Level(L);
         return true;
@@ -1337,7 +1339,7 @@ bool API_rebRunCoreThrows_internal(  // use interruptible or non macros [2]
     if (too_many)
         panic (Error_Apply_Too_Many_Raw());
 
-    Decay_If_Unstable(atom_out) except (Error* e) {
+    Decay_If_Unstable(value_out) except (Error* e) {
         panic (e);
     }
 
@@ -1451,7 +1453,7 @@ void API_rebPushContinuation_internal(
     require (
       Level* L = Make_Level_At(&Evaluator_Executor, block, flags)
     );
-    Push_Level_Erase_Out_If_State_0(u_cast(Value*, out), L);
+    Push_Level(Erase_Cell(u_cast(Value*, out)), L);
 }
 
 

@@ -450,18 +450,6 @@ bool Trampoline_With_Top_As_Root_Throws(void)
 
 
 //
-//  Trampoline_Throws: C
-//
-bool Trampoline_Throws(Exact(Value*) out, Level* root)
-{
-    Push_Level_Erase_Out_If_State_0(out, root);
-    bool threw = Trampoline_With_Top_As_Root_Throws();
-    Drop_Level(root);
-    return threw;
-}
-
-
-//
 //  Startup_Signals: C
 //
 // When allocations are performed, they may set flags for signaling the need

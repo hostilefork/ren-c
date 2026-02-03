@@ -859,7 +859,8 @@ Result(const Byte*) Scan_Utf8_Item_Into_Mold(
             Level* scan = Make_Scan_Level(&transcode, TG_End_Feed, flags);
 
             DECLARE_VALUE (discard);
-            Push_Level_Erase_Out_If_State_0(discard, scan);
+            definitely(Is_Cell_Erased(discard));  // DECLARE_VALUE erases
+            Push_Level(discard, scan);
             bool threw = Trampoline_With_Top_As_Root_Throws();
             Drop_Data_Stack_To(scan->baseline.stack_base);  // !!! new mode?
             Drop_Level(scan);
@@ -2472,7 +2473,8 @@ static Bounce Scanner_Executor_Core(Level* const L) {
             | (L->flags.bits & SCAN_EXECUTOR_MASK_RECURSE)
             | FLAG_STATE_BYTE(mode)
     );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    unnecessary(Erase_Cell(OUT));  // LEVEL_STATE_BYTE is not STATE_0
+    Push_Level(OUT, sub);
     return CONTINUE_SUBLEVEL(sub);
 
 } case TOKEN_BLOCK_END: //// END LIST (']' or '}' or ')') ////////////////////
@@ -2733,8 +2735,8 @@ static Bounce Scanner_Executor_Core(Level* const L) {
             | (L->flags.bits & SCAN_EXECUTOR_MASK_RECURSE)
             | FLAG_STATE_BYTE(ST_SCANNER_BLOCK_MODE)
     );
-
-    Push_Level_Erase_Out_If_State_0(OUT, sub);  // do stackful, for now
+    unnecessary(Erase_Cell(OUT));  // LEVEL_STATE_BYTE is not STATE_0
+    Push_Level(OUT, sub);  // do stackful, for now
 
     bool threw = Trampoline_With_Top_As_Root_Throws();
 
@@ -2986,7 +2988,8 @@ static Bounce Scanner_Executor_Core(Level* const L) {
         FLAG_STATE_BYTE(sub_mode)
             | SCAN_EXECUTOR_FLAG_INTERSTITIAL_SCAN
     );
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    unnecessary(Erase_Cell(OUT));  // LEVEL_STATE_BYTE is not STATE_0
+    Push_Level(OUT, sub);
 
     bool threw = Trampoline_With_Top_As_Root_Throws();
 
@@ -3440,7 +3443,8 @@ Result(Option(Source*)) Try_Scan_Variadic_Feed_Utf8_Managed(Feed* feed)
     Level* L = Make_Scan_Level(transcode, feed, flags);
 
     DECLARE_VALUE (temp);
-    Push_Level_Erase_Out_If_State_0(temp, L);
+    definitely(Is_Cell_Erased(temp));  // DECLARE_VALUE erases
+    Push_Level(temp, L);
     if (Trampoline_With_Top_As_Root_Throws())
         return fail (Error_No_Catch_For_Throw(L));
 

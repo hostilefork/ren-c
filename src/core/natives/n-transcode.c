@@ -176,6 +176,8 @@ DECLARE_NATIVE(TRANSCODE)
     else
         panic (":LINE must be INTEGER! or an ANY-WORD? integer variable");
 
+    Erase_Cell(OUT);  // restore OUT to STATE_0 expectation
+
     // Because we're building a frame, we can't make a {bp, END} packed array
     // and start up a variadic feed...because the stack variable would go
     // bad as soon as we yielded to the trampoline.  Have to use an END feed
@@ -205,7 +207,8 @@ DECLARE_NATIVE(TRANSCODE)
 
     Level* sub = Make_Scan_Level(transcode, feed, flags);
 
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    definitely(Is_Cell_Erased(OUT));  // we used it, but cleared it
+    Push_Level(OUT, sub);
     STATE = ST_TRANSCODE_SCANNING;
     return CONTINUE_SUBLEVEL(sub);
 

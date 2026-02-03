@@ -39,7 +39,7 @@ static Result(None) Push_Keys_And_Params_For_Fence(
     require (
       Level* sub = Make_Level_At(&Stepper_Executor, fence, LEVEL_MASK_NONE)
     );
-    Push_Level_Erase_Out_If_State_0(SPARE, sub);
+    Push_Level(Erase_Cell(SPARE), sub);
 
     while (Not_Level_At_End(sub)) {
         const Element* item = At_Level(sub);
@@ -153,7 +153,7 @@ static Result(None) Push_Keys_And_Params_Core(
     StackIndex returner_index;
 
     Value* eval = Level_Lifetime_Value(L);
-    Push_Level_Erase_Out_If_State_0(eval, L);
+    Push_Level(Erase_Cell(eval), L);
 
   push_returner_if_not_augmenting: {
 

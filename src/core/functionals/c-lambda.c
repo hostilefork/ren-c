@@ -143,7 +143,8 @@ Bounce Lambda_Dispatcher(Level* const L)
       Level* sub = Make_Level_At_Core(
         &Evaluator_Executor, spare_rebound, SPECIFIED, flags
     ));
-    Push_Level_Erase_Out_If_State_0(OUT, sub);
+    definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
+    Push_Level(OUT, sub);
 
     if (not result_param)
         return BOUNCE_DELEGATE;  // no typecheck callback needed (ARROW)

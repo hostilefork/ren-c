@@ -115,10 +115,11 @@ void Push_Frame_Continuation(
         &Action_Executor,
         FLAG_STATE_BYTE(ST_ACTION_TYPECHECKING) | flags
     ));
+    dont(Erase_Cell(out));  // LEVEL_STATE_BYTE is not STATE_0
+    Push_Level(out, L);
     require (
       Prep_Action_Level(L, frame, with)
     );
-    Push_Level_Erase_Out_If_State_0(out, L);
 }
 
 
@@ -162,7 +163,7 @@ bool Pushed_Continuation(
             assert(Is_Cell_Erased(Level_Spare(grouper)));
         else
             Copy_Cell(Level_Spare(grouper), unwrap with);
-        Push_Level_Erase_Out_If_State_0(out, grouper);
+        Push_Level(Erase_Cell(out), grouper);
         goto pushed_continuation;
     }
 
@@ -257,7 +258,7 @@ bool Pushed_Continuation(
           Level* L = Make_Level(
             &Evaluator_Executor, feed, flags
         ));
-        Push_Level_Erase_Out_If_State_0(out, L);
+        Push_Level(Erase_Cell(out), L);
 
         goto pushed_continuation; }
 
@@ -299,7 +300,7 @@ bool Pushed_Continuation(
         Copy_Cell_May_Bind(arg, branch, binding);
         KIND_BYTE(arg) = TYPE_BLOCK;  // :[1 + 2] => [3], not :[3]
 
-        Push_Level_Erase_Out_If_State_0(out, L);
+        Push_Level(Erase_Cell(out), L);
         goto pushed_continuation; }}
 
       case TYPE_PATH: {
