@@ -61,7 +61,7 @@ enum {
 // function to release that handle after encountering it.
 //
 #define API_FLAG_RELEASE \
-    STUB_SUBCLASS_FLAG_24
+    STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
 
 
 // What distinguishes an API value is that it has both the BASE_FLAG_CELL and

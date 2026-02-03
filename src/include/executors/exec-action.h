@@ -55,6 +55,12 @@
     0  // !!! DISABLED FOR NOW, BUT CALLSITES CAN STILL REFERENCE
 
 
+//=//// ACTION_EXECUTOR_FLAG_22 ///////////////////////////////////////////=//
+//
+#define ACTION_EXECUTOR_FLAG_22 \
+    LEVEL_EXECUTOR_FLAG_22
+
+
 //=//// ACTION_EXECUTOR_FLAG_FULFILL_ONLY /////////////////////////////////=//
 //
 // In some scenarios, the desire is to fill up the frame but not actually run
@@ -67,7 +73,10 @@
 // line up with the frame being filled).
 //
 #define ACTION_EXECUTOR_FLAG_FULFILL_ONLY \
-    LEVEL_FLAG_24
+    LEVEL_EXECUTOR_FLAG_23
+
+
+// there is no LEVEL_EXECUTOR_FLAG_24
 
 
 //=//// ACTION_EXECUTOR_FLAG_TYPECHECK_ONLY ///////////////////////////////=//
@@ -76,7 +85,7 @@
 // only thing that should be done is typechecking...don't run the action.
 //
 #define ACTION_EXECUTOR_FLAG_TYPECHECK_ONLY \
-    LEVEL_FLAG_25
+    LEVEL_EXECUTOR_FLAG_25
 
 
 //=//// ACTION_EXECUTOR_FLAG_IN_DISPATCH //////////////////////////////////=//
@@ -87,7 +96,7 @@
 // it starts running dispatch it has to leave the byte to the dispatcher.
 //
 #define ACTION_EXECUTOR_FLAG_IN_DISPATCH \
-    LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT
+    LEVEL_EXECUTOR_FLAG_26
 
 #define Is_Level_Fulfilling_Or_Typechecking(L) \
     Not_Executor_Flag(ACTION, L, IN_DISPATCH)
@@ -112,7 +121,7 @@
 // evaluated to a constant value!  This won't leave the frame on the stack).
 //
 #define ACTION_EXECUTOR_FLAG_DELEGATE_CONTROL \
-    LEVEL_FLAG_27
+    LEVEL_EXECUTOR_FLAG_27
 
 
 //=//// ACTION_EXECUTOR_FLAG_DOING_PICKUPS ////////////////////////////////=//
@@ -135,7 +144,7 @@
 // meaning during dispatch if desired (e.g. DELEGATE_CONTROL)
 //
 #define ACTION_EXECUTOR_FLAG_DOING_PICKUPS \
-    LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE
+    LEVEL_EXECUTOR_FLAG_28_ALSO_CELL_FLAG_NOTE
 
 
 //=//// ACTION_EXECUTOR_FLAG_DISPATCHER_CATCHES ///////////////////////////=//
@@ -155,7 +164,7 @@
 // as well as `panic ()` cases.
 //
 #define ACTION_EXECUTOR_FLAG_DISPATCHER_CATCHES \
-    LEVEL_FLAG_29
+    LEVEL_EXECUTOR_FLAG_29
 
 
 //=//// ACTION_EXECUTOR_FLAG_INFIX_A //////////////////////////////////////=//
@@ -171,13 +180,13 @@
 // on what's in the action can be seen in the DECLARE_NATIVE(SHOVE) code.
 //
 #define ACTION_EXECUTOR_FLAG_INFIX_A \
-    LEVEL_FLAG_30
+    LEVEL_EXECUTOR_FLAG_30
 
 
 //=//// ACTION_EXECUTOR_FLAG_INFIX_B //////////////////////////////////////=//
 //
 #define ACTION_EXECUTOR_FLAG_INFIX_B \
-    LEVEL_FLAG_31
+    LEVEL_EXECUTOR_FLAG_31
 
 
 typedef struct {

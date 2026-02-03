@@ -87,7 +87,7 @@
 // the GC would have to clean up.
 //
 #define KEYLIST_FLAG_SHARED \
-    STUB_SUBCLASS_FLAG_24
+    STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
 
 
 #define STUB_MASK_KEYLIST \
@@ -112,12 +112,37 @@
 #endif
 
 
+//=//// VARLIST_FLAG_PURE /////////////////////////////////////////////////=//
+//
+// When a PURE function is called, its frame's varlist will be marked with
+// this flag.  If such a binding is in effect, it can only call pure
+// functions itself.
+//
+#define VARLIST_FLAG_PURE \
+    STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
+
+STATIC_ASSERT(VARLIST_FLAG_PURE == STUB_FLAG_CONTEXT_PURE);
+
+#define STUB_FLAG_PHASE_PURE  VARLIST_FLAG_PURE
+
+
+//=//// VARLIST_FLAG_IMPURE ///////////////////////////////////////////////=//
+//
+// On FRAME! Varlists, this indicates impurity (aligns to be the same bit as
+// DETAILS_FLAG_IMPURE)
+//
+#define VARLIST_FLAG_IMPURE \
+    STUB_SUBCLASS_FLAG_25
+
+#define STUB_FLAG_PHASE_IMPURE  VARLIST_FLAG_IMPURE  // same bit in details
+
+
 //=//// VARLIST_FLAG_METHODIZED ///////////////////////////////////////////=//
 //
 // This flag is set on a varlist if it encounters a <.> in the function spec.
 //
 #define VARLIST_FLAG_METHODIZED \
-    STUB_SUBCLASS_FLAG_24
+    STUB_SUBCLASS_FLAG_26
 
 
 //=//// VARLIST_FLAG_FRAME_HAS_BEEN_INVOKED ///////////////////////////////=//
@@ -130,7 +155,7 @@
 // and is not part of the calling contract.
 //
 #define VARLIST_FLAG_FRAME_HAS_BEEN_INVOKED \
-    STUB_SUBCLASS_FLAG_25
+    STUB_SUBCLASS_FLAG_27
 
 
 //=//// VARLIST_FLAG_PARAMLIST_LITERAL_FIRST //////////////////////////////=//
@@ -142,13 +167,15 @@
 // walk the parameter list every time that function is called.
 //
 #define VARLIST_FLAG_PARAMLIST_LITERAL_FIRST \
-    STUB_SUBCLASS_FLAG_26
+    STUB_SUBCLASS_FLAG_28
 
 
 //=//// VARLIST_FLAG_IMMUTABLE ////////////////////////////////////////////=//
 //
+// !!! Review if this is needed, seems to be set but not read.
+//
 #define VARLIST_FLAG_IMMUTABLE \
-    STUB_SUBCLASS_FLAG_27
+    STUB_SUBCLASS_FLAG_29
 
 
 // A context's varlist is always allocated dynamically, in order to speed

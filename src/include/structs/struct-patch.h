@@ -29,18 +29,14 @@
 //
 
 
-//=//// USE_FLAG_REUSED ///////////////////////////////////////////////////=//
+//=//// LET_FLAG_PURE /////////////////////////////////////////////////////=//
 //
-// It's convenient to be able to know when a virtual binding returned from a
-// make call is reused or not.  But adding that parameter to the interface
-// complicates it, and all not clients care.  There's plenty of bits free on
-// use array flags, so just use one.
+// A LET will inherit the purity of the context it is chained into.
 //
-// !!! This feature currently doesn't seem to be active.
-//
-#define USE_FLAG_REUSED \
-    STUB_SUBCLASS_FLAG_24
+#define LET_FLAG_PURE \
+    STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
 
+STATIC_ASSERT(LET_FLAG_PURE == STUB_FLAG_CONTEXT_PURE);
 
 
 //=//// "LET" FOR VIRTUAL BINDING OF "MINI-OBJECT" ////////////////////////=//

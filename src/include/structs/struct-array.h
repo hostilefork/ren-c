@@ -66,8 +66,7 @@
 // it is the same bit as the const flag one would find in the value.
 //
 #define ARRAY_FLAG_CONST_SHALLOW \
-    STUB_SUBCLASS_FLAG_24
-STATIC_ASSERT(ARRAY_FLAG_CONST_SHALLOW == CELL_FLAG_CONST);
+    STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
 
 
 //=//// ARRAY_FLAG_25 /////////////////////////////////////////////////////=//

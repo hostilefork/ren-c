@@ -32,6 +32,12 @@
 #define EXECUTOR_SCAN &Scanner_Executor  // shorthand in Xxx_Executor_Flag()
 
 
+//=//// SCAN_EXECUTOR_FLAG_22 /////////////////////////////////////////////=//
+//
+#define SCAN_EXECUTOR_FLAG_22 \
+    LEVEL_EXECUTOR_FLAG_22
+
+
 //=//// SCAN_EXECUTOR_FLAG_NEWLINE_PENDING ////////////////////////////////=//
 //
 // CELL_FLAG_LINE appearing on a value means that there is a line break
@@ -39,7 +45,10 @@
 // value to be scanned will receive the flag.
 //
 #define SCAN_EXECUTOR_FLAG_NEWLINE_PENDING \
-    LEVEL_FLAG_24
+    LEVEL_EXECUTOR_FLAG_23
+
+
+// There is no LEVEL_EXECUTOR_FLAG_24
 
 
 //=//// SCAN_EXECUTOR_FLAG_JUST_ONCE //////////////////////////////////////=//
@@ -47,19 +56,19 @@
 // Supporting flag for TRANSCODE:NEXT
 //
 #define SCAN_EXECUTOR_FLAG_JUST_ONCE \
-    LEVEL_FLAG_25
+    LEVEL_EXECUTOR_FLAG_25
 
 
 //=//// SCAN_EXECUTOR_FLAG_26 /////////////////////////////////////////////=//
 //
 #define SCAN_EXECUTOR_FLAG_26 \
-    LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT
+    LEVEL_EXECUTOR_FLAG_26
 
 
 //=//// SCAN_EXECUTOR_FLAG_27 /////////////////////////////////////////////=//
 //
 #define SCAN_EXECUTOR_FLAG_27 \
-    LEVEL_FLAG_27
+    LEVEL_EXECUTOR_FLAG_27
 
 
 //=//// SCAN_EXECUTOR_FLAG_INTERSTITIAL_SCAN //////////////////////////////=//
@@ -70,7 +79,7 @@
 // check by putting this flag on the scan.
 //
 #define SCAN_EXECUTOR_FLAG_INTERSTITIAL_SCAN \
-    LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE
+    LEVEL_EXECUTOR_FLAG_28_ALSO_CELL_FLAG_NOTE
 
 
 //=//// SCAN_EXECUTOR_FLAG_SAVE_LEVEL_DONT_POP_ARRAY //////////////////////=//
@@ -85,19 +94,19 @@
 // the data stack.
 //
 #define SCAN_EXECUTOR_FLAG_SAVE_LEVEL_DONT_POP_ARRAY \
-    LEVEL_FLAG_29
+    LEVEL_EXECUTOR_FLAG_29
 
 
 //=//// SCAN_EXECUTOR_FLAG_30 ////////////////////////////////////////////=//
 //
 #define SCAN_EXECUTOR_FLAG_30 \
-    LEVEL_FLAG_30
+    LEVEL_EXECUTOR_FLAG_30
 
 
 //=//// SCAN_EXECUTOR_FLAG_31 /////////////////////////////////////////////=//
 //
 #define SCAN_EXECUTOR_FLAG_31 \
-    LEVEL_FLAG_31
+    LEVEL_EXECUTOR_FLAG_31
 
 
 // Flags that should be preserved when recursing the scanner (currently no

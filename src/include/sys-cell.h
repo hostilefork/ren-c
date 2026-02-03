@@ -1105,8 +1105,7 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
 //    is a no-op and the information inside the Cell is migrated.
 
 #define CELL_MASK_COPY \
-    ~(CELL_MASK_PERSIST | CELL_FLAG_PROTECTED \
-        | CELL_FLAG_NOTE | CELL_FLAG_HINT)
+    ~(CELL_MASK_PERSIST | CELL_FLAG_PROTECTED | CELL_FLAG_NOTE)
 
 #define CELL_MASK_ALL  ~cast(Flags, 0)  // use with caution!
 

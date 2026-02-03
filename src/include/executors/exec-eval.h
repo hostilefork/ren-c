@@ -25,10 +25,19 @@
 #define EXECUTOR_EVAL &Stepper_Executor  // shorthand in Xxx_Executor_Flag()
 
 
-//=//// EVAL_EXECUTOR_FLAG_24 /////////////////////////////////////////////=//
+//=//// EVAL_EXECUTOR_FLAG_22 /////////////////////////////////////////////=//
 //
-#define EVAL_EXECUTOR_FLAG_24 \
-    LEVEL_FLAG_24
+#define EVAL_EXECUTOR_FLAG_22 \
+    LEVEL_EXECUTOR_FLAG_22
+
+
+//=//// EVAL_EXECUTOR_FLAG_23 /////////////////////////////////////////////=//
+//
+#define EVAL_EXECUTOR_FLAG_23 \
+    LEVEL_EXECUTOR_FLAG_23
+
+
+// There is no LEVEL_EXECUTOR_FLAG_24
 
 
 //=//// EVAL_EXECUTOR_FLAG_FULFILLING_ARG /////////////////////////////////=//
@@ -41,13 +50,13 @@
 // Note: There is ACTION_EXECUTOR_FLAG_FULFILLING_ARG which matches this.
 //
 #define EVAL_EXECUTOR_FLAG_FULFILLING_ARG \
-    LEVEL_FLAG_25
+    LEVEL_EXECUTOR_FLAG_25
 
 
 //=//// EVAL_EXECUTOR_FLAG_26 /////////////////////////////////////////////=//
 //
 #define EVAL_EXECUTOR_FLAG_26 \
-    LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT
+    LEVEL_EXECUTOR_FLAG_26
 
 
 //=//// EVAL_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH //////////////////////////=//
@@ -67,7 +76,7 @@
 // There is a parallel flag in ACTION_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH
 //
 #define EVAL_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH \
-    LEVEL_FLAG_27
+    LEVEL_EXECUTOR_FLAG_27
 
 
 //=//// EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE /////////////////////////////=//
@@ -99,7 +108,7 @@
 // Note: Bit chosen to match CELL_FLAG_PRIMED_NOTE_DISCARDABLE
 //
 #define EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE \
-    LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE
+    LEVEL_EXECUTOR_FLAG_28_ALSO_CELL_FLAG_NOTE
 
 
 //=//// EVAL_EXECUTOR_FLAG_NO_RESIDUE /////////////////////////////////////=//
@@ -119,13 +128,13 @@
 // which it would need to reach either an END or another `||`.
 //
 #define EVAL_EXECUTOR_FLAG_NO_RESIDUE \
-    LEVEL_FLAG_29
+    LEVEL_EXECUTOR_FLAG_29
 
 
 //=//// EVAL_EXECUTOR_FLAG_30 /////////////////////////////////////////////=//
 //
 #define EVAL_EXECUTOR_FLAG_30 \
-    LEVEL_FLAG_30
+    LEVEL_EXECUTOR_FLAG_30
 
 
 //=//// EVAL_EXECUTOR_FLAG_INERT_OPTIMIZATION /////////////////////////////=//
@@ -135,7 +144,7 @@
 // quote is not actually too late.
 //
 #define EVAL_EXECUTOR_FLAG_INERT_OPTIMIZATION \
-    LEVEL_FLAG_31
+    LEVEL_EXECUTOR_FLAG_31
 
 
 typedef struct {

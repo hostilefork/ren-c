@@ -50,6 +50,30 @@
 #endif
 
 
+
+//=//// DETAILS_FLAG_PURE /////////////////////////////////////////////////=//
+//
+#define DETAILS_FLAG_PURE \
+    STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
+
+STATIC_ASSERT(DETAILS_FLAG_PURE == STUB_FLAG_PHASE_PURE);
+
+
+//=//// DETAILS_FLAG_IMPURE ///////////////////////////////////////////////=//
+//
+// If DETAILS_FLAG_PURE is missing on an ACTION! value, that does not mean it is
+// definitely impure--it means "wait and see" until the action is run if it
+// does something impure (e.g. calls an impure function down the line.)
+//
+// So impurity is a distinct flag.  However, CELL_FLAG_XXX are very scarce.
+// Hence impurity is a DETAILS_FLAG_XXX.
+//
+#define DETAILS_FLAG_IMPURE \
+    STUB_SUBCLASS_FLAG_25
+
+STATIC_ASSERT(DETAILS_FLAG_IMPURE == STUB_FLAG_PHASE_IMPURE);  // same bit
+
+
 //=//// DETAILS_FLAG_METHODIZED ///////////////////////////////////////////=//
 //
 // Only methodized actions get a "self" argument passed to it.  On functions
@@ -60,21 +84,9 @@
 //    currently do not do so.
 //
 #define DETAILS_FLAG_METHODIZED \
-    STUB_SUBCLASS_FLAG_24
+    STUB_SUBCLASS_FLAG_26
 
 STATIC_ASSERT(DETAILS_FLAG_METHODIZED == VARLIST_FLAG_METHODIZED);  // same [1]
-
-
-//=//// DETAILS_FLAG_25 ///////////////////////////////////////////////////=//
-//
-#define DETAILS_FLAG_25 \
-    STUB_SUBCLASS_FLAG_25
-
-
-//=//// DETAILS_FLAG_26 ///////////////////////////////////////////////////=//
-//
-#define DETAILS_FLAG_26 \
-    STUB_SUBCLASS_FLAG_26
 
 
 //=//// DETAILS_FLAG_27 ///////////////////////////////////////////////////=//

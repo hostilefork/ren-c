@@ -42,9 +42,13 @@ STATIC_ASSERT(LEVEL_FLAG_0_IS_TRUE == BASE_FLAG_BASE);
 STATIC_ASSERT(LEVEL_FLAG_1_IS_FALSE == BASE_FLAG_UNREADABLE);
 
 
-//=//// LEVEL_FLAG_2 //////////////////////////////////////////////////////=//
+//=//// LEVEL_FLAG_MISCELLANEOUS //////////////////////////////////////////=//
 //
-#define LEVEL_FLAG_2 \
+// This flag is used by natives and non-ACTION-executors for whatever purposes
+// they want; e.g. UNTIL can signal to WHILE that it should invert its
+// logic based on this flag.
+//
+#define LEVEL_FLAG_MISCELLANEOUS \
     FLAG_LEFT_BIT(2)
 
 
@@ -130,9 +134,13 @@ STATIC_ASSERT(LEVEL_FLAG_4_IS_TRUE == BASE_FLAG_CELL);
     FLAG_LEFT_BIT(6)
 
 
-//=//// LEVEL_FLAG_7 //////////////////////////////////////////////////////=//
+//=//// LEVEL_FLAG_UNINTERRUPTIBLE ////////////////////////////////////////=//
 //
-#define LEVEL_FLAG_7 \
+// Levels inherit the uninteruptibility flag of their parent when they are
+// pushed.  You can clear it after the push if you want an interruptible
+// level underneath an uninterruptible one.
+//
+#define LEVEL_FLAG_UNINTERRUPTIBLE \
     FLAG_LEFT_BIT(7)
 
 
@@ -240,26 +248,20 @@ INLINE Byte State_Byte_From_Flags(Flags flags)
     FLAG_LEFT_BIT(21)
 
 
-//=//// LEVEL_FLAG_UNINTERRUPTIBLE ////////////////////////////////////////=//
-//
-// Levels inherit the uninteruptibility flag of their parent when they are
-// pushed.  You can clear it after the push if you want an interruptible
-// level underneath an uninterruptible one.
-//
-#define LEVEL_FLAG_UNINTERRUPTIBLE \
-    FLAG_LEFT_BIT(22)
+// LEVEL_FLAG_22 is used by executors, see below
+
+// LEVEL_FLAG_23 is used by executors, see below
 
 
-//=//// LEVEL_FLAG_MISCELLANEOUS //////////////////////////////////////////=//
+//=//// LEVEL_FLAG_PURE ///////////////////////////////////////////////////=//
 //
-// Because ACTION_EXECUTOR_FLAG_XXX are hard to come by, this flag is given
-// to natives and non-ACTION-executors for miscellaneous purposes.
-//
-#define LEVEL_FLAG_MISCELLANEOUS \
-    FLAG_LEFT_BIT(23)
+#define LEVEL_FLAG_PURE \
+    FLAG_LEFT_BIT(24)
+
+STATIC_ASSERT(LEVEL_FLAG_PURE == CELL_FLAG_CONST);
 
 
-//=//// BITS 24-31: EXECUTOR FLAGS ////////////////////////////////////////=//
+//=//// BITS 22-23, 25-31: EXECUTOR FLAGS /////////////////////////////////=//
 //
 // These flags are those that differ based on which executor is in use.
 //
@@ -268,21 +270,30 @@ INLINE Byte State_Byte_From_Flags(Flags flags)
 // in favor of putting executor-specific defines at the top of each file,
 // like Get_Action_Executor_Flag() / Get_Eval_Executor_Flag() etc.
 //
+// 1. Use LEVEL_EXECUTOR_FLAG_23, because we want a generic level flag to
+//    occupy the 24th bit.
+//
 
-#define LEVEL_FLAG_24                        FLAG_LEFT_BIT(24)
-#define LEVEL_FLAG_25                        FLAG_LEFT_BIT(25)
+#define LEVEL_EXECUTOR_FLAG_22  FLAG_LEFT_BIT(22)
 
-#define LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT    FLAG_LEFT_BIT(26)
-STATIC_ASSERT(LEVEL_FLAG_26_ALSO_CELL_FLAG_HINT == CELL_FLAG_HINT);
+#define LEVEL_EXECUTOR_FLAG_23  FLAG_LEFT_BIT(23)
 
-#define LEVEL_FLAG_27                        FLAG_LEFT_BIT(27)
+// there is no LEVEL_EXECUTOR_FLAG_24, see [1]
 
-#define LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE    FLAG_LEFT_BIT(28)
-STATIC_ASSERT(LEVEL_FLAG_28_ALSO_CELL_FLAG_NOTE == CELL_FLAG_NOTE);
+#define LEVEL_EXECUTOR_FLAG_25  FLAG_LEFT_BIT(25)
 
-#define LEVEL_FLAG_29                        FLAG_LEFT_BIT(29)
-#define LEVEL_FLAG_30                        FLAG_LEFT_BIT(30)
-#define LEVEL_FLAG_31                        FLAG_LEFT_BIT(31)
+#define LEVEL_EXECUTOR_FLAG_26  FLAG_LEFT_BIT(26)
+
+#define LEVEL_EXECUTOR_FLAG_27  FLAG_LEFT_BIT(27)
+
+#define LEVEL_EXECUTOR_FLAG_28_ALSO_CELL_FLAG_NOTE  FLAG_LEFT_BIT(28)
+STATIC_ASSERT(LEVEL_EXECUTOR_FLAG_28_ALSO_CELL_FLAG_NOTE == CELL_FLAG_NOTE);
+
+#define LEVEL_EXECUTOR_FLAG_29  FLAG_LEFT_BIT(29)
+
+#define LEVEL_EXECUTOR_FLAG_30  FLAG_LEFT_BIT(30)
+
+#define LEVEL_EXECUTOR_FLAG_31  FLAG_LEFT_BIT(31)
 
 STATIC_ASSERT(31 < 32);  // otherwise LEVEL_FLAG_XXX too high
 

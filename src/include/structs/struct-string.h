@@ -43,7 +43,7 @@
 // is the same as their byte size, and speeds up seeking to O(1).
 //
 #define SYMBOL_FLAG_ALL_ASCII \
-    STUB_SUBCLASS_FLAG_24
+    STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
 
 
 //=//// SYMBOL_FLAG_ILLEGAL_IN_ANY_SEQUENCE ////////////////////////////////=//

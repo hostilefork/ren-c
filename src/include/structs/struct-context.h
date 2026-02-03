@@ -97,7 +97,19 @@
     )
 
 
-//=//// USE_FLAG_24 ///////////////////////////////////////////////////////=//
+//=//// USE_FLAG_PURE /////////////////////////////////////////////////////=//
 //
-#define USE_FLAG_24 \
-    STUB_SUBCLASS_FLAG_24
+// A USE will inherit the purity of the context it is chained into.
+//
+#define USE_FLAG_PURE \
+    STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
+
+
+
+// All contexts that can be put in binding chains need to reserve the PURE
+// flag for saying the code they bind is pure.
+
+#define STUB_FLAG_CONTEXT_PURE  STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST
+
+#define CONTEXT_FLAG_PURE_INHERITED_EVIL_MACRO(inherit) \
+  ((inherit) ? ((inherit)->header.bits & STUB_FLAG_CONTEXT_PURE) : 0)
