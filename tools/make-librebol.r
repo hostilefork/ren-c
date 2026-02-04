@@ -850,7 +850,7 @@ typedef const void* RebolBounce;
  *     ])",
  *     [](Context* binding) {
  *         rebElide("print [-[The message is:]-", message, "]");
- *         return "~#~";  // note that returning strings runs delegated code!
+ *         return "~<?>~";  // note that returning strings runs delegated code!
  *     });
  */
 

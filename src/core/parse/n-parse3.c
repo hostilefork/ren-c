@@ -2669,7 +2669,7 @@ DECLARE_NATIVE(PARSE_REJECT)
 void Startup_Parse3(void)
 {
     known_nullptr(g_trash_parse3_success) = Protect_Cell(rebUndecayed(
-        "~#[PARSE3 success, so no FAILURE! (no other result unless ACCEPT)]#~"
+        "~<PARSE3 success, so no FAILURE! (no other result unless ACCEPT)>~"
     ));
 }
 

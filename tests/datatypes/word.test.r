@@ -145,12 +145,12 @@
     same? ^a-value a-value
 )
 ~bad-word-get~ !! (
-    a-value: ~#bad~
-    a-value = ~#bad~
+    a-value: ~<bad>~
+    a-value = ~<bad>~
 )
 (
-    a-value: ~#bad~
-    (lift get meta $a-value) = '~#bad~
+    a-value: ~<bad>~
+    (lift get meta $a-value) = '~<bad>~
 )
 (
     a-value: 'a

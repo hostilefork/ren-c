@@ -209,7 +209,10 @@ Bounce Evaluator_Executor(Level* const L)
         goto start_new_step;  // leave previous result as-is in PRIMED
     }
 
-    if (Not_Cell_Flag(PRIMED, PRIMED_NOTE_DISCARDABLE)) {  // see flag define
+    if (
+        Not_Cell_Flag(PRIMED, PRIMED_NOTE_DISCARDABLE)  // see flag define
+        and not Is_Trash(PRIMED)  // ~<trash>~ can be discarded, no error!
+    ){
       #if RUNTIME_CHECKS
         Value* primed = PRIMED;  // easier to inspect in C watchlist
         USED(primed);

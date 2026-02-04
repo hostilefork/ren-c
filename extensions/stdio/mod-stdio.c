@@ -62,7 +62,7 @@ DECLARE_NATIVE(STARTUP_P)
 
     Startup_Stdio();  // platform-specific init, redirect detection [1]
 
-    return "~#~";
+    return "~<?>~";
 }
 
 
@@ -120,7 +120,7 @@ DECLARE_NATIVE(WRITE_STDOUT)
         SERIES_INDEX_UNBOUNDED(v) += part;
     }
 
-    return "~#~";
+    return "~<?>~";
 }
 
 
@@ -537,5 +537,5 @@ DECLARE_NATIVE(SHUTDOWN_P)
 
     Shutdown_Stdio();  // platform-specific teardown (free buffers, etc.)
 
-    return "~#~";
+    return "~<?>~";
 }

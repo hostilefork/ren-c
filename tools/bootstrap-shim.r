@@ -95,7 +95,7 @@ sys.util/recover [
     ; It is more brittle and less composable, but it is available in the
     ; bootstrap executable..and much faster (at time of writing) than UPARSE.
 
-    export parse: ~#[Use PARSE3 in Bootstrap Code, not PARSE]#~
+    export parse: ~<Use PARSE3 in Bootstrap Code, not PARSE>~
 
     export split-path3: enclose (
         augment split-path/ [:file [any-word? tuple!]]
@@ -104,7 +104,7 @@ sys.util/recover [
         set opt f.file unlift results.2
         unlift results.1
     ]
-    export split-path: ~#[Use SPLIT-PATH3 in Bootstrap (no multi-return)]#~
+    export split-path: ~<Use SPLIT-PATH3 in Bootstrap (no multi-return)>~
 
     export transcode: enclose (
         augment lib.transcode/ [:next3 [word!] "set to transcoded value"]
@@ -121,9 +121,9 @@ sys.util/recover [
 
     export cscape-inside: inside/  ; modern string interpolation tool
 
-    export for: ~#[FOR is being repurposed, use CFOR]#~
+    export for: ~<FOR is being repurposed, use CFOR>~
 
-    export unless: ~#[Don't use UNLESS in Bootstrap, definition in flux]#~
+    export unless: ~<Don't use UNLESS in Bootstrap, definition in flux>~
 
     export bind: augment bind/ [
         :copy3  ; modern BIND is non-mutating, but bootstrap EXE needs :COPY
@@ -150,7 +150,7 @@ sys.util/recover [
         ]
         return ensure block! unquote first result'
     ]
-    export load: ~#[Use LOAD3 in Bootstrap (no multi-returns for header)]#~
+    export load: ~<Use LOAD3 in Bootstrap (no multi-returns for header)>~
 
     export method: lambda [spec body] [  ; no METHOD in modern Ren-C, just <.>
         func (join spec [<.>]) body
@@ -245,7 +245,7 @@ for-each [alias] [
     ]
 ]
 
-function3: ~#[FUNCTION slated for synonym of FUNC, so no FUNCTION3]#~
+function3: ~<FUNCTION slated for synonym of FUNC, so no FUNCTION3>~
 
 
 === "VOID SHIMMING" ===
@@ -289,7 +289,7 @@ space?: func3 [x] [
     return (x = space) or (x = _)
 ]
 
-blank: blank?: ~#[No BLANK/BLANK? in Bootstrap, Use SPACE/SPACE?]#~
+blank: blank?: ~<No BLANK/BLANK? in Bootstrap, Use SPACE/SPACE?>~
 
 set the ____ "    "  ; can use multiple spaces
 set the __ "  "
@@ -306,7 +306,7 @@ spread3: identity/  ; comment calls out implicit splicing
 collect3: adapt lib3.collect/ [
     body: compose3 [
         keep3: keep/
-        keep: ~#[Use KEEP3 not KEEP in COLLECT3 (clarifies splice behavior)]#~
+        keep: ~<Use KEEP3 not KEEP in COLLECT3 (clarifies splice behavior)>~
         (spread3 body)
     ]
 ]
@@ -318,11 +318,11 @@ collect3: adapt lib3.collect/ [
 ; can't be emulated by older executables.  Here we panic in the old executable
 ; on any undecorated functions that have no emulation equivalent.
 
-parse: ~#[Use PARSE3 in bootstrap code, not PARSE (UPARSE too slow, for now)]#~
+parse: ~<Use PARSE3 in bootstrap code, not PARSE (UPARSE too slow, for now)>~
 
-split-path: ~#[Use SPLIT-PATH3 in Bootstrap (:FILE takes WORD! vs multirtn)]#~
+split-path: ~<Use SPLIT-PATH3 in Bootstrap (:FILE takes WORD! vs multireturn)>~
 
-load: ~#[Use LOAD3 in Bootstrap (:HEADER returns BLOCK! with OBJECT!)]#~
+load: ~<Use LOAD3 in Bootstrap (:HEADER returns BLOCK! with OBJECT!)>~
 
 
 === "FAKE UP QUASIFORM! AND @WORD! TYPES" ===
@@ -354,7 +354,7 @@ unquasi: func3 [v <local> spelling] [
 ]
 
 
-unrun: ~#[No UNRUN in bootstrap, but could be done w/make FRAME!]#~
+unrun: ~<No UNRUN in bootstrap, but could be done w/make FRAME!>~
 
 has: in/  ; old IN behavior of word lookup achieved by HAS now
 overbind: in/  ; works in a limited sense
@@ -363,7 +363,7 @@ inside: lambda3 [where value] [:value]  ; no-op in bootstrap
 wrap: identity/  ; no op in bootstrap
 bind1: identity/  ; no op in bootstrap (will likely become BIND)
 
-in: ~#[Use HAS or OVERBIND instead of IN in bootstrap]#~
+in: ~<Use HAS or OVERBIND instead of IN in bootstrap>~
 
 quote: lambda3 [x [any-value!]] [  ; see the more general UNEVAL
     switch type of x [
@@ -1041,7 +1041,7 @@ func: infix specialize func-core/ [must-return: okay, has-return: okay]
 
 proc: infix specialize func-core/ [must-return: null, has-return: okay]
 
-function: ~#[FUNCTION deprecated (will be FUNC synonym, eventually)]#~
+function: ~<FUNCTION deprecated (will be FUNC synonym, eventually)>~
 
 
 === "FUNCTION APPLICATION" ===

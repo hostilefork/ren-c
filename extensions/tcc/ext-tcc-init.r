@@ -441,7 +441,7 @@ compile: proc [
     ; want local paths.  Convert.
     ;
     config.runtime-path: my file-to-local:full
-    config.librebol-path: ~#[taken into account]#~  ; COMPILE* does not read
+    config.librebol-path: ~<taken into account>~  ; COMPILE* does not read
 
     let result: compile* // [
         compilables

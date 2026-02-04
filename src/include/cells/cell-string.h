@@ -192,3 +192,57 @@ INLINE Element* Textify_Any_Utf8(Element* any_utf8) {  // always works
     Copy_Cell(any_utf8, temp);
     return any_utf8;
 }
+
+
+//=//// TRASH! (antiform TAG!) ///////////////////////////////////////////=//
+//
+// Antiform tags are TRASH!.  They are informative to say why a variable is
+// holding a "poison" state.  They are also not subject to the evaluator's
+// rules for discardability, so you can use them as a kind of "middle-of-line"
+// comment in evaluative contexts.
+//
+// Once upon a time `~` was a trash state.  But now that's the quasiform of
+// BLANK! and used for VOID!.  Since a minimal trash has to be a valid TAG!,
+// `~<>~` isn't a candidate (as that is a QUASI-WORD!).  To keep code working
+// that depends on a minimal trash, we pick `(var: ~<?>~)` because ? is a
+// WORD! symbol and is thus cheap and on hand.  But review this idea.
+//
+
+INLINE bool Is_Tripwire_Core(Value* v) {
+    if (not Cell_Has_Lift_Sigil_Heart(
+        v, UNSTABLE_ANTIFORM_1, SIGIL_0, HEART_TAG_SIGNIFYING_TRASH
+    )){
+        return false;
+    }
+    return Cell_Strand(v) == CANON(QUESTION_1);
+}
+
+#define Is_Tripwire(v) \
+    Is_Tripwire_Core(Possibly_Unstable(v))
+
+INLINE Value* Init_Tripwire_Untracked(Init(Value) out) {
+    Init_Any_String_Untracked(out, TYPE_TAG, CANON(QUESTION_1));
+    Unstably_Antiformize_Unbound_Fundamental(out);
+    assert(Is_Tripwire(out));
+    return out;
+}
+
+#define Init_Tripwire(out) \
+    TRACK(Init_Tripwire_Untracked(out))
+
+#define Init_Lifted_Tripwire(out) \
+    Init_Quasar(out)
+
+
+INLINE Value* Init_Labeled_Trash_Untracked(
+    Init(Value) out,
+    const Symbol* label
+){
+    Init_Any_String_Untracked(out, HEART_TAG_SIGNIFYING_TRASH, label);
+    Unstably_Antiformize_Unbound_Fundamental(out);
+    assert(Is_Trash(out));
+    return out;
+}
+
+#define Init_Labeled_Trash(out, label) \
+    TRACK(Init_Labeled_Trash_Untracked((out), (label)))

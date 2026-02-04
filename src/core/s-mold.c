@@ -41,8 +41,8 @@
 // something of an ad-hoc way.  :ALL was deemed too meaningless to wield
 // effectively and was removed.  And #[...] was retaken for RUNE! syntax:
 //
-//     >> trash? ~#[Runes with spaces used as trash]#~
-//     == ~okay~  ; antiform
+//     >> #[Runes with spaces]#
+//     == #[Runes with spaces]#  ; Currently a valid RUNE!
 //
 //     >> second --[a"b]--
 //     == #["]  ; single character exception, no # on tail

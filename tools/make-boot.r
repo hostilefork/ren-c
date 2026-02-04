@@ -304,7 +304,7 @@ native-param-symbols: load3 join prep-dir %specs/tmp-param-symbols.r
 for-each 'param native-param-symbols [
     add-sym:relax param
 ]
-native-param-symbols: ~#[native-param-symbols accounted for]#~
+native-param-symbols: ~<native-param-symbols accounted for>~
 
 
 === "SYMBOLS FOR DATATYPES (INTEGER! or BLOCK!, with the !)" ===
@@ -372,7 +372,7 @@ change at-value 'platform reduce [
     any [platform-config.build-label ""]
 ]
 
-c-debug-break: ~#[C-DEBUG-BREAK applies in non-bootstrap %sysobj.r only]#~
+c-debug-break: ~<C-DEBUG-BREAK applies in non-bootstrap %sysobj.r only>~
 
 ob: make object! boot-sysobj
 
@@ -851,7 +851,7 @@ print [symid "words + natives + errors"]
 
 e-symids/write-emitted
 
-add-sym: ~#[Symbol table finalized, can't ADD-SYM at this point]#~
+add-sym: ~<Symbol table finalized, can't ADD-SYM at this point>~
 
 
 === "MAKE BOOT BLOCK!" ===

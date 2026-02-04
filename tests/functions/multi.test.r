@@ -147,8 +147,8 @@
             return pack [20 10]
         ]
         all {
-            '~#weird~ = [{^x} :y]: (foo then [~#weird~])
-            x = '~#weird~
+            '~<weird>~ = [{^x} :y]: (foo then [~<weird>~])
+            x = '~<weird>~
             y = null
         }
     )
@@ -158,7 +158,7 @@
             return pack [20 10]
         ]
         all {
-            '~#weird~ <> [^x y]: foo then [~#weird~]
+            '~<weird>~ <> [^x y]: foo then [~<weird>~]
             x = the '20
             y = 10
         }

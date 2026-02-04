@@ -91,7 +91,7 @@ call: enclose (
         return result
     ]
     if result = 0 [
-        return ~#[call]#~  ;  avoid `if 1 = call:shell "dir" [...]`, see [1]
+        return  ;  TRASH! to avoid `if 1 = call:shell "dir" [...]`, see [1]
     ]
     return fail make error! compose [
         message: ["Process returned non-zero exit code:" exit-code]

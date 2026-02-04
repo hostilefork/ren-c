@@ -787,7 +787,7 @@ DECLARE_NATIVE(STARTUP_P)
         &Pending_Native_Dispatcher,
         &Pending_Native_Details_Querier
     );
-    return "~#~";
+    return "~<?>~";
 }
 
 
@@ -803,5 +803,5 @@ DECLARE_NATIVE(SHUTDOWN_P)
 {
     INCLUDE_PARAMS_OF_SHUTDOWN_P;
 
-    return "~#~";
+    return "~<?>~";
 }

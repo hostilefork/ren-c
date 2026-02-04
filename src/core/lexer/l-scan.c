@@ -838,7 +838,6 @@ Result(const Byte*) Scan_Utf8_Item_Into_Mold(
         *cp != '\0'
         and (not Is_Codepoint_Whitespace(*cp))
         and *cp != ']' and *cp != ')' and *cp != '}' and *cp != ','
-        and (not (token == TOKEN_RUNE and *cp == '~'))  // ~#foo~ is TRASH!
     ){
         Codepoint c = *cp;  // may be first byte of UTF-8 encoded char
 
@@ -1774,7 +1773,7 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
                 trap (
                   cp = Scan_String_Push_Mold(mo, cp, 0, S)
                 );
-                if (*cp == '#')  // allow for e.g. ~#[this is trash]#~
+                if (*cp == '#')  // allow for e.g. #[this is rune]#
                     ++cp;
                 S->begin = S->end;  // restore start
                 S->end = cp;

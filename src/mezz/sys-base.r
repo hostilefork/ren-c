@@ -36,14 +36,14 @@ recover: enclose enrecover/ lambda [f] [
     match error! eval-free f
 ]
 
-lib.enrecover: ~#[See SYS.UTIL/ENRECOVER and https://forum.rebol.info/t/1871]#~
+lib.enrecover: ~<See SYS.UTIL/ENRECOVER and https://forum.rebol.info/t/1871>~
 
 set extend lib 'recover (
-    ~#[See SYS.UTIL/RECOVER and https://forum.rebol.info/t/1871]#~
+    ~<See SYS.UTIL/RECOVER and https://forum.rebol.info/t/1871>~
 )
 
 exit: lib.exit-process/
-lib.exit-process: ~#[See SYS.UTIL/EXIT]#~
+lib.exit-process: ~<See SYS.UTIL/EXIT>~
 
 
 ; 1. !!! The product is the secondary return from running the module.  This is
@@ -131,7 +131,7 @@ module: func [
                 where: mod
             ]
         ] else [
-            ~#[Scripts must be invoked via IMPORT to get EXPORT]#~
+            ~<Scripts must be invoked via IMPORT to get EXPORT>~
         ]
     )
 
@@ -158,7 +158,7 @@ module: func [
         throw ~okay~  ; same behavior as QUIT 0
     ]
 
-    mod.quit*: ~#[Module finished init, QUIT* expired (see SYS.UTIL/EXIT)]#~
+    mod.quit*: ~<Module finished init, QUIT* expired (see SYS.UTIL/EXIT)>~
 
     return pack [mod ^product]  ; FAILURE! antiform is legal product
 ]

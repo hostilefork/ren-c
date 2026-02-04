@@ -68,7 +68,7 @@ run-tests: proc [
 
 print newline
 
-tests: ~#[https://forum.rebol.info/t/2165/2]#~
+tests: ~<https://forum.rebol.info/t/2165/2>~
 
 if try first system.options.args [
     tests: local-to-file first system.options.args

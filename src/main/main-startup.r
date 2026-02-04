@@ -729,7 +729,7 @@ main-startup: func [
         ]
     ]
 
-    main-startup: ~#[MAIN-STARTUP done]#~  ; free function for GC
+    main-startup: ~<MAIN-STARTUP done>~  ; free function for GC
 
     if 'yes = quit-when-done [  ; can be null, YES? would complain...
         return <quit>  ; quits after instructions done

@@ -182,9 +182,12 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
             Init_Void(L->out);
             return none;  // make return "~" fast!
         }
-        if (cp[1] == '#' and cp[2] == '~' and cp[3] == '\0') {
+        if (
+            cp[1] == '<' and cp[2] == '?' and cp[3] == '>'
+            and cp[4] == '~' and cp[5] == '\0'
+        ) {
             Init_Tripwire(L->out);
-            return none;  // make return "~#~" fast!
+            return none;  // make return "~<?>~" fast!
         }
     }
 

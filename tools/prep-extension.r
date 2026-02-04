@@ -692,13 +692,13 @@ e/emit [--[
     static DECLARE_NATIVE(REGISTER_EXTENSION_P) {
         (void)level_;  /* mark unused (didn't emit INCLUDE_PARAMS for this) */
         $[Startup-Hooks]
-        return "~#~";
+        return "~<?>~";
     }
 
     static DECLARE_NATIVE(UNREGISTER_EXTENSION_P) {
         (void)level_;  /* mark unused (didn't emit INCLUDE_PARAMS for this) */
         $[Shutdown-Hooks]
-        return "~#~";
+        return "~<?>~";
     }
 ]--]
 
@@ -760,7 +760,7 @@ script-uncompressed: cscape [--[
 
     /register-extension*
 
-    register-extension*: ~#[registration of $<mod> complete]#~
+    register-extension*: ~<registration of $<mod> complete>~
 
     ; These NATIVE invocations execute to define the natives, implicitly
     ; picking up a CFunction from an array in the extension.  The order of

@@ -347,48 +347,6 @@ INLINE bool Is_Newline(Stable* v) {
 }
 
 
-//=//// TRASH! (antiform RUNE!) ///////////////////////////////////////////=//
-//
-// All RUNE! values have antiforms, that are considered to be TRASH!.
-//
-// The antiform of NEWLINE is a particularly succinct trash state, called
-// TRIPWIRE.  Quick way to poison variables, simply `(var: ~#~)`
-//
-
-INLINE bool Is_Tripwire_Core(Value* v) {
-    if (not Cell_Has_Lift_Sigil_Heart(
-        v, UNSTABLE_ANTIFORM_1, SIGIL_0, HEART_RUNE_SIGNIFYING_TRASH
-    )){
-        return false;
-    }
-    return '\n' == opt Codepoint_Of_Rune_If_Single_Char(v);
-}
-
-#define Is_Tripwire(v) \
-    Is_Tripwire_Core(Possibly_Unstable(v))
-
-INLINE Value* Init_Tripwire_Untracked(Init(Value) out) {
-    Init_Char_Unchecked_Untracked(out, '\n');  // use newline as the base
-    Unstably_Antiformize_Unbound_Fundamental(out);
-    assert(Is_Tripwire(out));
-    return out;
-}
-
-#define Init_Tripwire(out) \
-    TRACK(Init_Tripwire_Untracked(out))
-
-#define Init_Lifted_Tripwire(out) \
-    Init_Quasar(out)
-
-
-INLINE Value* Init_Labeled_Trash(Init(Value) out, const Symbol* label) {
-    Init_Utf8_Non_String_From_Strand(out, HEART_RUNE_SIGNIFYING_TRASH, label);
-    Unstably_Antiformize_Unbound_Fundamental(out);
-    assert(Is_Trash(out));
-    return out;
-}
-
-
 //=//// GENERIC UTF-8 ACCESSORS //////////////////////////////////////////=//
 //
 // Analogous to Cell_Bytes_At(), this allows you to get read-only UTF-8 data

@@ -411,14 +411,14 @@ default-combinators: make map! [
 
     'ahead combinator [
         "Leave the parse position at the same location, but fail if no match"
-        return: [any-value? ~#not~]
+        return: [any-value? trash!]
         input [any-series?]
         ^parser [action!]
         :negated
     ][
         if negated [
             parser input except (e -> [
-                return ~#not~
+                return ~<not>~
             ])
             return fail "Negated parser passed to AHEAD succeded"
         ]
@@ -591,7 +591,7 @@ default-combinators: make map! [
         ^parser [<hole> action!]
         {f ^result}
     ][
-        result: ~#~  ; !!! return TRASH! by default (tripwire?)
+        result: ~<?>~  ; !!! return TRASH! by default (tripwire?)
         if ^parser [  ; parser argument is optional
             [^result input]: trap parser input
         ]
@@ -713,7 +713,7 @@ default-combinators: make map! [
         ; CHANGE returns tail, use as new position
         ;
         input: change:part input ^replacement remainder
-        return ~#change~
+        return ~<change>~
     ]
 
     'remove combinator [
@@ -726,7 +726,7 @@ default-combinators: make map! [
         [^ remainder]: trap parser input  ; first find end position
 
         input: remove:part input remainder
-        return ~#remove~  ; note that REMOVE <END> is considered successful
+        return ~<remove>~  ; note that REMOVE <END> is considered successful
     ]
 
     'insert combinator [
@@ -739,7 +739,7 @@ default-combinators: make map! [
         [^insertion _]: trap parser input  ; remainder ignored
 
         input: insert input ^insertion
-        return ~#insert~
+        return ~<insert>~
     ]
 
     === SEEKING KEYWORDS ===

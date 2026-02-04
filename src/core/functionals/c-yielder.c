@@ -526,9 +526,9 @@ DECLARE_NATIVE(DEFINITIONAL_YIELD)
 // 1. It would be possible to give yielders a definitional RETURN, with the
 //    meaning "YIELD but then be finished".  e.g.
 //
-//        yielder [x] [if x = 1 [return x, ~#unreachable~] yield 2]
-//        =>
-//        yielder [x] [if x = 1 [yield x, yield done, ~#unreachable~] yield 2]
+//      yielder [x] [if x = 1 [return x, ~(unreachable)~] yield 2]
+//      =>
+//      yielder [x] [if x = 1 [yield x, yield done, ~(unreachable)~] yield 2]
 //
 //    But the usefulness of having a slightly shorter way of saying that is
 //    limited, compared to having visibility of the RETURN of any enclosing
@@ -539,7 +539,7 @@ DECLARE_NATIVE(DEFINITIONAL_YIELD)
 //
 //        yielder [x] {
 //            return: yield:final/
-//            if x = 10 [return x, ~#unreachable~]
+//            if x = 10 [return x, ~(unreachable)~]
 //            yield 20
 //        }
 //

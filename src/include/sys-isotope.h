@@ -140,7 +140,8 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
         LIFT_BYTE_RAW(v) = STABLE_ANTIFORM_2;  // raw [1]
         break; }
 
-      case HEART_RUNE_SIGNIFYING_TRASH:
+      case HEART_TAG_SIGNIFYING_TRASH:
+        Freeze_Flex(Cell_Strand(v));  // !!! intern if WORD-like! ?
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // raw [1]
         break;
 

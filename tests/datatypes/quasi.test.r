@@ -65,10 +65,10 @@
 [
     (foo: func [] [return], ok)
 
-    ((lift ~#[foo]#~) = lift applique foo/ [])
+    ((lift ~<foo>~) = lift applique foo/ [])
     (trash? applique foo/ [])
 
-    ((lift ~#[foo]#~) = lift eval foo/)
+    ((lift ~<foo>~) = lift eval foo/)
     (trash? eval foo/)
 ]
 
@@ -104,11 +104,11 @@
 
 [(
     foo: proc [] []
-    (lift ~#[foo]#~) = lift foo
+    (lift ~<foo>~) = lift foo
 )(
     data: [a b c]
     f: func [return: ~] [append data spread [1 2 3] return]
-    (lift ~#[f]#~) = lift f
+    (lift ~<f>~) = lift f
 )]
 
 ; LOCAL null, ^LOCAL unset, and ~LOCAL~ trash

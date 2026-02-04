@@ -47,15 +47,15 @@ steal: lambda [
 
 assert [null = coupling of return/]  ; it's archetypal, nowhere to return to
 
-return*: ~#[RETURN* used when no function generator is providing it]#~
+return*: ~<RETURN* used when no function generator is providing it>~
 
-continue*: ~#[CONTINUE* used when no loop is providing it]#~
+continue*: ~<CONTINUE* used when no loop is providing it>~
 
-stop: ~#[STOP used when no loop is providing it]#~
+stop: ~<STOP used when no loop is providing it>~
 
-throw: ~#[THROW used when no catch is providing it]#~
+throw: ~<THROW used when no catch is providing it>~
 
-quit*: ~#[QUIT* used when no (DO, IMPORT, CONSOLE) is providing it]#~
+quit*: ~<QUIT* used when no (DO, IMPORT, CONSOLE) is providing it>~
 
 quit: diverger [
     ^result [
@@ -86,7 +86,7 @@ quit: diverger [
     ]
 ]
 
-yield: ~#[YIELD used when no generator or yielder is providing it]#~
+yield: ~<YIELD used when no generator or yielder is providing it>~
 
 catch: specialize catch*/ [name: 'throw]
 

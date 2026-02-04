@@ -238,7 +238,7 @@ export emit-include-params-macro: func [
         keep spread spec
     ]
 
-    spec: ~#[native SPEC processed: use PARAM.SPEC in macro generation code]#~
+    spec: ~<native SPEC processed: use PARAM.SPEC in macro generation code>~
 
   === "GENERATE TEXT! OF INCLUDE_PARAMS_OF_XXX() MACRO" ===
 

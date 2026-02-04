@@ -213,7 +213,7 @@ INLINE Element* Init_Quasar_Untracked(Init(Element) out) {
 //     == \~okay~\  ; antiform
 //
 // Trash would be another possible choice (and able to store a message, like
-// ~#PACK-TOO-SHORT~).  But the mechanics of the system are geared toward
+// ~<PACK-TOO-SHORT>~).  But the mechanics of the system are geared toward
 // graceful handling of VOID! with <opt> and null inter-convertibility, which
 // aren't properties that one generally wants for TRASH!...that's designed to
 // throw a deliberate informative wrench into things, to let you know why

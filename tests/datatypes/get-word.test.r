@@ -177,8 +177,8 @@
     ]
 )
 (
-    obj: make object! [a: ~#[some trash]#~]
-    a: ~#[some trash]#~
+    obj: make object! [a: ~<some trash>~]
+    a: ~<some trash>~
     all [
         trash? ^a
         trash? ^obj.a

@@ -640,8 +640,8 @@ RebolValue* API_rebTrash(const char* label)
 //  rebTripwire: API
 //
 // In many places where you might use this, e.g. `return rebTripwire();`,
-// you could just use `return "~#~";` and it would be as good or better (there
-// is an optimization to take care of this when returning from functions).
+// you could just use `return "~<?>~";` and it would be as good or better
+// (an optimization takes care of this when returning from functions).
 //
 RebolValue* API_rebTripwire(void)
 {

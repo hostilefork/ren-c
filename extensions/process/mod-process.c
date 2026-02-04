@@ -259,7 +259,7 @@ DECLARE_NATIVE(SLEEP)
 static Bounce Delegate_Kill_Process(pid_t pid, int signal)
 {
     if (kill(pid, signal) >= 0)
-        return "~#~";  // success
+        return "~<?>~";  // success
 
     switch (errno) {
       case EINVAL:

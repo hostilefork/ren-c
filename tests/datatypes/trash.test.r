@@ -19,11 +19,11 @@
 ((lift ~) = (lift anti _))
 
 ~bad-word-get~ !! (
-    labeled: ~#[this is a trash]~
+    labeled: ~<this is a trash>~
     labeled
 )
 
 (
-    labeled: ~#[this is a trash]~ 
-    #"this is a trash" = unanti ^labeled
+    labeled: ~<this is a trash>~
+    <this is a trash> = unanti ^labeled
 )

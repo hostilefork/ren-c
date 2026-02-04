@@ -142,7 +142,7 @@
 
 ; Antiforms
 (
-    '~#ugly~ = lift catch [throw ~#ugly~]
+    '~<ugly>~ = lift catch [throw ~<ugly>~]
 )
 
 ; HEAVY/LIGHT as-is (use ATTEMPT for "guaranteed" ELSE/THEN reactivity)
