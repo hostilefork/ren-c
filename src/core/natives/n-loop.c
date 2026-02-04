@@ -2078,7 +2078,10 @@ DECLARE_NATIVE(MAP_EACH)
     const Value* map_action = LIB(MAP);
     Details* details = Ensure_Frame_Details(map_action);
 
-    Tweak_Level_Phase(LEVEL, details);
+  require (
+    Tweak_Level_Phase(LEVEL, details)
+  );
+
     Tweak_Level_Coupling(LEVEL, Frame_Coupling(map_action));
 
     Dispatcher* dispatcher = Details_Dispatcher(details);

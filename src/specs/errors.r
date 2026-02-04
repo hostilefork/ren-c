@@ -89,7 +89,9 @@ not-in-context:     "$1 is not in the specified context"
 
 trash-condition:    "Can't conditionally test TRASH!: $1"
 
-discarded-value:    "Non-discardable value discarded: $1"
+discarded-value:    "Pure evaluation product discarded: $1"
+impure-call:        "Calling impure function while in pure-mode: $1"
+pure-non-final:     "Pure-mode code referencing non-FINAL external state: $1"
 
 hole-spans-newline: "$1 is a <hole> param of $2, and can't span a newline"
 
@@ -278,7 +280,8 @@ out-of-range:       "value out of range: $1"
 
 ] access: [  ; ===============================================================
 
-protected-word:     "variable $1 locked by PROTECT (see UNPROTECT)"
+protected-variable: "variable $1 locked by PROTECT (see UNPROTECT)"
+final-variable:     "variable $1 locked by FINAL (see UNPROTECT)"
 
 const-value:        "CONST or iterative value (see MUTABLE): $1"
 

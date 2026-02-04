@@ -67,7 +67,7 @@ DECLARE_NATIVE(STARTUP_P)
 
 
 //
-//  export write-stdout: native [
+//  export write-stdout: impure native [
 //
 //  "Write text or raw BLOB! to stdout (for control codes / CGI)"  ; [1]
 //
@@ -141,7 +141,7 @@ static Value* Make_Non_Halt_Error(const char* name) {
 
 
 //
-//  export read-stdin: native [
+//  export read-stdin: impure native [
 //
 //  "Read binary data from standard input"
 //
@@ -205,7 +205,7 @@ DECLARE_NATIVE(READ_STDIN)
 
 
 //
-//  export read-line: native [
+//  export read-line: impure native [
 //
 //  "Read a line from standard input, with smart line editing if available"
 //
@@ -366,7 +366,7 @@ DECLARE_NATIVE(READ_LINE)
 
 
 //
-//  export read-char: native [
+//  export read-char: impure native [
 //
 //  "Inputs a single character from the input"
 //

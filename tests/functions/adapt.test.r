@@ -51,3 +51,33 @@
     adapted: adapt test/ [assert [y = <outside>]]
     trash? adapted 10
 )
+
+; PURE functions default to their adaptation being pure, and IMPURE functions
+; default to it being impure--at least on the interface.  You can turn this
+; off but the phase will still be updated to make it take effect
+;
+[(
+    bad1: impure does [1]
+    bad2: impure does [2]
+    add1: pure func [x] [return x + bad1]
+    okay
+)
+
+    (all {
+        temp: ~
+        add3: adapt add1/ [temp: x: x + bad2]
+        e: sys.util/recover [add3 1018]
+        e.id = 'impure-call
+        e.arg1 = 'bad2  ; adapt prelude pure, as adaptee was pure
+        void? ^temp
+    })
+
+    (all {
+        temp: ~
+        add3: pure:off adapt add1/ [temp: x: x + bad2]
+        e: sys.util/recover [add3 1018]
+        e.id = 'impure-call
+        e.arg1 = 'bad1  ; not BAD2 (adapt prelude agnostic, PURE:OFF)
+        temp = 1020
+    })
+]

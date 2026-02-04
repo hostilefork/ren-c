@@ -334,6 +334,7 @@
 
 %secure/const.test.r
 %secure/protect.test.r
+%secure/pure.test.r
 %secure/unprotect.test.r
 
 %series/append.test.r

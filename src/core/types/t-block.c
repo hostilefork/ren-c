@@ -989,6 +989,7 @@ IMPLEMENT_GENERIC(COPY, Any_List)
 
     Element* out = Init_Any_List(OUT, Heart_Of_Builtin_Fundamental(list), copy);
     Tweak_Cell_Binding(out, List_Binding(list));
+    assert(Not_Cell_Flag(out, CONST));
     return OUT;
 }
 

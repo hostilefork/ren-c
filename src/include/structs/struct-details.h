@@ -61,17 +61,19 @@ STATIC_ASSERT(DETAILS_FLAG_PURE == STUB_FLAG_PHASE_PURE);
 
 //=//// DETAILS_FLAG_IMPURE ///////////////////////////////////////////////=//
 //
-// If DETAILS_FLAG_PURE is missing on an ACTION! value, that does not mean it is
-// definitely impure--it means "wait and see" until the action is run if it
-// does something impure (e.g. calls an impure function down the line.)
+// If DETAILS_FLAG_PURE is missing on an ACTION! value, that doesn't mean it
+// definitely is non-deterministic or effectful.  It means "wait and see"
+// until the action is run if it does something pure-unfriendly (e.g. calls
+// an impure function, or tries to read/write a non-FINAL variable outside of
+// its "scope").
 //
-// So impurity is a distinct flag.  However, CELL_FLAG_XXX are very scarce.
-// Hence impurity is a DETAILS_FLAG_XXX.
+// So "impure" is a distinct flag.  CELL_FLAG_XXX are very scarce, hence it
+// is DETAILS_FLAG_IMPURE.
 //
 #define DETAILS_FLAG_IMPURE \
     STUB_SUBCLASS_FLAG_25
 
-STATIC_ASSERT(DETAILS_FLAG_IMPURE == STUB_FLAG_PHASE_IMPURE);  // same bit
+STATIC_ASSERT(DETAILS_FLAG_IMPURE == STUB_FLAG_PHASE_IMPURE);
 
 
 //=//// DETAILS_FLAG_METHODIZED ///////////////////////////////////////////=//

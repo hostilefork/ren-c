@@ -246,10 +246,13 @@ bool Try_Bind_Word(const Element* context, Element* word)
 //
 Let* Make_Let_Variable(
     const Symbol* symbol,
-    Option(Context*) inherit
+    Context* inherit
 ){
     require (
-      Stub* let = Make_Untracked_Stub(STUB_MASK_LET)  // one variable
+      Stub* let = Make_Untracked_Stub(  // one variable
+        STUB_MASK_LET
+            | CONTEXT_FLAG_PURE_INHERITED_EVIL_MACRO(inherit)
+      )
     );
 
     Init(Slot) slot = Slot_Init_Hack(u_cast(Slot*, Stub_Cell(let)));
@@ -277,9 +280,14 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
     Context* c = binding;
     Context* next;
 
+    if (not c)
+        return false;
+
+    Flags must_be_final_bit = 0;  // first PURE varlist in chain forces
+
     goto loop_body;  // stylize loop to avoid annoying indentation level
 
-  next_context: //////////////////////////////////////////////////////////////
+  next_context: { ////////////////////////////////////////////////////////////
 
   // We want to continue the next_context loop from inside sub-loops, which
   // means we need a `goto` and not a `continue`.  But putting the goto at
@@ -288,10 +296,10 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
 
     c = next;
 
-  loop_body: /////////////////////////////////////////////////////////////////
-
     if (c == nullptr)
         return false;
+
+} loop_body: { ///////////////////////////////////////////////////////////////
 
     Flavor flavor = Stub_Flavor(c);
     Option(const Stub*) lens_or_label = nullptr;
@@ -349,7 +357,7 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
         if (patch) {
             Init_Module(out, sea);
             Tweak_Word_Stub(wordlike, patch);
-            return true;
+            goto finalize_and_return_true;
         }
         goto next_context;
     }
@@ -367,7 +375,7 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
         if (Let_Symbol(u_cast(Let*, c)) == symbol) {
             Init_Let(out, u_cast(Let*, c));
             Tweak_Word_Stub(wordlike, c);
-            return true;
+            goto finalize_and_return_true;
         }
         goto next_context;
     }
@@ -411,11 +419,33 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
 
     if (n) {
         Tweak_Word_Index(wordlike, unwrap n);
-        return true;
+        goto finalize_and_return_true;
     }
 
+    if (Get_Stub_Flag(vlist, CONTEXT_PURE))  // pure reads only above here
+        must_be_final_bit = CELL_FLAG_BINDING_MUST_BE_FINAL;
+
     goto next_context;
-}
+
+} finalize_and_return_true: { ////////////////////////////////////////////////
+
+  // Everything should be pure and then eventually stop being pure, but
+  // shouldn't get pure again (not-pure can't build on pure).
+  //
+  // Our concept here is that once you're in pure mode, the constness is taken
+  // care of by the purity system--anything mutable is mutable because it's
+  // okay (input arguments should have been made const, etc.)  So if you get a
+  // mutable thing there, it's okay that it's mutable--it's some local state
+  // private to the pure function.
+  //
+  // But if your context lets you reach down deeper in the binding chain to
+  // something that existed before the purity was started, then you should
+  // experience that as final/const, and only fetch final values.
+
+    out->header.bits |= must_be_final_bit;
+
+    return true;
+}}
 
 
 // We remove the decoration from the VARS argument, but remember whether we

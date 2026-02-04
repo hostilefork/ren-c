@@ -862,16 +862,36 @@ Details* Make_Dispatch_Details(
         or LIFT_BYTE(exemplar) == UNSTABLE_ANTIFORM_1  // allow action antiform
     );
 
+  check_flags: {
+
+  // 1. Callers don't pass DETAILS_FLAG_PURE or DETAILS_FLAG_IMPURE because we
+  //    we want these to be inherited from the exemplar typically.  And if
+  //    they're added or tweaked after the fact, that's done by the PURE and
+  //    IMPURE functions.
+  //
+  //    (You can turn PURE:OFF or IMPURE:OFF if the default inheritance is
+  //    not what you want, and purity will still be respected when the phase
+  //    is adjusted, see Tweak_Level_Phase())
+
     assert(0 == (flags & (~ (  // make sure no stray flags passed in
         BASE_FLAG_MANAGED
             | DETAILS_FLAG_CAN_DISPATCH_AS_INTRINSIC
             | DETAILS_FLAG_API_CONTINUATIONS_OK
             | DETAILS_FLAG_RAW_NATIVE
             | DETAILS_FLAG_METHODIZED  // inherit from exemplar
+            | (not DETAILS_FLAG_IMPURE)  // inherit [1]
+            | (not DETAILS_FLAG_PURE)  // inherit [1]
     ))));
+
+    Phase* exemplar_phase = Frame_Phase(exemplar);
+    flags |= exemplar_phase->header.bits & (
+        STUB_FLAG_PHASE_PURE | STUB_FLAG_PHASE_IMPURE  // inherit
+    );
 
     if (Get_Flavor_Flag(VARLIST, Cell_Varlist(exemplar), METHODIZED))
         flags |= DETAILS_FLAG_METHODIZED;
+
+} make_details: {
 
     // "details" for an action is an array of cells which can be anything
     // the dispatcher understands it to be, by contract.
@@ -929,7 +949,7 @@ Details* Make_Dispatch_Details(
 
     assert(Details_Querier(details));  // must register querier
     return details;
-}
+}}
 
 
 //

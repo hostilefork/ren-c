@@ -337,18 +337,26 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 #define CELL_FLAG_WEIRD_VANISHABLE  CELL_FLAG_WEIRD
 
 
-//=//// CELL_FLAG_26 //////////////////////////////////////////////////////=//
+//=//// CELL_FLAG_FINAL ///////////////////////////////////////////////////=//
 //
-#define CELL_FLAG_26 \
+#define CELL_FLAG_FINAL \
     FLAG_LEFT_BIT(26)
+
+#define CELL_FLAG_BINDING_MUST_BE_FINAL  CELL_FLAG_FINAL
 
 
 //=//// CELL_FLAG_PROTECTED ///////////////////////////////////////////////=//
 //
-// Values can carry a user-level protection bit.  The bit is not copied by
-// Copy_Cell(), and hence reading a protected value and writing it to
-// another location will not propagate the protectedness from the original
-// value to the copy.
+// Values can carry a user-level protection bit.
+//
+// Because this bit is used to implement "purity", it needs to be copied so
+// that things like (x: (((pure 10)))) will correctly transmit immutability
+// of the 10 across any intermediary cells to reach X.  However, this purity
+// is discarded when variables are fetched or picked (although the value
+// itself becomes immutable, it won't create more unmodifiable variables).
+//
+// This puts the responsibility of stripping the bit onto the PICK-ing
+// machinery.
 //
 // (A Flex has more than one kind of protection in "info" bits that can all
 // be checked at once...hence there's not "BASE_FLAG_PROTECTED" in common.)

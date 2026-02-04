@@ -99,7 +99,7 @@
 
 //=//// USE_FLAG_PURE /////////////////////////////////////////////////////=//
 //
-// A USE will inherit the purity of the context it is chained into.
+// A USE will inherit the pureness of the context it is chained into.
 //
 #define USE_FLAG_PURE \
     STUB_SUBCLASS_FLAG_24_ALSO_CELL_FLAG_CONST

@@ -536,3 +536,50 @@ DECLARE_NATIVE(FREEZE)
 
     return COPY_TO_OUT(ARG(VALUE));
 }
+
+
+//
+//  final: native [
+//
+//  "Make an immutable value that has CELL_FLAG_FINAL for a variable"
+//
+//      return: [any-value?]
+//      ^value [any-value?]
+//  ]
+//
+DECLARE_NATIVE(FINAL)
+{
+    INCLUDE_PARAMS_OF_FINAL;
+
+    Value* v = ARG(VALUE);
+    Copy_Cell(OUT, v);
+
+    Flex* locker = nullptr;
+    bool deep = true;
+    Element* lifted = Lift_Cell(v);
+    Force_Value_Frozen_Core(lifted, deep, locker);
+
+    Set_Cell_Flag(OUT, FINAL);
+    return OUT;
+}
+
+
+//
+//  nonfinal: native:intrinsic [
+//
+//  "Make an mutable value that does not have CELL_FLAG_FINAL for a variable"
+//
+//      return: [any-value?]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(NONFINAL)  // "VARIES" was considered, but this is clearer
+{
+    INCLUDE_PARAMS_OF_NONFINAL;
+
+    Value* v = ARG(VALUE);
+    Copy_Cell(OUT, v);
+    Clear_Cell_Flag(OUT, FINAL);  // still immutable, but variable can change
+
+    return OUT;
+}

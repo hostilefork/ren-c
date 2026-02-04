@@ -49,7 +49,7 @@ DECLARE_NATIVE(GHOST)
 //
 //  void?: native:intrinsic [
 //
-//  "Tells you if argument is a comma antiform (unstable)"
+//  "Tells you if argument is a BLANK! antiform (unstable)"
 //
 //      return: [logic! failure!]
 //      ^value '[any-value? failure!]

@@ -87,7 +87,7 @@
 //     >> if 1 = 1 [print "then"] [print "else"] print "Woo!"
 //     then
 //     Woo!
-//     ** PANIC: Non-discardable value discarded: [print "else"]
+//     ** PANIC: Pure evaluation product discarded: [print "else"]
 //
 // So discardability is implemented as a flag on evaluator Levels.  But since
 // it's not traced on a per-Cell basis (like a generic CELL_FLAG_DISCARDABLE)

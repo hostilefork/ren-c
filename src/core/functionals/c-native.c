@@ -188,7 +188,7 @@ Result(Details*) Make_Native_Dispatch_Details_May_Update_Spec(
 
 
 //
-//  native: native [
+//  native: native [  ; not PURE, mutates global state [1]
 //
 //  "(Internal Function) Create a native, using compiled C code"
 //
@@ -200,6 +200,14 @@ Result(Details*) Make_Native_Dispatch_Details_May_Update_Spec(
 //  ]
 //
 DECLARE_NATIVE(NATIVE)
+//
+// 1. Outside of the bootstrapping issues of needing NATIVE to make the PURE
+//    native in the first place--there's also the situation that each call
+//    to NATIVE mutates global state by advancing the pointer to the next
+//    C function to use as the implementation.  This could be changed to
+//    where an index to that table is passed in instead, but even then it
+//    would be dependent on which table was being used...so it would be
+//    consulting global state anyway.
 {
     INCLUDE_PARAMS_OF_NATIVE;
 
@@ -562,12 +570,15 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
 
     ++g_native_cfunc_pos;
 
-    Init_Action(
+    Value* v = Init_Action(
         Sink_Lib_Value(id),
         details,
         Canon_Symbol(id),  // label
         UNCOUPLED  // coupling
     );
+
+    if (id == SYM_C_DEBUG_BREAK)
+        Set_Cell_Flag(v, WEIRD_VANISHABLE);
 
     assert(cast(Details*, Frame_Phase(Lib_Value(id))) == details);
 }}

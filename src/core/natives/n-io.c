@@ -167,7 +167,7 @@ DECLARE_NATIVE(MOLD)
 
 
 //
-//  write-stdout: native [
+//  write-stdout: impure native [
 //
 //  "Boot-only implementation of WRITE-STDOUT (HIJACK'd by STDIO module)"
 //

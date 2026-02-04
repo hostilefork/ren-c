@@ -115,13 +115,39 @@
 // "Frames" were conflated, there was concern that this would not give enough
 // reified FRAME! objects to the user.  Now that Levels and Frames are
 // distinct, this should be revisited.
+//
+// !!! Stepper_Executor() and Evaluator_Executor() have largely merged, and
+// as such you need a separate Level to track across multiple steps.  It may
+// be that if a Stepper has its own Level, that could be reused for actions.
+//
+// 1. Frequently the ACTION! we are pushing is something that lives in OUT.
+//    But OUT is also where we're asking the Level to put its result.  So we
+//    ease the assertion that OUT is erased in STATE_0 in Push_Level(), but
+//    be sure to Erase_Cell() before getting back to the Trampoline.
+//
+// 2. We keep the Level alive and do Drop_Level() manually because it gives
+//    us an opportunity to examine the state bits of the action frame before
+//    it gets thrown away--and doesn't cost any more to do so.
+//
 
+inline static Result(Level*) Make_Action_Sublevel_Core(
+    Level* L,
+    const Value* action
+){
+    Phase *phase = Frame_Phase(action);
+    if (Not_Stub_Flag(phase, PHASE_PURE))
+        Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
+
+    return Make_Level(&Action_Executor, L->feed,
+        LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK  // [1]
+            | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // [2]
+            | (Get_Cell_Flag((action), WEIRD_VANISHABLE) ? 0
+                : (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)));
+}
 
 #define Make_Action_Sublevel(action) \
-    Make_Level(&Action_Executor, L->feed, \
-        LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK \
-            | (Get_Cell_Flag(action, WEIRD_VANISHABLE) ? 0 \
-            : (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)))
+    Make_Action_Sublevel_Core(L, (action))
+
 
 //
 // SET-WORD! and SET-TUPLE! want to do roughly the same thing as the first step
@@ -292,7 +318,8 @@ Bounce Stepper_Executor(Level* L)
         }
 
         Clear_Level_Flag(L, DISPATCHING_INTRINSIC);
-        Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
+        if (Not_Details_Flag(details, PURE))
+            Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
         goto lookahead; }
       #endif
 
@@ -308,8 +335,8 @@ Bounce Stepper_Executor(Level* L)
       case ST_STEPPER_SET_BLOCK:
         goto set_block_rightside_in_out;
 
-      case TYPE_FRAME:  // TBD: PURE functions not discardable
-        Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
+      case TYPE_FRAME:
+        Drop_Level(SUBLEVEL);  // could in theory examine action level here
         goto lookahead;
 
       case ST_STEPPER_BIND_OPERATOR_EVALUATING:

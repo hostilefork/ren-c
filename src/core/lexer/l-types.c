@@ -222,7 +222,7 @@ DECLARE_NATIVE(SIZE_OF)
 //
 //  "Get the index of a series type"
 //
-//      return: [<null> integer!]
+//      return: [integer!]
 //      value [fundamental?]
 //  ]
 //
@@ -242,7 +242,7 @@ DECLARE_NATIVE(INDEX_OF)
 //
 //  "Get the offset of a series type or port (zero-based?)"
 //
-//      return: [<null> integer!]
+//      return: [integer!]
 //      value [fundamental?]
 //  ]
 //

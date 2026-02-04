@@ -1119,6 +1119,73 @@ DECLARE_NATIVE(VANISHABLE_Q)
 
 
 //
+//  pure: native [
+//
+//  "Modifier: Can't call IMPURE functions or consult non-FINAL external state"
+//
+//      return: [action! frame!]
+//      ^value [action! frame!]
+//      :off "Give back non-pure version of the passed in function"
+//  ]
+//
+DECLARE_NATIVE(PURE)
+{
+    INCLUDE_PARAMS_OF_PURE;
+
+  purify_action_or_frame: {
+
+  // There is not a CELL_FLAG_PURE which means the flag is carried on the
+  // Phase (either ParamList or a Details) of a given action/frame.  Currently
+  // this mutates that bit, which it probably shouldn't...but making a copy
+  // would have cost.  It would be good to know if the function had just been
+  // created and had no references yet, to make it safe to mutate.  Or more
+  // probably it should be in the spec, perhaps something like #pure.
+
+    Copy_Cell(OUT, ARG(VALUE));
+
+    Phase* phase = Frame_Phase(ARG(VALUE));
+    if (Get_Stub_Flag(phase, PHASE_IMPURE))
+        panic ("Can't mark impure function pure (use IMPURE:OFF)");
+
+    if (ARG(OFF))
+        Clear_Stub_Flag(phase, PHASE_PURE);
+    else
+        Set_Stub_Flag(phase, PHASE_PURE);
+
+    return OUT;
+}}
+
+
+//
+//  impure: native [
+//
+//  "Modifier: Non-deterministic or consults non-FINAL external state"
+//
+//      return: [action! frame!]
+//      ^value [action! frame!]
+//      :off "Give back non-pure version of the passed in function"
+//  ]
+//
+DECLARE_NATIVE(IMPURE)
+{
+    INCLUDE_PARAMS_OF_IMPURE;
+
+    Copy_Cell(OUT, ARG(VALUE));
+
+    Phase* phase = Frame_Phase(ARG(VALUE));
+    if (Get_Stub_Flag(phase, PHASE_PURE))
+        panic ("Can't mark pure function impure (use PURE:OFF)");
+
+    if (ARG(OFF))
+        Clear_Stub_Flag(phase, PHASE_IMPURE);
+    else
+        Set_Stub_Flag(phase, PHASE_IMPURE);
+
+    return OUT;
+}
+
+
+//
 //  identity: vanishable native:intrinsic [  ; vanishable to not distort [1]
 //
 //  "Returns input value (https://en.wikipedia.org/wiki/Identity_function)"

@@ -1330,17 +1330,27 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     }
 
     Lift_Cell(OUT);  // lift the cell to indicate "normal" state
+    Inherit_Const(OUT, context);
+
+    possibly(Get_Cell_Flag(OUT, FINAL));  // TWEAK checks, but clears
     return OUT;
 
 } handle_poke: { /////////////////////////////////////////////////////////////
+
+    if (Get_Cell_Flag(context, CONST))
+        panic (Error_Const_Value_Raw(context));
 
     Dual* dual = As_Dual(ARG(DUAL));
 
     if (Is_Dual_Word_Named_Signal(dual))
         goto handle_named_signal;
 
-    if (Get_Cell_Flag(slot, PROTECTED))  // POKE, must check PROTECT status
-        panic (Error_Protected_Key(symbol));
+    if (slot->header.bits & (CELL_FLAG_PROTECTED | CELL_FLAG_FINAL)) {
+        if (Get_Cell_Flag(slot, PROTECTED))  // POKE, must check PROTECT status
+            panic (Error_Protected_Variable_Raw(symbol));
+
+        panic (Error_Final_Variable_Raw(symbol));
+    }
 
     if (Is_Dualized_Bedrock(dual)) {  // CASE 1: Overwriting w/new bedrock
         Copy_Cell_Core(slot, dual, CELL_MASK_COPY);  // store

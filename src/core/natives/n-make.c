@@ -137,7 +137,11 @@ DECLARE_NATIVE(COPY)
     assert(Get_Executor_Flag(ACTION, sub, IN_DISPATCH));
 
     Phase* phase = Frame_Phase(LIB(COPY));
-    Tweak_Level_Phase(sub, phase);
+
+  require (
+    Tweak_Level_Phase(sub, phase)
+  );
+
     Tweak_Level_Coupling(sub, coupling);
 
     sub->u.action.original = Frame_Phase(LIB(COPY));

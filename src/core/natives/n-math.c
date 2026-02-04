@@ -343,7 +343,7 @@ DECLARE_NATIVE(EVEN_Q)  // Note: ODD? is defined as NOT EVEN?
 
 
 //
-//  randomize: native:generic [
+//  randomize: impure native:generic [
 //
 //  "Seed random number generator"
 //
@@ -368,7 +368,7 @@ DECLARE_NATIVE(RANDOMIZE)
 
 
 //
-//  random: native:generic [
+//  random: impure native:generic [
 //
 //  "Returns random value of the given type, 'zero' to max (see also SHUFFLE)"
 //
@@ -395,7 +395,7 @@ DECLARE_NATIVE(RANDOM)
 
 
 //
-//  random-between: native:generic [
+//  random-between: impure native:generic [
 //
 //  "Random value of the given type between min and max (inclusive)"
 //
@@ -424,7 +424,7 @@ DECLARE_NATIVE(RANDOM_BETWEEN)
 
 
 //
-//  random-pick: native:generic [
+//  random-pick: impure native:generic [
 //
 //  "Picks an arbitrary member out of a collection (see also SHUFFLE, RANDOM)"
 //
@@ -469,7 +469,7 @@ DECLARE_NATIVE(RANDOM_PICK)
 
 
 //
-//  shuffle: native:generic [
+//  shuffle: impure native:generic [
 //
 //  "Randomly shuffle the contents of a series in place (see also RANDOM)"
 //
@@ -488,7 +488,7 @@ DECLARE_NATIVE(SHUFFLE)
 
 
 //
-//  shuffle-of: native:generic [
+//  shuffle-of: impure native:generic [
 //
 //  "Give back a shuffled copy of the argument (can be immutable)"
 //

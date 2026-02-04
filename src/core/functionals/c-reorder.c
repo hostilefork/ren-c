@@ -79,7 +79,10 @@ Bounce Reorderer_Dispatcher(Level* L) {
 
     Stable* reorderee = Details_At(details, IDX_REORDERER_REORDEREE);
 
-    Tweak_Level_Phase(L, Frame_Phase(reorderee));
+  require (
+    Tweak_Level_Phase(L, Frame_Phase(reorderee))
+  );
+
     Tweak_Level_Coupling(L, Frame_Coupling(reorderee));
 
     return BOUNCE_REDO_UNCHECKED;  // exemplar unchanged; known to be valid

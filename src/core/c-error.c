@@ -1033,15 +1033,6 @@ Error* Error_Out_Of_Range(const Stable* arg)
 
 
 //
-//  Error_Protected_Key: C
-//
-Error* Error_Protected_Key(const Symbol* sym)
-{
-    return Error_Protected_Word_Raw(sym);
-}
-
-
-//
 //  Error_Math_Args: C
 //
 Error* Error_Math_Args(Type type, const Symbol* verb)

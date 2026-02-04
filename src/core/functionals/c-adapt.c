@@ -137,7 +137,10 @@ Bounce Adapter_Dispatcher(Level* const L)
 
     Stable* adaptee = Phase_Archetype(details);
 
-    Tweak_Level_Phase(L, Frame_Phase(adaptee));
+  require (
+    Tweak_Level_Phase(L, Frame_Phase(adaptee))
+  );
+
     Tweak_Level_Coupling(L, Frame_Coupling(adaptee));
 
     return BOUNCE_REDO_CHECKED;  // redo uses updated phase & coupling [1]

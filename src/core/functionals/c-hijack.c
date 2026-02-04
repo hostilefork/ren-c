@@ -226,7 +226,9 @@ Bounce Hijacker_Dispatcher(Level* const L)
     KeyList* keylist = Bonus_Keylist(Level_Varlist(L));
     while (true) {
         if (keylist == hijacker_keylist) {
-            Tweak_Level_Phase(L, hijacker);
+          require (
+            Tweak_Level_Phase(L, hijacker)
+          );
             Tweak_Level_Coupling(L, hijacker_coupling);
             return BOUNCE_REDO_UNCHECKED;
         }

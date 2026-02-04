@@ -162,7 +162,11 @@ Bounce Cascader_Executor(Level* const L)
     ++SERIES_INDEX_UNBOUNDED(pipeline);  // point series index to next FRAME! to call
 
     Phase* phase = Frame_Phase(first);
-    Tweak_Level_Phase(sub, phase);  // has varlist already [3]
+
+  require (
+    Tweak_Level_Phase(sub, phase)  // has varlist already [3]
+  );
+
     Tweak_Level_Coupling(sub, Frame_Coupling(first));
 
     assert(Get_Executor_Flag(ACTION, sub, IN_DISPATCH));

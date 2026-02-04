@@ -271,6 +271,15 @@ INLINE ParamList* Level_Varlist(Level* L) {
 #define Level_Verb(L)  (unwrap (L)->u.action.label)
 
 
+INLINE Option(const Symbol*) Level_Label(Level* L) {
+    assert(Is_Action_Level(L));
+  #if DEBUG_LEVEL_LABELS
+    assert(L->label_utf8);  // should be non-nullptr if label valid
+  #endif
+    return L->u.action.label;
+}
+
+
 INLINE Details* Ensure_Level_Details(Level* L) {
     assert(Not_Level_Flag(L, DISPATCHING_INTRINSIC));
     Phase* phase = Level_Phase(L);
@@ -278,9 +287,41 @@ INLINE Details* Ensure_Level_Details(Level* L) {
     return cast(Details*, phase);
 }
 
-INLINE void Tweak_Level_Phase_Core(Level* L, Phase* phase) {
-    assert(Is_Stub_Details(phase) or Is_Stub_Varlist(phase));
+// Generally speaking, making derived actions (like specialization or adapt
+// or enclose) will get the same purity or impurity as the original function.
+// However, this can be overridden with PURE:OFF or IMPURE:OFF.  If it
+// gets overridden then you can have an outer function (like an ADAPT) that is
+// impure which updates to run an adaptee which is pure... or an outer
+// function that is pure trying to run an impure adaptee.
+//
+// (We could prohibit this, but the flexibility seems like it might be useful
+// in some cases.)
+//
+INLINE Result(None) Tweak_Level_Phase_Core(Level* L, Phase* phase) {
+    if (Get_Level_Flag(L, PURE)) {
+        if (Get_Stub_Flag(phase, PHASE_IMPURE)) {
+            Option(const Symbol*) label = Frame_Label_Deep(
+                Phase_Archetype(phase)
+            );
+            if (not label)
+                label = Level_Label(L);
+            return fail (Error_Impure_Call_Raw(label));
+        }
+    }
+    else {  // inherit phase purity
+        Flags action_pure_bit = (
+            phase->header.bits & STUB_FLAG_PHASE_PURE
+        );
+
+        STATIC_ASSERT(STUB_FLAG_PHASE_PURE == LEVEL_FLAG_PURE);
+        L->flags.bits |= action_pure_bit;
+
+        STATIC_ASSERT(STUB_FLAG_PHASE_PURE == VARLIST_FLAG_PURE);
+        L->varlist->header.bits |= action_pure_bit;
+    }
+
     CELL_FRAME_PAYLOAD_1_PHASE(L->rootvar) = phase;
+    return none;
 }
 
 #define Tweak_Level_Phase(L,phase) \
@@ -297,14 +338,6 @@ INLINE void Tweak_Level_Coupling(Level* L, Option(VarList*) coupling)
 //
 #define Level_Coupling(L) \
     Frame_Coupling((L)->rootvar)
-
-INLINE Option(const Symbol*) Level_Label(Level* L) {
-    assert(Is_Action_Level(L));
-  #if DEBUG_LEVEL_LABELS
-    assert(L->label_utf8);  // should be non-nullptr if label valid
-  #endif
-    return L->u.action.label;
-}
 
 
 #if NO_RUNTIME_CHECKS || NO_CPLUSPLUS_11
@@ -506,12 +539,16 @@ INLINE void Push_Level_Dont_Inherit_Interruptibility(
     assert(L->alloc_value_list == L);
 }
 
-INLINE void Push_Level_Core(  // inherit interrupt [4]
+INLINE void Push_Level_Core(  // inherit interrupt and purity [4]
     Contra(Value) out,  // prohibit passing Element/Stable/Slot as output [1]
     Level* L
 ){
     Push_Level_Dont_Inherit_Interruptibility(out, L);
-    L->flags.bits |= L->prior->flags.bits & LEVEL_FLAG_UNINTERRUPTIBLE;  // [4]
+    L->flags.bits |= (
+        L->prior->flags.bits & (  // [4]
+            LEVEL_FLAG_UNINTERRUPTIBLE | LEVEL_FLAG_PURE
+        )
+    );
 }
 
 #define Push_Level(out,L) \

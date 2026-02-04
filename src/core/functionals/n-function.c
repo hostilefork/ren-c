@@ -248,7 +248,7 @@ Bounce Func_Dispatcher(Level* const L)
     }
 
     Option(const Symbol*) label = Level_Label(L);
-    panic (Error_Func_No_Return_Raw(label ? unwrap label : CANON(ANONYMOUS)));
+    panic (Error_Func_No_Return_Raw(label));
 }}
 
 

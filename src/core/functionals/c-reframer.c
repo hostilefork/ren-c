@@ -124,7 +124,11 @@ Level* Make_Pushed_Level_From_Action_Feed_May_Throw(
     Clear_Flavor_Flag(VARLIST, L->varlist, FRAME_HAS_BEEN_INVOKED);  // [2]
 
     L->u.action.original = Frame_Phase(action);
-    Tweak_Level_Phase(L, Frame_Phase(action));  // Drop_Action() cleared
+
+  require (
+    Tweak_Level_Phase(L, Frame_Phase(action))  // Drop_Action() cleared
+  );
+
     Tweak_Level_Coupling(L, Frame_Coupling(action));
 
     return L;  // may not be at end or thrown, e.g. (/x: does+ just y x = 'y)
@@ -312,7 +316,10 @@ Bounce Reframer_Dispatcher(Level* const L)
     Value* arg = As_Value(Required_Arg_Of_Level(L, VAL_INT32(param_index)));
     Move_Cell(arg, out);
 
-    Tweak_Level_Phase(L, Frame_Phase(shim));
+  require (
+    Tweak_Level_Phase(L, Frame_Phase(shim))
+  );
+
     Tweak_Level_Coupling(L, Frame_Coupling(shim));
 
     return BOUNCE_REDO_CHECKED;  // the redo will use the updated phase & binding

@@ -412,7 +412,7 @@ DECLARE_NATIVE(CONSOLE)
         "sys.util/recover [",  // pollutes stack trace [3]
             "catch [",  // definitional quit (custom THROW) [4]
                 "sys.contexts.user.quit*: cascade [lift/ throw/]",
-                "result': lift eval code'",
+                "result': nonfinal lift eval code'",
                 "throw ~null~",  // this throw is unlifted, won't run THEN
             "] then (caught' -> [",  // QUIT* lifts throw, so QUIT* runs THEN
                 "unlift caught' also [",

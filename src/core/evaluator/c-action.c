@@ -917,6 +917,11 @@ Bounce Action_Executor(Level* L)
 
     Phase* phase = Level_Phase(L);
 
+    STATIC_ASSERT(VARLIST_FLAG_PURE == CELL_FLAG_CONST);
+
+    Flags pure_mask = phase->header.bits & STUB_FLAG_PHASE_PURE;
+    L->varlist->header.bits |= pure_mask;
+
   check_paramlist_layer: { ///////////////////////////////////////////////////
 
     KEY = Phase_Keys(&KEY_TAIL, phase);
@@ -924,6 +929,8 @@ Bounce Action_Executor(Level* L)
     PARAM = Phase_Params_Head(phase);
 
     for (; KEY != KEY_TAIL; ++KEY, ++PARAM, ++ARG) {
+        ARG->header.bits |= pure_mask;  // when's the right time for this [?]
+
         if (Is_Specialized(PARAM)) {  // no typecheck info in this layer
             if (Not_Cell_Flag(PARAM, PARAM_MARKED_SEALED)) {
                 possibly(Get_Cell_Flag(ARG, PARAM_MARKED_SEALED));
@@ -1007,7 +1014,9 @@ Bounce Action_Executor(Level* L)
         goto check_paramlist_layer;  // don't skip unhiding/typechecking
     }
 
-    Tweak_Level_Phase(L, phase);  // [4]
+  require (
+    Tweak_Level_Phase(L, phase)  // [4]
+  );
 
 }} dispatch: {
 
@@ -1233,7 +1242,8 @@ Bounce Action_Executor(Level* L)
 
 } handle_thrown: {  //////////////////////////////////////////////////////////
 
-    Drop_Action(L);
+    if (L->varlist)
+        Drop_Action(L);
 
     return THROWN;
 }}
@@ -1274,6 +1284,8 @@ Result(None) Push_Action(
 
     STATIC_ASSERT(DETAILS_FLAG_METHODIZED == VARLIST_FLAG_METHODIZED);
 
+  create_varlist: {
+
     require (
       Flex* s = u_downcast Prep_Stub(
         STUB_MASK_LEVEL_VARLIST
@@ -1309,25 +1321,27 @@ Result(None) Push_Action(
 
     s->content.dynamic.used = num_args + 1;
 
+  poison_uninitialized_cells: {
+
   #if DEBUG_POISON_UNINITIALIZED_CELLS
-  {
     Cell* tail = Array_Tail(Varlist_Array(L->varlist));
     Cell* uninitialized = L->rootvar + 1;
     for (; uninitialized < tail; ++uninitialized)
         Force_Poison_Cell(uninitialized);
-  }
   #endif
 
+} poison_excess_capacity: {
+
   #if DEBUG_POISON_EXCESS_CAPACITY
-  {
     Cell* tail = L->rootvar + s->content.dynamic.rest;
     Cell* excess = L->rootvar + 1 + num_args;
     for (; excess < tail ; ++excess)
         Force_Poison_Cell(excess);
-  }
   #elif DEBUG_POISON_FLEX_TAILS  // redundant if excess capacity poisoned
     Force_Poison_Cell(Array_Tail(L->varlist));
   #endif
+
+}} begin_action: {
 
     assert(Not_Base_Managed(L->varlist));
 
@@ -1339,7 +1353,7 @@ Result(None) Push_Action(
 
     Begin_Action(L, infix_mode);
     return none;
-}
+}}
 
 
 //

@@ -85,6 +85,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
     bool dont_indirect
 ){
     Option(Heart) adjusted = none;
+    Flags must_be_final_bit;
 
     Element* location_arg;
     Stable* picker_arg;
@@ -93,6 +94,11 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
   adjust_antiform_pick_if_needed: {
 
     Dual* dual_spare = As_Dual(Level_Spare(parent));
+
+    must_be_final_bit = (
+        dual_spare->header.bits & CELL_FLAG_BINDING_MUST_BE_FINAL
+    );
+
     if (Is_Lifted_Antiform(dual_spare)) {
         adjusted = Heart_Of_Unsigiled_Isotopic(dual_spare);
         Option(Error*) e = Trap_Adjust_Lifted_Antiform_For_Tweak(dual_spare);
@@ -235,6 +241,14 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
 
 } possibly_unbind_spare_and_return: { ///////////////////////////////////////
 
+    if (must_be_final_bit) {
+        if (Not_Cell_Flag(dual_spare, FINAL))
+            return Error_Pure_Non_Final_Raw(
+                Data_Stack_At(Element, picker_index)
+            );
+    }
+    Clear_Cell_Flag(dual_spare, FINAL);  // picks never final
+
     if (Get_Cell_Flag(
         Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
     )){
@@ -256,6 +270,11 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         return Error_User("TWEAK* cannot be used on antiforms");
 
     Element* scratch_var = As_Element(Level_Scratch(parent));
+
+    if (Get_Cell_Flag(Level_Spare(parent), BINDING_MUST_BE_FINAL))
+        return Error_Pure_Non_Final_Raw(  // if we're poking, that's bad
+            Data_Stack_At(Element, picker_index)
+        );
 
     require (
       Push_Action(sub, LIB(TWEAK_P), PREFIX_0)
@@ -345,6 +364,9 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
             continue;  // dual signal, do not lift dual
 
         if (Is_Lifted_Action(TOP_ELEMENT)) {  // !!! must generalize all sets
+            if (Get_Cell_Flag(scratch_var, SCRATCH_VAR_NOTE_ONLY_ACTION))
+                Set_Cell_Flag(TOP_ELEMENT, FINAL);  // force finality
+
             if (Is_Word(picker_arg)) {
                 Update_Frame_Cell_Label(  // !!! is this a good idea?
                     TOP_ELEMENT, Word_Symbol(picker_arg)
@@ -508,20 +530,18 @@ Option(Error*) Trap_Push_Steps_To_Stack(
 
   handle_scratch_var_as_wordlike: {
 
-    if (not Try_Get_Binding_Of(SPARE, scratch_var)) {
+    if (not Try_Get_Binding_Of(PUSH(), scratch_var)) {
         error = Error_No_Binding_Raw(scratch_var);
         goto return_error;
     }
+    Lift_Cell(TOP_ELEMENT);  // dual protocol, lift (?)
 
-    Copy_Cell(PUSH(), As_Element(SPARE));
-    Lift_Cell(TOP_STABLE);  // dual protocol, lift (?)
-
-    Copy_Cell(PUSH(), scratch_var);  // save var for steps + error messages
+    Copy_Cell(PUSH(), scratch_var);  // variable is what we're picking with
     switch (opt Cell_Underlying_Sigil(TOP_ELEMENT)) {
       case SIGIL_0:
         break;
 
-      case SIGIL_META:
+      case SIGIL_META:  // we remember the sigil from scratch_var
         TOP->header.bits &= (~ CELL_MASK_SIGIL);
         break;
 
@@ -532,8 +552,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
         );
         goto return_error;
     }
-
-    unnecessary(Lift_Cell(TOP_STABLE));  // if ^x, not literally ^x ... meta-variable
+    unnecessary(Lift_Cell(TOP_STABLE));  // !!! unlifted picker is ok--why?
 
     goto return_success;
 
@@ -751,10 +770,16 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
   do_stack_thing: {
 
     OnStack(Element*) at = Data_Stack_At(Element, stackindex);
-    Copy_Cell(spare_location_dual, at);  // dual protocol, leave lifted
-    if (not Any_Lifted(spare_location_dual)) {
+
+    if (not Any_Lifted(at)) {
         panic ("First Element in STEPS must be lifted");
     }
+
+    Copy_Cell_Core(
+        spare_location_dual,  // dual protocol, leave lifted
+        at,
+        CELL_MASK_COPY | CELL_FLAG_BINDING_MUST_BE_FINAL
+    );
 
     ++stackindex;
 

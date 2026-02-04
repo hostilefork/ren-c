@@ -261,7 +261,7 @@ DECLARE_NATIVE(SHOVE)
 //          any-value?              "Evaluation product"
 //          ~(block! any-value?)~   "[position product] pack if :STEP"  ; [1]
 //      ]
-//      source [
+//      value [
 //          block!  "always 'void suppression' semantics, :STEP ok"
 //          fence!  "WRAP semantics, produces BLOCK!, :STEP ok"
 //          group!  "must eval to end, only suppress voids after value seen"
@@ -297,7 +297,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
 {
     INCLUDE_PARAMS_OF_EVALUATE;
 
-    Element* source = Element_ARG(SOURCE);
+    Element* source = Element_ARG(VALUE);
 
     enum {
         ST_EVALUATE_INITIAL_ENTRY = STATE_0,

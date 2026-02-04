@@ -78,6 +78,7 @@ export extract-native-protos: func [
                     name: across to ":" one  ; all else is like foo:
                 ]
                 space
+                opt [["pure" | "impure"] space]
                 opt ["vanishable" space]
                 opt ["infix" opt [":" to space] space]
                 ["native" (native-type: 'normal)
