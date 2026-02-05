@@ -26,7 +26,7 @@
 
 
 //
-//  /null?: native:intrinsic [
+//  /null?: pure native:intrinsic [
 //
 //  "Tells you if the argument is a light ~null~ antiform (branch inhibitor)"
 //
@@ -64,7 +64,7 @@ DECLARE_NATIVE(NULL_Q)
 
 
 //
-//  /okay?: native:intrinsic [
+//  /okay?: pure native:intrinsic [
 //
 //  "Tells you if the argument is an ~okay~ antiform (canon branch trigger)"
 //
@@ -101,7 +101,7 @@ DECLARE_NATIVE(INT_TO_LOGIC)
 
 
 //
-//  /boolean?: native:intrinsic [
+//  /boolean?: pure native:intrinsic [
 //
 //  "Tells you if the argument is the TRUE or FALSE word"
 //
@@ -124,7 +124,7 @@ DECLARE_NATIVE(BOOLEAN_Q)
 
 
 //
-//  /onoff?: native:intrinsic [
+//  /onoff?: pure native:intrinsic [
 //
 //  "Tells you if the argument is the ON or OFF word"
 //
@@ -147,7 +147,7 @@ DECLARE_NATIVE(ONOFF_Q)
 
 
 //
-//  /yesno?: native:intrinsic [
+//  /yesno?: pure native:intrinsic [
 //
 //  "Tells you if the argument is the YES or NO word"
 //
@@ -170,7 +170,7 @@ DECLARE_NATIVE(YESNO_Q)
 
 
 //
-//  /true?: native [
+//  /true?: pure native [
 //
 //  "Tests if word is the word TRUE (errors if not TRUE or FALSE)"
 //
@@ -187,7 +187,7 @@ DECLARE_NATIVE(TRUE_Q)
 
 
 //
-//  /false?: native [
+//  /false?: pure native [
 //
 //  "Tests if value is the word FALSE (errors if not TRUE or FALSE)"
 //
@@ -223,7 +223,7 @@ DECLARE_NATIVE(BOOLEAN)
 
 
 //
-//  /yes?: native [
+//  /yes?: pure native [
 //
 //  "Tests if word is the word YES (errors if not YES or NO)"
 //
@@ -240,7 +240,7 @@ DECLARE_NATIVE(YES_Q)
 
 
 //
-//  /no?: native [
+//  /no?: pure native [
 //
 //  "Tests if value is the word NO (errors if not YES or NO)"
 //
@@ -276,7 +276,7 @@ DECLARE_NATIVE(TO_YESNO)
 
 
 //
-//  /on?: native [
+//  /on?: pure native [
 //
 //  "Tests if word is the word ON (errors if not ON or OFF)"
 //
@@ -293,7 +293,7 @@ DECLARE_NATIVE(ON_Q)
 
 
 //
-//  /off?: native [
+//  /off?: pure native [
 //
 //  "Tests if value is the word OFF (errors if not ON or OFF)"
 //
@@ -329,7 +329,7 @@ DECLARE_NATIVE(TO_ONOFF)
 
 
 //
-//  /and?: native [
+//  /and?: pure native [
 //
 //  "Returns true if both values are conditionally true (no 'short-circuit')"
 //
@@ -353,7 +353,7 @@ DECLARE_NATIVE(AND_Q)
 
 
 //
-//  /or?: native [
+//  /or?: pure native [
 //
 //  "Returns true if both values are conditionally false (no 'short-circuit')"
 //
@@ -377,7 +377,7 @@ DECLARE_NATIVE(OR_Q)
 
 
 //
-//  /null-if-zero: native [
+//  /null-if-zero: pure native [
 //
 //  "Null if the integer input is a zero"
 //
@@ -394,7 +394,7 @@ DECLARE_NATIVE(NULL_IF_ZERO)
 
 
 //
-//  /not: native:intrinsic [
+//  /not: pure native:intrinsic [
 //
 //  "Returns the logic complement (inverts the nullness of what's passed in)"
 //

@@ -31,7 +31,7 @@
 
 
 //
-//  /ghost: vanishable native [
+//  /ghost: vanishable native [  ; not non-discardable
 //
 //  "Generate VOID! (arity-0 COMMENT)"
 //

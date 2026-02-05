@@ -300,7 +300,7 @@ DECLARE_NATIVE(EITHER)
 
 
 //
-//  /did: native:intrinsic [
+//  /did: pure native:intrinsic [
 //
 //  "Test for NOT void, 'light' null, or failure! (IF DID is prefix THEN)"
 //
@@ -328,7 +328,7 @@ DECLARE_NATIVE(DID_1)
 
 
 //
-//  /didn't: native:intrinsic [
+//  /didn't: pure native:intrinsic [
 //
 //  "Test for void, 'light' null, or failure! (IF DIDN'T is prefix ELSE)"
 //
@@ -720,7 +720,7 @@ DECLARE_NATIVE(ANY)
 
 
 //
-//  /none_of: native [
+//  /none-of: native [
 //
 //  "Short-circuiting shorthand for NOT ALL"
 //

@@ -44,7 +44,7 @@
 
 
 //
-//  /negate: native:generic [
+//  /negate: pure native:generic [
 //
 //  "Changes the sign of a number (see COMPLEMENT for inversion of sets)"
 //
@@ -62,7 +62,7 @@ DECLARE_NATIVE(NEGATE)
 
 
 //
-//  /add: native:generic [
+//  /add: pure native:generic [
 //
 //  "Returns the addition of two values"
 //
@@ -114,7 +114,7 @@ DECLARE_NATIVE(ADD)
 
 
 //
-//  /subtract: native:generic [
+//  /subtract: pure native:generic [
 //
 //  "Returns the second value subtracted from the first"
 //
@@ -156,7 +156,7 @@ DECLARE_NATIVE(SUBTRACT)
 
 
 //
-//  /multiply: native:generic [
+//  /multiply: pure native:generic [
 //
 //  "Returns the second value multiplied by the first"
 //
@@ -198,7 +198,7 @@ DECLARE_NATIVE(MULTIPLY)
 
 
 //
-//  /divide: native:generic [
+//  /divide: pure native:generic [
 //
 //  "Returns the first value divided by the second"
 //
@@ -218,7 +218,7 @@ DECLARE_NATIVE(DIVIDE)
 
 
 //
-//  /remainder: native:generic [
+//  /remainder: pure native:generic [
 //
 //  "Returns the remainder of first value divided by second"
 //
@@ -237,7 +237,7 @@ DECLARE_NATIVE(REMAINDER)
 
 
 //
-//  /power: native:generic [
+//  /power: pure native:generic [
 //
 //  "Returns the first number raised to the second number"
 //
@@ -256,7 +256,7 @@ DECLARE_NATIVE(POWER)
 
 
 //
-//  /absolute: native:generic [
+//  /absolute: pure native:generic [
 //
 //  "Returns the absolute value"
 //
@@ -274,7 +274,7 @@ DECLARE_NATIVE(ABSOLUTE)
 
 
 //
-//  /round: native:generic [
+//  /round: pure native:generic [
 //
 //  "Returns the first number raised to the second number"
 //
@@ -320,7 +320,7 @@ DECLARE_NATIVE(ROUND)
 
 
 //
-//  /even?: native:generic [
+//  /even?: pure native:generic [
 //
 //  "Returns OKAY if the number is even"
 //
@@ -591,7 +591,7 @@ static Result(None) Arc_Trans(
 
 
 //
-//  /cosine: native [
+//  /cosine: pure native [
 //
 //  "Returns the trigonometric cosine"
 //
@@ -613,7 +613,7 @@ DECLARE_NATIVE(COSINE)
 
 
 //
-//  /sine: native [
+//  /sine: pure native [
 //
 //  "Returns the trigonometric sine"
 //
@@ -635,7 +635,7 @@ DECLARE_NATIVE(SINE)
 
 
 //
-//  /tangent: native [
+//  /tangent: pure native [
 //
 //  "Returns the trigonometric tangent"
 //
@@ -657,7 +657,7 @@ DECLARE_NATIVE(TANGENT)
 
 
 //
-//  /arccosine: native [
+//  /arccosine: pure native [
 //
 //  "Returns the trigonometric arccosine"
 //
@@ -678,7 +678,7 @@ DECLARE_NATIVE(ARCCOSINE)
 
 
 //
-//  /arcsine: native [
+//  /arcsine: pure native [
 //
 //  "Returns the trigonometric arcsine"
 //
@@ -699,7 +699,7 @@ DECLARE_NATIVE(ARCSINE)
 
 
 //
-//  /arctangent: native [
+//  /arctangent: pure native [
 //
 //  "Returns the trigonometric arctangent"
 //
@@ -720,7 +720,7 @@ DECLARE_NATIVE(ARCTANGENT)
 
 
 //
-//  /exp: native [
+//  /exp: pure native [
 //
 //  "Raises E (the base of natural logarithm) to the power specified"
 //
@@ -742,7 +742,7 @@ DECLARE_NATIVE(EXP)
 
 
 //
-//  /log-10: native [
+//  /log-10: pure native [
 //
 //  "Returns the base-10 logarithm"
 //
@@ -763,7 +763,7 @@ DECLARE_NATIVE(LOG_10)
 
 
 //
-//  /log-2: native [
+//  /log-2: pure native [
 //
 //  "Return the base-2 logarithm"
 //
@@ -784,7 +784,7 @@ DECLARE_NATIVE(LOG_2)
 
 
 //
-//  /log-e: native [
+//  /log-e: pure native [
 //
 //  "Returns the natural (base-E) logarithm of the given value"
 //
@@ -805,7 +805,7 @@ DECLARE_NATIVE(LOG_E)
 
 
 //
-//  /square-root: native [
+//  /square-root: pure native [
 //
 //  "Returns the square root of a number"
 //
@@ -826,7 +826,7 @@ DECLARE_NATIVE(SQUARE_ROOT)
 
 
 //
-//  /vacancy?: native [
+//  /vacancy?: pure native [
 //
 //  "Tells you if default would overwrite a value (TRASH!, NULL?, VOID!)"
 //
@@ -878,7 +878,7 @@ DECLARE_NATIVE(VACANCY_Q)
 
 
 //
-//  /equal?: native:generic [
+//  /equal?: pure native:generic [
 //
 //  "TRUE if the values are equal"
 //
@@ -926,7 +926,7 @@ DECLARE_NATIVE(EQUAL_Q)
 
 
 //
-//  /lesser?: native:generic [
+//  /lesser?: pure native:generic [
 //
 //  "TRUE if the first value is less than the second value"
 //
@@ -991,7 +991,7 @@ IMPLEMENT_GENERIC(LESSER_Q, Any_Element)
 
 
 //
-//  /same?: native [
+//  /same?: pure native [
 //
 //  "TRUE if the values are identical"
 //
@@ -1060,7 +1060,7 @@ DECLARE_NATIVE(SAME_Q)
 
 
 //
-//  /greater?: native [
+//  /greater?: pure native [
 //
 //  "TRUE if the first value is greater than the second value"
 //
@@ -1086,7 +1086,7 @@ DECLARE_NATIVE(GREATER_Q)
 
 
 //
-//  /equal-or-lesser?: native [
+//  /equal-or-lesser?: pure native [
 //
 //  "TRUE if the first value is equal to or less than the second value"
 //
@@ -1112,7 +1112,7 @@ DECLARE_NATIVE(EQUAL_OR_LESSER_Q)
 
 
 //
-//  /greater-or-equal?: native [
+//  /greater-or-equal?: pure native [
 //
 //  "TRUE if the first value is greater than or equal to the second value"
 //
@@ -1138,7 +1138,7 @@ DECLARE_NATIVE(GREATER_OR_EQUAL_Q)
 
 
 //
-//  /maximum: native [
+//  /maximum: pure native [
 //
 //  "Returns the greater of the two values"
 //
@@ -1166,7 +1166,7 @@ DECLARE_NATIVE(MAXIMUM)
 
 
 //
-//  /minimum: native [
+//  /minimum: pure native [
 //
 //  "Returns the lesser of the two values"
 //
@@ -1194,7 +1194,7 @@ DECLARE_NATIVE(MINIMUM)
 
 
 //
-//  /zeroify: native:generic [
+//  /zeroify: pure native:generic [
 //
 //  "Zeroed value of the same type and length (1.5 => 1.0, 1.2.3 => 0.0.0)"
 //
@@ -1213,7 +1213,7 @@ DECLARE_NATIVE(ZEROIFY)
 
 
 //
-//  /negative?: native [
+//  /negative?: pure native [
 //
 //  "Returns TRUE if the value is negative"
 //
@@ -1233,7 +1233,7 @@ DECLARE_NATIVE(NEGATIVE_Q)
 
 
 //
-//  /positive?: native [
+//  /positive?: pure native [
 //
 //  "Returns TRUE if the value is positive"
 //
@@ -1253,7 +1253,7 @@ DECLARE_NATIVE(POSITIVE_Q)
 
 
 //
-//  /zero?: native [
+//  /zero?: pure native [
 //
 //  "Returns TRUE if the value is zero (for its datatype)"
 //

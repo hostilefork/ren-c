@@ -400,7 +400,7 @@ vacant?: redescribe [
             panic:blame "Can only use FIND-LAST on ANY-SERIES?" $series
         ]
 
-        series: tail of series  ; can't use plain TAIL due to /TAIL refinement
+        series: tail-of series  ; can't use plain TAIL due to :TAIL refinement
     ]
 )
 

@@ -26,7 +26,7 @@
 
 
 //
-//  /const: native [
+//  /const: pure native [
 //
 //  "Return value whose access level doesn't allow mutation to its content"
 //
@@ -47,7 +47,7 @@ DECLARE_NATIVE(CONST)
 
 
 //
-//  /const?: native [
+//  /const?: pure native [
 //
 //  "Return if a value is a read-only view of its underlying data"
 //
@@ -71,7 +71,7 @@ DECLARE_NATIVE(CONST_Q)
 
 
 //
-//  /mutable: native [
+//  /mutable: impure native [
 //
 //  "Return reference with mutable access to its argument (if not LOCK-ed)"
 //
@@ -92,7 +92,7 @@ DECLARE_NATIVE(MUTABLE)
 
 
 //
-//  /mutable?: native [
+//  /mutable?: pure native [
 //
 //  "Return if a value is a writable view of its underlying data"
 //
@@ -339,7 +339,7 @@ DECLARE_NATIVE(PROTECT)
 
 
 //
-//  /unprotect: native [
+//  /unprotect: impure native [  ; can give non-FINAL access to FINAL variables
 //
 //  "Unprotect a series or a variable (it can again be modified)"
 //
@@ -567,7 +567,7 @@ DECLARE_NATIVE(FINAL)
 
 
 //
-//  /nonfinal: native:intrinsic [
+//  /nonfinal: native:intrinsic [  ; not necessarily IMPURE
 //
 //  "Make an mutable value that does not have CELL_FLAG_FINAL for a variable"
 //
