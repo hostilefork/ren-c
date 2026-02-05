@@ -83,25 +83,6 @@ DECLARE_NATIVE(OKAY_Q)
 
 
 //
-//  /logic?: native:intrinsic [
-//
-//  "Tells you if the argument is either the ~null~ or ~okay~ antiform"
-//
-//      return: '[logic!]  ; recursion allowed due to '[...], unchecked!
-//      value '[any-stable?]
-//  ]
-//
-DECLARE_NATIVE(LOGIC_Q)
-{
-    INCLUDE_PARAMS_OF_LOGIC_Q;
-
-    Stable* v = ARG(VALUE);
-
-    return LOGIC_OUT(Is_Logic(v));
-}
-
-
-//
 //  /int-to-logic: native [
 //
 //  "Produces ~null~ antiform for 0, or ~okay~ antiform for all other integers"

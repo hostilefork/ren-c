@@ -65,7 +65,10 @@ void Startup_Type_Predicates(void)
 
         Details* details = Make_Typechecker(typeset_byte);
 
-        Init_Action(Sink_Lib_Value(id), details, Canon_Symbol(id), UNCOUPLED);
+        Value* v = Sink_Lib_Value(id);
+        Init_Action(v, details, Canon_Symbol(id), UNCOUPLED);
+        Set_Cell_Flag(v, FINAL);  // so it can be used in PURE functions
+
         assert(Ensure_Frame_Details(Lib_Value(id)));
     }
 
@@ -440,11 +443,7 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
             flags |= PARAMETER_FLAG_ANY_ATOM_OK;
             goto spoken_for;
         }
-        if (dispatcher == NATIVE_CFUNC(VOID_Q)) {
-            flags |= PARAMETER_FLAG_VOID_DEFINITELY_OK;
-            goto spoken_for;
-        }
-        if (dispatcher == &Typechecker_Dispatcher) {
+        if (dispatcher == NATIVE_CFUNC(TYPECHECKER_ARCHETYPE)) {
             if (optimized == optimized_tail)
                 goto cant_optimize;
 

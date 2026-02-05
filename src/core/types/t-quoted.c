@@ -434,25 +434,6 @@ DECLARE_NATIVE(SPREAD)
 
 
 //
-//  /pack?: native:intrinsic [
-//
-//  "Tells you if argument is a parameter pack (antiform block)"
-//
-//      return: [logic!]
-//      ^value '[<veto> any-value?]
-//  ]
-//
-DECLARE_NATIVE(PACK_Q)
-{
-    INCLUDE_PARAMS_OF_PACK_Q;
-
-    Value* v = ARG(VALUE);
-
-    return LOGIC_OUT(Is_Pack(v));
-}
-
-
-//
 //  /bedrock?: native:intrinsic [
 //
 //  "Is VALUE 'unlifted bedrock' (antiform PACK! containing one unlifted item)"

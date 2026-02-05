@@ -47,35 +47,6 @@ DECLARE_NATIVE(GHOST)
 
 
 //
-//  /void?: native:intrinsic [
-//
-//  "Tells you if argument is a BLANK! antiform (unstable)"
-//
-//      return: [logic! failure!]
-//      ^value '[any-value? failure!]
-//  ]
-//
-DECLARE_NATIVE(VOID_Q)
-{
-    INCLUDE_PARAMS_OF_VOID_Q;
-
-    Value* v = ARG(VALUE);
-
-    if (Is_Failure(v))
-        return COPY_TO_OUT(v);  // typical behavior for type tests on FAILURE!
-
-    if (Is_Heavy_Void(v))
-        panic ("HEAVY VOID passed to VOID?; use ANY-VOID? to test for both");
-
-    require (
-      Ensure_No_Failures_Including_In_Packs(v)
-    );
-
-    return LOGIC_OUT(Is_Void(v));
-}
-
-
-//
 //  /any-void?: native:intrinsic [
 //
 //  "Is VALUE a VOID! (antiform comma) or HEAVY VOID (empty pack!)"

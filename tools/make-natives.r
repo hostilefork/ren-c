@@ -123,19 +123,30 @@ gather-natives join src-dir %core/
 ; the evaluator to do the other `xxx: /native:yyy [...]` evaluations.
 
 leaders: [
+    ; === These are made "by hand" to kick off the bootstrap ===
+
     native-unchecked
     tweak*-unchecked
 
     c-debug-break
 
-    typechecker-archetype
+    typechecker-archetype  ; need for Startup_Type_Predicates()
+    unstable-typechecker-archetype  ; same
+
+    ; === These are made by running ordinary (/foo: native ...) evaluations
+
+    pure
+    impure
+    vanishable
+    infix
+
+    any-value?
+    any-stable?  ; uses ANY-VALUE?
 
     native  ; REAL native (overwrites bootstrap)
 
     moldify  ; early so PROBE() works as early as it can
 
-    any-value?
-    any-stable?  ; uses ANY-VALUE?
     null?
     okay?
     space?
@@ -149,10 +160,6 @@ leaders: [
     tweak*  ; REAL tweak* (overwrites bootstrap) uses NULL?, SPACE?
 
     antiform?  ; needs to accept unstable antiforms, overwrites auto-gen case
-    pure
-    impure
-    vanishable
-    infix
 
     any-word?  ; Not clear what future of this is (any-sigil'd word)
 
