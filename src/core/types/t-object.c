@@ -931,8 +931,8 @@ IMPLEMENT_GENERIC(MOLDIFY, Any_Context)
           Read_Slot_Meta(var, evars.slot)
         );
 
-        if (Is_Antiform(var)) {
-            Lift_Cell(var);  // will become quasi...
+        if (Is_Antiform(var) or Is_Possibly_Unstable_Value_Blank(var)) {
+            Lift_Cell(var);  // will become quasi (or lone quote if blank)
             Mold_Element(mo, As_Element(var));  // ...molds as `~xxx~`
             UNUSED(var);
         }
