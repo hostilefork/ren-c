@@ -516,10 +516,13 @@ Bounce Run_Generic_Dispatch(
 
 // Create a native in the library without using the evaluator.
 //
-static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
+static void Make_Native_In_Lib_By_Hand(Level* const L, SymId id)
 {
+    USE_LEVEL_SHORTHANDS (L);
+
     assert(Is_Set_Run_Word(At_Level(L)));  // a `/name:` assignment...
-    Flags final_bit;  // ...but we may overwrite during boot
+    Flags details_flags;  // ...but we may overwrite during boot
+    Flags cell_flags;
 
     const Symbol* at_symbol = unwrap Try_Get_Settable_Word_Symbol(
         nullptr, At_Level(L)
@@ -528,35 +531,64 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
   skip_to_spec_block: {
 
     switch (id) {
+
+    // /native-unchecked: native [...]
+
       case SYM_NATIVE:
-        // /native-unchecked: native [...]
         assert(Symbol_Id(at_symbol) == SYM_NATIVE_UNCHECKED);
-        final_bit = 0;  // will be overwritten by checked version
+        details_flags = 0;
+        cell_flags = (not CELL_FLAG_FINAL);  // overwritten by checked version
         break;
+
+    // /tweak*-unchecked: native [...]
 
       case SYM_TWEAK_P:
-        // /tweak*-unchecked: native [...]
         assert(Symbol_Id(at_symbol) == SYM_TWEAK_P_UNCHECKED);
-        final_bit = 0;  // will be overwritten by checked version
+        details_flags = 0;
+        cell_flags = (not CELL_FLAG_FINAL);  // overwritten by checked version
         break;
+
+    // /c-debug-break: vanishable native [...]
 
       case SYM_C_DEBUG_BREAK:
-        // /c-debug-break: vanishable native [...]
         assert(Symbol_Id(at_symbol) == SYM_C_DEBUG_BREAK);
+        details_flags = 0;
+
         Fetch_Next_In_Feed(L->feed);
         assert(Word_Id(At_Level(L)) == SYM_VANISHABLE);
-        final_bit = CELL_FLAG_FINAL;  // not overwritten
+        cell_flags = (
+            CELL_FLAG_WEIRD_VANISHABLE
+            | CELL_FLAG_FINAL  // not overwritten
+        );
         break;
 
+    // /typechecker-archetype: pure native:intrinsic [...]
+
       case SYM_TYPECHECKER_ARCHETYPE:
-        // /typechecker-archetype: native:intrinsic [...]
         assert(Symbol_Id(at_symbol) == SYM_TYPECHECKER_ARCHETYPE);
-        final_bit = CELL_FLAG_FINAL;  // not overwritten
+
+        Fetch_Next_In_Feed(L->feed);
+        assert(Word_Id(At_Level(L)) == SYM_PURE);
+        details_flags = STUB_FLAG_PHASE_PURE;  // not overwritten
+        cell_flags = CELL_FLAG_FINAL;  // not overwritten
+        break;
+
+    // /unstable-typechecker-archetype: pure native:intrinsic [...]
+
+      case SYM_UNSTABLE_TYPECHECKER_ARCHETYPE:
+        assert(Symbol_Id(at_symbol) == SYM_UNSTABLE_TYPECHECKER_ARCHETYPE);
+
+        Fetch_Next_In_Feed(L->feed);
+        assert(Word_Id(At_Level(L)) == SYM_PURE);
+        details_flags = STUB_FLAG_PHASE_PURE;  // not overwritten
+        cell_flags = CELL_FLAG_FINAL;  // not overwritten
         break;
 
       default:
         crash (nullptr);
     }
+
+    UNUSED(at_symbol);
 
     Fetch_Next_In_Feed(L->feed);
     assert(Is_Chain(At_Level(L)) or Word_Id(At_Level(L)) == SYM_NATIVE);
@@ -566,27 +598,21 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
 
 } make_native: {
 
-    DECLARE_ELEMENT (spec);
-    Copy_Cell_May_Bind(spec, At_Level(L), g_lib_context);
+    Element* spec = Copy_Cell_May_Bind(SPARE, At_Level(L), g_lib_context);
     Fetch_Next_In_Feed(L->feed);
 
     Dispatcher* dispatcher = f_cast(Dispatcher*, *g_native_cfunc_pos);
+    ++g_native_cfunc_pos;
 
     assume (
       Details* details = Make_Native_Dispatch_Details_May_Update_Spec(
         spec, NATIVE_NORMAL, dispatcher
     ));
-
-    ++g_native_cfunc_pos;
+    details->header.bits |= details_flags;
 
     Sink(Value) action = Sink_Lib_Value(id);
-
     Init_Action(action, details, Canon_Symbol(id), UNCOUPLED);
-
-    action->header.bits |= final_bit;
-
-    if (id == SYM_C_DEBUG_BREAK)
-        Set_Cell_Flag(action, WEIRD_VANISHABLE);
+    action->header.bits |= cell_flags;
 
     assert(cast(Details*, Frame_Phase(Lib_Value(id))) == details);
 }}
@@ -674,6 +700,7 @@ void Startup_Natives(const Element* boot_natives)
   // Not possible until this point in time.
 
     Make_Native_In_Lib_By_Hand(L, SYM_TYPECHECKER_ARCHETYPE);
+    Make_Native_In_Lib_By_Hand(L, SYM_UNSTABLE_TYPECHECKER_ARCHETYPE);
 
     Startup_Type_Predicates();
 

@@ -100,6 +100,7 @@ void Startup_Datatypes(void)
         Stably_Antiformize_Unbound_Fundamental(datatype);
         assert(Is_Datatype(datatype));
         Protect_Cell(datatype);
+        Set_Cell_Flag(datatype, FINAL);
 
         assert(datatype == Datatype_From_Type(type));  // convenient [3]
         assert(Datatype_Type(datatype) == type);  // sanity check

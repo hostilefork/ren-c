@@ -354,63 +354,6 @@ DECLARE_NATIVE(REQUIRE)
 
 
 //
-//  /failure?: native:intrinsic [
-//
-//  "Tells you if argument is an FAILURE! antiform, doesn't panic if it is"
-//
-//      return: [logic!]
-//      ^value '[any-value?]
-//  ]
-//
-DECLARE_NATIVE(FAILURE_Q)
-{
-    INCLUDE_PARAMS_OF_FAILURE_Q;
-
-    Value* v = ARG(VALUE);
-
-    return LOGIC_OUT(Is_Failure(v));
-}
-
-
-//
-//  /trash?: native:intrinsic [
-//
-//  "Tells you if argument is a TRASH! antiform"
-//
-//      return: [logic!]
-//      ^value '[any-value?]
-//  ]
-//
-DECLARE_NATIVE(TRASH_Q)
-{
-    INCLUDE_PARAMS_OF_TRASH_Q;
-
-    Value* v = ARG(VALUE);
-
-    return LOGIC_OUT(Is_Trash(v));
-}
-
-
-//
-//  /action?: native:intrinsic [
-//
-//  "Tells you if argument is an ACTION! antiform"
-//
-//      return: [logic!]
-//      ^value '[any-value?]
-//  ]
-//
-DECLARE_NATIVE(ACTION_Q)
-{
-    INCLUDE_PARAMS_OF_ACTION_Q;
-
-    Value* v = ARG(VALUE);
-
-    return LOGIC_OUT(Is_Action(v));
-}
-
-
-//
 //  /set-location-of-error: native [
 //
 //  "Sets the WHERE, NEAR, FILE, and LINE fields of an error"

@@ -37,13 +37,12 @@
 
 
 //
-//  /typechecker-archetype: native:intrinsic [
+//  /typechecker-archetype: pure native:intrinsic [
 //
 //  "For internal use (builds parameters and return slot)"
 //
 //      return: '[logic!]
-//      value "Value to test"
-//          '[any-stable?]
+//      value '[any-stable?]
 //      :type "Test a concrete type, (integer?:type integer!) passes"
 //      :quoted
 //      :quasiform
@@ -56,31 +55,19 @@ DECLARE_NATIVE(TYPECHECKER_ARCHETYPE)
 {
     INCLUDE_PARAMS_OF_TYPECHECKER_ARCHETYPE;
 
-    panic ("TYPECHECKER-ARCHETYPE called (internal use only)");
-}
-
-
-//
-//  Typechecker_Dispatcher: C
-//
-// Typecheckers may be dispatched as intrinsics, which is to say they may
-// not have their own Level and frame variables.
-//
-// See LEVEL_FLAG_DISPATCHING_INTRINSIC for more information.
-//
-Bounce Typechecker_Dispatcher(Level* const level_)
-{
-    INCLUDE_PARAMS_OF_TYPECHECKER_ARCHETYPE;
-
     Details* details = Level_Intrinsic_Details(LEVEL);
-    assert(Details_Max(details) == MAX_IDX_TYPECHECKER);
+    if (Details_Max(details) != MAX_IDX_TYPECHECKER)
+        panic ("TYPECHECKER-ARCHETYPE called (internal use only)");
 
     Stable* v = ARG(VALUE);
 
-    if (Is_Null(v))  // stop casual use of (integer? var) when null
-        return fail (Error_Type_Test_Null_Raw());
-
     Option(Type) type = Type_Of(v);
+
+    if (Is_Null(v)) {  // stop casual use of (integer? var) when null
+        if (type == TYPE_LOGIC)
+            return LOGIC_OUT(true);
+        return fail (Error_Type_Test_Null_Raw());  // !!! Review: dumb idea?
+    }
 
     if (Not_Level_Flag(LEVEL, DISPATCHING_INTRINSIC)) {
         bool check_datatype = did ARG(TYPE);
@@ -155,30 +142,47 @@ Bounce Typechecker_Dispatcher(Level* const level_)
 
 
 //
-//  Typechecker_Details_Querier: C
+//  /unstable-typechecker-archetype: pure native:intrinsic [
 //
-bool Typechecker_Details_Querier(
-    Sink(Stable) out,
-    Details* details,
-    SymId property
-){
-    assert(Details_Dispatcher(details) == &Typechecker_Dispatcher);
-    assert(Details_Max(details) == MAX_IDX_TYPECHECKER);
-    UNUSED(details);
+//  "For internal use (builds parameters and return slot)"
+//
+//      return: '[logic!]
+//      ^value '[any-value?]
+//  ]
+//
+DECLARE_NATIVE(UNSTABLE_TYPECHECKER_ARCHETYPE)
+{
+    INCLUDE_PARAMS_OF_UNSTABLE_TYPECHECKER_ARCHETYPE;
 
-    switch (property) {
-      case SYM_RETURN_OF: {
-        const Value* archetype = LIB(TYPECHECKER_ARCHETYPE);
-        Details* archetype_details = Ensure_Frame_Details(archetype);
-        return Raw_Native_Details_Querier(
-            out, archetype_details, SYM_RETURN_OF
-        ); }
+    Details* details = Level_Intrinsic_Details(LEVEL);
+    if (Details_Max(details) != MAX_IDX_TYPECHECKER)
+        panic ("UNSTABLE-TYPECHECKER-ARCHETYPE called (internal use only)");
 
-      default:
-        break;
+    Value* v = ARG(VALUE);
+
+    if (Is_Cell_Stable(v))  // shortcut, if it's stable, don't match!
+        return LOGIC_OUT(false);
+
+    TypesetByte typeset_byte = VAL_UINT8(
+        Details_At(details, IDX_TYPECHECKER_TYPESET_BYTE)
+    );
+
+    if (typeset_byte == u_cast(TypesetByte, TYPE_FAILURE))
+        return LOGIC_OUT(Is_Failure(v));
+
+    require (
+      Ensure_No_Failures_Including_In_Packs(v)
+    );
+
+    if (typeset_byte == u_cast(TypesetByte, TYPE_VOID)) {
+        if (Is_Heavy_Void(v))
+            panic ("HEAVY VOID passed to VOID?; use ANY-VOID? to test both");
+        return LOGIC_OUT(Is_Void(v));
     }
 
-    return false;
+    Option(Type) type = Type_Of_Maybe_Unstable(v);
+
+    return LOGIC_OUT(Builtin_Typeset_Check(typeset_byte, unwrap type));
 }
 
 
@@ -201,16 +205,58 @@ bool Typechecker_Details_Querier(
 // 2. We need a spec for our typecheckers, which comes from the built-by-hand
 //    native TYPECHECKER-ARCHETYPE.
 //
-// 3. Since the return type is always a LOGIC!, Typechecker_Details_Querier()
-//    can fabricate that return without it taking up a cell's worth of space
-//    on each typechecker instantiation (that isn't intrinsic).
-//
-Details* Make_Typechecker(TypesetByte typeset_byte) {  // parameter cache [1]
+Details* Make_Typechecker(TypesetByte typeset_byte)  // parameter cache [1]
+{
+    TypesetFlags typeset = g_typesets[typeset_byte];
+
+    const Value* archetype;
+    Dispatcher* dispatcher;
+
+    attempt {
+        if (not (typeset & TYPESET_FLAG_0_RANGE))  // bits
+            break;  // do stable check
+
+        Byte start = THIRD_BYTE(&typeset);
+        Byte end = FOURTH_BYTE(&typeset);
+        if (start != end)  // nontrivial range
+            break;
+
+        if (start <= MAX_TYPEBYTE_ELEMENT)  // not an antiform
+            break;
+
+        Heart heart = u_cast(Heart, start - MAX_TYPEBYTE_ELEMENT);
+        if (Is_Stable_Antiform_Heart(heart))
+            break;  // stable antiform, no unstable checks needed
+
+        assert(typeset_byte == start);
+        continue;
+    }
+    then {
+        archetype = LIB(UNSTABLE_TYPECHECKER_ARCHETYPE);
+        dispatcher = NATIVE_CFUNC(UNSTABLE_TYPECHECKER_ARCHETYPE);
+    }
+    else {
+        archetype = LIB(TYPECHECKER_ARCHETYPE);
+        dispatcher = NATIVE_CFUNC(TYPECHECKER_ARCHETYPE);
+    }
+
     Details* details = Make_Dispatch_Details(
-        BASE_FLAG_MANAGED | DETAILS_FLAG_CAN_DISPATCH_AS_INTRINSIC,
-        LIB(TYPECHECKER_ARCHETYPE),  // use archetype's paramlist [2]
-        &Typechecker_Dispatcher,
+        BASE_FLAG_MANAGED
+            | DETAILS_FLAG_CAN_DISPATCH_AS_INTRINSIC
+            | DETAILS_FLAG_RAW_NATIVE,
+        archetype,  // use archetype's paramlist [2]
+        dispatcher,
         MAX_IDX_TYPECHECKER  // details array capacity
+    );
+    assert(Get_Details_Flag(details, PURE));  // inherit purity from archetype
+
+    assert(MAX_IDX_RAW_NATIVE == 1);  // RETURN
+    assert(MAX_IDX_TYPECHECKER == MAX_IDX_RAW_NATIVE + 1);
+
+    Details* archetype_details = Ensure_Phase_Details(Frame_Phase(archetype));
+    Copy_Cell(
+        Details_At(details, IDX_RAW_NATIVE_RETURN),
+        Details_At(archetype_details, IDX_RAW_NATIVE_RETURN)
     );
 
     Init_Integer(
@@ -318,7 +364,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
         goto non_intrinsic_dispatch;
 
     Dispatcher* dispatcher = Details_Dispatcher(details);
-    if (dispatcher == &Typechecker_Dispatcher) {
+    if (dispatcher == NATIVE_CFUNC(TYPECHECKER_ARCHETYPE)) {
         TypesetByte typeset_byte = VAL_UINT8(
             Details_At(details, IDX_TYPECHECKER_TYPESET_BYTE)
         );

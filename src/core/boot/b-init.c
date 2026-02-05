@@ -666,7 +666,6 @@ void Startup_Core(void)
     Register_Dispatcher(&Inliner_Dispatcher, &Inliner_Details_Querier);
     Register_Dispatcher(&Combinator_Dispatcher, &Combinator_Details_Querier);
     Register_Dispatcher(&Yielder_Dispatcher, &Yielder_Details_Querier);
-    Register_Dispatcher(&Typechecker_Dispatcher, &Typechecker_Details_Querier);
     Register_Dispatcher(&Hijacker_Dispatcher, &Hijacker_Details_Querier);
     Register_Dispatcher(&Reframer_Dispatcher, &Reframer_Details_Querier);
     Register_Dispatcher(&Upshot_Dispatcher, &Oneshot_Details_Querier);

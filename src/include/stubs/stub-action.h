@@ -207,7 +207,7 @@ enum {
 #define IDX_INTERPRETED_BODY  1
 
 enum {
-    IDX_TYPECHECKER_TYPESET_BYTE = 1,  // datatype or type constraint to check
+    IDX_TYPECHECKER_TYPESET_BYTE = MAX_IDX_RAW_NATIVE + 1,
     MAX_IDX_TYPECHECKER = IDX_TYPECHECKER_TYPESET_BYTE
 };
 

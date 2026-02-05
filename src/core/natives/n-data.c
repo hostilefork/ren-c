@@ -788,25 +788,6 @@ DECLARE_NATIVE(LIT_PATH_Q)
 
 
 //
-//  /any-inert?: native:intrinsic [
-//
-//  "Test if a value type always produces itself in the evaluator"
-//
-//      return: [logic!]
-//      value '[any-stable?]
-//  ]
-//
-DECLARE_NATIVE(ANY_INERT_Q)
-{
-    INCLUDE_PARAMS_OF_ANY_INERT_Q;
-
-    Stable* v = ARG(VALUE);
-
-    return LOGIC_OUT(Not_Antiform(v) and Any_Inert(v));
-}
-
-
-//
 //  /unbind: native:intrinsic [
 //
 //  "If a value is bindable, unbind it at the 'tip' (if it's bound)"
