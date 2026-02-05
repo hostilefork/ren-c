@@ -1383,6 +1383,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
       case SYM_UNPROTECT:
         Clear_Cell_Flag(slot, PROTECTED);
+        Clear_Cell_Flag(slot, FINAL);  // !!! use same command for now
         break;
 
       case SYM_HIDE:

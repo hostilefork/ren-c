@@ -112,20 +112,22 @@ DECLARE_NATIVE(MUTABLE_Q) {
 
 
 //
-//  Protect_Value: C
+//  Protect_Slot: C
 //
-// Anything that calls this must call Uncolor() when done.
+// Anything that calls this must call Uncolor_Slot() when done.
 //
-void Protect_Value(const Stable* v, Flags flags)
+void Protect_Slot(const Cell* v, Flags flags)
 {
-    if (Is_Antiform(v))
-        return;
+    if (LIFT_BYTE(v) == BEDROCK_0)
+        return;  // !!! PROTECT should reach aliases; but SETTERS? GETTERS?
 
-    if (Any_Series(v))
+    Option(Heart) heart = Heart_Of(v);
+
+    if (Any_Series_Type(heart))
         Protect_Flex(Cell_Flex(v), Series_Index(v), flags);
-    else if (Is_Map(v))
+    else if (heart == TYPE_MAP)
         Protect_Flex(MAP_PAIRLIST(VAL_MAP(v)), 0, flags);
-    else if (Any_Context(v))
+    else if (Any_Context_Type(heart))
         Protect_Varlist(Cell_Varlist(v), flags);
 }
 
@@ -133,7 +135,7 @@ void Protect_Value(const Stable* v, Flags flags)
 //
 //  Protect_Flex: C
 //
-// Anything that calls this must call Uncolor() when done.
+// Anything that calls this must call Uncolor_Slot() when done.
 //
 void Protect_Flex(const Flex* f, Index index, Flags flags)
 {
@@ -159,17 +161,17 @@ void Protect_Flex(const Flex* f, Index index, Flags flags)
 
     Flip_Stub_To_Black(f);  // recursion protection
 
-    const Stable* val_tail = Flex_Tail(Stable, cast(Array*, f));
-    const Stable* val = Flex_At(Stable, cast(Array*, f), index);
-    for (; val != val_tail; val++)
-        Protect_Value(val, flags);
+    const Slot* tail = Flex_Tail(Slot, f);
+    const Slot* at = Flex_At(Slot, f, index);
+    for (; at != tail; at++)
+        Protect_Slot(at, flags);
 }
 
 
 //
 //  Protect_Varlist: C
 //
-// Anything that calls this must call Uncolor() when done.
+// Anything that calls this must call Uncolor_Slot() when done.
 //
 void Protect_Varlist(VarList* varlist, Flags flags)
 {
@@ -195,10 +197,10 @@ void Protect_Varlist(VarList* varlist, Flags flags)
 
     Flip_Stub_To_Black(varlist);  // for recursion
 
-    const Slot* slot_tail;
-    Slot* slot = Varlist_Slots(&slot_tail, varlist);
-    for (; slot != slot_tail; ++slot)
-        Protect_Value(Stable_Slot_Hack(slot), flags);
+    const Slot* tail;
+    Slot* at = Varlist_Slots(&tail, varlist);
+    for (; at != tail; ++at)
+        Protect_Slot(at, flags);
 }
 
 
@@ -230,7 +232,7 @@ static Bounce Protect_Unprotect_Core(Level* level_, Flags flags)
             panic ("WORDS not currently implemented in PROTECT");
 
         if (ARG(VALUES)) {
-            const Stable* slot;
+            const Cell* slot;
             const Element* tail;
             const Element* item = List_At(&tail, block);
 
@@ -248,9 +250,9 @@ static Bounce Protect_Unprotect_Core(Level* level_, Flags flags)
                     slot = safe;
                 }
 
-                Protect_Value(m_cast(Stable*, slot), flags);
+                Protect_Slot(slot, flags);
                 if (flags & PROT_DEEP)
-                    Uncolor(m_cast(Stable*, slot));
+                    Uncolor_Slot(slot);
             }
             return COPY_TO_OUT(ARG(VALUE));
         }
@@ -259,10 +261,10 @@ static Bounce Protect_Unprotect_Core(Level* level_, Flags flags)
     if (flags & PROT_HIDE)
         panic (Error_Bad_Refines_Raw());
 
-    Protect_Value(value, flags);
+    Protect_Slot(value, flags);
 
     if (flags & PROT_DEEP)
-        Uncolor(value);
+        Uncolor_Slot(value);
 
     return COPY_TO_OUT(ARG(VALUE));
 }
@@ -341,8 +343,8 @@ DECLARE_NATIVE(PROTECT)
 //
 //  "Unprotect a series or a variable (it can again be modified)"
 //
-//      return: [word! any-series? bitset! map! object! module!]
-//      value [word! any-series? bitset! map! object! module!]
+//      return: [word! tuple! any-series? bitset! map! object! module!]
+//      value [word! tuple! any-series? bitset! map! object! module!]
 //      :deep "Protect all sub-series as well"
 //      :words "Block is a list of words"
 //      :values "Process list of values (implied GET)"

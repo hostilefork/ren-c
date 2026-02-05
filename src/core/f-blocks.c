@@ -192,45 +192,57 @@ void Uncolor_Array(const Array* a)
 
     Flip_Stub_To_White(a);
 
-    const Element* tail = Array_Tail(a);
-    const Element* v = Array_Head(a);
-    for (; v != tail; ++v) {
-        if (Is_Path(v) or Any_List(v) or Is_Map(v) or Any_Context(v))
-            Uncolor(v);
+    const Cell* tail = Flex_Tail(Cell, a);
+    const Cell* at = Flex_Head(Cell, a);
+    for (; at != tail; ++at) {
+        if (LIFT_BYTE(at) == BEDROCK_0)
+            continue;  // !!! REVIEW
+
+        Option(Heart) heart = Heart_Of(at);
+        if (
+            Any_Sequence_Type(heart)
+            or Any_List_Type(heart)
+            or (heart == TYPE_MAP)
+            or Any_Context_Type(heart)
+        ){
+            Uncolor_Slot(at);
+        }
     }
 }
 
 
 //
-//  Uncolor: C
+//  Uncolor_Slot: C
 //
 // Clear the recursion markers for Flex and Object trees.
 //
-void Uncolor(const Stable* v)
+void Uncolor_Slot(const Cell* v)
 {
-    if (Is_Antiform(v))
-        return;
+    if (LIFT_BYTE(v) == BEDROCK_0)
+        return;  // !!! REVIEW
 
-    if (Any_List(v))
+    Option(Heart) heart = Heart_Of(v);
+
+    if (Any_List_Type(heart))
         Uncolor_Array(Cell_Array(v));
-    else if (Is_Path(v)) {
+    else if (Any_Sequence_Type(heart)) {
         REBLEN len = Sequence_Len(v);
         REBLEN i;
         DECLARE_ELEMENT (temp);
         for (i = 0; i < len; ++i) {
             Copy_Sequence_At(temp, v, i);
-            Uncolor(temp);
+            Uncolor_Slot(temp);
         }
     }
-    else if (Is_Map(v))
+    else if (heart == TYPE_MAP)
         Uncolor_Array(MAP_PAIRLIST(VAL_MAP(v)));
-    else if (Any_Context(v))
+    else if (Any_Context_Type(heart))
         Uncolor_Array(Varlist_Array(Cell_Varlist(v)));
     else {
         // Shouldn't have marked recursively any non-Array Flexes (no need)
         //
         assert(
-            not Any_Series(v)
+            not Any_Series_Type(heart)
             or Is_Stub_White(Cell_Flex(v))
         );
     }
