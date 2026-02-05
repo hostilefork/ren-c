@@ -801,8 +801,10 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
         error = Trap_Call_Pick_Refresh_Dual_In_Spare(
             level_, sub, stackindex, dont_indirect
         );
-        if (error)
+        if (error) {
+            Drop_Level(sub);  // level has no action, error report would assert
             panic (unwrap error);
+        }
 
         if (Is_Null_Signifying_Slot_Unavailable(As_Stable(SPARE))) {
           treat_like_pick_absent_signal:
@@ -814,6 +816,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
             ){
                 goto return_error;  // last step can be tolerant, see [A]
             }
+            Drop_Level(sub);  // level has no action, error report would assert
             panic (unwrap error);
         }
 
