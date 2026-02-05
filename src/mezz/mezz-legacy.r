@@ -82,7 +82,8 @@ prin: proc [
 forever: cycle/
 
 
-find: adapt (augment find/ [:reverse :last]) [
+unprotect $find
+/find: adapt (augment find/ [:reverse :last]) [
     if reverse or last [
         panic:blame [
             ":REVERSE and :LAST on FIND have been deprecated.  Use FIND-LAST"

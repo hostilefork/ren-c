@@ -84,7 +84,7 @@
 
 
 //
-//  export call-internal*: native [
+//  export /call-internal*: native [
 //
 //  "Run another program by spawning a new process"
 //
@@ -118,7 +118,7 @@ DECLARE_NATIVE(CALL_INTERNAL_P)
 
 
 //
-//  export get-os-browsers: native [
+//  export /get-os-browsers: native [
 //
 //  "Gets block of strings from OS, %1 should be substituted with the string"
 //
@@ -220,7 +220,7 @@ DECLARE_NATIVE(GET_OS_BROWSERS)
 
 
 //
-//  export sleep: native [
+//  export /sleep: native [
 //
 //  "Use system sleep to wait a certain amount of time (doesn't use PORT!s)"
 //
@@ -281,7 +281,7 @@ static Bounce Delegate_Kill_Process(pid_t pid, int signal)
 
 
 //
-//  export terminate: native [
+//  export /terminate: native [
 //
 //  "Terminate a process (not current one)"
 //

@@ -401,6 +401,9 @@ run-word!: refinement3!
 refinement!: get-word3!
 refinement?: get-word3?/
 
+set-run-word?: set-word?/  ; /foo: becomes foo: in bootstrap
+assert [set-run-word? first [/foo:]]
+
 chain!: path!  ; works in some places (a:b scans as a PATH! in bootstrap EXE)
 
 set-word!: func3 [] [

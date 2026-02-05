@@ -574,7 +574,7 @@ Result(Element*) Unsingleheart_Sequence_Preserve_Sigil(Element* seq) {
 
 
 //
-//  setify: native [
+//  /setify: native [
 //
 //  "If possible, convert a value to a SET-XXX! representation"
 //
@@ -598,7 +598,7 @@ DECLARE_NATIVE(SETIFY)
 
 
 //
-//  getify: native [
+//  /getify: native [
 //
 //  "If possible, convert a value to a GET-XXX! representation"
 //
@@ -658,7 +658,7 @@ static Bounce Sigilize_Native_Core(Level* level_, Sigil sigil)
 
 
 //
-//  meta: native:intrinsic [
+//  /meta: native:intrinsic [
 //
 //  "Convert a value to its ^XXX metaform representation"
 //
@@ -674,7 +674,7 @@ DECLARE_NATIVE(META)
 
 
 //
-//  pin: native:intrinsic [
+//  /pin: native:intrinsic [
 //
 //  "Convert a value to its @XXX pinned representation"
 //
@@ -690,7 +690,7 @@ DECLARE_NATIVE(PIN)
 
 
 //
-//  tie: native:intrinsic [
+//  /tie: native:intrinsic [
 //
 //  "Convert a value to its $XXX tied representation"
 //
@@ -727,7 +727,7 @@ static Bounce Unsigilize_Native_Core(Level* level_, Sigil sigil)
 
 
 //
-//  unmeta: native:intrinsic [
+//  /unmeta: native:intrinsic [
 //
 //  "Convert ^XXX to plain XXX, error if not metaform"
 //
@@ -742,7 +742,7 @@ DECLARE_NATIVE(UNMETA)
 
 
 //
-//  unpin: native:intrinsic [
+//  /unpin: native:intrinsic [
 //
 //  "Convert @XXX to plain XXX, error if not pinned"
 //
@@ -757,7 +757,7 @@ DECLARE_NATIVE(UNPIN)
 
 
 //
-//  untie: native:intrinsic [
+//  /untie: native:intrinsic [
 //
 //  "Convert $XXX to plain XXX, error if not tied"
 //
@@ -772,7 +772,7 @@ DECLARE_NATIVE(UNTIE)
 
 
 //
-//  plain: native:intrinsic [
+//  /plain: native:intrinsic [
 //
 //  "Convert a value into its plain representation"
 //
@@ -795,7 +795,7 @@ DECLARE_NATIVE(PLAIN)
 
 
 //
-//  unchain: native [
+//  /unchain: native [
 //
 //  "Remove CHAIN!, e.g. leading colon or trailing colon from an element"
 //
@@ -816,7 +816,7 @@ DECLARE_NATIVE(UNCHAIN)
 
 
 //
-//  unpath: native [
+//  /unpath: native [
 //
 //  "Remove PATH!, e.g. leading slash or trailing slash from an element"
 //
@@ -837,7 +837,7 @@ DECLARE_NATIVE(UNPATH)
 
 
 //
-//  untuple: native [
+//  /untuple: native [
 //
 //  "Remove TUPLE!, e.g. leading dot or trailing dot from a tuple"
 //

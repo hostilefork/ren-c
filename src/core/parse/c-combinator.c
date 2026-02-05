@@ -198,7 +198,7 @@ Source* Expanded_Combinator_Spec(const Element* original)
 
 
 //
-//  combinator: native [
+//  /combinator: native [
 //
 //  "Make stylized code that fulfills the interface of a combinator"
 //
@@ -301,7 +301,7 @@ void Push_Parser_Sublevel(
 
 
 //
-//  opt-combinator: native:combinator [
+//  /opt-combinator: native:combinator [
 //
 //  "If parser fails, succeed and return VOID! without advancing the input"
 //
@@ -352,7 +352,7 @@ DECLARE_NATIVE(OPT_COMBINATOR)
 
 
 //
-//  text!-combinator: native:combinator [
+//  /text!-combinator: native:combinator [
 //
 //  "Match a TEXT! value as a list item or at current position of bin/string"
 //
@@ -418,7 +418,7 @@ DECLARE_NATIVE(TEXT_X_COMBINATOR)
 
 
 //
-//  some-combinator: native:combinator [
+//  /some-combinator: native:combinator [
 //
 //  "Must run at least one match, return result of last parser call"
 //
@@ -505,7 +505,7 @@ DECLARE_NATIVE(SOME_COMBINATOR)
 
 
 //
-//  further-combinator: native:combinator [
+//  /further-combinator: native:combinator [
 //
 //  "Pass through the result only if the input was advanced by the rule"
 //
@@ -706,7 +706,7 @@ static bool Combinator_Param_Hook(
 
 
 //
-//  combinatorize: native [
+//  /combinatorize: native [
 //
 //  "Analyze combinator parameters in rules to produce a specialized parser"
 //

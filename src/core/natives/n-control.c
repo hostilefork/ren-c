@@ -93,7 +93,7 @@ static Result(bool) Return_Out_For_Conditional_Or_Optional(Level* level_)
 
 
 //
-//  conditional: native [  ; cant be intrinsic (we need to decay)
+//  /conditional: native [  ; cant be intrinsic (we need to decay)
 //
 //  "If VALUE is NULL or VOID, make it VETO, else passthru"
 //
@@ -116,7 +116,7 @@ DECLARE_NATIVE(CONDITIONAL)  // usually used via its alias of COND
 
 
 //
-//  optional: native [  ; cant be intrinsic (we need to decay)
+//  /optional: native [  ; cant be intrinsic (we need to decay)
 //
 //  "If VALUE is NULL or ANY-VOID?, make it VOID! else passthru"
 //
@@ -251,7 +251,7 @@ Bounce Group_Branch_Executor(Level* const L)
 
 
 //
-//  if: native [
+//  /if: native [
 //
 //  "If CONDITION is not NULL, execute BRANCH, otherwise return VOID!"
 //
@@ -275,7 +275,7 @@ DECLARE_NATIVE(IF)
 
 
 //
-//  either: native [
+//  /either: native [
 //
 //  "When CONDITION is NULL, run NULL-BRANCH, else run OKAY-BRANCH"
 //
@@ -300,7 +300,7 @@ DECLARE_NATIVE(EITHER)
 
 
 //
-//  did: native:intrinsic [
+//  /did: native:intrinsic [
 //
 //  "Test for NOT void, 'light' null, or failure! (IF DID is prefix THEN)"
 //
@@ -328,7 +328,7 @@ DECLARE_NATIVE(DID_1)
 
 
 //
-//  didn't: native:intrinsic [
+//  /didn't: native:intrinsic [
 //
 //  "Test for void, 'light' null, or failure! (IF DIDN'T is prefix ELSE)"
 //
@@ -340,6 +340,8 @@ DECLARE_NATIVE(DIDNT)
 //
 // Written in terms of DID just to emphasize consistency in the logic.
 {
+    INCLUDE_PARAMS_OF_DIDNT;
+
     Bounce b = Apply_Cfunc(NATIVE_CFUNC(DID_1), LEVEL);
     if (b == BOUNCE_OKAY)
         return LOGIC_OUT(false);
@@ -350,7 +352,7 @@ DECLARE_NATIVE(DIDNT)
 
 
 //
-//  then: infix:defer native [  ; NOTE - INFIX:DEFER
+//  /then: infix:defer native [  ; NOTE - INFIX:DEFER
 //
 //  "If LEFT is NULL or VOID!, return it, otherwise return EVAL BRANCH"
 //
@@ -377,7 +379,7 @@ DECLARE_NATIVE(THEN)
 
 
 //
-//  thence: native [
+//  /thence: native [
 //
 //  "If VALUE is NULL or VOID!, return it, otherwise return EVAL BRANCH"
 //
@@ -404,7 +406,7 @@ DECLARE_NATIVE(THENCE)
 
 
 //
-//  else: infix:defer native [  ; NOTE - INFIX:DEFER
+//  /else: infix:defer native [  ; NOTE - INFIX:DEFER
 //
 //  "If LEFT is NULL or VOID!, return EVAL BRANCH, else return LEFT"
 //
@@ -430,7 +432,7 @@ DECLARE_NATIVE(ELSE)
 
 
 //
-//  also: infix:defer native [  ; NOTE - INFIX:DEFER
+//  /also: infix:defer native [  ; NOTE - INFIX:DEFER
 //
 //  "If LEFT is a FAILURE!, return it, else EVAL BRANCH but return LEFT"
 //
@@ -682,7 +684,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
 
 
 //
-//  all: native [
+//  /all: native [
 //
 //  "Short-circuiting variant of AND, using a block of expressions as input"
 //
@@ -700,7 +702,7 @@ DECLARE_NATIVE(ALL)
 
 
 //
-//  any: native [
+//  /any: native [
 //
 //  "Short-circuiting version of OR, using a block of expressions as input"
 //
@@ -718,7 +720,7 @@ DECLARE_NATIVE(ANY)
 
 
 //
-//  none_of: native [
+//  /none_of: native [
 //
 //  "Short-circuiting shorthand for NOT ALL"
 //
@@ -736,7 +738,7 @@ DECLARE_NATIVE(NONE_OF)
 
 
 //
-//  case: native [
+//  /case: native [
 //
 //  "Evaluates each condition, and when non-NULL, evaluates what follows it"
 //
@@ -923,7 +925,7 @@ DECLARE_NATIVE(CASE)
 
 
 //
-//  switch: native [
+//  /switch: native [
 //
 //  "Selects a choice and evaluates the block that follows it"
 //
@@ -1143,7 +1145,7 @@ DECLARE_NATIVE(SWITCH)
 
 
 //
-//  default: infix native [
+//  /default: infix native [
 //
 //  "If TARGET is [NULL TRASH BLANK], set it to BRANCH eval result"
 //
@@ -1254,7 +1256,7 @@ DECLARE_NATIVE(DEFAULT)
 
 
 //
-//  maybe: infix native [
+//  /maybe: infix native [
 //
 //  "If right side VALUE is not NULL, update the left hand TARGET with it"
 //
@@ -1294,7 +1296,7 @@ DECLARE_NATIVE(MAYBE)
 
 
 //
-//  catch*: native [
+//  /catch*: native [
 //
 //  "Catches a throw from a block and returns its value, VOID! if no throw"
 //
@@ -1370,7 +1372,7 @@ DECLARE_NATIVE(CATCH_P)  // specialized to plain CATCH w/ NAME="THROW" in boot
 
 
 //
-//  definitional-throw: native [
+//  /definitional-throw: native [
 //
 //  "Throws VALUE to its associated CATCH (default is VOID)"
 //

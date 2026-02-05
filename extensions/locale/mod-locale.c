@@ -42,7 +42,7 @@ typedef RebolValue Value;
 
 
 //
-//  export locale: native [
+//  export /locale: native [
 //
 //   "Get locale specific information"
 //
@@ -132,7 +132,7 @@ DECLARE_NATIVE(LOCALE)
 
 
 //
-//  export setlocale: native [
+//  export /setlocale: native [
 //
 //  "Set/Get current locale, just a simple wrapper around C version"
 //

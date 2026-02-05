@@ -120,7 +120,8 @@ Rebol [
 ; declare a return value for the `pending:` then that means you're going to
 ; manage it yourself, otherwise it will be automagic.
 
-combinator: func [
+unprotect $combinator
+/combinator: func [
     "Make stylized code that fulfills the interface of a combinator"
 
     return: [frame!]
@@ -271,7 +272,7 @@ bind construct [
 ; !!! Used to check for INPUT and STATE, but then combinators were allowed
 ; to call their inputs whatever they wanted, so just checks STATE.
 ;
-combinator?: lambda [
+/combinator?: lambda [
     "Crude test to try and determine if an ACTION! is a combinator"
     []: [logic!]
     frame [frame!]
@@ -282,7 +283,7 @@ combinator?: lambda [
 ; An un-lens'd combinator has the input in position 2, but we don't know
 ; what name it was given.  Help document places that assume it's position 2.
 ;
-set-combinator-input: lambda [f input] [
+/set-combinator-input: lambda [f input] [
     f.2: input  ; f.1 is STATE, f.2 is whatever they called INPUT
 ]
 
@@ -2608,7 +2609,7 @@ comment [
 ]
 
 
-comment [combinatorize: func [
+comment [/combinatorize: func [
 
     "Specialize arity-N combinator to build arity-1 parser just taking INPUT"
 
@@ -2786,7 +2787,7 @@ comment [combinatorize: func [
 ;    to take an argument while `:(code)` does not.  Hence this hacks up an
 ;    answer of calling the types *: and :* depending.  Better answer needed.
 ;
-parsify: func [
+/parsify: func [
     "Transform one step's worth of rules into a parser action"
 
     return: [
@@ -2983,7 +2984,7 @@ parsify: func [
 ;    To get at that information (as well as other parse-global state) we use
 ;    the FRAME! of PARSE itself.
 ;
-parse*: func [
+/parse*: func [
     "Process as much of the input as parse rules consume (see also PARSE)"
 
     return: [
@@ -3118,7 +3119,7 @@ sys.util.parse: parse/  ; !!! expose UPARSE to SYS.UTIL module, hack...
 ; These are some very primordial hooks; for an elaborate demo see EPARSE's
 ; rule-stepwise debugger.
 
-parse-trace-hook: func [
+/parse-trace-hook: func [
     return: [pack!]
     f [frame!]
 ][
@@ -3141,7 +3142,7 @@ parse-trace-hook: func [
 parse-trace: specialize parse/ [hook: parse-trace-hook/]
 
 
-parse-furthest-hook: func [
+/parse-furthest-hook: func [
     return: [pack!]
     f [frame!]
     var [word! tuple!]
@@ -3170,7 +3171,7 @@ parse-furthest: adapt augment parse/ [
 ; !!! This operation will likely take over the name USE.  It is put here since
 ; the UPARSE tests involve it.
 ;
-using: func [
+/using: func [
     return: ~  ; should it return a value?  (e.g. the object?)
     obj [object!]
 ][

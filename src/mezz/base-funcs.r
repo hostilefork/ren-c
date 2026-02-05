@@ -32,9 +32,9 @@ assert: vanishable func [
     return ()
 ]
 
-possibly: comment/  ; documentation expressed as code
+/possibly: comment/  ; documentation expressed as code
 
-steal: lambda [
+/steal: lambda [
     "Return a variable's value prior to an assignment, then do the assignment"
 
     evaluation "Takes assigned value (variadic enables STEAL X: DEFAULT [...])"
@@ -47,17 +47,17 @@ steal: lambda [
 
 assert [null = coupling of return/]  ; it's archetypal, nowhere to return to
 
-return*: ~<RETURN* used when no function generator is providing it>~
+return*: final ~<RETURN* used when no function generator is providing it>~
 
-continue*: ~<CONTINUE* used when no loop is providing it>~
+continue*: final ~<CONTINUE* used when no loop is providing it>~
 
 stop: ~<STOP used when no loop is providing it>~
 
 throw: ~<THROW used when no catch is providing it>~
 
-quit*: ~<QUIT* used when no (DO, IMPORT, CONSOLE) is providing it>~
+quit*: final ~<QUIT* used when no (DO, IMPORT, CONSOLE) is providing it>~
 
-quit: diverger [
+/quit: diverger [
     ^result [
         integer! "https://en.wikipedia.org/wiki/Exit_status"
         <hole> "same as 0"
@@ -88,9 +88,9 @@ quit: diverger [
 
 yield: ~<YIELD used when no generator or yielder is providing it>~
 
-catch: specialize catch*/ [name: 'throw]
+/catch: specialize catch*/ [name: 'throw]
 
-static: lambda [
+/static: impure lambda [
     "Create static variable with lasting identity across multiple invocations"
     []: [pack?]  ; !!! actually a dual
     @init [block! fence!]
@@ -102,7 +102,7 @@ static: lambda [
     alias init.1
 ]
 
-cache: lambda [
+/cache: impure lambda [
     "Calculate result once, return cached result on successive evals"
     []: [any-value?]
     @init [block! fence!]
@@ -118,7 +118,7 @@ cache: lambda [
 ; it could dump those remarks out...perhaps based on how many == there are.
 ; (This is a good reason for retaking ==, as that looks like a divider.)
 ;
-===: func [
+===: final func [
     return: [void!]
     '@remarks [element? <variadic>]
     :visibility [onoff?]
@@ -141,14 +141,14 @@ bind construct [
     return ()
 ])
 
-what-dir: func [  ; This can be HIJACK'd by a "smarter" version
+what-dir: nonfinal impure lambda [  ; can be HIJACK'd by a "smarter" version
     "Returns the current directory path"
-    return: [<null> file! url!]
+    []: [<null> file! url!]
 ][
-    return system.options.current-path
+    system.options.current-path
 ]
 
-change-dir: func [  ; This can be HIJACK'd by a "smarter" version
+change-dir: nonfinal impure func [  ; can be HIJACK'd by a "smarter" version
     "Changes the current path (where scripts with relative paths will be run)"
     return: [file! url!]
     path [file! url!]
@@ -157,7 +157,7 @@ change-dir: func [  ; This can be HIJACK'd by a "smarter" version
 ]
 
 
-redescribe: func [
+/redescribe: func [
     "Mutate action description with new title and/or new argument notes"
 
     return: [action! frame!]
@@ -171,19 +171,19 @@ redescribe: func [
 ]
 
 
-unset: redescribe [
+/unset: redescribe [
     "Put variable into a dual state that prohibits any form of GET on it"
 ](
     specialize set/ [value: ~]
 )
 
-unset?: redescribe [
+/unset?: redescribe [
     "Determine if a variable holds a VOID! antiform"
 ](
     cascade [meta/ get/ void?/]
 )
 
-set?: redescribe [
+/set?: redescribe [
     "Determine if a variable holds something other than a VOID! antiform"
 ](
     cascade [unset?/ not/]
@@ -195,9 +195,9 @@ vacant?: redescribe [
     cascade [meta/ get/ vacancy?/]
 )
 
-undefined?: cascade [defined?/ not/]
+/undefined?: cascade [defined?/ not/]
 
-unspecialized?: lambda [
+/unspecialized?: lambda [
     "Determine if a variable looks up to a PARAMETER!"
     []: [logic!]
     var [word! tuple!]
@@ -205,7 +205,7 @@ unspecialized?: lambda [
     try parameter? get meta var
 ]
 
-specialized?: lambda [
+/specialized?: lambda [
     "Determine if a variable doesn't look up to a PARAMETER!"
     []: [logic!]
     var [word! tuple!]
@@ -250,7 +250,7 @@ specialized?: lambda [
 ; code with SHOVE, but currently done using inliner due to unfinished binding
 ; semantics in SHOVE pertaining to fetched values.
 
-me: infix redescribe [
+/me: infix redescribe [
     "Update variable using it as the left hand argument to an infix operator"
 ](
     inliner [@left [set-word? set-tuple?] @right [word! path! chain!]] [
@@ -258,7 +258,7 @@ me: infix redescribe [
     ]
 )
 
-my: infix redescribe [
+/my: infix redescribe [
     "Update variable using it as the first argument to a prefix operator"
 ](
     inliner [@left [set-word? set-tuple?] @right [word! path! chain!]] [
@@ -266,7 +266,7 @@ my: infix redescribe [
     ]
 )
 
-so: infix:postpone func [
+/so: infix:postpone func [
     "Postfix assertion which stops running if left expression is inhibitor"
 
     return: [any-value?]
@@ -287,7 +287,7 @@ so: infix:postpone func [
 ]
 
 
-was: infix:postpone redescribe [
+/was: infix:postpone redescribe [
     "Assert that the left hand side--when fully evaluated--IS the right"
 ](
     lambda [left [any-stable?] right [any-stable?]] [
@@ -303,31 +303,31 @@ was: infix:postpone redescribe [
 )
 
 
-zdeflate: redescribe [
+/zdeflate: redescribe [
     "Deflates data with zlib envelope: https://en.wikipedia.org/wiki/ZLIB"
 ](
     specialize deflate/ [envelope: 'zlib]
 )
 
-zinflate: redescribe [
+/zinflate: redescribe [
     "Inflates data with zlib envelope: https://en.wikipedia.org/wiki/ZLIB"
 ](
     specialize inflate/ [envelope: 'zlib]
 )
 
-gzip: redescribe [
+/gzip: redescribe [
     "Deflates data with gzip envelope: https://en.wikipedia.org/wiki/Gzip"
 ](
     specialize deflate/ [envelope: 'gzip]
 )
 
-gunzip: redescribe [
+/gunzip: redescribe [
     "Inflates data with gzip envelope: https://en.wikipedia.org/wiki/Gzip"
 ](
     specialize inflate/ [envelope: 'gzip]  ; What about GZIP-BADSIZE?
 )
 
-ensure: redescribe [
+/ensure: redescribe [
     "Pass through value if it matches test, otherwise trigger a FAIL"
 ](
     enclose typecheck/ lambda [f] [
@@ -349,7 +349,7 @@ ensure: redescribe [
 ; if you give back NULL ("it passed, it wasn't an integer") this conflates
 ; with the failure signal.  You need to use
 ;
-non: redescribe [
+/non: redescribe [
     "Pass through value if it *doesn't* match test, else null"
 ](
     enclose match/ func [f] [
@@ -358,7 +358,7 @@ non: redescribe [
     ]
 )
 
-prohibit: redescribe [
+/prohibit: redescribe [
     "Pass through value if it *doesn't* match test, else panic"
 ](
     enclose typecheck/ lambda [f] [
@@ -377,8 +377,8 @@ prohibit: redescribe [
 )
 
 
-oneshot: specialize n-shot/ [n: 1]
-upshot: specialize n-shot/ [n: -1]
+/oneshot: specialize n-shot/ [n: 1]
+/upshot: specialize n-shot/ [n: -1]
 
 ;
 ; !!! The /REVERSE and /LAST refinements of FIND and SELECT caused a lot of
@@ -386,13 +386,13 @@ upshot: specialize n-shot/ [n: -1]
 ; the combinatorics in the C code.  If needed, they could be made for SELECT.
 ;
 
-find-reverse: redescribe [
+/find-reverse: redescribe [
     "Variant of FIND that uses a /SKIP of -1"
 ](
     specialize find/ [skip: -1]
 )
 
-find-last: redescribe [
+/find-last: redescribe [
     "Variant of FIND that uses a /SKIP of -1 and seeks the TAIL of a series"
 ](
     adapt find-reverse/ [
@@ -407,9 +407,9 @@ find-last: redescribe [
 ; New-attempt, run body as a "loop of 1" with BREAK and CONTINUE, and able
 ; to integrate with THEN and ELSE.
 ;
-attempt: specialize repeat/ [count: 1]
+/attempt: specialize repeat/ [count: 1]
 
-rescue: lambda [
+/rescue: lambda [
     "If evaluation returns an antiform error, return as error, else NULL"
 
     []: [<null> error!]
@@ -418,25 +418,25 @@ rescue: lambda [
     match error! enrescue code
 ]
 
-reduce*: redescribe [
+/reduce*: redescribe [  ; !!! dialected calls, could be REDUCE/OPT
     "REDUCE a block but vaporize NULL Expressions"
 ](
     specialize reduce/ [predicate: opt/]
 )
 
-for-next: redescribe [
+/for-next: redescribe [
     "Evaluates a block for each position until the end, using NEXT to skip"
 ](
     specialize for-skip/ [skip: 1]
 )
 
-for-back: redescribe [
+/for-back: redescribe [
     "Evaluates a block for each position until the start, using BACK to skip"
 ](
     specialize for-skip/ [skip: -1]
 )
 
-iterate-skip: redescribe [
+/iterate-skip: redescribe [
     "Variant of FOR-SKIP that directly modifies a series variable in a word"
 ](
     specialize enclose for-skip/ func [f {word}] [
@@ -461,13 +461,13 @@ iterate-skip: redescribe [
     ]
 )
 
-iterate: iterate-next: redescribe [
+/iterate: iterate-next: redescribe [
     "Variant of FOR-NEXT that directly modifies a series variable in a word"
 ](
     specialize iterate-skip/ [skip: 1]
 )
 
-iterate-back: redescribe [
+/iterate-back: redescribe [
     "Variant of FOR-BACK that directly modifies a series variable in a word"
 ](
     specialize iterate-skip/ [skip: -1]
@@ -482,7 +482,7 @@ iterate-back: redescribe [
 ;
 ;    Note: STOP:WITH is not ^META, decays PACK! etc
 ;
-count-up: func [
+/count-up: func [
     "Loop the body, setting a word from 1 up to the end value given"
     return: [any-value?]
     @(var) [_ word! 'word! $word! '$word!]
@@ -510,7 +510,7 @@ count-up: func [
     ]
 ]
 
-count-down: redescribe [
+/count-down: redescribe [
     "Loop the body, setting a word from the end value given down to 1"
 ](
     specialize adapt cfor/ [
@@ -523,13 +523,13 @@ count-down: redescribe [
 )
 
 
-lock-of: redescribe [
+/lock-of: redescribe [
     "If value is already locked, return it...otherwise CLONE it and LOCK it."
 ](
     cascade [specialize copy/ [deep: ok], freeze/]
 )
 
-eval-all: func [
+/eval-all: func [
     "Evaluate any number of expressions and discard them"
 
     return: [void!]
@@ -546,12 +546,12 @@ eval-all: func [
 ; to allow longer runs of evaluation.  "Invisible functions" (those which
 ; `return: [void!]`) permit a more flexible version of the mechanic.
 
-[<|]: infix:postpone eval-all/
+[<|]: final infix:postpone eval-all/
 
 
-drain: does [~(_)~]
+/drain: does [~(_)~]
 
-accessor: lambda [
+/accessor: lambda [
     "Returns bedrock state storable in variable giving it GET/SET behavior"
     []: [bedrock?]  ; [accessor?]
     frame [frame!]
@@ -559,7 +559,7 @@ accessor: lambda [
     unlift quasi reduce $(frame)
 ]
 
-getter: lambda [
+/getter: lambda [
     "Returns a bedrock state storable in a variable to give it GET behavior"
     []: [bedrock?]  ; [accessor?]
     body [block! fence!]
@@ -568,7 +568,7 @@ getter: lambda [
 ]
 
 
-cause-error: func [
+/cause-error: func [
     "Causes an immediate error throw with the provided information"
     err-type [word!]
     err-id [word!]
@@ -586,7 +586,7 @@ cause-error: func [
 ]
 
 
-fail: func [
+/fail: func [
     "Make unstable FAILURE! antiform state (RESCUE, EXCEPT, TRY can intercept)"
 
     return: [failure!]
@@ -698,4 +698,5 @@ fail: func [
 ; generation of the NEAR and WHERE fields.  If we tried to ENCLOSE and EVAL
 ; the error it would add more overhead and confuse those matters.
 ;
-panic: cascade [fail/ null?/]
+unprotect $panic
+/panic: cascade [fail/ null?/]

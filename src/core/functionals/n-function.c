@@ -471,7 +471,7 @@ Bounce Make_Interpreted_Action(
 
 
 //
-//  function: native [
+//  /function: native [
 //
 //  "Generates an ACTION! with RETURN capability"
 //
@@ -501,7 +501,7 @@ DECLARE_NATIVE(FUNCTION)
 
 
 //
-//  procedure: native [
+//  /procedure: native [
 //
 //  "Variation of FUNCTION that will always return TRASH"
 //
@@ -631,7 +631,7 @@ Bounce Init_Thrown_Unwind_Value(
 
 
 //
-//  unwind: native [
+//  /unwind: native [
 //
 //  "Jump up the stack to return from a specific frame or call"
 //
@@ -706,7 +706,7 @@ Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
 
 
 //
-//  definitional-return: native [
+//  /definitional-return: native [
 //
 //  "RETURN, giving a result to the caller"
 //
@@ -851,7 +851,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
 
 
 //
-//  return: native [
+//  /return: native [
 //
 //  "RETURN, giving a result to the caller"
 //
@@ -908,7 +908,7 @@ DECLARE_NATIVE(RETURN)
 
 
 //
-//  definitional-redo: native [
+//  /definitional-redo: native [
 //
 //  "Internal throw signal used by RETURN:RUN"
 //

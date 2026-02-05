@@ -36,7 +36,7 @@ Rebol [
 ; brought back once the code solidifies.
 
 
-transcode-header: func [
+/transcode-header: func [
     "Try to match a data blob! as being a script, fail if not"
 
     return: [
@@ -94,7 +94,7 @@ transcode-header: func [
 ; the body text will be a decoded block instead of binary, to avoid the
 ; overhead of decoding the body twice.
 ;
-load-header: func [
+/load-header: func [
     "Loads script header object and body binary (not loaded)"
 
     return: [
@@ -235,7 +235,7 @@ bind construct [
 ;    its own module which inherits from lib.  Ultimately you should be able
 ;    to load modules using completely different baselines.
 ;
-load: func [
+/load: func [
     "Loads code or data from a file, URL, text string, or binary"
 
     return: [
@@ -322,7 +322,7 @@ load: func [
 ; interop routines (like JS-DO and CSS-DO) want the same thing, and use
 ; this routine as well.
 
-adjust-url-for-raw: func [
+/adjust-url-for-raw: func [
     return: [<null> url!]
     url [url!]
 ][
@@ -390,7 +390,7 @@ adjust-url-for-raw: func [
 ;    ban it as well (or at least make it inconvenient).  But do it for the
 ;    moment since that is how it has worked in the past.
 ;
-import*: func [
+/import*: func [
     "Imports a module; locate, load, make, and setup its bindings"
 
     return: [
@@ -622,7 +622,7 @@ bind construct [
 ])
 
 
-export*: func [
+/export*: func [
     "Add words to module's (exports: []) list, return value if assigned"
 
     return: [any-value?]

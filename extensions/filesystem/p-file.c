@@ -105,7 +105,7 @@ INLINE uint64_t File_Size_Cacheable_May_Panic(const Stable* port)
 
 
 //
-//  export file-actor: native [
+//  export /file-actor: native [
 //
 //  "Handler for OLDGENERIC dispatch on File PORT!s"
 //

@@ -49,7 +49,6 @@ gold:       255.205.40
 ; `tan` is contentious with the radian-oriented shorthand for tangent
 ;tan:       222.184.135
 
-tan:        222.184.135
 beige:      255.228.196
 ivory:      255.255.240
 linen:      250.240.230

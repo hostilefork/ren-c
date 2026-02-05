@@ -26,19 +26,19 @@ Rebol [
     ]--
 ]
 
-boot-print: redescribe [
+/boot-print: redescribe [
     "Prints during boot when not quiet."
 ](
     enclose print/ f -> [if no? system.options.quiet [eval f]]
 )
 
-loud-print: redescribe [
+/loud-print: redescribe [
     "Prints during boot when verbose."
 ](
     enclose print/ f -> [if yes? system.options.verbose [eval f]]
 )
 
-make-banner: func [
+/make-banner: func [
     "Build startup banner"
     return: [text!]
     fmt [block!]
@@ -97,7 +97,7 @@ boot-banner: [
     *
 ]
 
-about: proc [
+/about: proc [
     "Information about REBOL"
 ][
     print make-banner boot-banner
@@ -112,7 +112,7 @@ about: proc [
 ; like an ordinary ACTION!, and all the proxying is handled for the user.
 ; Work done on the dialect here could be shared in common.
 ;
-usage: proc [
+/usage: procedure [
     "Prints command-line arguments."
 ][
 ;       --cgi (-c)       Load CGI utiliy module and modes
@@ -192,7 +192,7 @@ host-script-pre-load: proc [
 ;     finished running.  Leaving it unbound means that the console engine
 ;     (which processes these instructions) will supply it.
 ;
-main-startup: func [
+main-startup: nonfinal function [  ; overwrites self when finished
     "Usermode command-line processing: handles args, security, scripts"
 
     return: [any-stable?] "!!! Narrow down return type?"
@@ -729,7 +729,7 @@ main-startup: func [
         ]
     ]
 
-    main-startup: ~<MAIN-STARTUP done>~  ; free function for GC
+    main-startup: final ~<MAIN-STARTUP done>~  ; free function for GC
 
     if 'yes = quit-when-done [  ; can be null, YES? would complain...
         return <quit>  ; quits after instructions done

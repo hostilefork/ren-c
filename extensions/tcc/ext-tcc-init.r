@@ -460,7 +460,7 @@ compile: proc [
 ]
 
 
-c99: func [
+/c99: func [
     "http://pubs.opengroup.org/onlinepubs/9699919799/utilities/c99.html"
 
     return: [

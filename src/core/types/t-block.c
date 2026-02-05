@@ -1291,7 +1291,7 @@ IMPLEMENT_GENERIC(SHUFFLE, Any_List)
 
 
 //
-//  file-of: native:generic [
+//  /file-of: native:generic [
 //
 //  "Get the file (or URL) that a value was loaded from, if possible"
 //
@@ -1319,7 +1319,7 @@ IMPLEMENT_GENERIC(FILE_OF, Any_Element)  // generic fallthrough returns error
 
 
 //
-//  line-of: native:generic [
+//  /line-of: native:generic [
 //
 //  "Get the line number that a value was loaded from, if possible"
 //
@@ -1482,7 +1482,7 @@ IMPLEMENT_GENERIC(SORT, Any_List)
 
 
 //
-//  blockify: native [
+//  /blockify: native [
 //
 //  "If a value isn't already a BLOCK!, enclose it in a block, else return it"
 //
@@ -1512,7 +1512,7 @@ DECLARE_NATIVE(BLOCKIFY)
 
 
 //
-//  groupify: native [
+//  /groupify: native [
 //
 //  "If a value isn't already a GROUP!, enclose it in a group, else return it"
 //
@@ -1542,7 +1542,7 @@ DECLARE_NATIVE(GROUPIFY)
 
 
 //
-//  envelop: native [
+//  /envelop: native [
 //
 //  "Enclose element(s) in arbitrarily deep list structures"
 //
@@ -1603,7 +1603,7 @@ DECLARE_NATIVE(ENVELOP)
 
 
 //
-//  glom: native [
+//  /glom: native [
 //
 //  "Efficient destructive merging operation that reuses appended memory"
 //

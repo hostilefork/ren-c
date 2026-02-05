@@ -12,6 +12,7 @@ Rebol [
     ]--
 ]
 
+unprotect $dump
 dump: vanishable func [
     "Show the name of a value or expressions with the value (See Also: --)"
 
@@ -96,7 +97,7 @@ bind construct [
     return ()
 ])
 
-contains-newline: func [return: [logic!] pos [block! group!]] [
+/contains-newline: func [return: [logic!] pos [block! group!]] [
     while [pos] [
         any [
             new-line? pos
@@ -182,7 +183,7 @@ dumps: infix func [
 ; so it uses that as a string pattern.  Review how to better factor that
 ; (as part of a general help review)
 ;
-summarize-obj: func [
+/summarize-obj: func [
     "Block of short lines (roughly 80 columns) about an object or port"
 
     return: [block!]
@@ -260,7 +261,7 @@ summarize-obj: func [
 ; Notice that if line breaks occur internal to an element on the line, that
 ; is detected, and lets that element be the last commented element.
 ;
-**: func [
+**: final func [
     "Comment until end of line, or end of current list"
 
     return: [void!]

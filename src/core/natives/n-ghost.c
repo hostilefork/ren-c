@@ -31,7 +31,7 @@
 
 
 //
-//  ghost: vanishable native [
+//  /ghost: vanishable native [
 //
 //  "Generate VOID! (arity-0 COMMENT)"
 //
@@ -47,7 +47,7 @@ DECLARE_NATIVE(GHOST)
 
 
 //
-//  void?: native:intrinsic [
+//  /void?: native:intrinsic [
 //
 //  "Tells you if argument is a BLANK! antiform (unstable)"
 //
@@ -76,7 +76,7 @@ DECLARE_NATIVE(VOID_Q)
 
 
 //
-//  any-void?: native:intrinsic [
+//  /any-void?: native:intrinsic [
 //
 //  "Is VALUE a VOID! (antiform comma) or HEAVY VOID (empty pack!)"
 //
@@ -102,7 +102,7 @@ DECLARE_NATIVE(ANY_VOID_Q)
 
 
 //
-//  heavy-void?: native:intrinsic [
+//  /heavy-void?: native:intrinsic [
 //
 //  "Is VALUE specifically HEAVY VOID (empty pack!)"
 //
@@ -123,7 +123,7 @@ DECLARE_NATIVE(HEAVY_VOID_Q)
 
 
 //
-//  comment: vanishable native:intrinsic [
+//  /comment: vanishable native:intrinsic [
 //
 //  "Skip one element ahead, doing no evaluation (see also ELIDE)"
 //
@@ -146,7 +146,7 @@ DECLARE_NATIVE(COMMENT)
 
 
 //
-//  elide: vanishable native:intrinsic [
+//  /elide: vanishable native:intrinsic [
 //
 //  "Argument evaluated, result discarded (not FAILURE!, or packs w/FAILURE!s)"
 //
@@ -169,7 +169,7 @@ DECLARE_NATIVE(ELIDE)
 
 
 //
-//  ghostly: vanishable native:intrinsic [
+//  /ghostly: vanishable native:intrinsic [
 //
 //  "Argument is evaluative, but discarded if ANY-VOID?"
 //
@@ -191,7 +191,7 @@ DECLARE_NATIVE(GHOSTLY)
 
 
 //
-//  ignore: native:intrinsic [  ; !!! should it be vanishable?
+//  /ignore: native:intrinsic [  ; !!! should it be vanishable?
 //
 //  "Argument evaluated and discarded (even FAILURE! and undecayable packs)"
 //
@@ -208,7 +208,7 @@ DECLARE_NATIVE(IGNORE)
 
 
 //
-//  unvoid: native:intrinsic [  ; !!! Better name?
+//  /unvoid: native:intrinsic [  ; !!! Better name?
 //
 //  "If the argument is a VOID!, convert it to a HEAVY VOID, else passthru"
 //

@@ -36,6 +36,7 @@ recover: enclose enrecover/ lambda [f] [
     match error! eval-free f
 ]
 
+unprotect $lib.enrecover
 lib.enrecover: ~<See SYS.UTIL/ENRECOVER and https://forum.rebol.info/t/1871>~
 
 set extend lib 'recover (
@@ -43,6 +44,8 @@ set extend lib 'recover (
 )
 
 exit: lib.exit-process/
+
+unprotect $lib.exit-process
 lib.exit-process: ~<See SYS.UTIL/EXIT>~
 
 
@@ -51,7 +54,7 @@ lib.exit-process: ~<See SYS.UTIL/EXIT>~
 ;    it probably means the module was not successfully made and you should
 ;    be getting an error.  This needs to be rethought.
 ;
-module: func [
+/module: func [
     "Creates a new module (used by both IMPORT and DO)"
 
     return: [
@@ -199,7 +202,7 @@ module: func [
 ; return the same context every time it is called--so modules are loaded only
 ; once--while DO performs an action that you can run any number of times.
 ;
-do: func [
+/do: func [
     "Execution facility for Rebol or other Languages/Dialects (see also: EVAL)"
 
     return: [any-value?]

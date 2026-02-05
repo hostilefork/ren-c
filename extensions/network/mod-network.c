@@ -1121,7 +1121,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
 
 
 //
-//  export tcp-actor: native [
+//  export /tcp-actor: native [
 //
 //  "Handler for OLDGENERIC dispatch on TCP PORT!s"
 //
@@ -1135,7 +1135,7 @@ DECLARE_NATIVE(TCP_ACTOR)
 
 
 //
-//  export udp-actor: native [
+//  export /udp-actor: native [
 //
 //  "Handler for OLDGENERIC dispatch on UDP PORT!s"
 //
@@ -1149,7 +1149,7 @@ DECLARE_NATIVE(UDP_ACTOR)
 
 
 //
-//  startup*: native [
+//  /startup*: native [
 //
 //  "Initialize Network Extension (e.g. call WSAStartup() on Windows)"
 //
@@ -1192,7 +1192,7 @@ DECLARE_NATIVE(STARTUP_P)
 
 
 //
-//  shutdown*: native [
+//  /shutdown*: native [
 //
 //  "Shutdown Network Extension"
 //
@@ -1235,7 +1235,7 @@ DECLARE_NATIVE(SHUTDOWN_P)
 
 
 //
-//  export wait*: native [
+//  export /wait*: native [
 //
 //  "Waits for a duration, port, or both"
 //

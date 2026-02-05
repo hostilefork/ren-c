@@ -99,7 +99,7 @@ Result(Element*) Init_Any_Sequence_At_Listlike(
 
 
 //
-//  pick: native [
+//  /pick: native [
 //
 //  "Perform a path picking operation; same code as `(location).(picker)`"
 //
@@ -162,7 +162,7 @@ DECLARE_NATIVE(PICK)
 
 
 //
-//  tweak*: native:generic [  ; can call directly, but 99.9% want PICK/POKE
+//  /tweak*: native:generic [  ; can call directly, but 99.9% want PICK/POKE
 //
 //  "Implementation detail of PICK and POKE, also underlies SET and GET"
 //
@@ -220,7 +220,7 @@ DECLARE_NATIVE(TWEAK_P)
 
 
 //
-//  tweak*-unchecked: native [  ; don't put :GENERIC (covered by TWEAK*)
+//  /tweak*-unchecked: native [  ; don't put :GENERIC (covered by TWEAK*)
 //
 //  "(Bootstrap Variation of TWEAK*, before type spec lookups work)"
 //
@@ -252,7 +252,7 @@ DECLARE_NATIVE(TWEAK_P_UNCHECKED)
 
 
 //
-//  poke: native [
+//  /poke: native [
 //
 //  "Poke a tuple as in `(location).(picker): value`, returns value"
 //

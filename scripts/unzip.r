@@ -63,13 +63,13 @@ central-file-sig: #{504B0102}
 end-of-central-sig: #{504B0506}
 data-descriptor-sig: #{504B0708}
 
-to-ilong: specialize encode/ [type: [LE + 4]]  ; Little endian 4-byte + int
+/to-ilong: specialize encode/ [type: [LE + 4]]  ; Little endian 4-byte + int
 
-to-ishort: specialize encode/ [type: [LE + 2]]  ; Little endian 2-byte + int
+/to-ishort: specialize encode/ [type: [LE + 2]]  ; Little endian 2-byte + int
 
-to-long: specialize encode/ [type: [BE + 4]]  ; Big endian 4-byte + int
+/to-long: specialize encode/ [type: [BE + 4]]  ; Big endian 4-byte + int
 
-to-msdos-time: lambda [
+/to-msdos-time: lambda [
     "Converts to a MS-DOS time"
     []: [blob!]
     time [time!] "AnyValue to convert"
@@ -79,7 +79,7 @@ to-msdos-time: lambda [
         or+ round:down time.second / 2
 ]
 
-to-msdos-date: lambda [
+/to-msdos-date: lambda [
     "Converts to a MS-DOS date"
     []: [blob!]
     date [date!]
@@ -88,7 +88,7 @@ to-msdos-date: lambda [
         or+ (date.month * 32) or+ date.day
 ]
 
-get-msdos-time: lambda [
+/get-msdos-time: lambda [
     "Converts from a MS-DOS time"
     []: [time!]
     binary [blob!]
@@ -102,7 +102,7 @@ get-msdos-time: lambda [
     ]
 ]
 
-get-msdos-date: lambda [
+/get-msdos-date: lambda [
     "Converts from a MS-DOS date"
     []: [date!]
     binary [blob!]
@@ -116,7 +116,7 @@ get-msdos-date: lambda [
     ]
 ]
 
-zip-entry: func [
+/zip-entry: func [
     "Compresses a file"
 
     return: [
@@ -194,7 +194,7 @@ zip-entry: func [
     return pack [local-file-entry central-dir-entry]
 ]
 
-to-path-file: func [
+/to-path-file: func [
     "Converts url! to file! and removes / from beginning"
     return: [file!]
     value [file! url!] "AnyValue to convert"
@@ -207,7 +207,7 @@ to-path-file: func [
     return join %"" [value.host "/" value.path value.target]
 ]
 
-zip: func [
+/zip: func [
     "Build zip archive from a file or dialected data specification block"
 
     return: [
@@ -310,7 +310,7 @@ zip: func [
     return num-entries
 ]
 
-unzip: func [
+/unzip: func [
     "Decompresses a zip archive to a directory or a block"
 
     return: [

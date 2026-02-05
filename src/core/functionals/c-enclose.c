@@ -208,7 +208,7 @@ bool Encloser_Details_Querier(
 
 
 //
-//  enclose: native [
+//  /enclose: native [
 //
 //  "Wrap code around a frame with access to its instance and return value"
 //

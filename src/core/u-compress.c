@@ -375,7 +375,7 @@ Byte* Decompress_Alloc_Core(  // returned pointer can be rebRepossessed() [1]
 
 
 //
-//  checksum-core: native [
+//  /checksum-core: native [
 //
 //  "Built-in checksums from zlib (see CHECKSUM in Crypt extension for more)"
 //
@@ -451,7 +451,7 @@ DECLARE_NATIVE(CHECKSUM_CORE)
 
 
 //
-//  deflate: native [
+//  /deflate: native [
 //
 //  "Compress data using DEFLATE: https://en.wikipedia.org/wiki/DEFLATE"
 //
@@ -501,7 +501,7 @@ DECLARE_NATIVE(DEFLATE)
 
 
 //
-//  inflate: native [
+//  /inflate: native [
 //
 //  "Decompresses DEFLATE-d data: https://en.wikipedia.org/wiki/DEFLATE"
 //

@@ -188,7 +188,7 @@ Result(Details*) Make_Native_Dispatch_Details_May_Update_Spec(
 
 
 //
-//  native: native [  ; not PURE, mutates global state [1]
+//  /native: native [  ; not PURE, mutates global state [1]
 //
 //  "(Internal Function) Create a native, using compiled C code"
 //
@@ -256,7 +256,7 @@ DECLARE_NATIVE(NATIVE)
 
 
 //
-//  native-unchecked: native [
+//  /native-unchecked: native [
 //
 //  "(Bootstrap Variation) Version of NATIVE with no typechecking"
 //
@@ -483,7 +483,7 @@ Bounce Delegate_Operation_With_Part(
 
 
 //
-//  oldgeneric: native:generic [
+//  /oldgeneric: native:generic [
 //
 //  "Generic aggregator for the old-style generic dispatch"
 //
@@ -518,35 +518,44 @@ Bounce Run_Generic_Dispatch(
 //
 static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
 {
-  skip_to_spec_block: {
+    assert(Is_Set_Run_Word(At_Level(L)));  // a `/name:` assignment...
+    Flags final_bit;  // ...but we may overwrite during boot
 
-    assert(Is_Set_Word(At_Level(L)));
+    const Symbol* at_symbol = unwrap Try_Get_Settable_Word_Symbol(
+        nullptr, At_Level(L)
+    );
+
+  skip_to_spec_block: {
 
     switch (id) {
       case SYM_NATIVE:
-        // native-unchecked: native [...]
-        assert(Word_Id(At_Level(L)) == SYM_NATIVE_UNCHECKED);
+        // /native-unchecked: native [...]
+        assert(Symbol_Id(at_symbol) == SYM_NATIVE_UNCHECKED);
+        final_bit = 0;  // will be overwritten by checked version
         break;
 
       case SYM_TWEAK_P:
-        // tweak*-unchecked: native [...]
-        assert(Word_Id(At_Level(L)) == SYM_TWEAK_P_UNCHECKED);
+        // /tweak*-unchecked: native [...]
+        assert(Symbol_Id(at_symbol) == SYM_TWEAK_P_UNCHECKED);
+        final_bit = 0;  // will be overwritten by checked version
         break;
 
       case SYM_C_DEBUG_BREAK:
-        // c-debug-break: vanishable native [...]
-        assert(Word_Id(At_Level(L)) == SYM_C_DEBUG_BREAK);
+        // /c-debug-break: vanishable native [...]
+        assert(Symbol_Id(at_symbol) == SYM_C_DEBUG_BREAK);
         Fetch_Next_In_Feed(L->feed);
         assert(Word_Id(At_Level(L)) == SYM_VANISHABLE);
+        final_bit = CELL_FLAG_FINAL;  // not overwritten
         break;
 
       case SYM_TYPECHECKER_ARCHETYPE:
-        // typechecker-archetype: native:intrinsic [...]
-        assert(Word_Id(At_Level(L)) == SYM_TYPECHECKER_ARCHETYPE);
+        // /typechecker-archetype: native:intrinsic [...]
+        assert(Symbol_Id(at_symbol) == SYM_TYPECHECKER_ARCHETYPE);
+        final_bit = CELL_FLAG_FINAL;  // not overwritten
         break;
 
       default:
-        assert(false);
+        crash (nullptr);
     }
 
     Fetch_Next_In_Feed(L->feed);
@@ -570,15 +579,14 @@ static void Make_Native_In_Lib_By_Hand(Level* L, SymId id)
 
     ++g_native_cfunc_pos;
 
-    Value* v = Init_Action(
-        Sink_Lib_Value(id),
-        details,
-        Canon_Symbol(id),  // label
-        UNCOUPLED  // coupling
-    );
+    Sink(Value) action = Sink_Lib_Value(id);
+
+    Init_Action(action, details, Canon_Symbol(id), UNCOUPLED);
+
+    action->header.bits |= final_bit;
 
     if (id == SYM_C_DEBUG_BREAK)
-        Set_Cell_Flag(v, WEIRD_VANISHABLE);
+        Set_Cell_Flag(action, WEIRD_VANISHABLE);
 
     assert(cast(Details*, Frame_Phase(Lib_Value(id))) == details);
 }}

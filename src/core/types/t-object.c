@@ -596,7 +596,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Object)
 
 
 //
-//  adjunct-of: native [
+//  /adjunct-of: native [
 //
 //  "Get a reference to the 'adjunct' context associated with a value"
 //
@@ -630,7 +630,7 @@ DECLARE_NATIVE(ADJUNCT_OF)
 
 
 //
-//  set-adjunct: native [
+//  /set-adjunct: native [
 //
 //  "Set 'adjunct' object associated with all references to a value"
 //
@@ -1415,7 +1415,7 @@ IMPLEMENT_GENERIC(LENGTH_OF, Any_Context)
 
 
 //
-//  words-of: native:generic [
+//  /words-of: native:generic [
 //
 //  "Get the keys of a context or map (should be KEYS-OF)"
 //
@@ -1452,7 +1452,7 @@ IMPLEMENT_GENERIC(WORDS_OF, Any_Context)
 
 
 //
-//  values-of: native:generic [
+//  /values-of: native:generic [
 //
 //  "Get the values of a context or map (in lifted form)"
 //
@@ -1489,7 +1489,7 @@ IMPLEMENT_GENERIC(VALUES_OF, Any_Context)
 
 
 //
-//  bytes-of: native:generic [
+//  /bytes-of: native:generic [
 //
 //  "Get the underlying data e.g. of an image or struct as a BLOB! value"
 //
@@ -1549,7 +1549,7 @@ IMPLEMENT_GENERIC(COPY, Is_Frame)
 
 
 //
-//  parameters-of: native [
+//  /parameters-of: native [
 //
 //  "Get the unspecialized PARAMETER! descriptions for a FRAME! or ACTION?"
 //
@@ -1575,7 +1575,7 @@ DECLARE_NATIVE(PARAMETERS_OF)
 
 
 //
-//  return-of: native [
+//  /return-of: native [
 //
 //  "Get the return parameter specification of a frame"
 //
@@ -1605,7 +1605,7 @@ DECLARE_NATIVE(RETURN_OF)
 
 
 //
-//  body-of: native [
+//  /body-of: native [
 //
 //  "Get a loose representation of a function's implementation"
 //
@@ -1635,7 +1635,7 @@ DECLARE_NATIVE(BODY_OF)  // !!! should this be SOURCE-OF ?
 
 
 //
-//  coupling-of: native [
+//  /coupling-of: native [
 //
 //  "Get what object a FRAME! or ACTION? uses to looks up .XXX references"
 //
@@ -1667,7 +1667,7 @@ DECLARE_NATIVE(COUPLING_OF)
 
 
 //
-//  label-of: native [
+//  /label-of: native [
 //
 //  "Get the cached name a frame was last referred to by"
 //
@@ -1795,7 +1795,7 @@ IMPLEMENT_GENERIC(LINE_OF, Is_Frame)
 
 
 //
-//  near-of: native [
+//  /near-of: native [
 //
 //  "Get the near information for an executing frame"
 //
@@ -1819,7 +1819,7 @@ DECLARE_NATIVE(NEAR_OF)
 
 
 //
-//  parent-of: native [
+//  /parent-of: native [
 //
 //  "Get the frame corresponding to the parent of a frame"
 //
@@ -1944,7 +1944,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Frame)
 
 
 //
-//  construct: native [
+//  /construct: native [
 //
 //  "Creates an OBJECT! from a spec that is not bound into the object"
 //
@@ -2130,7 +2130,7 @@ DECLARE_NATIVE(CONSTRUCT)
 
 
 //
-//  extend: native:generic [
+//  /extend: native:generic [
 //
 //  "Add more material to a context"
 //

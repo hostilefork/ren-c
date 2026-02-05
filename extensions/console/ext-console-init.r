@@ -422,7 +422,7 @@ export console!: make object! [
 ]
 
 
-start-console: proc [
+/start-console: procedure [
     "Called when a REPL is desired after command-line processing, vs quitting"
 
     :skin "Custom skin (e.g. derived from MAKE CONSOLE!) or file"
@@ -524,7 +524,7 @@ bind construct [
 ])
 
 
-console*: func [
+/console*: func [
     "Rebol ACTION! that is called from C in a loop to implement the console"
 
     ; Note: RETURN is hooked below with a dialected version

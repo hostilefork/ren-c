@@ -19,7 +19,7 @@ Rebol [
 
 parse: ~<Higher-level %uparse.r hasn't set SYS.UTIL/PARSE yet>~
 
-make-port*: func [
+/make-port*: func [
     "SYS: Called by system on MAKE of PORT! port from a scheme."
 
     return: [port!]

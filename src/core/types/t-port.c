@@ -38,7 +38,7 @@ REBINT CT_Port(const Element* a, const Element* b, bool strict)
 
 
 //
-//  open?: native:generic [
+//  /open?: native:generic [
 //
 //  "Test if a port is open (or other type?)"
 //

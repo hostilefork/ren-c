@@ -379,7 +379,7 @@ Flex* Make_Set_Operation_Flex(
 
 
 //
-//  complement: native:generic [
+//  /complement: native:generic [
 //
 //  "Returns the inversion of a set"
 //
@@ -397,7 +397,7 @@ DECLARE_NATIVE(COMPLEMENT)
 
 
 //
-//  intersect: native:generic [
+//  /intersect: native:generic [
 //
 //  "Returns the intersection (AND) of two sets"
 //
@@ -431,7 +431,7 @@ DECLARE_NATIVE(INTERSECT)
 
 
 //
-//  union: native:generic [
+//  /union: native:generic [
 //
 //  "Returns the union (OR) of two sets"
 //
@@ -465,7 +465,7 @@ DECLARE_NATIVE(UNION)
 
 
 //
-//  difference: native:generic [
+//  /difference: native:generic [
 //
 //  "Returns the special difference (XOR) of two sets"
 //
@@ -502,7 +502,7 @@ DECLARE_NATIVE(DIFFERENCE)
 
 
 //
-//  exclude: native:generic [
+//  /exclude: native:generic [
 //
 //  "Returns the first data set less the second data set"
 //
@@ -526,7 +526,7 @@ DECLARE_NATIVE(EXCLUDE)
 
 
 //
-//  unique: native:generic [
+//  /unique: native:generic [
 //
 //  "Returns the data set with duplicates removed"
 //

@@ -20,7 +20,7 @@ export env: environment
 ; Historical Rebol didn't have space for an ENVIRONMENT! datatype.  Ren-C
 ; does, but create some compatibility functions while that's tested out.
 
-export get-env: func [
+export /get-env: impure func [
     "Returns the value of an OS environment variable (for current process)"
 
     return: [<null> text!]
@@ -30,7 +30,7 @@ export get-env: func [
     return try environment.(variable)  ; GET-ENV returned null if not there
 ]
 
-export set-env: func [
+export /set-env: impure func [
     "Sets value of operating system environment variable for current process"
 
     return: [<null> text!]

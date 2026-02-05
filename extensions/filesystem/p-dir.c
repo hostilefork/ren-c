@@ -70,7 +70,7 @@ Stable* Try_Read_Directory_Entry(FileReq* dir, Stable* dir_path);
 
 
 //
-//  export dir-actor: native [
+//  export /dir-actor: native [
 //
 //  "Handler for OLDGENERIC dispatch on Directory PORT!s"
 //

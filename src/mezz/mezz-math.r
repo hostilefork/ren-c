@@ -11,9 +11,9 @@ Rebol [
     ]--
 ]
 
-pi: 3.14159265358979323846
+pi: final 3.14159265358979323846
 
-odd?: redescribe ["Returns OKAY if the number is odd"] (
+/odd?: redescribe ["Returns OKAY if the number is odd"] (
     cascade [even?/ not/]
 )
 
@@ -21,14 +21,14 @@ odd?: redescribe ["Returns OKAY if the number is odd"] (
 ; Shorthands for radian forms of trig functions, first introduced by Red.
 ; http://www.red-lang.org/2014/08/043-floating-point-support.html
 
-cos: cosine:radians/
-sin: sine:radians/
-tan: tangent:radians/  ; contentious with color "tan" (CSS and elsewhere)
-acos: arccosine:radians/
-asin: arcsine:radians/
-atan: arctangent:radians/
+/cos: cosine:radians/
+/sin: sine:radians/
+/tan: tangent:radians/  ; contentious with color "tan" (CSS and elsewhere)
+/acos: arccosine:radians/
+/asin: arcsine:radians/
+/atan: arctangent:radians/
 
-modulo: func [
+/modulo: func [
     "Compute a remainder of A divided by B with the sign of B."
     return: [any-number? time!]
     a [any-number? time!]
@@ -58,10 +58,10 @@ modulo: func [
     return r
 ]
 
-mod: infix modulo/
-pow: infix power/
+/mod: infix modulo/
+/pow: infix power/
 
-sign-of: func [
+/sign-of: func [
     "Returns sign of number as 1, 0, or -1 (to use as multiplier)."
     value [any-number? time!]
 ][
@@ -71,7 +71,7 @@ sign-of: func [
     ] else [0]
 ]
 
-extreme-of: func [
+/extreme-of: func [
     "Finds position of value with most extreme property in a series"
 
     return: [any-series?]
@@ -90,13 +90,13 @@ extreme-of: func [
     return spot
 ]
 
-minimum-of: redescribe [
+/minimum-of: redescribe [
     "Finds the smallest value in a series"
 ](
     specialize extreme-of/ [comparator: lesser?/]
 )
 
-maximum-of: redescribe [
+/maximum-of: redescribe [
     "Finds the largest value in a series"
 ](
     specialize extreme-of/ [comparator: greater?/]
@@ -106,7 +106,7 @@ maximum-of: redescribe [
 ; A simple iterative implementation; returns 1 for negative
 ; numbers. FEEL FREE TO IMPROVE THIS!
 ;
-factorial: func [n [integer!]] [
+/factorial: func [n [integer!]] [
     if n < 2 [return 1]
     let res: 1
     ; should avoid doing the loop for i = 1...

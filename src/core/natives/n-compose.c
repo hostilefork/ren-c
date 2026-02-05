@@ -592,7 +592,7 @@ Bounce Composer_Executor(Level* const L)
 
 
 //
-//  compose2: native [
+//  /compose2: native [
 //
 //  "Evaluates only contents of GROUP!-delimited expressions in the argument"
 //

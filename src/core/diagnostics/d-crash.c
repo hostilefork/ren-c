@@ -380,7 +380,7 @@ ATTRIBUTE_NO_RETURN void Crash_Core(
 
 
 //
-//  crash: native [
+//  /crash: native [
 //
 //  "Terminate abnormally.  By design, do not allow any more user code to run."
 //
@@ -447,7 +447,7 @@ DECLARE_NATIVE(CRASH)
 
 
 //
-//  fail*: native [
+//  /fail*: native [
 //
 //  "Version of FAIL of definitional error that only takes ERROR!"
 //
@@ -467,7 +467,7 @@ DECLARE_NATIVE(FAIL_P)
 
 
 //
-//  panic: native [
+//  /panic: native [
 //
 //  "Early-boot version of panic (overridden by more complex usermode version)"
 //

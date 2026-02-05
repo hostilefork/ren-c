@@ -967,7 +967,7 @@ void Swap_Stub_Content(Stub* a, Stub* b)
 
 
 //
-//  swap-contents: native [
+//  /swap-contents: native [
 //
 //  "Low-level operation for swapping the underlying data for two series"
 //

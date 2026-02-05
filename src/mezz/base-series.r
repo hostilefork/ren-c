@@ -24,13 +24,13 @@ use [n] [  ; define FIRST, SECOND, THIRD etc. as specializations of PICK
         set (extend lib term) redescribe reduce [
             spaced ["Returns the" term "value of a series"]
         ](
-            specialize pick/ [picker: n]
+            final specialize pick/ [picker: n]
         )
         n: n + 1
     ]
 ]
 
-last: redescribe [
+/last: redescribe [
     "Returns the last value of a series"
 ](
     specialize adapt pick/ [
@@ -47,7 +47,7 @@ last: redescribe [
 ; CHARSET was moved from "Mezzanine" because it is called by TRIM which is
 ; in "Base" - see TRIM.
 ;
-charset: lambda [
+/charset: lambda [
     "Makes a bitset of chars for the parse function"
 
     []: [bitset!]
@@ -62,7 +62,7 @@ charset: lambda [
 ; TRIM is used by PORT! implementations, which currently rely on "Base" and
 ; not "Mezzanine", so this can't be in %mezz-series at the moment.  Review.
 ;
-trim: func [
+/trim: func [
     "Removes spaces from strings or blanks from blocks or objects"
 
     return: [any-string? any-list? blob! any-context?]
@@ -242,7 +242,7 @@ trim: func [
 ]
 
 
-measure: func [
+/measure: func [
     "Delta of indices of two references to the same series"  ; Redbol OFFSET?
 
     return: [integer!]

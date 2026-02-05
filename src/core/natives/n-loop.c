@@ -112,7 +112,7 @@ bool Loop_Body_Threw_And_Cant_Catch_Continue(
 
 
 //
-//  definitional-continue: native [
+//  /definitional-continue: native [
 //
 //  "Per-loop native for handing control back to the loop"
 //
@@ -167,7 +167,7 @@ DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
 
 
 //
-//  continue: native [
+//  /continue: native [
 //
 //  "Hand control back to the loop"
 //
@@ -223,7 +223,7 @@ DECLARE_NATIVE(CONTINUE)
 
 
 //
-//  break: native [
+//  /break: native [
 //
 //  "Exit the current iteration of a loop and stop iterating further"
 //
@@ -271,7 +271,7 @@ DECLARE_NATIVE(BREAK)
 
 
 //
-//  again: native [
+//  /again: native [
 //
 //  "Re-run a loop without advancing its loop variables"
 //
@@ -625,7 +625,7 @@ static Bounce Loop_Number_Common(
 
 
 //
-//  cfor: native [
+//  /cfor: native [
 //
 //  "Evaluate a block over a range of values (See also: REPEAT)"
 //
@@ -700,7 +700,7 @@ DECLARE_NATIVE(CFOR)
 
 
 //
-//  for-skip: native [
+//  /for-skip: native [
 //
 //  "Evaluates a block for periodic values in a series"
 //
@@ -812,7 +812,7 @@ DECLARE_NATIVE(FOR_SKIP)
 
 
 //
-//  definitional-stop: native [
+//  /definitional-stop: native [
 //
 //  "End the current iteration of CYCLE, optionally returning a value"
 //
@@ -880,7 +880,7 @@ void Add_Definitional_Stop(
 
 
 //
-//  cycle: native [
+//  /cycle: native [
 //
 //  "Evaluate branch endlessly until BREAK gives NULL or a STOP gives a result"
 //
@@ -1397,7 +1397,7 @@ void Shutdown_Loop_Each(Stable* iterator)
 
 
 //
-//  for-each: native [
+//  /for-each: native [
 //
 //  "Evaluates a block for each value(s) in a series"
 //
@@ -1530,7 +1530,7 @@ DECLARE_NATIVE(FOR_EACH)
 
 
 //
-//  every: native [
+//  /every: native [
 //
 //  "Iterate and return null if any previous body evaluations were falsey"
 //
@@ -1672,7 +1672,7 @@ DECLARE_NATIVE(EVERY)
 
 
 //
-//  remove-each: native [
+//  /remove-each: native [
 //
 //  "Removes values for each body evaluation that's not null, modifies input"
 //
@@ -2037,7 +2037,7 @@ DECLARE_NATIVE(REMOVE_EACH)
 
 
 //
-//  map-each: native [
+//  /map-each: native [
 //
 //  "Evaluate a block for each value(s) in a series and collect as a block"
 //
@@ -2090,7 +2090,7 @@ DECLARE_NATIVE(MAP_EACH)
 
 
 //
-//  map: native [
+//  /map: native [
 //
 //  "Evaluate a block for each value(s) in a series and collect as a block"
 //
@@ -2267,7 +2267,7 @@ DECLARE_NATIVE(MAP)
 
 
 //
-//  repeat: native [
+//  /repeat: native [
 //
 //  "Evaluates a block a specified number of times"
 //
@@ -2366,7 +2366,7 @@ DECLARE_NATIVE(REPEAT)
 
 
 //
-//  for: native [
+//  /for: native [
 //
 //  "Evaluates a branch a number of times or over a series, return last result"
 //
@@ -2499,7 +2499,7 @@ DECLARE_NATIVE(FOR)
 
 
 //
-//  insist: native [
+//  /insist: native [
 //
 //  "Evaluates the body until it produces a non-NULL (and non-VOID) value"
 //
@@ -2586,7 +2586,7 @@ DECLARE_NATIVE(INSIST)
 
 
 //
-//  while: native [  ; note: UNTIL shares this implementation
+//  /while: native [  ; note: UNTIL shares this implementation
 //
 //  "So long as a condition is not NULL, evaluate the body"
 //
@@ -2696,7 +2696,7 @@ DECLARE_NATIVE(WHILE)
 
 
 //
-//  until: native [
+//  /until: native [
 //
 //  "So long as a condition is NULL, evaluate the body"
 //

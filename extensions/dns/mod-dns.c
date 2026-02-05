@@ -152,7 +152,7 @@ static void Get_Local_Ip_Via_Google_DNS_May_Panic(Sink(Stable) out)
 
 
 //
-//  export dns-actor: native [
+//  export /dns-actor: native [
 //
 //  "Handler for OLDGENERIC dispatch on DNS PORT!s"
 //

@@ -11,7 +11,7 @@ Rebol [
     ]--
 ]
 
-decorated-words-of: func [
+/decorated-words-of: func [
     "Get the decorated parameters as a block (useful for testing)"
     return: [block!]
     frame [frame!]
@@ -21,7 +21,7 @@ decorated-words-of: func [
     ]
 ]
 
-description-of: lambda [
+/description-of: lambda [
     "One-line summary of a value's purpose"
 
     []: [<null> text!]
@@ -216,7 +216,7 @@ help-value: proc [
 ]
 
 
-help: func [
+/help: func [
     --[HELP is a dialected function.  If you want non-dialected help on any
     particular value, then pass that value in a GROUP! to get some very
     literal information back:
@@ -462,7 +462,7 @@ source: proc [
 ]
 
 
-what: func [
+/what: func [
     "Prints a list of known actions"
 
     return: [trash! block!]

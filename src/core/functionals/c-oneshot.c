@@ -120,7 +120,7 @@ bool Oneshot_Details_Querier(
 
 
 //
-//  do-branch: native [
+//  /do-branch: native [
 //
 //  "Sample Interface for a Simplified EVAL that just runs a Branch"
 //
@@ -143,7 +143,7 @@ DECLARE_NATIVE(DO_BRANCH)
 
 
 //
-//  n-shot: native [
+//  /n-shot: native [
 //
 //  "Create an EVAL variant that executes what it's given for N times"
 //

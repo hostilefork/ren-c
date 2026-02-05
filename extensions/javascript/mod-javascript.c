@@ -905,7 +905,7 @@ bool Javascript_Details_Querier(
 
 
 //
-//  export js-native: native [
+//  export /js-native: native [
 //
 //  "Create ACTION! from textual JavaScript code"
 //
@@ -1182,7 +1182,7 @@ DECLARE_NATIVE(JS_EVAL_P)
 
 
 //
-//  startup*: native [
+//  /startup*: native [
 //
 //  "Initialize the JavaScript Extension"
 //
@@ -1216,7 +1216,7 @@ DECLARE_NATIVE(STARTUP_P)
 
 
 //
-//  export js-trace: native [
+//  export /js-trace: native [
 //
 //  "Internal debug tool for seeing what's going on in JavaScript dispatch"
 //

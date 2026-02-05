@@ -32,7 +32,7 @@
 
 
 //
-//  done?: native:intrinsic [
+//  /done?: native:intrinsic [
 //
 //  "Detect whether argument is the unstable ~(done)~ PACK! 'hot-potato'"
 //
@@ -447,7 +447,7 @@ bool Yielder_Details_Querier(
 
 
 //
-//  yielder: native [
+//  /yielder: native [
 //
 //  "Produce generator function that can YIELD multiple values until DONE"
 //
@@ -489,7 +489,7 @@ DECLARE_NATIVE(YIELDER)
 
 
 //
-//  generator: native [
+//  /generator: native [
 //
 //  "Make arity-0 action you can call repeatedly until it yields DONE"
 //
@@ -511,7 +511,7 @@ DECLARE_NATIVE(GENERATOR)  // could also be made in LIB with SPECIALIZE
 
 
 //
-//  definitional-yield: native [
+//  /definitional-yield: native [
 //
 //  "Function used with GENERATOR and YIELDER to emit results"
 //
