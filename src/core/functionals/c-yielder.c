@@ -32,7 +32,7 @@
 
 
 //
-//  /done?: native:intrinsic [
+//  /done?: pure native:intrinsic [
 //
 //  "Detect whether argument is the unstable ~(done)~ PACK! 'hot-potato'"
 //

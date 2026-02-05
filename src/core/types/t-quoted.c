@@ -214,7 +214,7 @@ DECLARE_NATIVE(UNQUASI)
 
 
 //
-//  /lift: native:intrinsic [
+//  /lift: pure native:intrinsic [
 //
 //  "antiforms -> quasiforms, adds a quote to rest"
 //
@@ -233,7 +233,7 @@ DECLARE_NATIVE(LIFT)
 
 
 //
-//  /lift*: native:intrinsic [
+//  /lift*: pure native:intrinsic [
 //
 //  "Variant of LIFT that only lifts THEN-reactive values"
 //
@@ -264,7 +264,7 @@ DECLARE_NATIVE(LIFT_P)
 
 
 //
-//  /unlift: native:intrinsic [
+//  /unlift: pure native:intrinsic [
 //
 //  "Variant of UNQUOTE that also accepts quasiforms to make antiforms"
 //
@@ -286,7 +286,7 @@ DECLARE_NATIVE(UNLIFT)
 
 
 //
-//  /unlift*: native:intrinsic [
+//  /unlift*: pure native:intrinsic [
 //
 //  "Variant of UNLIFT that only unlifts THEN-reactive values"
 //
@@ -314,7 +314,7 @@ DECLARE_NATIVE(UNLIFT_P)
 
 
 //
-//  /antiform?: native:intrinsic [
+//  /antiform?: pure native:intrinsic [
 //
 //  "Tells you whether argument is a stable or unstable antiform"
 //
@@ -453,7 +453,7 @@ DECLARE_NATIVE(BEDROCK_Q)
 
 
 //
-//  /hot-potato?: native:intrinsic [
+//  /hot-potato?: pure native:intrinsic [
 //
 //  "Tells you if argument is an undecayable PACK!, with one unlifted WORD!"
 //

@@ -26,7 +26,7 @@
 
 
 //
-//  /veto?: native:intrinsic [
+//  /veto?: pure native:intrinsic [
 //
 //  "Detect if VALUE is the undecayable ~(veto)~ 'hot potato' PACK!"
 //

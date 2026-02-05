@@ -81,7 +81,7 @@ Rebol [
     ]
 ]
 
-/dir?: lambda [
+/dir?: pure lambda [
     "Returns TRUE if the file or url ends with a slash (or backslash)"
     []: [logic!]
     target [file! url!]

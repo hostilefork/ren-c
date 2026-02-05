@@ -53,6 +53,8 @@ IMPLEMENT_GENERIC(EQUAL_Q, Is_Blank)
     UNUSED(ARG(RELAX));
 
     assert(Is_Blank(v1) and Is_Blank(v2));
+    UNUSED(v1);
+    UNUSED(v2);
 
     return LOGIC_OUT(true);  // all commas are equal
 }

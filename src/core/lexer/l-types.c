@@ -28,7 +28,7 @@
 
 
 //
-//  /type-of: native [
+//  /type-of: pure native [
 //
 //  "Give back the type of a value (all quoted values return QUOTED!)"
 //
@@ -51,7 +51,7 @@ DECLARE_NATIVE(TYPE_OF)
 
 
 //
-//  /heart-of: native [
+//  /heart-of: pure native [
 //
 //  "Give back a cell's heart (e.g. HEART OF ~FOO~ or ''FOO is WORD!)"
 //
@@ -75,7 +75,7 @@ DECLARE_NATIVE(HEART_OF)
 
 
 //
-//  /quotes-of: native [
+//  /quotes-of: pure native [
 //
 //  "Return how many quote levels are on a value (quasiforms have 0 quotes)"
 //
@@ -92,7 +92,7 @@ DECLARE_NATIVE(QUOTES_OF)
 
 
 //
-//  /sigil-of: native [
+//  /sigil-of: pure native [
 //
 //  "Get the SIGIL! on a value, e.g. $WORD has the $ sigil, WORD has none"
 //
@@ -114,7 +114,7 @@ DECLARE_NATIVE(SIGIL_OF)
 
 
 //
-//  /sigil?: native:intrinsic [
+//  /sigil?: pure native:intrinsic [
 //
 //  "Test if a value is a SIGIL... e.g. pin, meta, or tie [@ ^ $]"
 //
@@ -138,7 +138,7 @@ DECLARE_NATIVE(SIGIL_Q)
 
 
 //
-//  /any-sigiled?: native:intrinsic [
+//  /any-sigiled?: pure native:intrinsic [
 //
 //  "Test if value has a sigil"
 //
@@ -165,7 +165,7 @@ DECLARE_NATIVE(ANY_SIGILED_Q)  // !!! should %make-types.r produce this?
 
 
 //
-//  /length-of: native:generic [
+//  /length-of: pure native:generic [
 //
 //  "Get the length (in series units, e.g. codepoints) of series or other type"
 //
@@ -188,7 +188,7 @@ DECLARE_NATIVE(LENGTH_OF)
 
 
 //
-//  /size-of: native:generic [
+//  /size-of: pure native:generic [
 //
 //  "Get the size (in bytes, e.g. UTF-encoded bytes) of series or other type"
 //
@@ -218,7 +218,7 @@ DECLARE_NATIVE(SIZE_OF)
 
 
 //
-//  /index-of: native:generic [
+//  /index-of: pure native:generic [
 //
 //  "Get the index of a series type"
 //
@@ -238,7 +238,7 @@ DECLARE_NATIVE(INDEX_OF)
 
 
 //
-//  /offset-of: native:generic [
+//  /offset-of: pure native:generic [
 //
 //  "Get the offset of a series type or port (zero-based?)"
 //
@@ -255,7 +255,7 @@ DECLARE_NATIVE(OFFSET_OF)
 
 
 //
-//  /address-of: native:generic [
+//  /address-of: impure native:generic [
 //
 //  "Get the memory address of a type's data (low-level, beware!)"
 //
@@ -305,12 +305,12 @@ IMPLEMENT_GENERIC(ADDRESS_OF, Is_Frame)
 
 
 //
-//  /of: infix native [
+//  /of: infix native [  ; may not give PURE answer (e.g. ADDRESS OF)
 //
 //  "Call XXX-OF functions without a hyphen, e.g. HEAD OF X => HEAD-OF X"
 //
 //      return: [any-stable?]
-//      @(property) "Escapable slot for WORD!"
+//      '@(property) "Escapable slot for WORD!"
 //          [word!]
 //  ]
 //

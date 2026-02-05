@@ -567,7 +567,7 @@ DECLARE_NATIVE(AT)
 
 
 //
-//  /find: native:generic [
+//  /find: native:generic [  ; not PURE: mutable-position-in, mutable-out
 //
 //  "Searches for the position where a matching value is found"
 //

@@ -1192,7 +1192,7 @@ Result(Value*) Init_Typechecker(
 
 
 //
-//  /typechecker: native [
+//  /typechecker: pure native [
 //
 //  "Make a function for checking types (generated function gives LOGIC!)"
 //

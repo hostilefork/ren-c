@@ -391,7 +391,7 @@ DECLARE_NATIVE(USE)
 
 
 //
-//  /refinement?: native:intrinsic [
+//  /refinement?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a leading space"
 //
@@ -414,7 +414,7 @@ DECLARE_NATIVE(REFINEMENT_Q)
 
 
 //
-//  /set-word?: native:intrinsic [
+//  /set-word?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a word and trailing space"
 //
@@ -437,7 +437,7 @@ DECLARE_NATIVE(SET_WORD_Q)
 
 
 //
-//  /set-run-word?: native:intrinsic [
+//  /set-run-word?: pure native:intrinsic [
 //
 //  "Test if argument is a path like /WORD: (for setting action variables)"
 //
@@ -460,7 +460,7 @@ DECLARE_NATIVE(SET_RUN_WORD_Q)
 
 
 //
-//  /run-word?: native:intrinsic [
+//  /run-word?: pure native:intrinsic [
 //
 //  "Test if argument is a path like /WORD"
 //
@@ -487,7 +487,7 @@ DECLARE_NATIVE(RUN_WORD_Q)
 
 
 //
-//  /get-word?: native:intrinsic [
+//  /get-word?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a leading space and a word"
 //
@@ -510,7 +510,7 @@ DECLARE_NATIVE(GET_WORD_Q)
 
 
 //
-//  /set-tuple?: native:intrinsic [
+//  /set-tuple?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a tuple and trailing space"
 //
@@ -533,7 +533,7 @@ DECLARE_NATIVE(SET_TUPLE_Q)
 
 
 //
-//  /get-tuple?: native:intrinsic [
+//  /get-tuple?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a leading space and a tuple"
 //
@@ -556,7 +556,7 @@ DECLARE_NATIVE(GET_TUPLE_Q)
 
 
 //
-//  /set-group?: native:intrinsic [
+//  /set-group?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a group and trailing space"
 //
@@ -579,7 +579,7 @@ DECLARE_NATIVE(SET_GROUP_Q)
 
 
 //
-//  /get-group?: native:intrinsic [
+//  /get-group?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a leading space and a group"
 //
@@ -602,7 +602,7 @@ DECLARE_NATIVE(GET_GROUP_Q)
 
 
 //
-//  /set-block?: native:intrinsic [
+//  /set-block?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a block and trailing space"
 //
@@ -625,7 +625,7 @@ DECLARE_NATIVE(SET_BLOCK_Q)
 
 
 //
-//  /get-block?: native:intrinsic [
+//  /get-block?: pure native:intrinsic [
 //
 //  "Test if an argument is a chain with a leading space and a block"
 //
@@ -648,7 +648,7 @@ DECLARE_NATIVE(GET_BLOCK_Q)
 
 
 //
-//  /any-set-value?: native:intrinsic [
+//  /any-set-value?: pure native:intrinsic [
 //
 //  "Test if an argument is a 2-element chain with a trailing space"
 //
@@ -671,7 +671,7 @@ DECLARE_NATIVE(ANY_SET_VALUE_Q)
 
 
 //
-//  /any-get-value?: native:intrinsic [
+//  /any-get-value?: pure native:intrinsic [
 //
 //  "Test if an argument is a 2-element chain with a leading space"
 //
@@ -694,7 +694,7 @@ DECLARE_NATIVE(ANY_GET_VALUE_Q)
 
 
 //
-//  /quasi-word?: native:intrinsic [
+//  /quasi-word?: pure native:intrinsic [
 //
 //  "Test if an argument is an QUASI form of word"
 //
@@ -717,7 +717,7 @@ DECLARE_NATIVE(QUASI_WORD_Q)
 
 
 //
-//  /char?: native:intrinsic [
+//  /char?: pure native:intrinsic [
 //
 //  "Test if an argument is a rune with one codepoint (or #{00} NUL blob)"
 //
@@ -740,7 +740,7 @@ DECLARE_NATIVE(CHAR_Q)
 
 
 //
-//  /lit-word?: native:intrinsic [
+//  /lit-word?: pure native:intrinsic [
 //
 //  "Test if an argument is quoted word"
 //
@@ -765,7 +765,7 @@ DECLARE_NATIVE(LIT_WORD_Q)
 
 
 //
-//  /lit-path?: native:intrinsic [
+//  /lit-path?: pure native:intrinsic [
 //
 //  "Test if an argument is a quoted path"
 //
@@ -1002,7 +1002,7 @@ DECLARE_NATIVE(PROXY_EXPORTS)
 
 
 //
-//  /infix?: native [
+//  /infix?: pure native [
 //
 //  "non-null if a function that gets first argument before the call"
 //
@@ -1083,7 +1083,7 @@ DECLARE_NATIVE(VANISHABLE)
 
 
 //
-//  /vanishable?: native [
+//  /vanishable?: pure native [
 //
 //  "Return if a function naturally suppresses VOID! to HEAVY VOID conversion"
 //
@@ -1293,7 +1293,7 @@ DECLARE_NATIVE(ALIASES_Q)
 
 
 //
-//  /any-stable?: native:intrinsic [
+//  /any-stable?: pure native:intrinsic [
 //
 //  "Tells you if the argument (taken as meta) is storable in a variable"
 //
@@ -1317,7 +1317,7 @@ DECLARE_NATIVE(ANY_STABLE_Q)
 
 
 //
-//  /any-value?: native:intrinsic [
+//  /any-value?: pure native:intrinsic [
 //
 //  "Accepts absolutely any argument state (unstable antiforms included)"
 //
@@ -1341,7 +1341,7 @@ DECLARE_NATIVE(ANY_VALUE_Q)  // synonym for internal concept of ANY_ATOM
 
 
 //
-//  /any-word?: native:intrinsic [
+//  /any-word?: pure native:intrinsic [
 //
 //  "!!! Temporary !!! attempt to answer if [word ^word $word @word]"
 //
@@ -1362,7 +1362,7 @@ DECLARE_NATIVE(ANY_WORD_Q)
 
 
 //
-//  /none?: native:intrinsic [
+//  /none?: pure native:intrinsic [
 //
 //  "Tells you if argument is an ~[]~ antiform, e.g. an empty splice"
 //
@@ -1381,7 +1381,7 @@ DECLARE_NATIVE(NONE_Q)
 
 
 //
-//  /tripwire?: native:intrinsic [
+//  /tripwire?: pure native:intrinsic [
 //
 //  "Tells you if argument is an ~ antiform, e.g. a tripwire TRASH! form"
 //
@@ -1400,7 +1400,7 @@ DECLARE_NATIVE(TRIPWIRE_Q)
 
 
 //
-//  /noop: native [  ; native:intrinsic currently needs at least 1 argument
+//  /noop: pure native [  ; native:intrinsic needs at least 1 argument atm
 //
 //  "Returns TRASH! (alternative to [] branches returning VOID)"  ; [1]
 //
@@ -1421,7 +1421,7 @@ DECLARE_NATIVE(NOOP)  // lack of a hyphen common, e.g. jQuery.noop
 
 
 //
-//  /quasar?: native:intrinsic [
+//  /quasar?: pure native:intrinsic [
 //
 //  "Tells you if argument is a quasiform space (~)"
 //
@@ -1440,7 +1440,7 @@ DECLARE_NATIVE(QUASAR_Q)
 
 
 //
-//  /space?: native:intrinsic [
+//  /space?: pure native:intrinsic [
 //
 //  "Is VALUE the RUNE! representing a single space character [_]"
 //
@@ -1459,7 +1459,7 @@ DECLARE_NATIVE(SPACE_Q)
 
 
 //
-//  /newline?: native:intrinsic [
+//  /newline?: pure native:intrinsic [
 //
 //  "Is VALUE the RUNE! representing a single newline character [#]"
 //
@@ -1478,7 +1478,7 @@ DECLARE_NATIVE(NEWLINE_Q)
 
 
 //
-//  /spaces?: native:intrinsic [
+//  /spaces?: pure native:intrinsic [
 //
 //  "Is VALUE a RUNE! consisting only of spaces [_ __ ____ _______ ...]"
 //
@@ -1509,7 +1509,7 @@ DECLARE_NATIVE(SPACES_Q)
 
 
 //
-//  /heavy: native:intrinsic [
+//  /heavy: pure native:intrinsic [
 //
 //  "Make the heavy forms of NULL (null in PACK!) and VOID (empty PACK!)"
 //
@@ -1534,7 +1534,7 @@ DECLARE_NATIVE(HEAVY)
 
 
 //
-//  /heavy-null?: native:intrinsic [
+//  /heavy-null?: pure native:intrinsic [
 //
 //  "Determine if argument is the heavy form of NULL, ~(~null~)~ antiform"
 //
@@ -1553,7 +1553,7 @@ DECLARE_NATIVE(HEAVY_NULL_Q)
 
 
 //
-//  /light: native:intrinsic [
+//  /light: pure native:intrinsic [
 //
 //  "Make the light form of NULL (passes through all other values)"
 //
@@ -1660,7 +1660,7 @@ DECLARE_NATIVE(REIFY)
 
 
 //
-//  /noquasi: native:intrinsic [
+//  /noquasi: pure native:intrinsic [
 //
 //  "Make quasiforms into their plain forms, pass through all other elements"
 //

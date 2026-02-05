@@ -25,12 +25,21 @@
     ~discarded-value~ !! (ten-twenty 304)
 ]
 
+; Simple test of locked things
+[
+    (all [
+        slow-is-word?: pure lambda [value] [word! = type of value]
+        slow-is-word? 'abba
+        not slow-is-word? 1020
+    ])
+]
+
 
 ; Basic prevention of calling an IMPURE function from a PURE context.
 ; Test calling directly and indirectly through a function that's not IMPURE
 [(
-    bad: impure does [~(unreachable)~]
-    f-bad: make frame! bad/
+    /bad: impure does [~(unreachable)~]
+    f-bad: final make frame! bad/
 
     direct: ~  ; we change what this does (maybe pure, maybe not marked)
     indirect: pure func [] [return /direct]
@@ -75,7 +84,7 @@
 
 
 [(
-    square-of: func [x] [
+    /square-of: func [x] [
         if now:weekday > 5 [  ; 6 = Saturday, 7 = Sunday
            return "I don't do math on weekends!"
         ]
@@ -91,18 +100,25 @@
 
 (all {
     x: 10
-    foo: pure does [let y, elide y: 10, x: 20]
+    foo: pure does [let y, elide y: 10, x: 20]  ; can't write x
     e: sys.util/recover [foo]
-    e.id = 'pure-modify
+    e.id = 'pure-non-final
     e.arg1 = 'x
 })
 (all {
-    x: [a b c]
-    foo: pure does [let y, elide y: 10, x]
+    x: 10
+    foo: pure does [let y, elide y: 10, x]  ; can't read x, either
+    e: sys.util/recover [foo]
+    e.id = 'pure-non-final
+    e.arg1 = 'x
+})
+(all {
+    x: final [a b c]
+    foo: pure does [let y, elide y: 10, x]  ; okay if it's final
     foo = [a b c]
 })
-~const-value~ !! (all {
-    x: [a b c]
+~series-frozen~ !! (all {
+    x: final [a b c]
     foo: pure does [let y, elide y: 10, append x 'd]
     foo
 })
