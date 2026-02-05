@@ -1014,7 +1014,7 @@ Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
 
 
 //
-//  tweak: native [
+//  /tweak: native [
 //
 //  "Low-level variable setter, that can assign within the dual band"
 //

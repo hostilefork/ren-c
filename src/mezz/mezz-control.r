@@ -11,7 +11,7 @@ Rebol [
     ]--
 ]
 
-launch: func [
+/launch: func [
     "Runs a script as a separate process; return immediately"
 
     script "The name of the script"

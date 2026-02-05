@@ -27,7 +27,7 @@
 
 
 //
-//  try: native:intrinsic [
+//  /try: native:intrinsic [
 //
 //  "Suppress PANIC escalation from PANIC!s and 'hot potatoes', return NULL"
 //
@@ -58,7 +58,7 @@ DECLARE_NATIVE(TRY)
 
 
 //
-//  enrecover: native [
+//  /enrecover: native [
 //
 //  "Sandbox to intercept failures; FAILURE! -> ERROR! else lifted result"
 //
@@ -134,7 +134,7 @@ DECLARE_NATIVE(ENRECOVER)
 
 
 //
-//  enrescue: native [
+//  /enrescue: native [
 //
 //  "Catch top-level EVAL step errors, FAILURE! -> ERROR! else lifted result"
 //
@@ -239,7 +239,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 
 
 //
-//  except: infix:defer native [
+//  /except: infix:defer native [
 //
 //  "If LEFT is FAILURE! then return BRANCH evaluation, else return LEFT"
 //
@@ -283,7 +283,7 @@ DECLARE_NATIVE(EXCEPT)
 
 
 //
-//  trap: native [  ; performs arbitrary evaluation, can't be :intrinsic ATM
+//  /trap: native [  ; performs arbitrary evaluation, can't be :intrinsic ATM
 //
 //  "If passed FAILURE! antiform, tunnel it to RETURN in scope, else passthru"
 //
@@ -329,7 +329,7 @@ DECLARE_NATIVE(TRAP)
 
 
 //
-//  require: native [
+//  /require: native [
 //
 //  "If passed a FAILURE! antiform, panic on it, otherwise passthru"
 //
@@ -354,7 +354,7 @@ DECLARE_NATIVE(REQUIRE)
 
 
 //
-//  failure?: native:intrinsic [
+//  /failure?: native:intrinsic [
 //
 //  "Tells you if argument is an FAILURE! antiform, doesn't panic if it is"
 //
@@ -373,7 +373,7 @@ DECLARE_NATIVE(FAILURE_Q)
 
 
 //
-//  trash?: native:intrinsic [
+//  /trash?: native:intrinsic [
 //
 //  "Tells you if argument is a TRASH! antiform"
 //
@@ -392,7 +392,7 @@ DECLARE_NATIVE(TRASH_Q)
 
 
 //
-//  action?: native:intrinsic [
+//  /action?: native:intrinsic [
 //
 //  "Tells you if argument is an ACTION! antiform"
 //
@@ -411,7 +411,7 @@ DECLARE_NATIVE(ACTION_Q)
 
 
 //
-//  set-location-of-error: native [
+//  /set-location-of-error: native [
 //
 //  "Sets the WHERE, NEAR, FILE, and LINE fields of an error"
 //

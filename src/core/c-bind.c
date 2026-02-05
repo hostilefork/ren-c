@@ -461,7 +461,7 @@ bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
 
 
 //
-//  let: native [
+//  /let: native [
 //
 //  "Dynamically add new variables into the stream of evaluation"
 //
@@ -906,7 +906,7 @@ DECLARE_NATIVE(LET)
 
 
 //
-//  add-let-binding: native [
+//  /add-let-binding: native [
 //
 //  "Experimental function for adding a new variable binding"
 //
@@ -973,7 +973,7 @@ DECLARE_NATIVE(ADD_LET_BINDING)
 
 
 //
-//  add-use-object: native [
+//  /add-use-object: native [
 //
 //  "Experimental function for adding an object's worth of binding to a frame"
 //
@@ -1005,7 +1005,7 @@ DECLARE_NATIVE(ADD_USE_OBJECT) {
 
 
 //
-//  definitional: native [
+//  /definitional: native [
 //
 //  "Look up variable in the context of an executing function FRAME! callsite"
 //

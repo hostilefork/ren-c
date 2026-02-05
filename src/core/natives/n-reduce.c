@@ -26,7 +26,7 @@
 
 
 //
-//  veto?: native:intrinsic [
+//  /veto?: native:intrinsic [
 //
 //  "Detect if VALUE is the undecayable ~(veto)~ 'hot potato' PACK!"
 //
@@ -45,7 +45,7 @@ DECLARE_NATIVE(VETO_Q)
 
 
 //
-//  drain?: native [
+//  /drain?: native [
 //
 //  "Test if VALUE is the ~(_)~ bedrock representation, or $VAR holding it"
 //
@@ -80,7 +80,7 @@ DECLARE_NATIVE(DRAIN_Q)
 
 
 //
-//  hole?: native [
+//  /hole?: native [
 //
 //  "Test if VALUE is PARAMETER! bedrock representation, or $VAR holding it"
 //
@@ -132,7 +132,7 @@ DECLARE_NATIVE(HOLE_Q)
 
 
 //
-//  reduce: native [
+//  /reduce: native [
 //
 //  "Evaluates expressions, keeping each result in a block, discards voids"
 //
@@ -339,7 +339,7 @@ DECLARE_NATIVE(REDUCE)
 
 
 //
-//  pack: native [
+//  /pack: native [
 //
 //  "Create a pack of arguments from a list"
 //
@@ -412,7 +412,7 @@ DECLARE_NATIVE(PACK)
 
 
 //
-//  reduce-each: native [
+//  /reduce-each: native [
 //
 //  "Evaluates expressions, passing each result to body (antiforms handled)"
 //

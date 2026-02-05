@@ -270,7 +270,7 @@ bool Hijacker_Details_Querier(
 
 
 //
-//  unimplemented: native [
+//  /unimplemented: native [
 //
 //  "Panic function returned on HIJACK-ing a function that was void-HIJACKED"
 //
@@ -288,7 +288,7 @@ DECLARE_NATIVE(UNIMPLEMENTED)
 
 
 //
-//  hijack: native [
+//  /hijack: native [
 //
 //  "Make victim references run another frame, return new identity for victim"
 //

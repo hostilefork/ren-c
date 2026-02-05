@@ -55,7 +55,7 @@ void Shutdown_Extension_Loader(void)
 
 
 //
-//  builtin-extensions: native [
+//  /builtin-extensions: native [
 //
 //  "Gets list of extension specifications ('collations') in the executable"
 //
@@ -107,7 +107,7 @@ DECLARE_NATIVE(BUILTIN_EXTENSIONS)
 
 
 //
-//  load-extension: native [
+//  /load-extension: native [
 //
 //  "Extension module loader (for DLLs or built-in extensions)"
 //
@@ -287,7 +287,7 @@ static Bounce Unloaded_Dispatcher(Level* level_)
 
 
 //
-//  unload-extension: native [
+//  /unload-extension: native [
 //
 //  "Unload an extension (calls module's SHUTDOWN* if it exists)"
 //

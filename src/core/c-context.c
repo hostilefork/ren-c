@@ -552,7 +552,7 @@ Result(None) Wrap_Extend_Core(
 
 
 //
-//  wrap*: native [
+//  /wrap*: native [
 //
 //  "Expand context with top-level set-words from a block"
 //
@@ -588,7 +588,7 @@ DECLARE_NATIVE(WRAP_P)
 
 
 //
-//  wrap: native [
+//  /wrap: native [
 //
 //  "Bind code in context made from top-level set-words from a block"
 //
@@ -636,7 +636,7 @@ DECLARE_NATIVE(WRAP)
 
 
 //
-//  as-block-wrap: native [  ; REVIEW: make intrinsic
+//  /as-block-wrap: native [  ; REVIEW: make intrinsic
 //
 //  "Bind code in context and return it as a BLOCK! (default FENCE! behavior)"
 //
@@ -670,7 +670,7 @@ DECLARE_NATIVE(AS_BLOCK_WRAP)
 
 
 //
-//  collect-words: native [
+//  /collect-words: native [
 //
 //  "Collect unique words used in a block (used for context construction)"
 //

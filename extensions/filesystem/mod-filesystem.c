@@ -46,7 +46,7 @@
 
 
 //
-//  startup*: native [  ; Note: DO NOT EXPORT!
+//  /startup*: native [  ; Note: DO NOT EXPORT!
 //
 //  "Startup the filesystem device"
 //
@@ -62,7 +62,7 @@ DECLARE_NATIVE(STARTUP_P)
 
 
 //
-//  shutdown*: native [  ; Note: DO NOT EXPORT!
+//  /shutdown*: native [  ; Note: DO NOT EXPORT!
 //
 //  "Shut down the filesystem device"
 //
@@ -457,7 +457,7 @@ Strand* To_Local_Path(const Stable* file, Flags flags) {
 
 
 //
-//  export local-to-file: native [
+//  export /local-to-file: native [
 //
 //  "Converts a local system file path TEXT! to a Rebol FILE! path"
 //
@@ -491,7 +491,7 @@ DECLARE_NATIVE(LOCAL_TO_FILE)
 
 
 //
-//  export file-to-local: native [
+//  export /file-to-local: native [
 //
 //  "Converts FILE! to the local system representation (e.g. backslash on Win)"
 //
@@ -534,7 +534,7 @@ DECLARE_NATIVE(FILE_TO_LOCAL)
 
 
 //
-//  export what-dir: native [
+//  export /what-dir: native [
 //
 //  "Returns the current directory path"
 //
@@ -575,7 +575,7 @@ DECLARE_NATIVE(WHAT_DIR)
 
 
 //
-//  export change-dir: native [
+//  export /change-dir: native [
 //
 //  "Changes the current path (where scripts with relative paths will be run)"
 //
@@ -617,7 +617,7 @@ DECLARE_NATIVE(CHANGE_DIR)
 extern Stable* Get_Current_Exec(void);
 
 //
-//  export get-current-exec: native [
+//  export /get-current-exec: native [
 //
 //  "Get the current path to the running executable"
 //

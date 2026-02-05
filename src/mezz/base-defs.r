@@ -25,22 +25,22 @@ Rebol [
 
 ; Start with basic debugging
 
-c-break-debug: c-debug-break/  ; easy to mix up
+/c-break-debug: c-debug-break/  ; easy to mix up
 
-func: function/  ; historical and heavily-used abbreviation
-proc: procedure/  ; long to write out, so abbreviate it
+/func: function/  ; historical and heavily-used abbreviation
+/proc: procedure/  ; long to write out, so abbreviate it
 
 lib: system.contexts.lib  ; alias for faster access
 
 ; Note: OPTIONAL-VETO is an optimized intrinsic of the same functionality
 ; as OPTIONAL:VETO
 ;
-cond: conditional/
-opt: optional/  ; NULL -> VOID
+/cond: conditional/
+/opt: optional/  ; NULL -> VOID
 
-eval: evaluate/  ; shorthands should be synonyms, too confusing otherwise
+/eval: evaluate/  ; shorthands should be synonyms, too confusing otherwise
 
-probe: func [  ; note: do not want VANISHABLE, else `1 + 2 probe eval []` is 3
+/probe: func [  ; note: do not want VANISHABLE, else `1 + 2 probe eval []` is 3
     "Debug print a molded value and returns that same value"
 
     return: [any-value?]
@@ -77,41 +77,41 @@ cascade: adapt cascade*/ [
 ; like redefine NOT locally and still have access to NOT? without having to
 ; say LIB.NOT ... maybe useful.  Just trying it out.
 
-logical?: logical: to-logic/
-did?: did/
-didn't?: didn't/
-not?: not/
-both: both?: and?/
-nor?: cascade [or?/ not/]
-nand?: cascade [and?/ not/]
-nor: infix cascade [or/ not/]
-nand: infix cascade [and/ not/]
+/logical?: /logical: to-logic/
+/did?: did/
+/didn't?: didn't/
+/not?: not/
+/both: both?: and?/
+/nor?: cascade [or?/ not/]
+/nand?: cascade [and?/ not/]
+/nor: infix cascade [or/ not/]
+/nand: infix cascade [and/ not/]
 
 
 ; ARITHMETIC OPERATORS
 ;
 ; Note that `/` is rather trickily not a PATH!, but a decayed form as a WORD!
 
-+: infix add/
--: infix subtract/
-*: infix multiply/
-/: infix divide/
++: final infix add/
+-: final infix subtract/
+*: final infix multiply/
+/: final infix divide/
 
 
 ; SET OPERATORS
 
-not+: bitwise-not/
-and+: infix bitwise-and/
-or+: infix bitwise-or/
-xor+: infix bitwise-xor/
-and-not+: infix bitwise-and-not/
+/not+: bitwise-not/
+/and+: infix bitwise-and/
+/or+: infix bitwise-or/
+/xor+: infix bitwise-xor/
+/and-not+: infix bitwise-and-not/
 
 
 ; Equality variants (note: bootstrap needs to REDESCRIBE)
 
-not-equal?: cascade [equal?/ not/] ; should optimize for intrinsics
-lax-equal?: equal?:relax/
-lax-not-equal?: cascade [lax-equal?/ not/]
+/not-equal?: cascade [equal?/ not/] ; should optimize for intrinsics
+/lax-equal?: equal?:relax/
+/lax-not-equal?: cascade [lax-equal?/ not/]
 
 
 ; COMPARISON OPERATORS
@@ -119,40 +119,40 @@ lax-not-equal?: cascade [lax-equal?/ not/]
 ; !!! See discussion about the future of comparison operators:
 ; https://forum.rebol.info/t/349
 
-=: infix equal?/
-[<>]: infix not-equal?/
-!=: infix not-equal?/  ; http://www.rebol.net/r3blogs/0017.html
+=: final infix equal?/
+[<>]: final infix not-equal?/
+!=: final infix not-equal?/  ; http://www.rebol.net/r3blogs/0017.html
 
-[<]: infix lesser?/
-[>]: infix greater?/
+[<]: final infix lesser?/
+[>]: final infix greater?/
 
 ; "Official" forms of the comparison operators.  This is what we would use
 ; if starting from scratch, and didn't have to deal with expectations people
 ; have coming from other languages: https://forum.rebol.info/t/349/
 ;
-[>=]: infix greater-or-equal?/
-[=<]: infix equal-or-lesser?/
+[>=]: final infix greater-or-equal?/
+[=<]: final infix equal-or-lesser?/
 
 ; Compatibility Compromise: sacrifice what looks like left and right arrows
 ; for usage as comparison, even though the perfectly good `=<` winds up
 ; being unused as a result.  Compromise `=>` just to reinforce what is lost
 ; by not retraining: https://forum.rebol.info/t/349/11
 ;
-equal-or-greater?: greater-or-equal?/
-lesser-or-equal?: equal-or-lesser?/
-[=>]: infix equal-or-greater?/
-[<=]: infix lesser-or-equal?/
+/equal-or-greater?: greater-or-equal?/
+/lesser-or-equal?: equal-or-lesser?/
+[=>]: final infix equal-or-greater?/
+[<=]: final infix lesser-or-equal?/
 
-?=: infix lax-equal?/
-?!=: infix lax-not-equal?/
+?=: final infix lax-equal?/
+?!=: final infix lax-not-equal?/
 
 
 ; BLANK! is the new expression barrier.  But `||` is included as a way to
 ; show how to create custom barrier-like constructs.
 ;
-||: func [] [return ()]
+||: final func [] [return ()]
 
-|||: func [
+|||: final func [
     "Inertly consumes all subsequent data, evaluating to previous result"
 
     return: [void!]
@@ -167,12 +167,12 @@ lesser-or-equal?: equal-or-lesser?/
 ; quick and dirty container for the data, that things like MAP and FOR will
 ; recognize.  map x each [a b c] [...]` will give you x as a, then b, then c.
 ;
-each: quote/
+/each: quote/
 
 
 ; REQUOTE is helpful when functions do not accept QUOTED! values.
 ;
-requote: reframer func [
+/requote: reframer func [
     "Remove Quoting Levels From First Argument and Re-Apply to Result"
     f [frame!]
     {num-quotes}
@@ -188,37 +188,37 @@ requote: reframer func [
 
 ; https://forum.rebol.info/t/for-lightweight-lambda-arrow-functions/2172
 ;
-[->]: infix arrow/
+[->]: final infix arrow/
 
 ; Particularly helpful for annotating when a branch result is used.
 ; https://forum.rebol.info/t/2165/
 ;
 ; (Future ideas would give this teeth with "nodiscard" behavior)
 ;
-[<-]: vanishable:off identity/
+[<-]: final vanishable:off identity/
 
 ; !!! NEXT and BACK seem somewhat "noun-like" and desirable to use as variable
 ; names, but are very entrenched in Rebol history.  Also, since they are
 ; specializations they don't fit easily into the NEXT OF SERIES model--this
 ; is a problem which hasn't been addressed.
 ;
-next: specialize skip/ [offset: 1]
-back: specialize skip/ [offset: -1]
+/next: specialize skip/ [offset: 1]
+/back: specialize skip/ [offset: -1]
 
 ; Function synonyms
 
-min: minimum/
-max: maximum/
-abs: absolute/
+/min: minimum/
+/max: maximum/
+/abs: absolute/
 
-delimit: lambda [delimiter line :head :tail] [
+/delimit: lambda [delimiter line :head :tail] [
     join // [text! line with: delimiter head: head tail: tail]
 ]
-unspaced: specialize delimit/ [delimiter: null]
-spaced: specialize delimit/ [delimiter: space]
-newlined: specialize delimit/ [delimiter: newline, tail: ok]
+/unspaced: specialize delimit/ [delimiter: null]
+/spaced: specialize delimit/ [delimiter: space]
+/newlined: specialize delimit/ [delimiter: newline, tail: ok]
 
-an: lambda [
+/an: lambda [
     "Prepends the correct 'a' or 'an' to a string, based on leading character"
     value {s}
 ][
@@ -227,7 +227,7 @@ an: lambda [
 ]
 
 
-empty?: lambda [
+/empty?: lambda [
     "OKAY if none or void, if empty, or if index is at or beyond its tail"
     []: [logic!]
     container [
@@ -241,7 +241,7 @@ empty?: lambda [
     ]
 ]
 
-print: procedure [
+/print: procedure [
     "Output processed value to STDOUT, with newline if any text is output"
 
     value [
@@ -272,7 +272,7 @@ print: procedure [
     ]
 ]
 
-echo: proc [
+/echo: proc [
     "Freeform output of text, with @WORD, @TU.P.LE, and @(GR O UP) as escapes"
 
     @args "If a BLOCK!, then just that block's contents--else to end of line"

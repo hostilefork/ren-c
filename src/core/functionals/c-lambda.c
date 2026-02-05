@@ -227,7 +227,7 @@ bool Lambda_Details_Querier(
 
 
 //
-//  lambda: native [
+//  /lambda: native [
 //
 //  "Make an anonymous function that doesn't define a local RETURN"
 //
@@ -277,7 +277,7 @@ DECLARE_NATIVE(LAMBDA)
 
 
 //
-//  diverger: native [
+//  /diverger: native [
 //
 //  "Declares divergent function (will PANIC if it reaches the end of body)"
 //

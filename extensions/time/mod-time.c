@@ -30,7 +30,7 @@
 extern Value* Get_Current_Datetime_Value(void);
 
 //
-//  export now: impure native [
+//  export /now: impure native [
 //
 //  "Returns current date and time with timezone adjustment"
 //

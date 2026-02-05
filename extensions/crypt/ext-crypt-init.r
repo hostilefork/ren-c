@@ -6,7 +6,7 @@ Rebol [
     license: "Apache 2.0"
 ]
 
-export rsa-make-key: func [
+export /rsa-make-key: func [
     "Creates a key object for RSA algorithm"
 ][
     return make object! [

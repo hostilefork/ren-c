@@ -37,7 +37,7 @@
 
 
 //
-//  bitwise-not: native:generic [
+//  /bitwise-not: native:generic [
 //
 //  "Returns the one's complement value"
 //
@@ -73,7 +73,7 @@ INLINE bool Math_Arg_For_Logic(Stable* arg)
 
 
 //
-//  bitwise-and: native:generic [
+//  /bitwise-and: native:generic [
 //
 //  "Bitwise AND of two values"
 //
@@ -100,7 +100,7 @@ DECLARE_NATIVE(BITWISE_AND)
 
 
 //
-//  bitwise-or: native:generic [
+//  /bitwise-or: native:generic [
 //
 //  "Bitwise OR of two values"
 //
@@ -127,7 +127,7 @@ DECLARE_NATIVE(BITWISE_OR)
 
 
 //
-//  bitwise-xor: native:generic [
+//  /bitwise-xor: native:generic [
 //
 //  "Bitwise XOR of two values"
 //
@@ -154,7 +154,7 @@ DECLARE_NATIVE(BITWISE_XOR)
 
 
 //
-//  bitwise-and-not: native:generic [
+//  /bitwise-and-not: native:generic [
 //
 //  "Bitwise AND NOT of two values"
 //
@@ -198,7 +198,7 @@ DECLARE_NATIVE(BITWISE_AND_NOT)
 
 
 //
-//  shift: native [
+//  /shift: native [
 //
 //  "Shifts an integer left or right by a number of bits"
 //

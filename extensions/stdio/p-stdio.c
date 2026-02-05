@@ -294,7 +294,7 @@ Value* Read_Line(STD_TERM *t)
 
 
 //
-//  export stdio-actor: native [
+//  export /stdio-actor: native [
 //
 //  "Handler for OLDGENERIC dispatch on Stdio PORT!s"
 //

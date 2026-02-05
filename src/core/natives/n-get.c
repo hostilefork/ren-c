@@ -670,7 +670,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
 
 
 //
-//  get: native [
+//  /get: native [
 //
 //  "Gets a variable (for dual band states, see TWEAK)"
 //
@@ -779,7 +779,7 @@ DECLARE_NATIVE(GET)
 
 
 //
-//  defined?: native [
+//  /defined?: native [
 //
 //  "Check to see if a variable is defined (unset is considered defined)"
 //

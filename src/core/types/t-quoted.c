@@ -43,7 +43,7 @@
 
 
 //
-//  the: native [
+//  /the: native [
 //
 //  "Returns value passed in without evaluation, but with binding"
 //
@@ -80,7 +80,7 @@ DECLARE_NATIVE(THE)
 
 
 //
-//  just: native [
+//  /just: native [
 //
 //  "Returns value passed in without evaluation, and no additional binding"
 //
@@ -101,7 +101,7 @@ DECLARE_NATIVE(JUST)
 
 
 //
-//  quote: native [
+//  /quote: native [
 //
 //  "Constructs a quoted form of the evaluated argument"
 //
@@ -131,7 +131,7 @@ DECLARE_NATIVE(QUOTE)
 
 
 //
-//  unquote: native [
+//  /unquote: native [
 //
 //  "Remove quoting levels from the evaluated argument"
 //
@@ -160,7 +160,7 @@ DECLARE_NATIVE(UNQUOTE)
 
 
 //
-//  quasi: native [
+//  /quasi: native [
 //
 //  "Constructs quasiform of VALUE (if legal for type, otherwise failure)"
 //
@@ -196,7 +196,7 @@ DECLARE_NATIVE(QUASI)
 
 
 //
-//  unquasi: native [
+//  /unquasi: native [
 //
 //  "Turn quasiforms into fundamental forms"
 //
@@ -214,7 +214,7 @@ DECLARE_NATIVE(UNQUASI)
 
 
 //
-//  lift: native:intrinsic [
+//  /lift: native:intrinsic [
 //
 //  "antiforms -> quasiforms, adds a quote to rest"
 //
@@ -233,7 +233,7 @@ DECLARE_NATIVE(LIFT)
 
 
 //
-//  lift*: native:intrinsic [
+//  /lift*: native:intrinsic [
 //
 //  "Variant of LIFT that only lifts THEN-reactive values"
 //
@@ -264,7 +264,7 @@ DECLARE_NATIVE(LIFT_P)
 
 
 //
-//  unlift: native:intrinsic [
+//  /unlift: native:intrinsic [
 //
 //  "Variant of UNQUOTE that also accepts quasiforms to make antiforms"
 //
@@ -286,7 +286,7 @@ DECLARE_NATIVE(UNLIFT)
 
 
 //
-//  unlift*: native:intrinsic [
+//  /unlift*: native:intrinsic [
 //
 //  "Variant of UNLIFT that only unlifts THEN-reactive values"
 //
@@ -314,7 +314,7 @@ DECLARE_NATIVE(UNLIFT_P)
 
 
 //
-//  antiform?: native:intrinsic [
+//  /antiform?: native:intrinsic [
 //
 //  "Tells you whether argument is a stable or unstable antiform"
 //
@@ -356,7 +356,7 @@ DECLARE_NATIVE(ANTIFORM_Q)
 
 
 //
-//  anti: native [
+//  /anti: native [
 //
 //  "Give the antiform of the plain argument (like UNMETA QUASI)"
 //
@@ -380,7 +380,7 @@ DECLARE_NATIVE(ANTI)
 
 
 //
-//  unanti: native:intrinsic [
+//  /unanti: native:intrinsic [
 //
 //  "Give the plain form of the antiform argument"
 //
@@ -400,7 +400,7 @@ DECLARE_NATIVE(UNANTI)
 
 
 //
-//  spread: native [
+//  /spread: native [
 //
 //  "Turn lists into SPLICE! antiforms"
 //
@@ -434,7 +434,7 @@ DECLARE_NATIVE(SPREAD)
 
 
 //
-//  pack?: native:intrinsic [
+//  /pack?: native:intrinsic [
 //
 //  "Tells you if argument is a parameter pack (antiform block)"
 //
@@ -453,7 +453,7 @@ DECLARE_NATIVE(PACK_Q)
 
 
 //
-//  bedrock?: native:intrinsic [
+//  /bedrock?: native:intrinsic [
 //
 //  "Is VALUE 'unlifted bedrock' (antiform PACK! containing one unlifted item)"
 //
@@ -472,7 +472,7 @@ DECLARE_NATIVE(BEDROCK_Q)
 
 
 //
-//  hot-potato?: native:intrinsic [
+//  /hot-potato?: native:intrinsic [
 //
 //  "Tells you if argument is an undecayable PACK!, with one unlifted WORD!"
 //
@@ -491,7 +491,7 @@ DECLARE_NATIVE(HOT_POTATO_Q)
 
 
 //
-//  alias: native [
+//  /alias: native [
 //
 //  "Make a dual state for proxying SET and GET to another variable"
 //
@@ -517,7 +517,7 @@ DECLARE_NATIVE(ALIAS)
 
 
 //
-//  runs: native [
+//  /runs: native [
 //
 //  "Turn frame or action into antiform in PACK!, allows SET-WORD! assignment"
 //
@@ -539,7 +539,7 @@ DECLARE_NATIVE(RUNS)
 
 
 //
-//  unrun: native [
+//  /unrun: native [
 //
 //  "Give back a frame! for action! input"
 //
@@ -557,7 +557,7 @@ DECLARE_NATIVE(UNRUN)
 
 
 //
-//  disarm: native [
+//  /disarm: native [
 //
 //  "Give back an ERROR! for FAILURE! input"
 //
@@ -577,7 +577,7 @@ DECLARE_NATIVE(DISARM)
 
 
 //
-//  unsplice: native [
+//  /unsplice: native [
 //
 //  "Give back a block! for splice! input"
 //
@@ -597,7 +597,7 @@ DECLARE_NATIVE(UNSPLICE)
 
 
 //
-//  noquote: native:intrinsic [
+//  /noquote: native:intrinsic [
 //
 //  "Removes all levels of quoting from a (potentially) quoted element"
 //

@@ -16,7 +16,7 @@ Rebol [
     ]--
 ]
 
-info?: func [
+/info?: impure func [
     "Returns an info object about a file or url"
     return: [<null> object! word!]
     target [file! url!]
@@ -37,7 +37,7 @@ info?: func [
     ]
 ]
 
-exists?: func [
+/exists?: impure func [
     "Returns the type of a file or URL if it exists, otherwise null"
     return: [<null> ~[file dir]~]  ; should return logic, FILETYPE OF separate
     target [file! url!]
@@ -57,7 +57,7 @@ exists?: func [
 ; See size-of native for the hacked in code.
 
 
-modified?: lambda [
+/modified?: impure lambda [
     "Returns the last modified date of a file"
     []: [<null> date!]
     target [file! url!]
@@ -68,7 +68,7 @@ modified?: lambda [
     ]
 ]
 
-suffix-of: lambda [
+/suffix-of: lambda [
     "Return the file suffix of a filename or url, else null"
     []: [<null> file!]
     path [file! url! text!]
@@ -81,7 +81,7 @@ suffix-of: lambda [
     ]
 ]
 
-dir?: lambda [
+/dir?: lambda [
     "Returns TRUE if the file or url ends with a slash (or backslash)"
     []: [logic!]
     target [file! url!]
@@ -89,7 +89,7 @@ dir?: lambda [
     did find "/\" last target
 ]
 
-dirize: lambda [
+/dirize: lambda [
     "Returns a copy (always) of the path as a directory (ending slash)"
     []: [file! text! url!]
     path [file! text! url!]
@@ -99,7 +99,7 @@ dirize: lambda [
     path
 ]
 
-make-dir: func [
+/make-dir: impure func [
     "Creates the specified directory, no error if already exists"
 
     return: [file! url!]
@@ -150,7 +150,7 @@ make-dir: func [
     return path
 ]
 
-delete-dir: proc [
+/delete-dir: procedure [
     "Deletes a directory including all files and subdirectories"
     dir [file! url!]
     {files}
@@ -167,7 +167,7 @@ delete-dir: proc [
     ]
 ]
 
-script?: lambda [
+/script?: lambda [
     "Checks file, url, or text string for a valid script header"
 
     []: [<null> blob!]
@@ -179,7 +179,7 @@ script?: lambda [
     try transcode-header as blob! source
 ]
 
-file-type?: lambda [
+/file-type?: lambda [
     "Return the identifying word for a specific file type (or null)"
     []: [<null> word!]
     file [file! url!]
@@ -190,7 +190,7 @@ file-type?: lambda [
     ]
 ]
 
-split-path: lambda [  ; :FILE used in bootstrap vs. multi-return
+/split-path: lambda [  ; :FILE used in bootstrap vs. multi-return
     "Splits and returns ~(directory filename)~ (either may be null)"
     []: [~([<null> file! url!] [<null> file! url!])~]
 

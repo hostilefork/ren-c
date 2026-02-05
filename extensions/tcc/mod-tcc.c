@@ -319,7 +319,7 @@ static bool Pending_Native_Details_Querier(
 
 
 //
-//  export make-native: native [
+//  export /make-native: native [
 //
 //  "Make ACTION! from C source, compiled on-demand or by COMPILE function"
 //
@@ -406,7 +406,7 @@ DECLARE_NATIVE(MAKE_NATIVE)
 
 
 //
-//  compile*: native [
+//  /compile*: native [
 //
 //  "INTERNAL USE ONLY: Expects arguments to be fully vetted by COMPILE"
 //
@@ -772,7 +772,7 @@ DECLARE_NATIVE(COMPILE_P)
 
 
 //
-//  startup*: native [
+//  /startup*: native [
 //
 //  "Initialize TCC extension"
 //
@@ -792,7 +792,7 @@ DECLARE_NATIVE(STARTUP_P)
 
 
 //
-//  shutdown*: native [
+//  /shutdown*: native [
 //
 //  "Shut down TCC extension"
 //

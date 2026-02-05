@@ -29,7 +29,7 @@ decode-url: sys.util.decode-url/
 ;    not just links on individuals' websites.  There should also be some kind
 ;    of local caching facility.
 ;
-clean-path: func [
+/clean-path: func [
     "Returns new directory path with `.` and `..` processed"
 
     return: [file! url! text!]
@@ -180,7 +180,7 @@ clean-path: func [
 ;    of errors.  Scrub out all the extra information from the error so it isn't
 ;    as verbose.
 ;
-ask: func [
+/ask: impure func [
     "Ask the user for input"
 
     return: [
@@ -254,7 +254,7 @@ ask: func [
 ]
 
 
-confirm: func [
+/confirm: impure func [
     "Confirms a user choice"
 
     return: [logic!]
@@ -286,7 +286,7 @@ confirm: func [
 ]
 
 
-list-dir: proc [
+/list-dir: procedure [
     "Print contents of a directory (ls)"
 
     '@path [<hole> file! word! path! text!]
@@ -356,7 +356,7 @@ list-dir: proc [
 ]
 
 
-undirize: func [
+/undirize: function [
     "Returns a copy of the path with any trailing / removed"
 
     return: [file! text! url!]
@@ -368,7 +368,7 @@ undirize: func [
 ]
 
 
-in-dir: func [
+/in-dir: impure func [
     "Evaluate a block in a directory, and restore current directory when done"
     return: [any-stable?]
     dir [file!]

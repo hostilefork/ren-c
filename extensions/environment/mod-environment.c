@@ -73,7 +73,7 @@ bool Environment_Conflates_Empty_Strings_As_Absent(Element* env)
 
 
 //
-//  make-environment: native [
+//  /make-environment: native [
 //
 //  "Currently just creates an ENVIRONMENT! to represent current process"
 //
@@ -182,7 +182,7 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Environment)
 
 
 //
-//  export list-env: native [
+//  export /list-env: native [
 //
 //  "Returns a map of OS environment variables (for current process)"
 //

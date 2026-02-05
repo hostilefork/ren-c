@@ -3263,7 +3263,7 @@ RebolValue* API_rebError_OS(int errnum)  // see also macro rebPanic_OS()
 
 
 //
-//  api-transient: native [
+//  /api-transient: native [
 //
 //  "Produce INTEGER! heap address of a rebUnmanage()'d API handle for VALUE"
 //

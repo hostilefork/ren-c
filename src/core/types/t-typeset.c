@@ -716,7 +716,7 @@ Result(None) Decorate_Element(const Element* decoration, Element* element)
 
 
 //
-//  decorate: native [
+//  /decorate: native [
 //
 //  "Based on the parameter type, this gives you e.g. @(foo) or :foo or 'foo"
 //
@@ -754,7 +754,7 @@ DECLARE_NATIVE(DECORATE)
 
 
 //
-//  redecorate: native [
+//  /redecorate: native [
 //
 //  "Based on the parameter type, this gives you e.g. @(foo) or :foo or 'foo"
 //
@@ -793,7 +793,7 @@ DECLARE_NATIVE(REDECORATE)
 
 
 //
-//  decoration-of: native [
+//  /decoration-of: native [
 //
 //  "Give back the decoration of a value as per DECORATE"
 //
@@ -851,7 +851,7 @@ DECLARE_NATIVE(DECORATION_OF)
 
 
 //
-//  undecorate: native [
+//  /undecorate: native [
 //
 //  "Remove decorations (Sigils, Quotes, leading-space sequences) from VALUE"
 //

@@ -51,7 +51,7 @@ static bool Check_Char_Range(const Stable* val, Codepoint limit)
 
 
 //
-//  ascii?: native [
+//  /ascii?: native [
 //
 //  "Returns TRUE if value or string is in ASCII character range (below 128)"
 //
@@ -68,7 +68,7 @@ DECLARE_NATIVE(ASCII_Q)
 
 
 //
-//  latin1?: native [
+//  /latin1?: native [
 //
 //  "Returns TRUE if value or string is in Latin-1 character range (below 256)"
 //
@@ -103,7 +103,7 @@ DECLARE_NATIVE(LATIN1_Q)
 
 
 //
-//  join: native [
+//  /join: native [
 //
 //  "Join elements to produce a new value"
 //
@@ -776,7 +776,7 @@ DECLARE_NATIVE(JOIN)
 
 
 //
-//  debase: native [
+//  /debase: native [
 //
 //  "Decodes base-coded string (BASE-64 default) to binary value"
 //
@@ -808,7 +808,7 @@ DECLARE_NATIVE(DEBASE)
 
 
 //
-//  enbase: native [
+//  /enbase: native [
 //
 //  "Encodes data into a binary, hexadecimal, or base-64 ASCII string"
 //
@@ -858,7 +858,7 @@ DECLARE_NATIVE(ENBASE)
 
 
 //
-//  enhex: native [
+//  /enhex: native [
 //
 //  "Converts string to use URL-style hex encoding (%XX)"
 //
@@ -933,7 +933,7 @@ DECLARE_NATIVE(ENHEX)
 
 
 //
-//  dehex: native [
+//  /dehex: native [
 //
 //  "Converts URL-style encoded strings, %XX is interpreted as UTF-8 byte"
 //
@@ -1043,7 +1043,7 @@ DECLARE_NATIVE(DEHEX)
 
 
 //
-//  deline: native [
+//  /deline: native [
 //
 //  "Converts string terminators to standard format, e.g. CR LF to LF"
 //
@@ -1122,7 +1122,7 @@ DECLARE_NATIVE(DELINE)
 
 
 //
-//  enline: native [
+//  /enline: native [
 //
 //  "Converts string terminators to native OS format, e.g. LF to CRLF"
 //
@@ -1214,7 +1214,7 @@ DECLARE_NATIVE(ENLINE)
 
 
 //
-//  entab: native [
+//  /entab: native [
 //
 //  "Converts spaces to tabs (default tab size is 4)"
 //
@@ -1292,7 +1292,7 @@ DECLARE_NATIVE(ENTAB)
 
 
 //
-//  detab: native [
+//  /detab: native [
 //
 //  "Converts tabs to spaces (default tab size is 4)"
 //
@@ -1353,7 +1353,7 @@ DECLARE_NATIVE(DETAB)
 
 
 //
-//  lowercase: native [
+//  /lowercase: native [
 //
 //  "Converts string of characters to lowercase"
 //
@@ -1374,7 +1374,7 @@ DECLARE_NATIVE(LOWERCASE)
 
 
 //
-//  uppercase: native [
+//  /uppercase: native [
 //
 //  "Converts string of characters to uppercase"
 //
@@ -1395,7 +1395,7 @@ DECLARE_NATIVE(UPPERCASE)
 
 
 //
-//  to-hex: native [
+//  /to-hex: native [
 //
 //  "Converts numeric value to a hex rune! datatype (with leading # and 0's)"
 //
@@ -1458,7 +1458,7 @@ DECLARE_NATIVE(TO_HEX)
 
 
 //
-//  invalid-utf8?: native [
+//  /invalid-utf8?: native [
 //
 //  "Checks UTF-8 encoding; if invalid gives position in binary of the error"
 //

@@ -41,7 +41,7 @@ Rebol [
     encode-IEEE-754/)
 
 
-last?: single?: lambda [
+/last?: /single?: lambda [
     "Returns okay if the series length is 1."
     series [any-series? port! map! tuple! bitset! object! any-word?]
 ][
@@ -49,7 +49,7 @@ last?: single?: lambda [
 ]
 
 
-array: func [
+/array: func [
     "Makes and initializes a block of a given size"
 
     return: [block!]
@@ -94,7 +94,7 @@ array: func [
 ]
 
 
-replace: func [
+/replace: func [
     "Replaces a search value with the replace value within the target series"
 
     return: [any-series?]
@@ -160,7 +160,7 @@ replace: func [
 ;
 ; reword "$1 is $2." [1 "This" 2 "that"] => "This is that."
 ;
-reword: func [
+/reword: func [
     "Make a string or binary based on a template and substitution values"
 
     return: [any-string? blob!]
@@ -311,7 +311,7 @@ bind construct [
 ])
 
 
-move: func [
+/move: func [
     "Move a value or span of values in a series"
 
     return: ~  ; !!! Define return value?
@@ -339,7 +339,7 @@ move: func [
 ]
 
 
-extract: func [
+/extract: func [
     "Extracts a value from a series at regular intervals"
 
     series [any-series?]
@@ -365,7 +365,7 @@ extract: func [
 ]
 
 
-alter: func [
+/alter: func [
     "Append value if not found, else remove it; returns true if added"
 
     return: [logic!]
@@ -392,7 +392,7 @@ alter: func [
 ]
 
 
-collect*: lambda [
+/collect*: lambda [
     "Evaluate body, and return block of values collected via keep function"
 
     []: [
@@ -426,14 +426,14 @@ collect*: lambda [
 ; Classic version of COLLECT which returns an empty block if nothing is
 ; collected, as opposed to the NULL that COLLECT* returns.
 ;
-collect: redescribe [
+/collect: redescribe [
     "Evaluate body, and return block of values collected via KEEP function"
 ] cascade [
     collect*/
     specialize else/ [branch: [copy []]]
 ]
 
-format: func [
+/format: func [
     "Format a string according to the format dialect."
     rules "A block in the format dialect. E.g. [10 -10 #- 4]"
     values
@@ -499,7 +499,7 @@ printf: proc [
 ]
 
 
-split: func [
+/split: func [
     "Split series in pieces: fixed/variable size, fixed number, or delimited"
 
     return: [block!]
@@ -648,7 +648,7 @@ split: func [
 ]
 
 
-find-all: func [
+/find-all: func [
     "Find all occurrences of a value within a series (allows modification)."
 
     return: ~

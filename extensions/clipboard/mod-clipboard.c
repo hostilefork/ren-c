@@ -38,7 +38,7 @@
 
 
 //
-//  export clipboard-actor: native [
+//  export /clipboard-actor: native [
 //
 //  "Handler for OLDGENERIC dispatch on Clipboard PORT!s"
 //

@@ -501,7 +501,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 
 
 //
-//  set: native [
+//  /set: native [
 //
 //  "Sets a variable to specified value (for dual band states, see TWEAK)"
 //

@@ -37,7 +37,7 @@
 
 
 //
-//  typechecker-archetype: native:intrinsic [
+//  /typechecker-archetype: native:intrinsic [
 //
 //  "For internal use (builds parameters and return slot)"
 //
@@ -1146,7 +1146,7 @@ Result(Value*) Init_Typechecker(
 
 
 //
-//  typechecker: native [
+//  /typechecker: native [
 //
 //  "Make a function for checking types (generated function gives LOGIC!)"
 //
@@ -1179,7 +1179,7 @@ DECLARE_NATIVE(TYPECHECKER)
 
 
 //
-//  typecheck: native [
+//  /typecheck: native [
 //
 //  "Same typechecking as function arguments"
 //
@@ -1221,7 +1221,7 @@ DECLARE_NATIVE(TYPECHECK)
 
 
 //
-//  match: native [
+//  /match: native [
 //
 //  "If VALUE passes a type check, return it, else return NULL"
 //
@@ -1260,7 +1260,7 @@ DECLARE_NATIVE(MATCH)
 
 
 //
-//  matcher: native [
+//  /matcher: native [
 //
 //  "Make a specialization of the MATCH function for a fixed type argument"
 //

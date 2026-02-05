@@ -75,7 +75,7 @@ verify: vanishable func [
 native-assert: hijack assert/ verify/
 
 
-delta-time: func [
+/delta-time: func [
     "Returns the time it takes to evaluate the block"
     block [block!]  ; callsite FENCE! evaluates to BLOCK!, wrapped
 ][
@@ -87,7 +87,7 @@ delta-time: func [
     return difference results.2 results.1
 ]
 
-delta-profile: func [
+/delta-profile: func [
     "Delta-profile of running a specific block"
     block [block!]
     {start end}
@@ -104,7 +104,7 @@ delta-profile: func [
     start
 ]
 
-speed?: func [
+/speed?: func [
     "Returns approximate speed benchmarks [eval cpu memory file-io]"
     :no-io "Skip the IO test"
     :times "Show time for each test"
@@ -161,9 +161,9 @@ speed?: func [
     return result
 ]
 
-net-log: lambda [txt :C :S][txt]
+net-log: nonfinal lambda [txt :C :S][txt]
 
-net-trace: proc [
+/net-trace: procedure [
     "Switch between using a no-op or a print operation for net-tracing"
 
     val [logic!]

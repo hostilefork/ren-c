@@ -26,7 +26,7 @@
 
 
 //
-//  const: native [
+//  /const: native [
 //
 //  "Return value whose access level doesn't allow mutation to its content"
 //
@@ -47,7 +47,7 @@ DECLARE_NATIVE(CONST)
 
 
 //
-//  const?: native [
+//  /const?: native [
 //
 //  "Return if a value is a read-only view of its underlying data"
 //
@@ -71,7 +71,7 @@ DECLARE_NATIVE(CONST_Q)
 
 
 //
-//  mutable: native [
+//  /mutable: native [
 //
 //  "Return reference with mutable access to its argument (if not LOCK-ed)"
 //
@@ -92,7 +92,7 @@ DECLARE_NATIVE(MUTABLE)
 
 
 //
-//  mutable?: native [
+//  /mutable?: native [
 //
 //  "Return if a value is a writable view of its underlying data"
 //
@@ -271,7 +271,7 @@ static Bounce Protect_Unprotect_Core(Level* level_, Flags flags)
 
 
 //
-//  protect: native [
+//  /protect: native [
 //
 //  "Protect a series or a variable from being modified"
 //
@@ -339,7 +339,7 @@ DECLARE_NATIVE(PROTECT)
 
 
 //
-//  unprotect: native [
+//  /unprotect: native [
 //
 //  "Unprotect a series or a variable (it can again be modified)"
 //
@@ -419,7 +419,7 @@ bool Is_Value_Frozen_Deep(const Cell* v) {
 
 
 //
-//  locked?: native [
+//  /locked?: native [
 //
 //  "Determine if the value is locked (deeply and permanently immutable)"
 //
@@ -511,7 +511,7 @@ void Force_Value_Frozen_Core(
 
 
 //
-//  freeze: native [
+//  /freeze: native [
 //
 //  "Permanently lock values (if applicable) so they can be immutably shared"
 //
@@ -541,7 +541,7 @@ DECLARE_NATIVE(FREEZE)
 
 
 //
-//  final: native [
+//  /final: native [
 //
 //  "Make an immutable value that has CELL_FLAG_FINAL for a variable"
 //
@@ -567,7 +567,7 @@ DECLARE_NATIVE(FINAL)
 
 
 //
-//  nonfinal: native:intrinsic [
+//  /nonfinal: native:intrinsic [
 //
 //  "Make an mutable value that does not have CELL_FLAG_FINAL for a variable"
 //
