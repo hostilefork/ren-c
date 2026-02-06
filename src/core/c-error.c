@@ -619,6 +619,7 @@ static Option(const Symbol*) Symbol_For_Error_Element(const Element* v)
 Error* Make_Error_From_Vaptr_Managed(
     Option(SymId) cat_id,
     Option(SymId) id,
+    const void* p,
     va_list* vaptr
 ){
     if (PG_Boot_Phase < BOOT_ERRORS) { // no STD_ERROR or template table yet
@@ -643,7 +644,8 @@ Error* Make_Error_From_Vaptr_Managed(
     if (not id) {
         Init_Null(id_value);
         Init_Null(type);
-        message = va_arg(*vaptr, const Stable*);
+        message = cast(const Stable*, p);
+        p = va_arg(*vaptr, const void*);
     }
     else {
         assert(cat_id != SYM_0);
@@ -703,8 +705,6 @@ Error* Make_Error_From_Vaptr_Managed(
 
             Init(Slot) slot = Append_Context(varlist, unwrap symbol);
 
-            const void *p = va_arg(*vaptr, const void*);
-
             if (p == nullptr) {
                 Init_Null(slot);  // we permit both nulled cells and nullptr
             }
@@ -726,6 +726,8 @@ Error* Make_Error_From_Vaptr_Managed(
                 assert(false);
                 panic ("Bad pointer passed to Make_Error_Managed()");
             }
+
+            p = va_arg(*vaptr, const void*);
         }
     }
 
@@ -766,16 +768,23 @@ Error* Make_Error_From_Vaptr_Managed(
 //
 //     panic (Error_Something(arg1, thing_processed_to_make_arg2));
 //
+// 1. Not all compilers warn about it, but Clang does--you can't use an enum
+//    argument as the thing you pass to va_start().  It's in the C standard:
+//    "passing an object that undergoes default argument promotion to
+//    'va_start' has undefined behavior".  So we use the same "pass a void
+//    pointer as the first item" trick as the API does.
+//
 Error* Make_Error_Managed(
     Option(SymId) category_id,  // va_list is weird about enums...
-    Option(SymId) id,  // ...note that va_arg(va, enum_type) is illegal!
+    Option(SymId) id,  // ...note that va_arg(va, enum_type) is illegal! [1]
+    const void* p,
     ... /* Stable* arg1, Stable* arg2, ... */
 ){
     va_list va;
 
-    va_start(va, id);  // last fixed argument is opt_id, pass that
+    va_start(va, p);  // last fixed argument is p, pass that
 
-    Error* error = Make_Error_From_Vaptr_Managed(category_id, id, &va);
+    Error* error = Make_Error_From_Vaptr_Managed(category_id, id, p, &va);
 
     va_end(va);
     return error;
