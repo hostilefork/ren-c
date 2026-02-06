@@ -99,14 +99,7 @@
 
 #define level_ L  // for OUT, SPARE, STATE macros
 
-// We make the macro for getting binding a bit more complex here, to account
-// for reevaluation.
-//
-// https://forum.rebol.info/t/should-reevaluate-apply-let-bindings/1521
-//
-#undef L_binding
-#define L_binding \
-    (STATE == ST_STEPPER_REEVALUATING ? SPECIFIED : Level_Binding(L))
+#define L_binding Level_Binding(L)
 
 
 // !!! In earlier development, the Level* for evaluating across a block was
@@ -212,7 +205,7 @@ Bounce Inert_Stepper_Executor(Level* L)
 
     assert(Not_Level_At_End(L));
 
-    Copy_Cell_May_Bind(OUT, At_Feed(L->feed), Feed_Binding(L->feed));
+    Copy_Cell_May_Bind(OUT, At_Feed(L->feed), L_binding);
     Fetch_Next_In_Feed(L->feed);
     return OUT;
 }
@@ -439,10 +432,7 @@ Bounce Stepper_Executor(Level* L)
         Copy_Cell(PUSH(), CURRENT);
 
         heeded (Copy_Cell(CURRENT, As_Element(L_next)));
-        Bind_Cell_If_Unbound(
-            CURRENT,
-            Feed_Binding(L->feed)  // L_binding bad here [2]
-          );
+        Bind_Cell_If_Unbound(CURRENT, L_binding);
         Add_Cell_Sigil(CURRENT, SIGIL_META);  // for unstable lookup
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
@@ -1734,10 +1724,7 @@ Bounce Stepper_Executor(Level* L)
         Blit_Cell(PUSH(), OUT);  // save out if infix wants it...
 
         heeded (Copy_Cell(CURRENT, As_Element(L_next)));
-        Bind_Cell_If_Unbound(
-            CURRENT,
-            Feed_Binding(L->feed)  // L_binding bad here [2]
-          );
+        Bind_Cell_If_Unbound(CURRENT, L_binding);
         Add_Cell_Sigil(CURRENT, SIGIL_META);  // need for unstable lookup
         heeded (Corrupt_Cell_If_Needful(SPARE));
 
