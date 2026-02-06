@@ -33,6 +33,26 @@
 #endif
 
 
+//=//// CELL_FLAG_NEWLINE_BEFORE /////////////////////////////////////////=//
+//
+// When the array containing a value with this flag set is molding, that will
+// output a new line *before* molding the value.  This flag works in tandem
+// with a flag on the array itself which manages whether there should be a
+// newline before the closing array delimiter: SOURCE_FLAG_NEWLINE_AT_TAIL.
+//
+// The bit is set initially by what the scanner detects, and then left to the
+// user's control after that.
+//
+// !!! The native `new-line` is used set this, which has a somewhat poor
+// name considering its similarity to `newline` the line feed char.
+//
+// !!! Currently, ANY-PATH? rendering just ignores this bit.  Some way of
+// representing paths with newlines in them may be needed.
+//
+#define CELL_FLAG_NEWLINE_BEFORE \
+    CELL_FLAG_FORMAT
+
+
 //=//// SOURCE ARRAY SLOT USAGE ///////////////////////////////////////////=//
 //
 // There are many flags available for source arrays, so they could indicate

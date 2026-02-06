@@ -525,17 +525,9 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
 //
 // 1. "evil macros" for checked build performance, see STATIC_ASSERT_LVALUE()
 //
-// 2. Slots have more use for persistent flags than most Cells do.  e.g. if
-//    a Slot represents a place where a loop variable is being stored, it
-//    may want to remember CELL_FLAG_LOOP_SLOT_NOTE_UNBIND so it can know that
-//    the variable was named by $var, hence needs to be bound.  Rather than
-//    store this information in a side-structure, it can be stored on the
-//    Slot itself...but it can't be overwritten or it would be forgotten on
-//    each loop iteration.
-//
 
 #define CELL_MASK_PERSIST \
-    (BASE_FLAG_MANAGED | BASE_FLAG_ROOT | BASE_FLAG_MARKED)
+    (BASE_FLAG_MANAGED | BASE_FLAG_ROOT | BASE_FLAG_MARKED | CELL_FLAG_FORMAT)
 
 #define Freshen_Cell_Header(c) do { \
     STATIC_ASSERT_LVALUE(c);  /* evil macro [1] */ \
@@ -544,9 +536,6 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
 } while (0)
 
 STATIC_ASSERT(not (CELL_MASK_PERSIST & CELL_FLAG_NOTE));
-
-#define CELL_MASK_PERSIST_SLOT \
-    (CELL_MASK_PERSIST | CELL_FLAG_NOTE)  // special persistence for slots [2]
 
 
 //=//// GETTING, SETTING, and CLEARING VALUE FLAGS ////////////////////////=//

@@ -456,7 +456,19 @@ INLINE Context* Derive_Binding(
     Unbind_Values_Core((at), (tail), nullptr, true)
 
 
-// Loop Slots
+// If a Slot represents a place where a loop variable is being stored, it
+// may want to remember CELL_FLAG_LOOP_SLOT_NOTE_UNBIND so it can know that
+// the variable was named by 'var, hence needs to be bound.  Or ^var so it
+// knows it needs to not be decayed.
+//
+// Rather than store this information in a side-structure, it is stored on the
+// Slot itself...but it can't be overwritten or it would be forgotten on
+// each loop iteration.
+//
+// !!! The reasoning for using ROOT here instead of MARKED is because there
+// is already a purpose for MARKED to say slots are not modifiable.  This is
+// all under review with FINAL coming into play.  Review.
+//
 
-#define CELL_FLAG_LOOP_SLOT_NOTE_UNBIND  CELL_FLAG_NOTE
+#define CELL_FLAG_LOOP_SLOT_FORMAT_UNBIND  CELL_FLAG_FORMAT
 #define CELL_FLAG_LOOP_SLOT_ROOT_META  BASE_FLAG_ROOT

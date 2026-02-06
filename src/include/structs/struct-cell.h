@@ -384,29 +384,16 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 #define CELL_FLAG_CURRENT_NOTE_RUN_WORD  CELL_FLAG_NOTE
 
 
-//=//// CELL_FLAG_NEWLINE_BEFORE //////////////////////////////////////////=//
+//=//// CELL_FLAG_FORMAT //////////////////////////////////////////////////=//
 //
-// When the array containing a value with this flag set is molding, that will
-// output a new line *before* molding the value.  This flag works in tandem
-// with a flag on the array itself which manages whether there should be a
-// newline before the closing array delimiter: SOURCE_FLAG_NEWLINE_AT_TAIL.
+// This flag is part of CELL_MASK_PERSIST and hence is not copied by default.
 //
-// The bit is set initially by what the scanner detects, and then left to the
-// user's control after that.
+// In Source arrays, it is used to track the newline status.  This means that
+// if you overwrite a cell it will have the same newline status as the cell
+// that it overwrote by default, and must be manually manipulated if that's
+// not what you wanted.
 //
-// !!! The native `new-line` is used set this, which has a somewhat poor
-// name considering its similarity to `newline` the line feed char.
-//
-// !!! Currently, ANY-PATH? rendering just ignores this bit.  Some way of
-// representing paths with newlines in them may be needed.
-//
-// !!! Note: Antiforms could use this for something else.  So could the
-// products of evaluation that are resident in single cells (such as the
-// OUT or SPARE).  But being able to set this bit on those cells can be
-// useful as a way of preserving notes about the newline status of the
-// original cell--for instance.
-//
-#define CELL_FLAG_NEWLINE_BEFORE \
+#define CELL_FLAG_FORMAT \
     FLAG_LEFT_BIT(29)
 
 

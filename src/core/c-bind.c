@@ -1438,7 +1438,7 @@ Result(VarList*) Create_Loop_Context_May_Bind_Body(
         }
 
         if (LIFT_BYTE(item) == ONEQUOTE_NONQUASI_5)
-            Set_Cell_Flag(slot, LOOP_SLOT_NOTE_UNBIND);
+            Set_Cell_Flag(slot, LOOP_SLOT_FORMAT_UNBIND);
         else
             assert(LIFT_BYTE(item) == NOQUOTE_3);
     }
@@ -1580,14 +1580,11 @@ Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(Slot* slot, Value* v)
     if (Is_Cell_A_Bedrock_Drain(slot))  // e.g. `for-each _ [1 2 3] [...]`
         return none;  // toss it (we decayed first, in case it is undecayable)
 
-    if (Get_Cell_Flag(slot, LOOP_SLOT_NOTE_UNBIND))
+    if (Get_Cell_Flag(slot, LOOP_SLOT_FORMAT_UNBIND))
         Unbind_Cell_If_Bindable_Core(v);
-
-    Flags persist = (slot->header.bits & CELL_MASK_PERSIST_SLOT);
 
     if (LIFT_BYTE(slot) != BEDROCK_0) {  // ordinary write
         Copy_Cell(u_cast(Value*, slot), v);
-        slot->header.bits |= persist;  // preserve persist bits
         return none;
     }
 
@@ -1601,7 +1598,6 @@ Result(None) Write_Loop_Slot_May_Unbind_Or_Decay(Slot* slot, Value* v)
 
     rebElide(CANON(SET), temp, rebQ(v));  // may be writing alias, etc.
 
-    unnecessary(slot->header.bits |= persist);  // didn't write actual slot
     return none;
 }
 

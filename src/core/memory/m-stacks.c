@@ -167,16 +167,10 @@ void Expand_Data_Stack_May_Panic(REBLEN amount)
 //
 // Pops computed values from the stack to make a new ARRAY.
 //
-// 1. The Pop has CELL_MASK_ALL semantics, so anything like CELL_FLAG_NOTE
-//    will be copied.  There is no other option, because the release build
-//    uses memcpy() to implement this.  Hence we make sure none of the
-//    persistent flags
-//
-// 2. We use Move_Cell() here even though it "wastes" a masking operation to
-//    set the stack cell to an unreadable (unnecessary as stack elements
-//    won't be GC'd after a drop).  The reason is that Move_Cell() may become
-//    semantically distinct from Copy_Cell(), where Copy_Cell() may promot
-//    unmanaged Cells to managed ones...if so, we want to avoid that here.
+// 1. The Pop has CELL_MASK_ALL semantics, so CELL_FLAG_NOTE or _MARKED or
+//    _FORMAT etc. are all copied.  There is no other option, because the
+//    release build uses memcpy() to implement this.  Assume it's what the
+//    caller wants.
 //
 Array* Pop_Stack_Values_Core(Flags flags, StackIndex base) {
     Assert_No_DataStack_Pointers_Extant();  // in the future, pop may disrupt
@@ -185,8 +179,8 @@ Array* Pop_Stack_Values_Core(Flags flags, StackIndex base) {
     Array* a = Make_Array_Core(flags, len);
     Set_Flex_Len(a, len);
 
-    Stable* src = Data_Stack_At(Stable, base + 1);  // moving, not const!
-    Stable* dest = Flex_Head(Stable, a);
+    Cell* src = Data_Stack_At(Cell, base + 1);  // moving, not const!
+    Cell* dest = Flex_Head(Cell, a);
 
   #if NO_RUNTIME_CHECKS  // Stack cells lack CELL_MASK_PERSIST, can memcpy()
     STATIC_ASSERT(! DEBUG_POISON_DROPPED_STACK_CELLS);
@@ -196,14 +190,14 @@ Array* Pop_Stack_Values_Core(Flags flags, StackIndex base) {
 
     Count count = 0;
     for (; count < len; ++count, ++src, ++dest) {
-        assert(not (src->header.bits & CELL_MASK_PERSIST));  // would copy [1]
-        if (Is_Antiform(src)) {  // only ok in some arrays
-            Assert_Cell_Stable(src);
+        possibly(src->header.bits & CELL_MASK_PERSIST);  // all bits copied [1]
+        if (LIFT_BYTE(src) <= STABLE_ANTIFORM_2) {  // only ok in some arrays
+            possibly(LIFT_BYTE(src) == BEDROCK_0);
             if (flavor < MIN_FLAVOR_ANTIFORMS_OK)
                 crash ("Unexpected antiform found on data stack");
         }
 
-        Move_Cell_Core_Untracked(dest, src, CELL_MASK_ALL);  // for future [2]
+        Blit_Cell_Untracked(dest, src);
 
         #if DEBUG_TRACK_EXTEND_CELLS
           #if (DEBUG_TRACK_COPY_PRESERVES)

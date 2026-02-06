@@ -374,22 +374,37 @@ INLINE void Set_Parameter_Strand(Cell* v, Option(const Strand*) s) {
 
 //=//// CELL_FLAG_PARAM_NOTE_TYPECHECKED //////////////////////////////////=//
 //
-// For specialized or fulfilled values, a parameter which is checked does not
-// need to be checked again.  This bit encodes that knowledge in a way that
-// any new overwriting will signal need for another check:
+// This flag is set on specialized parameter values or arguments to say that
+// they have been typechecked.
 //
-//    >> bad-negate: adapt negate/ [value: to text! value]
+// 1. We use CELL_FLAG_NOTE because it is not copied by default.  Typecheck
+//    status only matters on arguments that are sitting in FRAME! cells...
+//    and we don't want to leak this bit other places that might have other
+//    uses for that bit.
 //
-//    >> bad-negate 1020
-//    ** Error: Internal phase disallows TEXT! for its `value` argument
+// 2. We want any changes to a Cell to wipe out the typechecked status.  This
+//    way if you have an argument that hasn't changed, and you re-run a
+//    function phase--you know you don't have to check it again.
 //
-// If you hadn't overwritten `value`, then it would still have CELL_FLAG_NOTE
-// and not run type checking again:
+//      >> bad-negate: adapt negate/ [value: to text! value]
 //
-//    good-negate: adapt negate/ [print "not modifying value, no check"]
+//      >> bad-negate 1020
+//      ** Error: Internal phase disallows TEXT! for its `value` argument
+//
+//    If you hadn't overwritten `value`, then it still has CELL_FLAG_NOTE from
+//    the first typecheck, and won't run typechecking again:
+//
+//      good-negate: adapt negate/ [print "not modifying value, no check"]
 //
 
 #define CELL_FLAG_PARAM_NOTE_TYPECHECKED  CELL_FLAG_NOTE
+
+STATIC_ASSERT(
+    not (CELL_MASK_COPY & CELL_FLAG_PARAM_NOTE_TYPECHECKED)  // [1]
+);
+STATIC_ASSERT(
+    (CELL_MASK_PERSIST & CELL_FLAG_PARAM_NOTE_TYPECHECKED) == 0  // [2]
+);
 
 INLINE bool Is_Typechecked(const Param* p) {
     return Get_Cell_Flag(p, PARAM_NOTE_TYPECHECKED);
