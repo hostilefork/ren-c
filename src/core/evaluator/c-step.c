@@ -357,9 +357,10 @@ Bounce Stepper_Executor(Level* L)
 
   start_new_expression: {  ///////////////////////////////////////////////////
 
-  #if RUNTIME_CHECKS
-    /*Evaluator_Expression_Checks_Debug(L);*/
-  #endif
+  // This point is jumped to on initial entry, but also in optimized modes
+  // when a BLANK! (comma) is encountered.  There's also a hook that notices
+  // when you hit a C-DEBUG-BREAK invocation, and rather than going through
+  // running an ACTION! it just jumps back up to here.
 
     Sync_Feed_At_Cell_Or_End_May_Panic(L->feed);
 
@@ -371,6 +372,10 @@ Bounce Stepper_Executor(Level* L)
   #endif
 
     assert(Not_Level_At_End(L));
+
+  #if RUNTIME_CHECKS
+    Evaluator_Expression_Checks_Debug(L);
+  #endif
 
     Update_Expression_Start(L);  // !!! See Level_Array_Index() for caveats
 

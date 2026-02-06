@@ -500,6 +500,8 @@ void Reify_Variadic_Feed_As_Array_Feed(
 
     StackIndex base = TOP_INDEX;
 
+    Context* binding = Feed_Binding(feed);
+
     if (Not_Feed_At_End(feed)) {
         if (truncated)
             Init_Quasi_Word(PUSH(), CANON(OPTIMIZED_OUT));
@@ -551,6 +553,8 @@ void Reify_Variadic_Feed_As_Array_Feed(
 
         feed->p = &PG_Feed_At_End;
     }
+
+    Tweak_Cell_Binding(Feed_Data(feed), binding);
 
     assert(FEED_INDEX(feed) <= Array_Len(Feed_Array(feed)));
 }

@@ -304,12 +304,6 @@ void Evaluator_Expression_Checks_Debug(Level* L)
 
     assert(not Is_Throwing(L)); // no evals between throws
 
-    // Corrupt fields that GC won't be seeing unless Is_Action_Level()
-    //
-    Corrupt_If_Needful(L->u.action.key);
-    Corrupt_If_Needful(L->u.action.arg);
-    Corrupt_If_Needful(L->u.action.param);
-
     // Mutate va_list sources into arrays at fairly random moments in the
     // checked build.  It should be able to handle it at any time.
     //
