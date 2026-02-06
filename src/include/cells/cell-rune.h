@@ -307,13 +307,6 @@ INLINE Result(Element*) Init_Single_Codepoint_Rune_Untracked(
 #define Init_Newline(out) \
     Init_Char_Unchecked((out), '\n')
 
-#define Is_Space_Underlying(v) \
-    (Ensure_Readable(v)->header.bits & ( \
-        CELL_MASK_HEART_NO_SIGIL | CELL_FLAG_RUNE_IS_SPACE \
-    )) == ( \
-        FLAG_HEART(TYPE_RUNE) | CELL_FLAG_RUNE_IS_SPACE \
-    )
-
 INLINE bool Is_Cell_Space_With_Lift_Sigil(
     const Cell* cell,
     LiftByte lift,

@@ -15,6 +15,9 @@
 ;   * :{fence}: represents FENCE!   ; a:{b} -> {a :{b}:}
 ;   * :(group): represents GROUP!   ; a:(c) -> {a :(c):}
 ;
+; Additionally, while commas can be used in blocks to render BLANK!s, it's
+; easier to see with a special signal so :_: is used instead.
+;
 ; Each test starts with a string to transcode, then `->`, and then the one or
 ; more transformed representations of what the string is expected to load as.
 ;
@@ -45,24 +48,24 @@ tests: [
     "::"  ->  ::
     ":::"  ->  :::
 
-    "/a"  ->  [_ a]
-    "//a"  !!  ~bad-sequence-space~
-    "a/"  ->  [a _]
+    "/a"  ->  [:_: a]
+    "//a"  !!  ~bad-sequence-blank~
+    "a/"  ->  [a :_:]
     "a//"  !!  ~bad-sequence-item~
-    "/a/"  ->  [_ a _]
-    "//a//"  !!  ~bad-sequence-space~
+    "/a/"  ->  [:_: a :_:]
+    "//a//"  !!  ~bad-sequence-blank~
 
     "(a b)/c"  ->  [:(a b): c]
-    "(a b) /c"  ->  :(a b):  [_ c]
+    "(a b) /c"  ->  :(a b):  [:_: c]
 
     "a.b/c.d"  ->  [(a b) (c d)]
     "a/b.c/d"  ->  [a (b c) d]
 
-    "/a.b/c.d/"  ->  [_ (a b) (c d) _]
-    ".a/b.c/d."  ->  [(_ a) (b c) (d _)]
+    "/a.b/c.d/"  ->  [:_: (a b) (c d) :_:]
+    ".a/b.c/d."  ->  [(:_: a) (b c) (d :_:)]
 
     "./a"  ->  [. a]
-    "/.a"  ->  [_ (_ a)]
+    "/.a"  ->  [:_: (:_: a)]
 
     "[a].(b)"  ->  (:[a]: :(b):)
 
@@ -70,11 +73,11 @@ tests: [
     "a.. /b"  !!  ~bad-sequence-item~
     "a../b"  !!  ~bad-sequence-item~
 
-    "/./(a b)/./"  ->  [_ . :(a b): . _]
+    "/./(a b)/./"  ->  [:_: . :(a b): . :_:]
 
     "a.1.(x)/[a b c]/<d>.2"  ->  [(a 1 :(x):) :[a b c]: (<d> 2)]
 
-    "~/projects/"  ->  [~ projects _]
+    "~/projects/"  ->  [~ projects :_:]
     "~a~.~b~/~c~"  ->  [(~a~ ~b~) ~c~]
 
     === INTERNAL SIGIL TESTS ===
@@ -83,10 +86,10 @@ tests: [
     ; sigil application.
 
     "a/$"  ->  [a $]
-    "a/$ $/b"  ->  [a $]  $[_ b]
+    "a/$ $/b"  ->  [a $]  $[:_: b]
 
     "a/$b"  ->  [a $b]
-    "$a/$b/"  ->  $[a $b _]
+    "$a/$b/"  ->  $[a $b :_:]
 
     "$a/b.$c"  ->  $[a (b $c)]
 
@@ -95,17 +98,17 @@ tests: [
     ; Again there should be many more of these.
 
     "a/'b"  ->  [a 'b]
-    "a/'b/"  ->  [a 'b _]
+    "a/'b/"  ->  [a 'b :_:]
 
     "a/b.'c"  ->  [a (b 'c)]
 
     === COMMA TESTS ===
 
-    "/a/, b."  ->  [_ a _] , (b _)
+    "/a/, b."  ->  [:_: a :_:] :_: (b :_:)
 
     === RUNE TESTS ===
 
-    "/#a"  ->  [_ #a]
+    "/#a"  ->  [:_: #a]
 
     === BAD PATH ELEMENT TESTS ===
 
@@ -119,13 +122,19 @@ tests: [
 
     ; Various places do less exhaustive testing, they should be moved
 
-    "2022:"  ->  {2022 _}
-    ":2022"  ->  {_ 2022}
+    "2022:"  ->  {2022 :_:}
+    ":2022"  ->  {:_: 2022}
 
     === CHAIN INSIDE OF PATH ===
 
-    "a/:b"  ->  [a {_ b}]
-    "a/:b/c"  ->  [a {_ b} c]
+    "a/:b"  ->  [a {:_: b}]
+    "a/:b/c"  ->  [a {:_: b} c]
+
+    === QUASIFORMS IN SEQUENCES ===
+
+    "~:foo:~"  ->  {~ foo ~}
+    "~:$:~"  ->  {~ $ ~}
+    "~:$:@"  ->  {~ $ @}
 
     === TAG AMBIGUITY RESOLUTION ===
 
@@ -140,7 +149,7 @@ tests: [
     ".>>."  !!  ~scan-invalid~
     "a.b.<c>"  ->  (a b <c>)
     "<a>.b.c"  ->  (<a> b c)
-    ".<tag>."  ->  (_ <tag> _)
+    ".<tag>."  ->  (:_: <tag> :_:)
 
     "</>"  ->  </>
     ">/<"  !!  ~scan-invalid~
@@ -148,7 +157,7 @@ tests: [
     "/>>/"  !!  ~scan-invalid~
     "a/b/<c>"  ->  [a b <c>]
     "<a>/b/c"  ->  [<a> b c]
-    "/<tag>/"  ->  [_ <tag> _]
+    "/<tag>/"  ->  [:_: <tag> :_:]
 ]
 
 
@@ -158,9 +167,9 @@ tests: [
 ; write things out like:
 ;
 ;    "#:#"  -> {# #}
-;    "#:#,"  -> {# #} ,
+;    "#:#,"  -> {# #} :_:
 ;    "#:#:#"  -> {# # #}
-;    "#:#:#,"  -> {# # #} ,
+;    "#:#:#,"  -> {# # #} :_:
 ;
 ; Instead we can just describe something that adds a comma character to the
 ; text, and then that adds a BLANK! value to the transformation.
@@ -185,7 +194,7 @@ mutators: reduce [
         append text ","
 
         return lambda [items [block!]] [
-            compose [(spread items),]
+            compose [(spread items) :_:]
         ]
     ]
 
@@ -218,6 +227,12 @@ transform: lambda [
     ]
 
     case [
+        blank? value [  ; want something better than `,` in the rendering
+            ':_:
+        ]
+        sigil? value [  ; don't turn $ into $:_:
+            value
+        ]
         any-sigiled? value [
             decorate (sigil of value) transform plain value
         ]
@@ -225,7 +240,7 @@ transform: lambda [
             let deep: as (type of value) map-each 'item value [
                 transform item
             ]
-            join chain! [_ deep _]   ; so like :[block]:
+            compose ':(deep):   ; so like :[block]:
         ]
         any-sequence? value [
             as mapping.(type of value) map-each 'item value [

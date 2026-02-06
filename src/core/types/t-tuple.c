@@ -382,14 +382,14 @@ Result(Element*) Alias_Any_Sequence_As(
             Source* a = Make_Source_Managed(2);
             Set_Flex_Len(a, 2);
             if (Get_Cell_Flag(seq, LEADING_BLANK)) {
-                Init_Space(Array_At(a, 0));
+                Init_Blank(Array_At(a, 0));
                 Copy_Cell(Array_At(a, 1), seq);
                 KIND_BYTE(Array_At(a, 1)) = TYPE_WORD;
             }
             else {
                 Copy_Cell(Array_At(a, 0), seq);
                 KIND_BYTE(Array_At(a, 0)) = TYPE_WORD;
-                Init_Space(Array_At(a, 1));
+                Init_Blank(Array_At(a, 1));
             }
             Freeze_Source_Shallow(a);
             Init_Any_List(out, as, a);
@@ -402,12 +402,12 @@ Result(Element*) Alias_Any_Sequence_As(
                 Set_Flex_Len(two, 2);
                 Cell* tweak;
                 if (Get_Cell_Flag(seq, LEADING_BLANK)) {
-                    Init_Space(Array_At(two, 0));
+                    Init_Blank(Array_At(two, 0));
                     tweak = Copy_Cell(Array_At(two, 1), seq);
                 }
                 else {
                     tweak = Copy_Cell(Array_At(two, 0), seq);
-                    Init_Space(Array_At(two, 1));
+                    Init_Blank(Array_At(two, 1));
                 }
                 KIND_BYTE(tweak) = MIRROR_BYTE(a);
                 Clear_Cell_Flag(tweak, LEADING_BLANK);

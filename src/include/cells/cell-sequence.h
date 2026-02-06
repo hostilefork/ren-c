@@ -110,19 +110,19 @@
 //
 INLINE Result(None) Check_Sequence_Element(
     Heart sequence_heart,
-    const Element* e,
+    const Element* v,
     bool is_head
 ){
     assert(Any_Sequence_Type(sequence_heart));
 
-    Option(Heart) h = Heart_Of(e);
+    Option(Heart) h = Heart_Of(v);
 
     if (is_head) {  // note quasiforms legal, even at head [1]
         if (
-            Is_Quoted(e)  // 'foo:bar has quote on foo:bar, not foo
-            or Cell_Underlying_Sigil(e)  // $a.b => $[a b], not [$a b]
+            Is_Quoted(v)  // 'foo:bar has quote on foo:bar, not foo
+            or Cell_Underlying_Sigil(v)  // $a.b => $[a b], not [$a b]
         ){
-            return fail (Error_Bad_Sequence_Head_Raw(e));
+            return fail (Error_Bad_Sequence_Head_Raw(v));
         }
     }
 
@@ -141,18 +141,20 @@ INLINE Result(None) Check_Sequence_Element(
         goto bad_sequence_item;
     }
 
-    if (h == TYPE_BLANK) {
-        assert(not is_head);  // callers check blanks at head or tail
-        return fail (
-            Error_Bad_Sequence_Blank_Raw()  // blank only legal at head
-        );
+    if (h == TYPE_BLANK) {  // TYPE_BLANK heart of quasars, sigils, lone quote
+        assert(not is_head or Is_Quasar(v));  // callers check blanks/sigils
+        if (Is_Blank(v))  // undecorated blank (not [$ ^ @ ~ '])
+            return fail (
+                Error_Bad_Sequence_Blank_Raw()  // blank only legal at head
+            );
+        return none;  // ~:$:~ etc. are legal
     }
 
     if (not Any_Sequencable_Type(h))
         goto bad_sequence_item;
 
     if (h == TYPE_WORD) {
-        const Symbol* symbol = Word_Symbol(e);
+        const Symbol* symbol = Word_Symbol(v);
         if (symbol == CANON(DOT_1) and sequence_heart != TYPE_TUPLE)
             return none;
         if (
@@ -172,7 +174,7 @@ INLINE Result(None) Check_Sequence_Element(
   bad_sequence_item:
 
     return fail (
-        Error_Bad_Sequence_Item_Raw(Datatype_From_Type(sequence_heart), e)
+        Error_Bad_Sequence_Item_Raw(Datatype_From_Type(sequence_heart), v)
     );
 }
 

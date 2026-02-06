@@ -633,7 +633,7 @@ Result(None) Decorate_Element(const Element* decoration, Element* element)
     Option(Sigil) sigil_to_add = Cell_Underlying_Sigil(decoration);
     Option(Heart) sequence_to_add = none;
 
-    if (Is_Space_Underlying(decoration))
+    if (Any_Sigiled_Blank(decoration))
         goto finalize_decorations;  // not a sequence, just sigilize + quote
 
     if (Heart_Of(decoration) == TYPE_WORD) {
