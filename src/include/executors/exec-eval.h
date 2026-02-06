@@ -147,40 +147,45 @@
     LEVEL_EXECUTOR_FLAG_31
 
 
-typedef struct {
-    //
-    // Invisibility is a critical feature in Ren-C:
-    //
-    //     >> 1 + 2 elide print "Invisibility is central to many things"
-    //     Invisibility is central to many things
-    //     == 3
-    //
-    // It was once accomplished with a BOUNCE_INVISIBILE that didn't actually
-    // overwrite the previous output, but set a flag on the cell that could
-    // be un-set to recover the value.  But this approach predated the
-    // semantics of empty antiform blocks (VOID), and could no longer work.
-    //
-    // So unfortunately, the evaluator really does need to save the prior
-    // value when doing multiple steps.  If not performing multiple steps,
-    // then it can be used...though likely by the parent (e.g. an Action
-    // Level that knows it's only requesting a single step could write
-    // some value there if it needed to.)
-    //
+typedef struct EvaluatorExecutorStateStruct {
+
+  // Invisibility is a critical feature in Ren-C:
+  //
+  //     >> 1 + 2 elide print "Invisibility is central to many things"
+  //     Invisibility is central to many things
+  //     == 3
+  //
+  // It was once accomplished with a BOUNCE_INVISIBILE that didn't actually
+  // overwrite the OUT cell, but set the BASE_FLAG_UNREADABLE as an indicator
+  // of voidness.  The bit could be un-set to recover the original data.  But
+  // this was very circuitous.
+  //
+  // Hence the evaluator really does need to save the prior value when doing
+  // multiple steps.  It uses the PRIMED cell for this.
+  //
+  // Note that if using Stepper_Executor() and not Evaluator_Executor() then
+  // the primed cell is available for other usages.
+
     Value primed;
 
-    Stable current_gotten;  // costs a Cell... worth it?!
+  // !!! costs a Cell... worth it?!
 
-    // The error reporting machinery doesn't want where `index` is right now,
-    // but where it was at the beginning of a single EVALUATE step.
-    //
-    // !!! With the conversion to using feeds, it doesn't seem anything is
-    // using this field at time of writing.  It's not displaying the start
-    // of the expression, just where it is--which is poor for debugging.
-    // That should be fixed, along with general debugging design.
-    //
+    Stable current_gotten;
+
+  // The error reporting machinery doesn't want where `index` is right now,
+  // but where it was at the beginning of a single EVALUATE step.
+  //
+  // !!! With the conversion to using feeds, it doesn't seem anything is
+  // using this field at time of writing.  It's not displaying the start
+  // of the expression, just where it is--which is poor for debugging.
+  // That should be fixed, along with general debugging design.
+
     uintptr_t expr_index;
 
-    Option(StackIndex) stackindex_circled;  // used only by multi-return
+  // used only by multi-return
+
+    Option(StackIndex) stackindex_circled;
+
 } EvaluatorExecutorState;
 
 
@@ -210,10 +215,10 @@ typedef enum {
 
     ST_STEPPER_LOOKING_AHEAD,
     ST_STEPPER_REEVALUATING,
-    ST_STEPPER_CALCULATING_INTRINSIC_ARG,
+    ST_STEPPER_FULFILLING_INTRINSIC_ARG,
 
-    ST_STEPPER_BIND_OPERATOR_EVALUATING,  // $ is the BIND operator
-    ST_STEPPER_IDENTITY_OPERATOR_EVALUATING,  // ^ is the IDENTITY operator
+    ST_STEPPER_BIND_OPERATOR,  // $ is the BIND operator
+    ST_STEPPER_IDENTITY_OPERATOR,  // ^ is the IDENTITY operator
 
     ST_STEPPER_GET_WORD,
     ST_STEPPER_GET_TUPLE,

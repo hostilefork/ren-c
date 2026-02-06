@@ -233,110 +233,29 @@ Bounce Stepper_Executor(Level* L)
     assert(TOP_INDEX >= STACK_BASE);  // e.g. REDUCE accrues
     assert(OUT != SPARE);  // overwritten by temporary calculations
 
-    // Given how the evaluator is written, it's inevitable that there will
-    // have to be a test for points to `goto` before running normal eval.
-    // This cost is paid on every entry to Eval_Core().
-    //
+  switch_on_state_byte: {
+
+  // Given how the evaluator is written, it's inevitable that there has to be
+  // a test for points to `goto` before running normal eval.  This cost is
+  // paid on every entry to Stepper_Executor().
+  //
+  // The STATE byte states are a superset of TYPE_XXX bytes, because when the
+  // type is calculated it is stored in STATE.
+
     switch (STATE) {
-      case ST_STEPPER_INITIAL_ENTRY:
-        goto start_new_expression;
+      case ST_STEPPER_INITIAL_ENTRY: goto start_new_expression;
+      case ST_STEPPER_LOOKING_AHEAD: goto lookahead;
+      case ST_STEPPER_REEVALUATING: goto reevaluate;
+      case ST_STEPPER_FULFILLING_INTRINSIC_ARG: goto intrinsic_arg_in_spare;
+      case ST_STEPPER_SET_GROUP: goto set_group_result_in_spare;
+      case ST_STEPPER_GENERIC_SET: goto generic_set_rightside_in_out;
+      case ST_STEPPER_SET_BLOCK: goto set_block_rightside_in_out;
 
-      case ST_STEPPER_LOOKING_AHEAD:
-        goto lookahead;
+      case TYPE_GROUP: goto group_or_meta_group_result_in_out;
+      case TYPE_FRAME: goto action_result_in_out;
 
-      case ST_STEPPER_REEVALUATING: {  // v-- IMPORTANT: Keep STATE
-        //
-        // It's important to leave STATE as ST_STEPPER_REEVALUATING
-        // during the switch state, because that's how the evaluator knows
-        // not to redundantly apply LET bindings.  See `L_binding` above.
-
-        // Note: What if the re-evaluate functionality doesn't want to heed
-        // the infix state in the action itself?
-        //
-        Erase_Cell(OUT);
-        Force_Invalidate_Gotten(L_current_gotten_raw);  // !!! require pass in?
-        goto look_ahead_for_left_literal_infix; }
-
-    #if (! DEBUG_DISABLE_INTRINSICS)
-      intrinsic_arg_in_spare:
-      case ST_STEPPER_CALCULATING_INTRINSIC_ARG: {
-        Details* details = Ensure_Frame_Details(CURRENT);
-
-        Param* param = Phase_Params_Head(details);
-        if (
-            Is_Cell_A_Veto_Hot_Potato(SPARE)
-            and Not_Parameter_Flag(param, WANT_VETO)
-        ){
-            Init_Null_Signifying_Vetoed(OUT);
-            Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
-            goto lookahead;
-        }
-        if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(SPARE)) {
-            Init_Null(SPARE);
-        }
-        else if (Parameter_Class(param) != PARAMCLASS_META) {
-          require (
-            Decay_If_Unstable(SPARE)  // decay may eval, do before intrinsic
-          );
-        }
-
-        Dispatcher* dispatcher = Details_Dispatcher(details);
-
-        assert(Not_Level_Flag(L, DISPATCHING_INTRINSIC));
-        Set_Level_Flag(L, DISPATCHING_INTRINSIC);  // level_ is not its Level
-        dont(Set_Level_Flag(L, RUNNING_TYPECHECK));  // want panic if bad args
-
-        Bounce b = Apply_Cfunc(dispatcher, L);
-
-     #if RUNTIME_CHECKS
-        if (
-            b != nullptr
-            and b != BOUNCE_OKAY
-            and Is_Intrinsic_Typechecker(details)
-        ){
-            panic ("Intrinsic typechecker overwrote output cell");
-        }
-      #endif
-
-        b = opt Irreducible_Bounce(L, b);
-        if (b)  // can't BOUNCE_CONTINUE etc. from an intrinsic dispatch
-            panic ("Intrinsic dispatcher returned Irreducible Bounce");
-
-        if (
-            Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY)
-            and Not_Cell_Flag(CURRENT, WEIRD_VANISHABLE)
-            and Is_Void(OUT)
-        ){
-            Note_Level_Out_As_Void_To_Make_Heavy(L);
-        }
-
-        Clear_Level_Flag(L, DISPATCHING_INTRINSIC);
-        if (Not_Details_Flag(details, PURE))
-            Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
-        goto lookahead; }
-      #endif
-
-      case TYPE_GROUP:
-        goto group_or_meta_group_result_in_out;
-
-      case ST_STEPPER_SET_GROUP:
-        goto set_group_result_in_spare;
-
-      case ST_STEPPER_GENERIC_SET:
-        goto generic_set_rightside_in_out;
-
-      case ST_STEPPER_SET_BLOCK:
-        goto set_block_rightside_in_out;
-
-      case TYPE_FRAME:
-        Drop_Level(SUBLEVEL);  // could in theory examine action level here
-        goto lookahead;
-
-      case ST_STEPPER_BIND_OPERATOR_EVALUATING:
-        goto bind_operator_rightside_in_out;
-
-      case ST_STEPPER_IDENTITY_OPERATOR_EVALUATING:
-        goto identity_operator_rightside_in_out;
+      case ST_STEPPER_BIND_OPERATOR: goto bind_rightside_in_out;
+      case ST_STEPPER_IDENTITY_OPERATOR: goto identity_rightside_in_out;
 
     #if RUNTIME_CHECKS
       case ST_STEPPER_FINISHED_DEBUG:
@@ -344,11 +263,10 @@ Bounce Stepper_Executor(Level* L)
         break;
     #endif
 
-      default:
-        assert(false);
+      default: assert(false);
     }
 
-  start_new_expression: {  ///////////////////////////////////////////////////
+} start_new_expression: {  ///////////////////////////////////////////////////
 
   // This point is jumped to on initial entry, but also in optimized modes
   // when a BLANK! (comma) is encountered.  There's also a hook that notices
@@ -382,30 +300,58 @@ Bounce Stepper_Executor(Level* L)
     Copy_Cell(CURRENT, As_Element(L_next));
     Fetch_Next_In_Feed(L->feed);
 
-} look_ahead_for_left_literal_infix: { ///////////////////////////////////////
+} reevaluate: { //////////////////////////////////////////////////////////////
 
-    // The first thing we do in an evaluation step has to be to look ahead for
-    // any function that takes its left hand side literally.  Arrow functions
-    // are a good example:
-    //
-    //     >> x: does [print "Running X the function"]
-    //
-    //     >> all [1 2 3] then x -> [print "Result of ALL was" x]
-    //     Result of ALL was 3
-    //
-    // When we moved on from THEN to evaluate X, it had to notice that -> is
-    // an infix function that takes its first argument literally.  That meant
-    // running the X function is suppressed, and instead the X word! gets
-    // passed as the first argument to ->
-    //
-    // 1. REEVALUATE jumps here.  Note that jumping to this label doesn't
-    //    advance the expression index, so as far as error messages and such
-    //    are concerned, `reeval x` will still start with `reeval`.
-    //
-    // 2. !!! Using L_binding here instead of Feed_Binding(L->feed) seems to
-    //    break `let x: me + 1`, due to something about the conditionality on
-    //    reevaluation.  L_binding's conditionality should be reviewed for
-    //    relevance in the modern binding model.
+  // REEVALUATE jumps here.  Note that jumping to this label doesn't advance
+  // the expression index, so as far as error messages and such are concerned,
+  // `reeval x` will still start with `reeval`.
+
+    Erase_Cell(OUT);
+    Force_Invalidate_Gotten(L_current_gotten_raw);  // !!! require pass in?
+
+} lookahead_for_left_literal_infix: {
+
+  // The first thing we do in an evaluation step has to be to look ahead for
+  // any function that takes its left hand side literally.  Arrow functions
+  // are a good example:
+  //
+  //      >> x: does [print "Running X the function"]
+  //
+  //      >> x -> [print ["x is" x]]
+  //      == ~\...\~  ; antiform (action!)
+  //
+  // The X did not get a chance to run before the -> looked back.
+  //
+  // However, there needs to be special handling for assignments, which
+  // effectively start a new expression:
+  //
+  //      t: type of x
+  //
+  // We don't want our "first offer" in such a case to be to offer the `t:`
+  // to TYPE.  This wastes a lookup of the binding of TYPE (which the OF
+  // function doesn't care about).  But also, that lookup means that such
+  // expressions couldn't be used in pure functions--because the unnecessary
+  // observation of TYPE could be some stray variable that's not in the pure
+  // function's legal observable scope.
+  //
+  // However, we DO want left-literal constructs like DEFAULT:
+  //
+  //     >> x: null
+  //
+  //     >> x: default [1000 + 20]
+  //     == 1020
+  //
+  //     >> x: default [300 + 4]
+  //     == 1020
+  //
+  // Hence if we see the specific pattern SET-WORD WORD1 WORD2 we are in a
+  // special situation.  We may want to get past this section normally with
+  // SET-WORD as CURRENT, WORD1 as L_next, and WORD2 waiting in the wings.
+  // Or we may want SET-WORD in out, with the WORD1 getting it as its left
+  // hand argument for infix.  Or we may want to be in a level continuation
+  // with WORD1 in out, and WORD2 waiting.
+  //
+  // !!! This mechanic is TBD.
 
     if (Is_Feed_At_End(L->feed))
         goto give_up_backward_quote_priority;
@@ -475,10 +421,7 @@ Bounce Stepper_Executor(Level* L)
         goto give_up_backward_quote_priority;
     }
 
-    goto check_first_infix_parameter_class;
-
-
-  check_first_infix_parameter_class: { ///////////////////////////////////////
+  check_first_infix_parameter_class: {
 
     // 1. Lookback args are fetched from OUT, then copied into an arg slot.
     //    Put the backwards quoted value into OUT.  (Do this before next
@@ -532,10 +475,7 @@ Bounce Stepper_Executor(Level* L)
         goto handle_path_where_action_lookups_are_active;
     }
 
-    goto right_hand_literal_infix_wins;
-
-
-} right_hand_literal_infix_wins: { ///////////////////////////////////////////
+} right_hand_literal_infix_wins: {
 
     require (
       Level* sub = Make_Action_Sublevel(L_current_gotten_raw)
@@ -549,7 +489,7 @@ Bounce Stepper_Executor(Level* L)
     goto process_action;
 
 
-}} give_up_backward_quote_priority: {
+}} give_up_backward_quote_priority: { ///////////////////////////////////////
 
     assert(Is_Cell_Erased(OUT));
 
@@ -722,12 +662,12 @@ Bounce Stepper_Executor(Level* L)
 
     Level* right = Maybe_Rightward_Continuation_Needed(L);
     if (not right)
-        goto bind_operator_rightside_in_out;
+        goto bind_rightside_in_out;
 
-    STATE = ST_STEPPER_BIND_OPERATOR_EVALUATING;
+    STATE = ST_STEPPER_BIND_OPERATOR;
     return CONTINUE_SUBLEVEL(right);
 
-} bind_operator_rightside_in_out: {
+} bind_rightside_in_out: { ///////////////////////////////////////////////////
 
     if (Is_Antiform(OUT))
         panic ("$ operator cannot bind antiforms");
@@ -765,12 +705,12 @@ Bounce Stepper_Executor(Level* L)
 
     Level* right = Maybe_Rightward_Continuation_Needed(L);
     if (not right)
-        goto identity_operator_rightside_in_out;
+        goto identity_rightside_in_out;
 
-    STATE = ST_STEPPER_IDENTITY_OPERATOR_EVALUATING;
+    STATE = ST_STEPPER_IDENTITY_OPERATOR;
     return CONTINUE_SUBLEVEL(right);
 
-} identity_operator_rightside_in_out: {
+} identity_rightside_in_out: {
 
     // !!! Did all the work just by making a not-afraid of voids step?
 
@@ -956,7 +896,6 @@ Bounce Stepper_Executor(Level* L)
     goto start_new_expression;
 
 
-
 } case TYPE_FRAME: { //// FRAME! /////////////////////////////////////////////
 
     // If a FRAME! makes it to the SWITCH statement, that means it is either
@@ -994,6 +933,10 @@ Bounce Stepper_Executor(Level* L)
     STATE = cast(StepperState, TYPE_FRAME);
     return CONTINUE_SUBLEVEL(TOP_LEVEL);
 
+} action_result_in_out: {
+
+    Drop_Level(SUBLEVEL);  // could in theory examine action level here
+    goto lookahead;
 
 } case TYPE_WORD: { //// WORD! ///////////////////////////////////////////////
 
@@ -1145,7 +1088,7 @@ Bounce Stepper_Executor(Level* L)
           Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
         );
         Push_Level(Erase_Cell(SPARE), sub);
-        STATE = ST_STEPPER_CALCULATING_INTRINSIC_ARG;
+        STATE = ST_STEPPER_FULFILLING_INTRINSIC_ARG;
         return CONTINUE_SUBLEVEL(sub);
     }
   #endif
@@ -1161,6 +1104,66 @@ Bounce Stepper_Executor(Level* L)
 
     goto process_action;
 
+} intrinsic_arg_in_spare: { /////////////////////////////////////////////////
+
+  #if (! DEBUG_DISABLE_INTRINSICS)
+
+    Details* details = Ensure_Frame_Details(CURRENT);
+
+    Param* param = Phase_Params_Head(details);
+    if (
+        Is_Cell_A_Veto_Hot_Potato(SPARE)
+        and Not_Parameter_Flag(param, WANT_VETO)
+    ){
+        Init_Null_Signifying_Vetoed(OUT);
+        Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
+        goto lookahead;
+    }
+    if (Get_Parameter_Flag(param, UNDO_OPT) and Any_Void(SPARE)) {
+        Init_Null(SPARE);
+    }
+    else if (Parameter_Class(param) != PARAMCLASS_META) {
+      require (
+        Decay_If_Unstable(SPARE)  // decay may eval, do before intrinsic
+      );
+    }
+
+    Dispatcher* dispatcher = Details_Dispatcher(details);
+
+    assert(Not_Level_Flag(L, DISPATCHING_INTRINSIC));
+    Set_Level_Flag(L, DISPATCHING_INTRINSIC);  // level_ is not its Level
+    dont(Set_Level_Flag(L, RUNNING_TYPECHECK));  // want panic if bad args
+
+    Bounce b = Apply_Cfunc(dispatcher, L);
+
+  #if RUNTIME_CHECKS
+    if (
+        b != nullptr
+        and b != BOUNCE_OKAY
+        and Is_Intrinsic_Typechecker(details)
+    ){
+        panic ("Intrinsic typechecker overwrote output cell");
+    }
+  #endif
+
+    b = opt Irreducible_Bounce(L, b);
+    if (b)  // can't BOUNCE_CONTINUE etc. from an intrinsic dispatch
+        panic ("Intrinsic dispatcher returned Irreducible Bounce");
+
+    if (
+        Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY)
+        and Not_Cell_Flag(CURRENT, WEIRD_VANISHABLE)
+        and Is_Void(OUT)
+    ){
+        Note_Level_Out_As_Void_To_Make_Heavy(L);
+    }
+
+    Clear_Level_Flag(L, DISPATCHING_INTRINSIC);
+    if (Not_Details_Flag(details, PURE))
+        Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
+    goto lookahead;
+
+  #endif  // DEBUG_DISABLE_INTRINSICS
 
 } handle_chain_or_meta_chain:  //// CHAIN! [ a:  ^a:  b:c:d  ^:e ] /////////
   case TYPE_CHAIN: {
