@@ -52,7 +52,7 @@ struct ConstifyHelper<T*, TopLevel, void> {  // pointed-to things, any level
 template<typename T, bool TopLevel>
 struct ConstifyHelper<T* const, TopLevel, void> {  // pointer *itself* is const
     using consted = const T* const;
-    using unconsted = remove_const_t<T>* const;
+    using unconsted = remove_const_t<T>*;  // was *const, caused problems (?)
 };
 
 template<typename Ret, typename... Args>

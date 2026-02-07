@@ -1059,6 +1059,63 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
     u_cast(Context*, nullptr)  // using a stub did not improve performance [1]
 
 
+//=//// CELL TRANSFER TYPE VALIDATION (COMPILE-TIME ONLY) /////////////////=//
+//
+// This is a shared utility for Cell Copying, Moving, and Blitting.  It does
+// compile-time validation of passed-in Cell subclasses via static_assert().
+// It does all its work at compile-time, meaning zero runtime overhead--even
+// in debug builds (compared to a function-template-based approach).
+//
+// For example: consider you are trying to copy a `const Element*` into a
+// `Value*` cell.  That's legal--because any state an Element can hold can be
+// put into a Value.  So we don't want the static_assert() to fail, and also
+// want to calculate the return type as a NON-CONST `Element*`, which is the
+// view we give back on the filled Value* cell (since we know we just put an
+// Element into it).
+//
+// On the other hand: if you tried to do the reverse (e.g. copy a Value* into
+// an Element*) we would want the static_assert() to fire and stop that from
+// being able to compile.
+//
+// 1. The actual specific rule we use is that if you can pass the destination
+//    type to an Init(T) of the unwrapped source type, the copy is legal.  So
+//    if your Src is `const Element*` and your Dst is `Init(Value)`, it asks
+//    "could I pass Init(Value) to an Init(Element)".  If the answer is yes,
+//    the copy is allowed.
+//
+// 2. Originally Gemini put `typename` inside the C-style cast, which GCC did
+//    not like.  It was convinced you couldn't just use ::RetPtrType in the
+//    macro without a typename, and so proposed this level of indirection.
+//    It doesn't *hurt* to have it, but may be superfluous.
+//
+
+#if DONT_CHECK_CELL_SUBCLASSES
+    #define TransferredCellType(out,v)  Cell*  // no subclasses, all is Cell!
+#else
+    template<typename Dst, typename Src>
+    struct CellTransferValidator {
+        using RetPtrType = needful_unconstify_t(
+            needful_unwrapped_if_wrapped_type(std::remove_reference_t<Src>)
+        );
+
+        static_assert(
+            needful_is_convertible_v(  // this is the actual rule [1]
+                std::remove_reference_t<Dst>,
+                needful::InitWrapper<RetPtrType>
+            ),
+            "CellTransferValidator: Dst must be convertible to Init(Src)"
+        );
+    };
+
+    template<typename Dst, typename Src>  // Gemini thinks we need this [2]
+    using TransferredCellTypeHelper =
+        typename CellTransferValidator<Dst, Src>::RetPtrType;
+
+    #define TransferredCellType(out,v) \
+        TransferredCellTypeHelper<decltype(out), decltype(v)>
+#endif
+
+
 //=//// COPYING CELLS /////////////////////////////////////////////////////=//
 //
 // Because you cannot assign cells to one another (e.g. `*dest = *src`), a
@@ -1075,23 +1132,12 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
 //    This was discovered by trying to force callers to pass in an already
 //    freshened cell and seeing things get more complicated for no benefit.
 //
-// 2. When you're using CHECK_CELL_SUBCLASSES, the rule we use is that if
-//    you could pass the destination type to an Init(T) of the unwrapped
-//    source type, the copy is legal.  So if your Src is `const Element*`
-//    and your Dst is `Init(Value)`, it asks "could I pass Init(Value) to
-//    an Init(Element)".  If the answer is yes, the copy is allowed.
-//
-// 3. C++ doesn't really do templated cast operators, and so the loophole
-//    we use to get arbitrary contravariant casts is to build in a void*
-//    cast to the wrappers as a back door to doing casts.  We trust this
-//    is safe due to the check done in [3], and it's because of this that
-//    OnStackPointer<T> can be supported by Copy_Cell()
-//
-// 4. Depending on the debug situation, you may be looking for where a Cell
+// 2. Depending on the debug situation, you may be looking for where a Cell
 //    was last copied to, or where the Cell was originally initialized.
 //    The default is knowing the last point touched--but you can change this
 //    using the DEBUG_TRACK_COPY_PRESERVES setting, in which case MAYBE_TRACK
 //    is a no-op and the information inside the Cell is migrated.
+//
 
 #define CELL_MASK_COPY \
     ~(CELL_MASK_PERSIST | CELL_FLAG_PROTECTED | CELL_FLAG_NOTE)
@@ -1124,34 +1170,15 @@ INLINE Cell* Copy_Cell_Core_Untracked(
     return out;
 }
 
-#if DONT_CHECK_CELL_SUBCLASSES
-    #define Copy_Cell_Untracked(out,v) \
-        Copy_Cell_Core_Untracked((out), (v), CELL_MASK_COPY)
-#else
-    template<
-        typename Src,
-        typename Dst,
-        typename RetPtr = needful_unconstify_t(
-            needful_unwrapped_if_wrapped_type(Src)
-        ),
-        typename std::enable_if<  // InitWrapper b.c. Init has pointer implicit
-            needful_is_convertible_v(Dst, needful::InitWrapper<RetPtr>)  // [2]
-        >::type* = nullptr
-    >
-    INLINE RetPtr Copy_Cell_Untracked(
-        Dst&& out,  // && so Sink(T) won't "double-corrupt" (just wasteful)
-        const Src& v  // const & so Sink(T) doesn't "re corrupt" (broken!)
-    ) {
-        Copy_Cell_Core_Untracked(out, v, CELL_MASK_COPY);
-        return x_cast(RetPtr, x_cast(void*, out));  // e.g. OnStackPointer [3]
-    }
-#endif
+#define Copy_Cell_Untracked(out, v) \
+    x_cast(TransferredCellType((out), (v)), \
+        Copy_Cell_Core_Untracked((out), (v), CELL_MASK_COPY))
 
 #define Copy_Cell_Core(out,v,copy_mask) \
-    MAYBE_TRACK(Copy_Cell_Core_Untracked((out), (v), (copy_mask)))  // [4]
+    MAYBE_TRACK(Copy_Cell_Core_Untracked((out), (v), (copy_mask)))  // [2]
 
 #define Copy_Cell(out,v) \
-    MAYBE_TRACK(Copy_Cell_Untracked((out), (v)))  // [4]
+    MAYBE_TRACK(Copy_Cell_Untracked((out), (v)))  // [2]
 
 
 //=//// CELL MOVEMENT //////////////////////////////////////////////////////=//
@@ -1189,28 +1216,9 @@ INLINE Cell* Move_Cell_Core_Untracked(Cell* out, Cell* c, Flags copy_mask)
     return out;
 }
 
-#if DONT_CHECK_CELL_SUBCLASSES
-    #define Move_Cell_Untracked(out,v) \
-        Move_Cell_Core_Untracked((out), (v), CELL_MASK_COPY)
-#else
-   template<
-        typename Src,
-        typename Dst,
-        typename RetPtr = needful_unconstify_t(
-            needful_unwrapped_if_wrapped_type(Src)
-        ),
-        typename std::enable_if<  // see Copy_Cell() notes
-            needful_is_convertible_v(Dst, needful::InitWrapper<RetPtr>)
-        >::type* = nullptr
-    >
-    INLINE RetPtr Move_Cell_Untracked(
-        Dst&& out,  // && so Sink(T) won't "double-corrupt" (just wasteful)
-        const Src& v  // const & so Sink(T) doesn't "re corrupt" (broken!)
-    ) {
-        Move_Cell_Core_Untracked(out, v, CELL_MASK_COPY);
-        return x_cast(RetPtr, x_cast(void*, out));  // see Copy_Cell() notes
-    }
-#endif
+#define Move_Cell_Untracked(out, v) \
+    x_cast(TransferredCellType((out), (v)), \
+        Move_Cell_Core_Untracked((out), (v), CELL_MASK_COPY))
 
 #define Move_Cell_Core(out,v,copy_mask) \
     MAYBE_TRACK(Move_Cell_Core_Untracked( \
