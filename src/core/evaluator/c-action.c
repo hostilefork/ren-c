@@ -686,7 +686,7 @@ Bounce Action_Executor(Level* L)
             possibly(Is_Light_Null(ARG));  // !!! review
             Push_Level(Erase_Cell(ARG), sub);
 
-            return CONTINUE_SUBLEVEL(sub); }
+            return CONTINUE_SUBLEVEL; }
 
   //=//// LITERAL ARG-OR-REFINEMENT-ARG ///////////////////////////////////=//
 
@@ -762,7 +762,7 @@ Bounce Action_Executor(Level* L)
                 );
                 dont(Erase_Cell(ARG));  // LEVEL_STATE_BYTE is not STATE_0
                 Push_Level(ARG, sub);
-                return CONTINUE_SUBLEVEL(sub);
+                return CONTINUE_SUBLEVEL;
             }
             else if (Is_Soft_Escapable_Group(cast(Element*, ARG))) {
                 //

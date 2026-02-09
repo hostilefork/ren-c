@@ -221,7 +221,7 @@ Bounce Cascader_Executor(Level* const L)
     Clear_Executor_Flag(ACTION, sub, IN_DISPATCH);
 
     assert(STATE == ST_CASCADER_RUNNING_SUBFUNCTION);
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } finished: {  ///////////////////////////////////////////////////////////////
 

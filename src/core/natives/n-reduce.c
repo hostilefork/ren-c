@@ -192,7 +192,7 @@ DECLARE_NATIVE(REDUCE)
 
     Copy_Cell(Evaluator_Level_Current(sub), v);
 
-    return DELEGATE_SUBLEVEL(sub);
+    return DELEGATE_SUBLEVEL;
 
 } initial_entry_list: {  /////////////////////////////////////////////////////
 
@@ -235,7 +235,7 @@ DECLARE_NATIVE(REDUCE)
     SUBLEVEL->executor = &Stepper_Executor;
     STATE = ST_REDUCE_EVAL_STEP;
     Reset_Evaluator_Erase_Out(SUBLEVEL);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } reduce_step_result_in_spare: { /////////////////////////////////////////////
 
@@ -500,7 +500,7 @@ DECLARE_NATIVE(REDUCE_EACH)
 
     STATE = ST_REDUCE_EACH_REDUCING_STEP;
     Reset_Evaluator_Erase_Out(SUBLEVEL);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } reduce_step_result_in_spare: {  ////////////////////////////////////////////
 

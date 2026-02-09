@@ -247,7 +247,7 @@ DECLARE_NATIVE(SHOVE)
     );
     dont(Erase_Cell(OUT));  // infix wants OUT, LEVEL_STATE_BYTE not STATE_0
     Push_Level(OUT, sub);
-    return DELEGATE_SUBLEVEL(sub);
+    return DELEGATE_SUBLEVEL;
 }
 
 
@@ -399,7 +399,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
     Push_Level(OUT, sub);
 
     if (not ARG(STEP))  // plain evaluation to end, maybe void/none
-        return DELEGATE_SUBLEVEL(sub);
+        return DELEGATE_SUBLEVEL;
 
     Set_Level_Flag(sub, TRAMPOLINE_KEEPALIVE);  // to ask how far it got
 
@@ -409,7 +409,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
     }
 
     STATE = ST_EVALUATE_SINGLE_STEPPING;
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } initial_entry_frame: { /////////////////////////////////////////////////////
 
@@ -478,7 +478,7 @@ DECLARE_NATIVE(EVALUATE)  // synonym as EVAL in mezzanine
     ));
     definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
     Push_Level(OUT, sub);
-    return DELEGATE_SUBLEVEL(sub);
+    return DELEGATE_SUBLEVEL;
 
 } single_step_result_in_out: {  //////////////////////////////////////////////
 
@@ -589,7 +589,7 @@ DECLARE_NATIVE(EVAL_FREE)
     Push_Level(OUT, L);
 
     STATE = ST_EVAL_FREE_EVALUATING;
-    return CONTINUE_SUBLEVEL(L);
+    return CONTINUE_SUBLEVEL;
 
 } result_in_out: { ///////////////////////////////////////////////////////////
 
@@ -901,7 +901,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
   #endif
 
     Reset_Evaluator_Erase_Out(SUBLEVEL);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } labeled_step_result_in_spare: {  ///////////////////////////////////////////
 
@@ -1139,5 +1139,5 @@ DECLARE_NATIVE(RUN)
     require (
       Push_Action(sub, action, PREFIX_0)
     );
-    return DELEGATE_SUBLEVEL(sub);
+    return DELEGATE_SUBLEVEL;
 }

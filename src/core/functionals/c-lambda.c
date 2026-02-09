@@ -151,7 +151,7 @@ Bounce Lambda_Dispatcher(Level* const L)
 
     if (Is_Space(unwrap result_param)) {
         STATE = ST_LAMBDA_DIVERGER_EXECUTING;
-        return CONTINUE_SUBLEVEL(sub);
+        return CONTINUE_SUBLEVEL;
     }
 
     STATE = ST_LAMBDA_LAMBDA_EXECUTING;
@@ -159,7 +159,7 @@ Bounce Lambda_Dispatcher(Level* const L)
     if (Is_Parameter_Unconstrained(unwrap result_param))
         return BOUNCE_DELEGATE;  // also no typecheck needed
 
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } lambda_finished: { /////////////////////////////////////////////////////////
 

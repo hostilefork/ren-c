@@ -178,7 +178,7 @@ Bounce Inliner_Dispatcher(Level* const L)
     );
     Push_Level(Erase_Cell(OUT), sub);
 
-    return DELEGATE_SUBLEVEL(sub);
+    return DELEGATE_SUBLEVEL;
 }}
 
 
@@ -278,5 +278,5 @@ DECLARE_NATIVE(INLINE)
     );
     Push_Level(Erase_Cell(OUT), sub);
 
-    return DELEGATE_SUBLEVEL(sub);
+    return DELEGATE_SUBLEVEL;
 }}

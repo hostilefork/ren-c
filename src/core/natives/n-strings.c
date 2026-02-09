@@ -341,7 +341,7 @@ DECLARE_NATIVE(JOIN)
         goto finish_stack_join;
 
     STATE = ST_JOIN_STACK_STEPPING;
-    return CONTINUE_SUBLEVEL(sub);  // no special source rules
+    return CONTINUE_SUBLEVEL;  // no special source rules
 
 }} next_mold_step: { /////////////////////////////////////////////////////////
 
@@ -430,7 +430,7 @@ DECLARE_NATIVE(JOIN)
 
     SUBLEVEL->baseline.stack_base = TOP_INDEX;
     STATE = ST_JOIN_MOLD_STEPPING;
-    return CONTINUE_SUBLEVEL(sub);  // just evaluate it
+    return CONTINUE_SUBLEVEL;  // just evaluate it
 
 } mold_step_result_in_spare: { ///////////////////////////////////////////////
 
@@ -506,7 +506,7 @@ DECLARE_NATIVE(JOIN)
     Reset_Evaluator_Erase_Out(sub);
     /* Clear_Level_Flag(LEVEL, DELIMIT_MOLD_RESULT); */
 
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } stack_step_result_in_spare: { //////////////////////////////////////////////
 

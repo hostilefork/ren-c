@@ -241,7 +241,7 @@ Bounce Hijacker_Dispatcher(Level* const L)
     // the hijacking...and has to be remapped.
     //
     Push_Redo_Action_Level(OUT, L, hijacker_frame);
-    return DELEGATE_SUBLEVEL(TOP_LEVEL);
+    return DELEGATE_SUBLEVEL;
 }
 
 

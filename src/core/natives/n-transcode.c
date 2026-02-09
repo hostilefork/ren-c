@@ -210,7 +210,7 @@ DECLARE_NATIVE(TRANSCODE)
     definitely(Is_Cell_Erased(OUT));  // we used it, but cleared it
     Push_Level(OUT, sub);
     STATE = ST_TRANSCODE_SCANNING;
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } not_initial_entry: { //////////////////////////////////////////////////////
 
@@ -268,7 +268,7 @@ DECLARE_NATIVE(TRANSCODE)
             return fail ("Transcode was empty (or all comments)");
         assert(TOP_INDEX == STACK_BASE + 1);
         STATE = ST_TRANSCODE_ENSURE_NO_MORE;
-        return CONTINUE_SUBLEVEL(SUBLEVEL);
+        return CONTINUE_SUBLEVEL;
     }
 
     if (ARG(LINE) and Is_Word(unwrap ARG(LINE))) {  // want line number updated

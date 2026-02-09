@@ -104,7 +104,7 @@ DECLARE_NATIVE(ENRECOVER)
 
     STATE = ST_ENRECOVER_EVALUATING;
     Enable_Dispatcher_Catching_Of_Throws(LEVEL);  // fail not caught by default
-    return CONTINUE_SUBLEVEL(L);
+    return CONTINUE_SUBLEVEL;
 
 } eval_result_in_out: {  /////////////////////////////////////////////////////
 
@@ -190,7 +190,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 
         STATE = ST_ENRESCUE_EVAL_STEPPING;
         unnecessary(Enable_Dispatcher_Catching_Of_Throws(LEVEL));  // [1]
-        return CONTINUE_SUBLEVEL(sub);
+        return CONTINUE_SUBLEVEL;
     }
 
     bool pushed = Pushed_Continuation(
@@ -206,7 +206,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
 
     STATE = ST_ENRESCUE_RUNNING_FRAME;
     unnecessary(Enable_Dispatcher_Catching_Of_Throws(LEVEL));  // [1]
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } eval_result_in_spare: {  ///////////////////////////////////////////////////
 
@@ -229,7 +229,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
         goto finished;
 
     Reset_Evaluator_Erase_Out(SUBLEVEL);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } finished: {  ///////////////////////////////////////////////////////////////
 

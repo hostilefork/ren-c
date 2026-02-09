@@ -413,7 +413,7 @@ DECLARE_NATIVE(OF)
 
     Push_Level(Erase_Cell(OUT), sub);
 
-    return DELEGATE_SUBLEVEL(sub);  // !!! could/should we replace this level?
+    return DELEGATE_SUBLEVEL;  // !!! could/should we replace this level?
 }}
 
 

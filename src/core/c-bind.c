@@ -859,7 +859,7 @@ DECLARE_NATIVE(LET)
     Push_Level(OUT, sub);
 
     STATE = ST_LET_EVAL_STEP;
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } integrate_eval_bindings: {  ////////////////////////////////////////////////
 

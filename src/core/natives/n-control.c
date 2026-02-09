@@ -209,7 +209,7 @@ Bounce Group_Branch_Executor(Level* const L)
     Push_Level(SCRATCH, sub);
 
     STATE = ST_GROUP_BRANCH_RUNNING_GROUP;
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } group_result_in_scratch: {  ////////////////////////////////////////////////
 
@@ -552,7 +552,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
         goto reached_end;
 
     STATE = ST_ANY_ALL_NONE_EVAL_STEP;
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } eval_step_result_in_spare: {  //////////////////////////////////////////////
 
@@ -634,7 +634,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
         goto reached_end;
 
     Reset_Evaluator_Erase_Out(SUBLEVEL);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } reached_end: {  ////////////////////////////////////////////////////////////
 
@@ -801,7 +801,7 @@ DECLARE_NATIVE(CASE)
     SUBLEVEL->executor = &Stepper_Executor;  // undo &Just_Use_Out_Executor
     Reset_Evaluator_Erase_Out(SUBLEVEL);
 
-    return CONTINUE_SUBLEVEL(SUBLEVEL);  // one step to pass predicate [1]
+    return CONTINUE_SUBLEVEL;  // one step to pass predicate [1]
 
 } condition_result_in_spare: {  //////////////////////////////////////////////
 
@@ -1031,7 +1031,7 @@ DECLARE_NATIVE(SWITCH)
     STATE = ST_SWITCH_EVALUATING_RIGHT;
     SUBLEVEL->executor = &Stepper_Executor;
     Reset_Evaluator_Erase_Out(SUBLEVEL);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);  // no direct predicate call [1]
+    return CONTINUE_SUBLEVEL;  // no direct predicate call [1]
 
 } right_result_in_spare: {  //////////////////////////////////////////////////
 

@@ -155,7 +155,7 @@ Bounce Evaluator_Executor(Level* const L)
         inapplicable(  // Executor, not a Dispatcher (always catches throws)
             Enable_Dispatcher_Catching_Of_Throws(stepper)
         );
-        return CONTINUE_SUBLEVEL(stepper);
+        return CONTINUE_SUBLEVEL;
     }
 
     stepper = L;

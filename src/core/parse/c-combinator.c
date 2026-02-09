@@ -339,7 +339,7 @@ DECLARE_NATIVE(OPT_COMBINATOR)
     Push_Parser_Sublevel(OUT, remainder, parser, input);
 
     STATE = ST_OPT_COMBINATOR_RUNNING_PARSER;
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } parser_result_in_out: {  ///////////////////////////////////////////////////
 
@@ -473,7 +473,7 @@ DECLARE_NATIVE(SOME_COMBINATOR)
     Push_Parser_Sublevel(OUT, remainder, parser, input);
 
     STATE = ST_SOME_COMBINATOR_FIRST_PARSER_RUN;
-    return CONTINUE_SUBLEVEL(SUBLEVEL);  // mirror usermode [1]
+    return CONTINUE_SUBLEVEL;  // mirror usermode [1]
 
 } first_parse_result_in_out: {  //////////////////////////////////////////////
 
@@ -489,7 +489,7 @@ DECLARE_NATIVE(SOME_COMBINATOR)
     Push_Parser_Sublevel(SPARE, remainder, parser, input);
 
     STATE = ST_SOME_COMBINATOR_LATER_PARSER_RUN;
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } later_parse_result_in_spare: {  ////////////////////////////////////////////
 
@@ -543,7 +543,7 @@ DECLARE_NATIVE(FURTHER_COMBINATOR)
     Push_Parser_Sublevel(OUT, remainder, parser, input);
 
     STATE = ST_FURTHER_COMBINATOR_RUNNING_PARSER;
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } parser_result_in_out: {  ///////////////////////////////////////////////////
 

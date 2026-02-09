@@ -355,7 +355,7 @@ Bounce Composer_Executor(Level* const L)
         if (deep or Any_Sequence_Type(heart)) {  // sequences "same level"
             Push_Composer_Level(OUT, main_level, at, L_binding);
             STATE = ST_COMPOSER_RECURSING_DEEP;
-            return CONTINUE_SUBLEVEL(SUBLEVEL);
+            return CONTINUE_SUBLEVEL;
         }
 
         Copy_Cell(PUSH(), at);  // keep newline flag
@@ -685,7 +685,7 @@ DECLARE_NATIVE(COMPOSE2)
     Push_Composer_Level(OUT, level_, input, binding);
 
     STATE = ST_COMPOSE2_COMPOSING_LIST;
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } list_compose_finished_out_is_null_if_vetoed: {  ////////////////////////////
 
@@ -869,7 +869,7 @@ DECLARE_NATIVE(COMPOSE2)
     Init_Integer(SPARE, start_offset);  // will push in a triple after scan
 
     assert(STATE = ST_COMPOSE2_STRING_SCAN);
-    return CONTINUE_SUBLEVEL(TOP_LEVEL);
+    return CONTINUE_SUBLEVEL;
 
 }}} string_scan_results_on_stack: { //////////////////////////////////////////
 

@@ -2051,7 +2051,7 @@ DECLARE_NATIVE(CONSTRUCT)
     Option(const Symbol*) symbol = Try_Get_Settable_Word_Symbol(nullptr, at);
     if (not symbol) {  // not /foo: or foo:
         STATE = ST_CONSTRUCT_EVAL_STEP;  // plain evaluation
-        return CONTINUE_SUBLEVEL(SUBLEVEL);
+        return CONTINUE_SUBLEVEL;
     }
 
     VarList* varlist = Cell_Varlist(OUT);
@@ -2087,7 +2087,7 @@ DECLARE_NATIVE(CONSTRUCT)
     }
 
     STATE = ST_CONSTRUCT_EVAL_SET_STEP;
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } eval_set_step_result_in_spare: {  //////////////////////////////////////////
 

@@ -189,7 +189,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Port)
     Push_Redo_Action_Level(OUT, level_, SCRATCH);
 
     STATE = ST_TYPE_PORT_RUNNING_ACTOR;
-    return CONTINUE_SUBLEVEL(TOP_LEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } post_process_output: {  ////////////////////////////////////////////////////
 

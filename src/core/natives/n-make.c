@@ -240,7 +240,7 @@ Bounce To_Or_As_Checker_Executor(Level* const L)
 
     Set_Cell_Flag(Level_Spare(L), SPARE_NOTE_REVERSE_CHECKING);
     level_->out = scratch_reverse_atom;  // don't overwrite OUT
-    return CONTINUE_SUBLEVEL(level_);  // wasn't action, no DOWNSHIFT
+    return BOUNCE_CONTINUE;  // wasn't action, no DOWNSHIFT
 
 } ensure_results_equal: {  ///////////////////////////////////////////////////
 

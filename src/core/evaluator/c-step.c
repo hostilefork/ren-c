@@ -774,7 +774,7 @@ Bounce Stepper_Executor(Level* L)
     );
 
     STATE = ST_STEPPER_BIND_OPERATOR;
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } bind_rightside_in_out: { ///////////////////////////////////////////////////
 
@@ -820,7 +820,7 @@ Bounce Stepper_Executor(Level* L)
     );
 
     STATE = ST_STEPPER_IDENTITY_OPERATOR;
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } identity_rightside_in_out: {
 
@@ -1057,7 +1057,7 @@ Bounce Stepper_Executor(Level* L)
     // eval calls that lookahead, but no lookahead after the action runs)
 
     STATE = cast(StepperState, TYPE_FRAME);
-    return CONTINUE_SUBLEVEL(TOP_LEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } action_result_in_out: {
 
@@ -1223,7 +1223,7 @@ Bounce Stepper_Executor(Level* L)
 
         Erase_Cell(SPARE);
         STATE = ST_STEPPER_FULFILLING_INTRINSIC_ARG;
-        return CONTINUE_SUBLEVEL(SUBLEVEL);
+        return CONTINUE_SUBLEVEL;
     }
   #endif
 
@@ -1342,7 +1342,7 @@ Bounce Stepper_Executor(Level* L)
 
         Erase_Cell(OUT);
         STATE = ST_STEPPER_SET_GROUP;
-        return CONTINUE_SUBLEVEL(SUBLEVEL); }
+        return CONTINUE_SUBLEVEL; }
 
       case LEADING_BLANK_AND(WORD):  // :FOO -turn voids to null
       case LEADING_BLANK_AND(TUPLE): {  // :a.b.c - same
@@ -1425,7 +1425,7 @@ Bounce Stepper_Executor(Level* L)
     );
 
     Erase_Cell(OUT);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } group_or_meta_group_result_in_out: {
 
@@ -1663,7 +1663,7 @@ Bounce Stepper_Executor(Level* L)
       Reuse_Sublevel_Target_Out_For_Step()
     );
 
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } generic_set_rightside_in_out: {
 
@@ -1757,7 +1757,7 @@ Bounce Stepper_Executor(Level* L)
       Reuse_Sublevel_Target_Out_For_Step()
     );
 
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } set_block_rightside_in_out: {  /////////////////////////////////////////////
 

@@ -458,7 +458,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
 
     STATE = ST_MAKE_MAP_EVAL_STEP_KEY;
     Reset_Evaluator_Erase_Out(SUBLEVEL);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } key_step_result_in_out: { //////////////////////////////////////////////////
 
@@ -482,7 +482,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
 
     STATE = ST_MAKE_MAP_EVAL_STEP_VALUE;
     Reset_Evaluator_Erase_Out(SUBLEVEL);
-    return CONTINUE_SUBLEVEL(SUBLEVEL);
+    return CONTINUE_SUBLEVEL;
 
 } value_step_result_in_out: { ////////////////////////////////////////////////
 

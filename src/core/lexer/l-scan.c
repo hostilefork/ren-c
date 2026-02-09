@@ -2474,7 +2474,7 @@ static Bounce Scanner_Executor_Core(Level* const L) {
     );
     unnecessary(Erase_Cell(OUT));  // LEVEL_STATE_BYTE is not STATE_0
     Push_Level(OUT, sub);
-    return CONTINUE_SUBLEVEL(sub);
+    return CONTINUE_SUBLEVEL;
 
 } case TOKEN_BLOCK_END: //// END LIST (']' or '}' or ')') ////////////////////
   case TOKEN_GROUP_END:

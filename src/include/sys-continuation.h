@@ -57,15 +57,9 @@
         LEVEL_FLAG_FORCE_HEAVY_BRANCH | LEVEL_FLAG_VANISHABLE_VOIDS_ONLY, \
         SPECIFIED, __VA_ARGS__)
 
-INLINE void Continue_Sublevel_Helper(Level* L, Level* sub) {
-    assert(sub == TOP_LEVEL);  // currently sub must be pushed & top level
-    UNUSED(sub);
-    UNUSED(L);
-}
 
-#define CONTINUE_SUBLEVEL(sub) \
-    (Continue_Sublevel_Helper(level_, (sub)), \
-        /* <- */ BOUNCE_CONTINUE)
+#define CONTINUE_SUBLEVEL \
+    (assert(SUBLEVEL->prior == level_), BOUNCE_CONTINUE)
 
 
 //=//// DELEGATION HELPER MACROS ///////////////////////////////////////////=//
@@ -105,7 +99,7 @@ INLINE void Continue_Sublevel_Helper(Level* L, Level* sub) {
         LEVEL_FLAG_FORCE_HEAVY_BRANCH, \
         SPECIFIED, __VA_ARGS__)
 
-#define DELEGATE_SUBLEVEL(sub) \
+#define DELEGATE_SUBLEVEL \
     (assert(Not_Executor_Flag(ACTION, level_, DISPATCHER_CATCHES)), \
-        Continue_Sublevel_Helper(level_, (sub)), \
+        assert(SUBLEVEL->prior == level_), \
         /* <- */ BOUNCE_DELEGATE)
