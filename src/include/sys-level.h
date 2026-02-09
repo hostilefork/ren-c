@@ -499,11 +499,7 @@ INLINE void Push_Level_Dont_Inherit_Interruptibility(
   #endif
 
   #if RUNTIME_CHECKS
-    assert(
-        out != &L->feed->gotten
-        and out != &L->spare
-        and out != &L->scratch
-    );
+    assert(out != &L->spare and out != &L->scratch);
     assert(
         Is_Cell_Erased(out)
         or Not_Cell_Readable(out)

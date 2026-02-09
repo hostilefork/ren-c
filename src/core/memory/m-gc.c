@@ -757,10 +757,6 @@ static void Mark_Level(Level* L) {
   //    variadics are reified as arrays in the GC (we could avoid this using
   //    va_copy, but probably not worth it).  All values in feed should be
   //    covered in terms of GC protection.
-  //
-  // 3. It used to be that ->gotten was "kept alive" via At_Level(), but now
-  //    it's possible that it's fully synthetic (e.g. an accessor).  If it's
-  //    synthetic, it has to be marked.
 
     Stub* singular = Feed_Singular(L->feed);  // don't mark Misc Pending [1]
     do {
@@ -775,8 +771,6 @@ static void Mark_Level(Level* L) {
     ){
         Queue_Mark_Base_Deep(&Feed_Data(L->feed)->extra.base);
     }
-
-    Queue_Mark_Maybe_Erased_Cell_Deep(&L->feed->gotten);  // have to mark [3]
 
 } mark_level_cells: {
 

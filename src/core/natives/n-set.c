@@ -147,7 +147,7 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
 
     Element* scratch = As_Element(SCRATCH);
 
-    assert(STATE == ST_STEPPER_SET_BLOCK and Is_Block(scratch));
+    assert(Is_Block(scratch));
 
     possibly(Series_Len_At(scratch) == 0);  // pass through everything [1]
 
@@ -489,8 +489,6 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
   // The `a` was fetched and found to not be infix, and in the process
   // its value was known.  But then we assigned that a with a new value
   // in the implementation of SET-BLOCK! here, so, it's incorrect.
-
-    Invalidate_Gotten(&L->feed->gotten);  // L_next_gotten_raw
 
     Drop_Data_Stack_To(STACK_BASE);  // drop writeback variables
 

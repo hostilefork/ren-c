@@ -168,10 +168,6 @@ typedef struct EvaluatorExecutorStateStruct {
 
     Value primed;
 
-  // !!! costs a Cell... worth it?!
-
-    Stable current_gotten;
-
   // The error reporting machinery doesn't want where `index` is right now,
   // but where it was at the beginning of a single EVALUATE step.
   //

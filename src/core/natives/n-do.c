@@ -62,7 +62,6 @@ DECLARE_NATIVE(REEVAL)
       Level* sub = Make_Level(&Stepper_Executor, level_->feed, flags)
     );
     Copy_Cell(Evaluator_Level_Current(sub), v);  // evaluator's CURRENT
-    Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
 
     definitely(Is_Cell_Erased(OUT));  // we are in STATE_0
     Push_Level(OUT, sub);  // review: rewrite stackless

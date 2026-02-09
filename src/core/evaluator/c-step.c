@@ -88,11 +88,6 @@
 #undef At_Level
 #define L_next              cast(const Value*, L->feed->p)
 
-#define L_next_gotten_raw   (&L->feed->gotten)
-#define L_next_gotten  (not Is_Gotten_Invalid(L_next_gotten_raw))
-
-#define L_current_gotten_raw  (&L->u.eval.current_gotten)
-#define L_current_gotten  (not Is_Gotten_Invalid(L_current_gotten_raw))
 
 #undef SCRATCH  // rename for its specific use in the evaluator
 #define CURRENT  u_cast(Element*, &L->scratch)  // no executor check
@@ -122,58 +117,164 @@
 //    us an opportunity to examine the state bits of the action frame before
 //    it gets thrown away--and doesn't cost any more to do so.
 //
-
-inline static Result(Level*) Make_Action_Sublevel_Core(
+static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
     Level* L,
-    const Value* action
+    const Value* action,
+    Option(InfixMode) infix_mode
 ){
+    possibly(action == L->out);
+
+    Level* sub = SUBLEVEL;
+
+    assert(sub->executor == &Just_Use_Out_Executor);
+    assert(sub->feed == L->feed);
+
     Phase *phase = Frame_Phase(action);
     if (Not_Stub_Flag(phase, PHASE_PURE))
         Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
 
-    return Make_Level(&Action_Executor, L->feed,
-        LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK  // [1]
+    sub->executor = &Action_Executor;
+    sub->flags.bits = (
+        LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
+            | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
+            | LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK  // [1]
             | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // [2]
-            | (Get_Cell_Flag((action), WEIRD_VANISHABLE) ? 0
-                : (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)));
+            | (Get_Cell_Flag(action, WEIRD_VANISHABLE) ? 0
+                : (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY))
+    );
+    sub->out = L->out;
+
+    trap (
+      Push_Action(sub, action, infix_mode)
+    );
+
+    return none;
 }
 
-#define Make_Action_Sublevel(action) \
-    Make_Action_Sublevel_Core(L, (action))
+#define Reuse_Sublevel_Target_Out_For_Action(action,infix_mode) \
+    Reuse_Sublevel_Target_Out_For_Action_Core(L, (action), (infix_mode))
+
+
+static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
+    Level* L,
+    const Element* list
+){
+    Level* sub = SUBLEVEL;
+
+    assert(sub->executor == &Just_Use_Out_Executor);
+    assert(sub->feed == L->feed);  // we change it, and change back later
+
+    sub->executor = &Evaluator_Executor;
+
+    sub->flags.bits = (
+        LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
+            | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
+            | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // group semantics [1]
+    );
+
+    sub->out = L->out;
+
+  trap (
+    Feed* feed = Prep_At_Feed(
+        Alloc_Feed(),
+        list,
+        L_binding,
+        L->feed->flags.bits  // inherit L's const feed bit
+    )
+  );
+    Release_Feed(sub->feed);
+    sub->feed = feed;
+    Add_Feed_Reference(sub->feed);
+
+    Erase_Cell(Level_Spare(sub));
+    Erase_Cell(Level_Scratch(sub));
+
+    return none;
+}
+
+#define Reuse_Sublevel_Target_Out_For_Eval(list) \
+    Reuse_Sublevel_Target_Out_For_Eval_Core(L, (list))
+
+
+// 1. L's SPARE is where we are storing the lookahead for the next value.  It
+//    may be--if it's not a function--that this is the value we want, but
+//    that depends on lookahead.  We *should* be feeding that ahead as the
+//    intrinsic's argument.  This implies wanting an entry mode where we
+//    already have the lookahead in SPARE.
+//
+static Result(None) Reuse_Sublevel_Target_Spare_For_Intrinsic_Arg_Core(
+    Level* L
+){
+    Level* sub = SUBLEVEL;
+
+    assert(sub->executor == &Just_Use_Out_Executor);
+    assert(sub->feed == L->feed);
+
+    sub->executor = &Stepper_Executor;
+
+    sub->flags.bits = (
+        LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
+            | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
+            | EVAL_EXECUTOR_FLAG_FULFILLING_ARG
+    );
+    inapplicable(LEVEL_FLAG_VANISHABLE_VOIDS_ONLY);  // single step, not multi
+
+    sub->out = Level_Spare(L);  // targets spare, rethink [1]
+
+    Erase_Cell(Level_Spare(sub));
+    Erase_Cell(Level_Scratch(sub));
+
+    return none;
+}
+
+#define Reuse_Sublevel_Target_Spare_For_Intrinsic_Arg() \
+    Reuse_Sublevel_Target_Spare_For_Intrinsic_Arg_Core(L)
 
 
 //
-// SET-WORD! and SET-TUPLE! want to do roughly the same thing as the first step
+// SET-XXX! operations want to do roughly the same thing as the first step
 // of their evaluation.  They evaluate the right hand side into L->out.
 //
-// 1. Note that any infix quoting operators that would quote backwards to see
-//    the `x:` would have intercepted it during a lookahead...pre-empting any
-//    of this code.
+// 1. Note that any infix left-literal operators that would look backwards to
+//    see the `x:` would have intercepted it during a lookback...pre-empting
+//    any of this code.
 //
 // 2. Using a SET-XXX! means you always have at least two elements; it's like
 //    an arity-1 function.  `1 + x: whatever ...`.  This overrides the no
 //    lookahead behavior flag right up front.
 //
-INLINE Level* Maybe_Rightward_Continuation_Needed(Level* L)
+INLINE Result(None) Reuse_Sublevel_Target_Out_For_Step_Core(Level* L)
 {
+    Level *sub = SUBLEVEL;
+
+    assert(sub->executor == &Just_Use_Out_Executor);
+    assert(sub->feed == L->feed);
+
     if (Is_Feed_At_End(L->feed))  // `eval [x:]`, `eval [o.x:]`, etc. illegal
-        panic (Error_Need_Non_End(CURRENT));
+        return fail (Error_Need_Non_End(CURRENT));
 
     Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);  // always >= 2 elements [2]
 
-    Flags flags =  // v-- if L was fulfilling, we are
-        (L->flags.bits & EVAL_EXECUTOR_FLAG_FULFILLING_ARG);
+    sub->executor = &Stepper_Executor;
 
-    require (
-      Level* sub = Make_Level(
-        &Stepper_Executor,
-        L->feed,
-        flags  // inert optimize adjusted the flags to jump in mid-eval
-    ));
-    Push_Level(Erase_Cell(OUT), sub);
+    sub->flags.bits = (
+        LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
+            | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // v-- if L fulfilling, we are
+            | (L->flags.bits & EVAL_EXECUTOR_FLAG_FULFILLING_ARG)
+    );
+    inapplicable(LEVEL_FLAG_VANISHABLE_VOIDS_ONLY);  // single step, not multi
 
-    return sub;
+    assert(Is_Cell_Erased(L->out));
+    sub->out = L->out;
+
+    Erase_Cell(Level_Spare(sub));
+    Erase_Cell(Level_Scratch(sub));
+
+    return none;
 }
+
+#define Reuse_Sublevel_Target_Out_For_Step() \
+    Reuse_Sublevel_Target_Out_For_Step_Core(L)
 
 
 //
@@ -225,8 +326,6 @@ Bounce Inert_Stepper_Executor(Level* L)
 //
 Bounce Stepper_Executor(Level* L)
 {
-    assert(OUT != &L->feed->gotten);
-
     if (THROWING)
         return THROWN;  // no state to clean up
 
@@ -243,11 +342,11 @@ Bounce Stepper_Executor(Level* L)
   // type is calculated it is stored in STATE.
 
     switch (STATE) {
-      case ST_STEPPER_INITIAL_ENTRY: goto start_new_expression;
+      case ST_STEPPER_INITIAL_ENTRY: goto initial_entry;
       case ST_STEPPER_LOOKING_AHEAD: goto lookahead;
       case ST_STEPPER_REEVALUATING: goto reevaluate;
       case ST_STEPPER_FULFILLING_INTRINSIC_ARG: goto intrinsic_arg_in_spare;
-      case ST_STEPPER_SET_GROUP: goto set_group_result_in_spare;
+      case ST_STEPPER_SET_GROUP: goto set_group_result_in_out;
       case ST_STEPPER_GENERIC_SET: goto generic_set_rightside_in_out;
       case ST_STEPPER_SET_BLOCK: goto set_block_rightside_in_out;
 
@@ -266,12 +365,35 @@ Bounce Stepper_Executor(Level* L)
       default: assert(false);
     }
 
+} initial_entry: {
+
+  // We'll almost always need to create a new Level when doing an evaluation
+  // step--even for a simple case like an INTEGER!--because we need a place
+  // to do infix lookaheads without disturbing the output cell.  The only
+  // case where this would not be true would be a single step evaluation with
+  // a NO_LOOKAHEAD flag.
+  //
+  // To make the invariants easier, we always push a Level that can be used
+  // by whatever processing that we do--.
+
+    require (  // for the sake of simpler invariants, always push a Level
+      Level* sub = Make_Level(
+        &Just_Use_Out_Executor,
+        L->feed,  // feed *usually* L->feed, but GROUP!/etc. may change it
+        LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // flags overwritten
+      )
+    );
+    Push_Level(SPARE, sub);  // by default target spare (this can change)
+    definitely(sub == SUBLEVEL);
+    goto start_new_expression;
+
 } start_new_expression: {  ///////////////////////////////////////////////////
 
   // This point is jumped to on initial entry, but also in optimized modes
-  // when a BLANK! (comma) is encountered.  There's also a hook that notices
-  // when you hit a C-DEBUG-BREAK invocation, and rather than going through
-  // running an ACTION! it just jumps back up to here.
+  // when a BLANK! ("comma" or "blank line") is encountered.  There's also a
+  // hook that notices a C-DEBUG-BREAK invocation, and rather than going
+  // through running an ACTION! it just jumps back up to here to give a direct
+  // opportunity to debug the next step (without unwinding an ACTION! Level).
 
     Sync_Feed_At_Cell_Or_End_May_Panic(L->feed);
 
@@ -285,20 +407,19 @@ Bounce Stepper_Executor(Level* L)
     assert(Not_Level_At_End(L));
 
   #if RUNTIME_CHECKS
-    Evaluator_Expression_Checks_Debug(L);
+    Stepper_Start_New_Expression_Checks(L);
   #endif
 
     Update_Expression_Start(L);  // !!! See Level_Array_Index() for caveats
 
-    Force_Blit_Cell(  // Lookback clears it
-        L_current_gotten_raw, L_next_gotten_raw
-    );
-
     if (Is_Antiform(L_next))
         panic ("Antiform passed in through API, must use @ or ^ operators");
 
+    possibly(Not_Cell_Erased(CURRENT));  // erasure is unnecessary invariant
     Copy_Cell(CURRENT, As_Element(L_next));
     Fetch_Next_In_Feed(L->feed);
+
+    goto lookahead_for_left_literal_infix;
 
 } reevaluate: { //////////////////////////////////////////////////////////////
 
@@ -306,10 +427,21 @@ Bounce Stepper_Executor(Level* L)
   // the expression index, so as far as error messages and such are concerned,
   // `reeval x` will still start with `reeval`.
 
-    Erase_Cell(OUT);
-    Force_Invalidate_Gotten(L_current_gotten_raw);  // !!! require pass in?
+    require (  // for the sake of simpler invariants, always push a Level
+      Level* sub = Make_Level(
+        &Just_Use_Out_Executor,
+        L->feed,  // feed *usually* L->feed, but GROUP!/etc. may change it
+        LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // flags overwritten
+      )
+    );
+    Push_Level(SPARE, sub);  // by default target spare (this can change)
+    definitely(sub == SUBLEVEL);
 
-} lookahead_for_left_literal_infix: {
+    Erase_Cell(OUT);
+
+    goto lookahead_for_left_literal_infix;
+
+} lookahead_for_left_literal_infix: { ////////////////////////////////////////
 
   // The first thing we do in an evaluation step has to be to look ahead for
   // any function that takes its left hand side literally.  Arrow functions
@@ -353,16 +485,17 @@ Bounce Stepper_Executor(Level* L)
   //
   // !!! This mechanic is TBD.
 
+    assert(Is_Cell_Erased(SPARE));
+    assert(Is_Cell_Erased(OUT));
+
     if (Is_Feed_At_End(L->feed))
         goto give_up_backward_quote_priority;
 
     if (Is_Antiform(L_next))
         panic ("Antiform passed in through API, must use @ or ^ operators");
 
-    if (Is_Blank(As_Element(L_next)))
+    if (Is_Blank(As_Element(L_next)))  // e.g. a "comma" or blank line
         goto give_up_backward_quote_priority;
-
-    assert(not L_next_gotten);  // Fetch_Next_In_Feed() cleared it
 
     if (LIFT_BYTE(L_next) != NOQUOTE_3)  // quoted right can't look back
         goto give_up_backward_quote_priority;
@@ -370,56 +503,39 @@ Bounce Stepper_Executor(Level* L)
     Option(InfixMode) infix_mode;
     Phase* infixed;
 
-    if (LIFT_BYTE(L_next) != NOQUOTE_3)
+    if (not Is_Word(As_Element(L_next)))  // REVIEW: infix CHAIN! ?
        goto give_up_backward_quote_priority;
 
-    switch (KIND_BYTE_RAW(L_next)) {  // ignore Sigil
-      case TYPE_WORD: {
-        Copy_Cell(PUSH(), CURRENT);
+    Element* sub_current = Copy_Cell(
+        Level_Scratch(SUBLEVEL),
+        As_Element(L_next)
+    );
+    Bind_Cell_If_Unbound(sub_current, L_binding);
+    Add_Cell_Sigil(sub_current, SIGIL_META);  // for unstable lookup
+    heeded (sub_current);
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
 
-        heeded (Copy_Cell(CURRENT, As_Element(L_next)));
-        Bind_Cell_If_Unbound(CURRENT, L_binding);
-        Add_Cell_Sigil(CURRENT, SIGIL_META);  // for unstable lookup
-        heeded (Corrupt_Cell_If_Needful(SPARE));
+    SUBLEVEL->out = SPARE;  // fetch next into current level's SPARE
+    LEVEL_STATE_BYTE(SUBLEVEL) = 1;
 
-        StateByte saved_state = STATE;
-        STATE = 1;
-
-        Option(Error*) error = SUCCESS;
-        Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
-            // don't care (will hit on next step if we care)
-            error = e;
-        }
-        STATE = saved_state;
-        Copy_Cell(CURRENT, TOP_ELEMENT);
-        DROP();
-
-        if (error) {
-            Erase_Cell(L_next_gotten_raw);
-            Erase_Cell(OUT);
-            goto give_up_backward_quote_priority;
-        }
-
-        Copy_Cell(L_next_gotten_raw, OUT);
-        Erase_Cell(OUT);
-
-        if (
-            not Is_Action(L_next_gotten_raw)
-            or not (
-                infix_mode = Frame_Infix_Mode(L_next_gotten_raw)
-            )
-        ){
-            goto give_up_backward_quote_priority;
-        }
-        infixed = Frame_Phase(L_next_gotten_raw);
-        break; }
-
-      case TYPE_CHAIN:
-        goto give_up_backward_quote_priority;  // should be enfixable!
-
-      default:
+    Get_Var_In_Scratch_To_Out(  // e.g. *sub's* OUT (L's SPARE)
+        SUBLEVEL, NO_STEPS
+    ) except (Error* e) {
+        // don't care (will hit on next step if we care)
+        UNUSED(e);
         goto give_up_backward_quote_priority;
     }
+
+    if (
+        not Is_Action(SPARE)
+        or not (
+            infix_mode = Frame_Infix_Mode(SPARE)
+        )
+    ){
+        goto give_up_backward_quote_priority;
+    }
+
+    infixed = Frame_Phase(SPARE);
 
   check_first_infix_parameter_class: {
 
@@ -442,7 +558,6 @@ Bounce Stepper_Executor(Level* L)
     );
     Copy_Cell_May_Bind(OUT, CURRENT, L_binding);  // left side in OUT [1]
 
-    Force_Blit_Cell(L_current_gotten_raw, L_next_gotten_raw);
     Copy_Cell(
         CURRENT,  // CURRENT now invoking word (->-, OF, =>)
         As_Element(L_next)
@@ -458,10 +573,8 @@ Bounce Stepper_Executor(Level* L)
     ){  // exemption: put OUT back in CURRENT and CURRENT back in feed [2]
         Move_Cell(&L->feed->fetched, CURRENT);
         L->feed->p = &L->feed->fetched;
-        Force_Blit_Cell(&L->feed->gotten, L_current_gotten_raw);
 
         Move_Cell(CURRENT, cast(Element*, OUT));
-        Invalidate_Gotten(L_current_gotten_raw);
 
         Set_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);
 
@@ -478,11 +591,7 @@ Bounce Stepper_Executor(Level* L)
 } right_hand_literal_infix_wins: {
 
     require (
-      Level* sub = Make_Action_Sublevel(L_current_gotten_raw)
-    );
-    Push_Level(OUT, sub);
-    require (
-      Push_Action(sub, L_current_gotten_raw, infix_mode)
+      Reuse_Sublevel_Target_Out_For_Action(SPARE, infix_mode)
     );
     if (infix_mode == PREFIX_0)  // sets STATE_0 for level
         Erase_Cell(OUT);
@@ -660,14 +769,17 @@ Bounce Stepper_Executor(Level* L)
   // The $ sigil will evaluate the right hand side, and then bind the
   // product into the current evaluator environment.
 
-    Level* right = Maybe_Rightward_Continuation_Needed(L);
-    if (not right)
-        goto bind_rightside_in_out;
+    require (
+      Reuse_Sublevel_Target_Out_For_Step()
+    );
 
     STATE = ST_STEPPER_BIND_OPERATOR;
-    return CONTINUE_SUBLEVEL(right);
+    return CONTINUE_SUBLEVEL(SUBLEVEL);
 
 } bind_rightside_in_out: { ///////////////////////////////////////////////////
+
+    SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
+    assert(SUBLEVEL->feed == L->feed);  // we didn't change it
 
     if (Is_Antiform(OUT))
         panic ("$ operator cannot bind antiforms");
@@ -703,14 +815,17 @@ Bounce Stepper_Executor(Level* L)
         goto lookahead;
     }
 
-    Level* right = Maybe_Rightward_Continuation_Needed(L);
-    if (not right)
-        goto identity_rightside_in_out;
+    require (
+      Reuse_Sublevel_Target_Out_For_Step()
+    );
 
     STATE = ST_STEPPER_IDENTITY_OPERATOR;
-    return CONTINUE_SUBLEVEL(right);
+    return CONTINUE_SUBLEVEL(SUBLEVEL);
 
 } identity_rightside_in_out: {
+
+    SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
+    assert(SUBLEVEL->feed == L->feed);  // we didn't change it
 
     // !!! Did all the work just by making a not-afraid of voids step?
 
@@ -725,13 +840,21 @@ Bounce Stepper_Executor(Level* L)
   //    with `^x: (<expr> ^ ^y)` to get that behavior, which would bypass the
   //    LEVEL_FLAG_VANISHABLE_VOIDS_ONLY which sequential evaluations in
   //    Evaluator_Executor() use by default.
+  //
+  // We do this fetch in the sublevel, because we want to potentially keep
+  // the SPARE cache value around (which is the fetch of the *next* value...
+  // if it was a word).
 
-    heeded (CURRENT);
-    Bind_Cell_If_Unbound(CURRENT, L_binding);
-    heeded (Corrupt_Cell_If_Needful(SPARE));
+    Element* sub_current = Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
+    Bind_Cell_If_Unbound(sub_current, L_binding);
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
+    heeded (sub_current);
+
+    SUBLEVEL->out = OUT;
+    LEVEL_STATE_BYTE(SUBLEVEL) = 1;
 
     require (
-      Get_Var_In_Scratch_To_Out(L, NO_STEPS)
+      Get_Var_In_Scratch_To_Out(SUBLEVEL, NO_STEPS)
     );
 
     possibly(Not_Cell_Stable(OUT));
@@ -762,12 +885,18 @@ Bounce Stepper_Executor(Level* L)
     //    to the field being a lifted error, or (^obj.missing-field) to give
     //    a FAILURE! due to the field being absent.
 
-    heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
-    heeded (Corrupt_Cell_If_Needful(SPARE));
     assert(Is_Metaform(CURRENT));
 
+    Element* sub_current = Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
+    heeded (Bind_Cell_If_Unbound(sub_current, L_binding));
+    heeded (sub_current);
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
+
+    SUBLEVEL->out = OUT;
+    LEVEL_STATE_BYTE(SUBLEVEL) = 1;
+
     require (
-      Get_Var_In_Scratch_To_Out(L, GROUPS_OK)
+      Get_Var_In_Scratch_To_Out(SUBLEVEL, GROUPS_OK)
     );
     possibly(Is_Failure(OUT));  // last step maybe missing, or meta-failure [1]
 
@@ -893,6 +1022,8 @@ Bounce Stepper_Executor(Level* L)
     }
 
     Erase_Cell(OUT);  // just skip to next expression
+    Erase_Cell(SPARE);
+    unnecessary(Erase_Cell(CURRENT));
     goto start_new_expression;
 
 
@@ -913,15 +1044,10 @@ Bounce Stepper_Executor(Level* L)
 
     Option(InfixMode) infix_mode = Frame_Infix_Mode(CURRENT);
 
-  require (
-    Level* sub = Make_Action_Sublevel(CURRENT)
-  );
+    require (
+      Reuse_Sublevel_Target_Out_For_Action(CURRENT, infix_mode)
+    );
     assert(Is_Cell_Erased(OUT));  // so nothing on left [1]
-    Push_Level(OUT, sub);
-
-  require (
-    Push_Action(sub, CURRENT, infix_mode)
-  );
 
     goto process_action;
 
@@ -935,7 +1061,11 @@ Bounce Stepper_Executor(Level* L)
 
 } action_result_in_out: {
 
-    Drop_Level(SUBLEVEL);  // could in theory examine action level here
+    // could in theory examine action level here
+
+    SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
+    assert(SUBLEVEL->feed == L->feed);  // we didn't change it
+
     goto lookahead;
 
 } case TYPE_WORD: { //// WORD! ///////////////////////////////////////////////
@@ -956,13 +1086,17 @@ Bounce Stepper_Executor(Level* L)
 
     assert(not Sigil_Of(CURRENT));
 
-    Add_Cell_Sigil(CURRENT, SIGIL_META);  // for unstable lookup (ACTION!)
+    Element* sub_current = Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
+    Add_Cell_Sigil(sub_current, SIGIL_META);  // for ACTION! lookup
 
-    heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
+    heeded (Bind_Cell_If_Unbound(sub_current, L_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
+    SUBLEVEL->out = OUT;
+    LEVEL_STATE_BYTE(SUBLEVEL) = 1;
+
     require (
-      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+      Get_Var_In_Scratch_To_Out(SUBLEVEL, NO_STEPS)
     );
 
     if (Is_Failure(OUT))  // e.g. couldn't pick word as field from binding
@@ -977,10 +1111,8 @@ Bounce Stepper_Executor(Level* L)
     if (Is_Trash(OUT))  // checked second [1]
         panic (Error_Bad_Word_Get(CURRENT, OUT));
 
-    if (Not_Cell_Stable(OUT)) {
-        Clear_Cell_Sigil(CURRENT);  // clear ^META we put on for fetch
+    if (Not_Cell_Stable(OUT))
         panic (Error_Unstable_Non_Meta_Raw(CURRENT));
-    }
 
     Stable* out = As_Stable(OUT);
 
@@ -1020,7 +1152,9 @@ Bounce Stepper_Executor(Level* L)
       }
 
       Erase_Cell(OUT);
-      goto start_new_expression;  // requires that OUT be erased
+      Erase_Cell(SPARE);  // may or may not hold lookahead fetch
+      unnecessary(Erase_Cell(CURRENT));  // will be fetched by feed advance
+      goto start_new_expression;  // requires OUT and SPARE be erased
   }
 
 #endif
@@ -1065,7 +1199,6 @@ Bounce Stepper_Executor(Level* L)
         Copy_Plain_Cell(CURRENT, OUT);
 
         Param* param = Phase_Param(details, 1);
-        Flags flags = EVAL_EXECUTOR_FLAG_FULFILLING_ARG;
 
         switch (Parameter_Class(param)) {
           case PARAMCLASS_NORMAL:
@@ -1085,26 +1218,26 @@ Bounce Stepper_Executor(Level* L)
         Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);  // when non-infix call
 
         require (
-          Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
+          Reuse_Sublevel_Target_Spare_For_Intrinsic_Arg()
         );
-        Push_Level(Erase_Cell(SPARE), sub);
+
+        Erase_Cell(SPARE);
         STATE = ST_STEPPER_FULFILLING_INTRINSIC_ARG;
-        return CONTINUE_SUBLEVEL(sub);
+        return CONTINUE_SUBLEVEL(SUBLEVEL);
     }
   #endif
 
     require (
-      Level* sub = Make_Action_Sublevel(OUT)  // OUT not erased yet
-    );
-    Push_Level(OUT, sub);
-    require (
-      Push_Action(sub, OUT, infix_mode)
+      Reuse_Sublevel_Target_Out_For_Action(OUT, infix_mode)
     );
     Erase_Cell(OUT);  // want OUT clear, even if infix_mode sets state nonzero
 
     goto process_action;
 
 } intrinsic_arg_in_spare: { /////////////////////////////////////////////////
+
+    SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
+    assert(SUBLEVEL->feed == L->feed);  // we didn't change it
 
   #if (! DEBUG_DISABLE_INTRINSICS)
 
@@ -1130,11 +1263,15 @@ Bounce Stepper_Executor(Level* L)
 
     Dispatcher* dispatcher = Details_Dispatcher(details);
 
-    assert(Not_Level_Flag(L, DISPATCHING_INTRINSIC));
-    Set_Level_Flag(L, DISPATCHING_INTRINSIC);  // level_ is not its Level
-    dont(Set_Level_Flag(L, RUNNING_TYPECHECK));  // want panic if bad args
+    assert(Not_Level_Flag(SUBLEVEL, DISPATCHING_INTRINSIC));
+    Set_Level_Flag(SUBLEVEL, DISPATCHING_INTRINSIC);  // level_ is not its Level
+    dont(Set_Level_Flag(SUBLEVEL, RUNNING_TYPECHECK));  // want panic if bad args
 
-    Bounce b = Apply_Cfunc(dispatcher, L);
+    Copy_Cell(Level_Spare(SUBLEVEL), SPARE);
+    Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
+    SUBLEVEL->out = OUT;
+
+    Bounce b = Apply_Cfunc(dispatcher, SUBLEVEL);
 
   #if RUNTIME_CHECKS
     if (
@@ -1158,7 +1295,7 @@ Bounce Stepper_Executor(Level* L)
         Note_Level_Out_As_Void_To_Make_Heavy(L);
     }
 
-    Clear_Level_Flag(L, DISPATCHING_INTRINSIC);
+    Clear_Level_Flag(SUBLEVEL, DISPATCHING_INTRINSIC);
     if (Not_Details_Flag(details, PURE))
         Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
     goto lookahead;
@@ -1197,26 +1334,28 @@ Bounce Stepper_Executor(Level* L)
         goto handle_set_block; }
 
       case TRAILING_BLANK_AND(GROUP): {  // (xxx): -- generic retrigger set
-        Invalidate_Gotten(L_next_gotten_raw);  // arbitrary code changes
+        Bind_Cell_If_Unbound(CURRENT, L_binding);
         require (
-          Level* sub = Make_Level_At_Inherit_Const(
-            &Evaluator_Executor,
-            CURRENT,
-            L_binding,
-            LEVEL_MASK_NONE | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)
-        ));
-        Push_Level(Erase_Cell(SPARE), sub);
+          Reuse_Sublevel_Target_Out_For_Eval(CURRENT)
+        );
+        // (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)
+
+        Erase_Cell(OUT);
         STATE = ST_STEPPER_SET_GROUP;
-        return CONTINUE_SUBLEVEL(sub); }
+        return CONTINUE_SUBLEVEL(SUBLEVEL); }
 
       case LEADING_BLANK_AND(WORD):  // :FOO -turn voids to null
       case LEADING_BLANK_AND(TUPLE): {  // :a.b.c - same
-        heeded (Add_Cell_Sigil(CURRENT, SIGIL_META));
-        Bind_Cell_If_Unbound(CURRENT, L_binding);
-        heeded (Corrupt_Cell_If_Needful(SPARE));
+        Element* sub_current = Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
+        heeded (Add_Cell_Sigil(sub_current, SIGIL_META));
+        Bind_Cell_If_Unbound(sub_current, L_binding);
+        heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
+
+        SUBLEVEL->out = OUT;
+        LEVEL_STATE_BYTE(SUBLEVEL) = 1;
 
         require (
-          Get_Var_In_Scratch_To_Out(L, GROUPS_OK)
+          Get_Var_In_Scratch_To_Out(SUBLEVEL, GROUPS_OK)
         );
         if (Not_Cell_Stable(OUT)) {
             if (Is_Void(OUT) or Is_Trash(OUT))
@@ -1262,13 +1401,9 @@ Bounce Stepper_Executor(Level* L)
 } handle_action_in_out_with_refinements_pushed: {
 
     require (
-      Level* sub = Make_Action_Sublevel(OUT)  // OUT not erased yet
+      Reuse_Sublevel_Target_Out_For_Action(OUT, PREFIX_0)
     );
-    sub->baseline.stack_base = STACK_BASE;  // refinements
-    Push_Level(OUT, sub);
-    require (
-      Push_Action(sub, OUT, PREFIX_0)
-    );
+    SUBLEVEL->baseline.stack_base = STACK_BASE;  // !!! refinements, review
     Erase_Cell(OUT);  // not infix, sub state is 0
     goto process_action;
 
@@ -1285,29 +1420,23 @@ Bounce Stepper_Executor(Level* L)
   //    constraints forcing `eval [expr] to be different from `expr` w.r.t.
   //    VOID! vanishing don't apply to inline groups.
 
-    Invalidate_Gotten(L_next_gotten_raw);  // arbitrary code changes variables
-
-    Flags flags = LEVEL_MASK_NONE
-        | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // group semantics [1]
-        | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE;  // need to check OUT_IS_DISCARDABLE
-
     require (
-      Level* sub = Make_Level_At_Inherit_Const(
-        &Evaluator_Executor,
-        CURRENT,
-        L_binding,
-        flags
-    ));
+      Reuse_Sublevel_Target_Out_For_Eval(CURRENT)
+    );
 
-    Push_Level(Erase_Cell(OUT), sub);
-    return CONTINUE_SUBLEVEL(sub);
+    Erase_Cell(OUT);
+    return CONTINUE_SUBLEVEL(SUBLEVEL);
 
 } group_or_meta_group_result_in_out: {
+
+    SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
+    Release_Feed(SUBLEVEL->feed);
+    SUBLEVEL->feed = L->feed;  // restore this (also invariant)
+    Add_Feed_Reference(SUBLEVEL->feed);
 
     L->flags.bits |= (
         SUBLEVEL->flags.bits & EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE
     );
-    Drop_Level(SUBLEVEL);
 
     if (Is_Group(CURRENT))
         goto lookahead;  // not decayed, result is good
@@ -1344,10 +1473,15 @@ Bounce Stepper_Executor(Level* L)
         goto lookahead;
     }
 
-    heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
-    heeded (Corrupt_Cell_If_Needful(SPARE));
+    Element* sub_current = Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
+    heeded (Bind_Cell_If_Unbound(sub_current, L_binding));
+    heeded (sub_current);
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
 
-    Get_Var_In_Scratch_To_Out(L, GROUPS_OK) except (Error* e) {
+    SUBLEVEL->out = OUT;
+    LEVEL_STATE_BYTE(SUBLEVEL) = 1;
+
+    Get_Var_In_Scratch_To_Out(SUBLEVEL, GROUPS_OK) except (Error* e) {
         Init_Context_Cell(OUT, TYPE_ERROR, e);
         Failify_Cell(OUT);
     } else {
@@ -1464,13 +1598,17 @@ Bounce Stepper_Executor(Level* L)
   //    running infix with paths is `left ->- right/side`, which uses an infix
   //    WORD! to mediate the interaction.
 
-    heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
-    heeded (Corrupt_Cell_If_Needful(SPARE));
+    Element* sub_current = Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
+    heeded (Bind_Cell_If_Unbound(sub_current, L_binding));
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
 
     possibly(TOP_INDEX != STACK_BASE);  // make map!, reduce [], etc.
     StackIndex base = TOP_INDEX;
 
-    Get_Path_Push_Refinements(LEVEL) except (Error* e) {
+    SUBLEVEL->out = OUT;
+    LEVEL_STATE_BYTE(SUBLEVEL) = 1;
+
+    Get_Path_Push_Refinements(SUBLEVEL) except (Error* e) {
         possibly(slash_at_tail);  // ...or, exception for arity-0? [2]
         panic (e);  // don't FAIL, PANIC [1]
     }
@@ -1513,15 +1651,6 @@ Bounce Stepper_Executor(Level* L)
   //     right
   //     left
   //     == 20
-  //
-  // 1. Running functions flushes the L_next_gotten cache.  Plain assignment
-  //    can cause trouble too:
-  //
-  //        >> x: <before> x: 1 x
-  //                            ^-- x value was cached in infix lookahead
-  //
-  //    It used to not be a problem, when variables didn't just pop into
-  //    existence.  Reconsidered in light of "emergence".  Review.
 
     assert(
         Is_Word(CURRENT) or Is_Meta_Form_Of(WORD, CURRENT)
@@ -1530,13 +1659,16 @@ Bounce Stepper_Executor(Level* L)
     );
     STATE = ST_STEPPER_GENERIC_SET;
 
-    Level* right = Maybe_Rightward_Continuation_Needed(L);
-    if (not right)
-        goto generic_set_rightside_in_out;
+    require (
+      Reuse_Sublevel_Target_Out_For_Step()
+    );
 
-    return CONTINUE_SUBLEVEL(right);
+    return CONTINUE_SUBLEVEL(SUBLEVEL);
 
 } generic_set_rightside_in_out: {
+
+    SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
+    assert(SUBLEVEL->feed == L->feed);  // we didn't change it
 
     if (Is_Space(CURRENT))  // e.g. `(void): ...`  !!! use space var!
         goto lookahead;  // pass through everything
@@ -1544,46 +1676,59 @@ Bounce Stepper_Executor(Level* L)
     if (Is_Failure(OUT) and not Is_Metaform(CURRENT))
         goto lookahead;  // you can say (try var: fail "hi") without panicking
 
-    heeded (Bind_Cell_If_Unbound(CURRENT, L_binding));
-    heeded (Corrupt_Cell_If_Needful(SPARE));
+    Element* sub_current = As_Element(
+        Copy_Cell_Core(
+            Level_Scratch(SUBLEVEL),
+            CURRENT,
+            CELL_MASK_COPY | CELL_FLAG_SCRATCH_VAR_NOTE_ONLY_ACTION
+        )
+    );
+    heeded (Bind_Cell_If_Unbound(sub_current, L_binding));
+    heeded (sub_current);
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
+    SUBLEVEL->out = OUT;
 
-    Set_Var_In_Scratch_To_Out(LEVEL, GROUPS_OK) except (Error* e) {
+    Set_Var_In_Scratch_To_Out(SUBLEVEL, GROUPS_OK) except (Error* e) {
         Init_Context_Cell(OUT, TYPE_ERROR, e);
         Failify_Cell(OUT);
     }
 
-    Invalidate_Gotten(L_next_gotten_raw);  // cache tampers with lookahead [1]
-
     Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
     goto lookahead;
 
-} set_group_result_in_spare: {
+} set_group_result_in_out: {
 
-    assert(not L_current_gotten);
+    SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
+    Release_Feed(SUBLEVEL->feed);
+    SUBLEVEL->feed = L->feed;  // restore this (also invariant)
+    Add_Feed_Reference(SUBLEVEL->feed);
 
     if (Is_Space(CURRENT))
        goto handle_generic_set;
 
-    if (Any_Void(SPARE)) {
+    if (Any_Void(OUT)) {
         Init_Space(CURRENT);  // can't put voids in feed position
         goto handle_generic_set;
     }
 
     require (
-      Stable* spare = Decay_If_Unstable(SPARE)
+      Stable* stable_out = Decay_If_Unstable(OUT)
     );
 
-    switch (opt Type_Of(spare)) {
+    switch (opt Type_Of(stable_out)) {
       case TYPE_BLOCK:
-        Copy_Cell(CURRENT, As_Element(spare));
+        Copy_Cell(CURRENT, As_Element(stable_out));
+        Erase_Cell(OUT);  // !!! necessary?
         goto handle_set_block;
 
       case TYPE_WORD:
-        Copy_Cell(CURRENT, As_Element(spare));
+        Copy_Cell(CURRENT, As_Element(stable_out));
+        Erase_Cell(OUT);  // !!! necessary?
         goto handle_generic_set;
 
       case TYPE_TUPLE:
-        Copy_Cell(CURRENT, As_Element(spare));
+        Copy_Cell(CURRENT, As_Element(stable_out));
+        Erase_Cell(OUT);  // !!! necessary?
         goto handle_generic_set;
 
       default:
@@ -1596,22 +1741,34 @@ Bounce Stepper_Executor(Level* L)
 
     STATE = ST_STEPPER_SET_BLOCK;
 
+    Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
+
     require (
-      bool threw = Push_Set_Block_Instructions_To_Stack_Throws(L, L_binding)
+      bool threw = Push_Set_Block_Instructions_To_Stack_Throws(
+        SUBLEVEL, L_binding
+      )
     );
     if (threw)
         goto return_thrown;
 
-    Level* sub = Maybe_Rightward_Continuation_Needed(L);
-    if (not sub)
-        goto set_block_rightside_in_out;
+    SUBLEVEL->baseline.stack_base = TOP_INDEX;
 
-    return CONTINUE_SUBLEVEL(sub);
+    require (
+      Reuse_Sublevel_Target_Out_For_Step()
+    );
+
+    return CONTINUE_SUBLEVEL(SUBLEVEL);
 
 } set_block_rightside_in_out: {  /////////////////////////////////////////////
 
+    SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
+    assert(SUBLEVEL->feed == L->feed);  // we didn't change it
+
+    SUBLEVEL->baseline.stack_base = STACK_BASE;
+    SUBLEVEL->out = OUT;
+
     require (
-      Set_Block_From_Instructions_On_Stack_To_Out(L)
+      Set_Block_From_Instructions_On_Stack_To_Out(SUBLEVEL)
     );
     Set_Eval_Executor_Flag(L, OUT_IS_DISCARDABLE);
     goto lookahead;
@@ -1714,6 +1871,8 @@ Bounce Stepper_Executor(Level* L)
     //    infix.  If necessary to dispatch an infix function via path, then
     //    a word is used to do it, like `>>` in `x: >> lib/default [...]`.
 
+    assert(SUBLEVEL->executor == &Just_Use_Out_Executor);
+
     if (Get_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH))
         panic (Error_Literal_Left_Path_Raw());  // [1]
 
@@ -1722,58 +1881,27 @@ Bounce Stepper_Executor(Level* L)
         goto finished;  // hitting end is common, avoid do_next's switch()
     }
 
-    switch (opt Type_Of_Unchecked(L_next)) {
-      case TYPE_WORD: {  // only WORD! does infix now (TBD: CHAIN!) [2]
-        Blit_Cell(PUSH(), OUT);  // save out if infix wants it...
-
-        heeded (Copy_Cell(CURRENT, As_Element(L_next)));
-        Bind_Cell_If_Unbound(CURRENT, L_binding);
-        Add_Cell_Sigil(CURRENT, SIGIL_META);  // need for unstable lookup
-        heeded (Corrupt_Cell_If_Needful(SPARE));
-
-        StateByte saved_state = STATE;
-        STATE = 1;
-
-        if (not L_next_gotten) {
-            Corrupt_Cell_If_Needful(OUT);
-
-            Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
-                UNUSED(e);
-                Erase_Cell(L_next_gotten_raw);
-            }
-            else {
-                Copy_Cell(L_next_gotten_raw, OUT);
-            }
-        }
-        else {
-          #if RUNTIME_CHECKS
-            assume (
-                Get_Var_In_Scratch_To_Out(L, NO_STEPS)
-            );
-            assert(
-                memcmp(OUT, L_next_gotten_raw, 4 * sizeof(uintptr_t)) == 0
-            );
-          #endif
-        }
-
-        STATE = saved_state;
-        Corrupt_Cell_If_Needful(CURRENT);
-        Force_Blit_Cell(OUT, TOP);
-        DROP();
-        break; }  // need to check for lookahead
-
-      case TYPE_CHAIN:
-        if (Try_Get_Sequence_Singleheart(L_next))
-            break;  // foo: or :foo, not a function call
-        break;  // !!! Review, infix chains should be possible!
-
-      case TYPE_FRAME:
-        Copy_Cell(L_next_gotten_raw, L_next);
-        break;
-
-      default:  // if not a WORD! or ACTION!, start new non-infix expression
+    if (not Is_Word(At_Feed(L->feed))) {
         Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
         goto finished;
+    }
+
+    Element* sub_current = Copy_Cell(
+        Level_Scratch(SUBLEVEL), As_Element(L_next)
+    );
+    Bind_Cell_If_Unbound(sub_current, L_binding);
+    Add_Cell_Sigil(sub_current, SIGIL_META);  // need for unstable lookup
+    heeded (sub_current);
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
+
+    Erase_Cell(SPARE);  // ideally we'd reuse if we could
+
+    SUBLEVEL->out = SPARE;
+    LEVEL_STATE_BYTE(SUBLEVEL) = 1;
+
+    Get_Var_In_Scratch_To_Out(SUBLEVEL, NO_STEPS) except (Error* e) {
+        UNUSED(e);
+        goto finished;  // lookup failure not a problem (for *this* step)
     }
 
 } test_word_or_action_for_infix: { ///////////////////////////////////////////
@@ -1781,15 +1909,14 @@ Bounce Stepper_Executor(Level* L)
     Option(InfixMode) infix_mode;
 
     if (
-        not L_next_gotten
-        or (
+        (
             not (
                 Is_Word(As_Element(L_next))
-                and Is_Action(L_next_gotten_raw)
+                and Is_Action(SPARE)
             )
             and not Is_Frame(As_Element(L_next))
         )
-        or not (infix_mode = Frame_Infix_Mode(L_next_gotten_raw))
+        or not (infix_mode = Frame_Infix_Mode(SPARE))
     ){
       lookback_quote_too_late: // run as if starting new expression
 
@@ -1811,7 +1938,7 @@ Bounce Stepper_Executor(Level* L)
     //    function might be okay with seeing nothing on the left.  Start a
     //    new expression and let it error if that's not ok.
 
-    Phase* infixed = Frame_Phase(L_next_gotten_raw);
+    Phase* infixed = Frame_Phase(SPARE);
     ParamList* paramlist = Phase_Paramlist(infixed);
 
     if (Get_Flavor_Flag(VARLIST, paramlist, PARAMLIST_LITERAL_FIRST)) {  // [1]
@@ -1926,14 +2053,10 @@ Bounce Stepper_Executor(Level* L)
     // of parameter fulfillment.  We want to reuse the OUT value and get it
     // into the new function's frame.
 
-  require (
-    Level* sub = Make_Action_Sublevel(L_next_gotten_raw)
-  );
-    Push_Level(OUT, sub);
+    require (
+      Reuse_Sublevel_Target_Out_For_Action(SPARE, infix_mode)
+    );
 
-  require (
-    Push_Action(sub, L_next_gotten_raw, infix_mode)
-  );
     Fetch_Next_In_Feed(L->feed);
 
     if (infix_mode == PREFIX_0)  // infix_mode sets STATE_0 if prefix
@@ -1954,13 +2077,16 @@ Bounce Stepper_Executor(Level* L)
   //    If we did it sooner, we would prevent infix routines (e.g. ELSE)
   //    from seeing the voids.
 
+    assert(TOP_LEVEL->prior == L);
+    Drop_Level(TOP_LEVEL);
+
     Clear_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);  // [1]
 
     if (Is_Level_Out_Noted_Void_To_Make_Heavy(L))  // [2]
         Init_Heavy_Void(OUT);
 
   #if RUNTIME_CHECKS
-    Evaluator_Exit_Checks_Debug(L);
+    Stepper_Exiting_Checks(L);
 
     possibly(STATE == ST_STEPPER_INITIAL_ENTRY);  // TYPE_0 is state 0
     STATE = ST_STEPPER_FINISHED_DEBUG;  // must reset to STATE_0 if reused
@@ -1972,8 +2098,11 @@ Bounce Stepper_Executor(Level* L)
 
 } return_thrown: { ///////////////////////////////////////////////////////////
 
+    assert(TOP_LEVEL->prior == L);
+    Drop_Level(TOP_LEVEL);
+
   #if RUNTIME_CHECKS
-    Evaluator_Exit_Checks_Debug(L);
+    Stepper_Exiting_Checks(L);
   #endif
 
     return BOUNCE_THROWN;

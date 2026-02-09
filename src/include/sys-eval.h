@@ -96,6 +96,8 @@ INLINE void Reset_Evaluator_Erase_Out(Level* L) {
             | EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE  // what else?
     ));
     Erase_Cell(L->out);
+    Erase_Cell(&L->spare);
+    Erase_Cell(&L->scratch);
 }
 
 #define Init_Pushed_Refinement(out,symbol) \

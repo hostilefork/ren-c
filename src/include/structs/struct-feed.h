@@ -214,32 +214,6 @@ typedef struct {
     //
     Stub singular;
 
-    // There is a lookahead step to see if the next item in an array is a
-    // WORD!, and the value it looks up to is tested to see if it is an
-    // infix action.  Considering that the value will need to be used anyway,
-    // infix or not, the pointer is held in this field for WORD!s.
-    //
-    // However, reusing the work is not possible in the general case.  For
-    // instance, this would cause a problem:
-    //
-    //     obj: make object! [x: 10]
-    //     foo: does [append obj [y: 20]]
-    //     eval bind obj [foo x]
-    //                   ^-- consider the moment of lookahead, here
-    //
-    // Before foo is run, it will fetch x to ->gotten, and see that it is not
-    // a lookback function.  But then when it runs foo, the memory location
-    // where x had been found before may have moved due to expansion.
-    //
-    // Basically any function call invalidates ->gotten, as does obviously any
-    // Fetch_Next_In_Feed (because the position changes).  So it has to be
-    // nulled out fairly often, and checked for null before reuse.
-    //
-    // !!! Review how often gotten has hits vs. misses, and what the benefit
-    // of the feature actually is.
-    //
-    Value gotten;  // Note: Might be erased cell!
-
     // Feeds need to be freed when the last level reference is dropped.  This
     // doesn't go in a simple stacklike order, due to stack rearrangement
     // done by generators and tail calls etc.  Dropping the refcount to 0
@@ -251,7 +225,3 @@ typedef struct {
     Tick tick;
   #endif
 } Feed;
-
-#define Force_Invalidate_Gotten(cell)  Force_Erase_Cell(cell)
-#define Invalidate_Gotten(cell)  Erase_Cell(cell)
-#define Is_Gotten_Invalid(cell)  Is_Cell_Erased(cell)

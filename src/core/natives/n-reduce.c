@@ -191,7 +191,6 @@ DECLARE_NATIVE(REDUCE)
     Push_Level(OUT, sub);
 
     Copy_Cell(Evaluator_Level_Current(sub), v);
-    Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
 
     return DELEGATE_SUBLEVEL(sub);
 

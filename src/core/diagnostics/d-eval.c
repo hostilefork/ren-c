@@ -47,9 +47,6 @@
 
 #define L_next          At_Feed(L->feed)
 
-#define L_next_gotten_raw  (&L->feed->gotten)
-#define L_next_gotten  (not Is_Gotten_Invalid(L_next_gotten_raw))
-
 #define L_binding     Level_Binding(L)
 
 #if DEBUG_HAS_PROBE
@@ -182,68 +179,33 @@ void Where(Level* L)
 // These are checks common to Expression and Exit checks (hence also common
 // to the "end of Start" checks, since that runs on the first expression)
 //
-static void Evaluator_Shared_Checks_Debug(Level* const L)
+static void Stepper_Shared_Checks(Level* const L)
 {
-    USE_LEVEL_SHORTHANDS (L);
+  assert_no_datastack_pointers_extant: {
 
-    // The state isn't actually guaranteed to balance overall until a level
-    // is completely dropped.  This is because a level may be reused over
-    // multiple calls by something like REDUCE or FORM, accumulating items
-    // on the data stack or mold stack/etc.  See Drop_Level() for the actual
-    // balance check.
-    //
+  // This just makes sure there aren't any OnStack(Cell*) variables holding
+  // live pointers into the data stack (hence we can move the stack if a
+  // PUSH() happens, for instance.
+  //
+  // The broader state (like data stack accumulations) isn't guaranteed to
+  // balance overall until a Level is completely dropped.  This is because a
+  // Level may be reused over multiple calls by something like REDUCE or FORM,
+  // accumulating items on the data stack or mold stack/etc.  Drop_Level() has
+  // the actual balance check.
+
     Assert_No_DataStack_Pointers_Extant();
 
-    // See notes on L->feed->gotten about the coherence issues in the face
-    // of arbitrary function execution.
-    //
-    if (L_next_gotten and not Is_Frame(L_next)) {
-        assert(Any_Word(L_next));
+} assert_stub_coloring_balanced: {
 
-        // !!! With ACCESSORs this may be incoherent.  We need to track if
-        // the value came from an accessor or not, and if it does, we should
-        // not bother checking it.
-        //
-        // !!! This is totally dicey, and likely to break.
+  // If this fires, it means that Flip_Stub_To_White() was not called an equal
+  // number of times after Flip_Stub_To_Black(), which means that the custom
+  // marker on Stubs accumulated.
 
-        UNUSED(level_);
-
-        Blit_Cell(PUSH(), OUT);
-        Blit_Cell(PUSH(), SCRATCH);
-
-        heeded (Copy_Cell(SCRATCH, L_next));
-        Bind_Cell_If_Unbound(As_Element(SCRATCH), L_binding);
-        Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
-        heeded (Corrupt_Cell_If_Needful(SPARE));
-
-        StateByte saved_state = STATE;
-        STATE = 1;
-
-        Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
-            UNUSED(e);
-            assert(Not_Cell_Readable(L_next_gotten_raw));
-        }
-        else {
-            assert(
-                memcmp(OUT, L_next_gotten_raw, 4 * sizeof(uintptr_t)) == 0
-            );
-        }
-
-        STATE = saved_state;
-
-        Force_Blit_Cell(SCRATCH, TOP);
-        DROP();
-        Force_Blit_Cell(OUT, TOP);
-        DROP();
-    }
-
-    assert(L == TOP_LEVEL);
-
-    // If this fires, it means that Flip_Stub_To_White was not called an
-    // equal number of times after Flip_Stub_To_Black, which means that
-    // the custom marker on Stubs accumulated.
-    //
     assert(g_mem.num_black_stubs == 0);
+
+} assert_varlist_not_managed: {
+
+  // !!! When does an Evaluator_Executor() or Stepper_Executor() have one?
 
     if (L->varlist)
         assert(Not_Base_Managed(L->varlist));
@@ -261,11 +223,11 @@ static void Evaluator_Shared_Checks_Debug(Level* const L)
     assert(L_next != L->out);
 
     //=//// ^-- ADD CHECKS EARLIER THAN HERE IF THEY SHOULD ALWAYS RUN ////=//
-}
+}}
 
 
 //
-//  Evaluator_Expression_Checks_Debug: C
+//  Stepper_Start_New_Expression_Checks: C
 //
 // These fields are required upon initialization:
 //
@@ -289,10 +251,8 @@ static void Evaluator_Shared_Checks_Debug(Level* const L)
 // This routine attempts to "corrupt" a lot of level state variables to help
 // make sure one evaluation does not leak data into the next.
 //
-void Evaluator_Expression_Checks_Debug(Level* L)
+void Stepper_Start_New_Expression_Checks(Level* L)
 {
-    assert(L == TOP_LEVEL); // should be topmost level, still
-
     assert(Not_Executor_Flag(EVAL, L, OUT_IS_DISCARDABLE));
 
     assert(Not_Executor_Flag(EVAL, L, DIDNT_LEFT_QUOTE_PATH));
@@ -300,7 +260,7 @@ void Evaluator_Expression_Checks_Debug(Level* L)
         assert(Not_Feed_Flag(L->feed, NO_LOOKAHEAD));
     assert(Not_Feed_Flag(L->feed, DEFERRING_INFIX));
 
-    Evaluator_Shared_Checks_Debug(L);
+    Stepper_Shared_Checks(L);
 
     assert(not Is_Throwing(L)); // no evals between throws
 
@@ -315,9 +275,9 @@ void Evaluator_Expression_Checks_Debug(Level* L)
 
 
 //
-//  Do_After_Action_Checks_Debug: C
+//  Do_After_Action_Checks: C
 //
-void Do_After_Action_Checks_Debug(Level* level_) {
+void Do_After_Action_Checks(Level* level_) {
     assert(not Is_Throwing(LEVEL));
 
     // Usermode functions check the return type via Func_Dispatcher(),
@@ -348,10 +308,11 @@ void Do_After_Action_Checks_Debug(Level* level_) {
 
 
 //
-//  Evaluator_Exit_Checks_Debug: C
+//  Stepper_Exiting_Checks: C
 //
-void Evaluator_Exit_Checks_Debug(Level* L) {
-    Evaluator_Shared_Checks_Debug(L);
+void Stepper_Exiting_Checks(Level* L)
+{
+    Stepper_Shared_Checks(L);
 
     assert(Not_Cell_Flag(L->out, NOTE));
     assert(not Is_Base_Marked(L->out));

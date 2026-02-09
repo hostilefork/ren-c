@@ -60,9 +60,6 @@
 
 #define L_next              cast(const Cell*, L->feed->p)
 
-#define L_next_gotten_raw  (&L->feed->gotten)
-#define L_next_gotten      (not Is_Gotten_Invalid(L_next_gotten_raw))
-
 #define L_binding           Level_Binding(L)
 
 #undef ARG                       // undefine the ARG(X) macro that natives use
@@ -220,7 +217,6 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
 //
 bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
     assert(Not_Feed_Flag(L->feed, DEFERRING_INFIX));
-    assert(Is_Gotten_Invalid(&L->feed->gotten));
 
     Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
 
@@ -236,17 +232,14 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
-        Erase_Cell(&L->feed->gotten);  // could this be Get_Var() invariant?
         UNUSED(e);  // don't care (if we care, we'll hit it on next step)
         return false;
     }
 
-    Copy_Cell(&L->feed->gotten, OUT);
-
-    if (not Is_Action(&L->feed->gotten))
+    if (not Is_Action(OUT))
         return false;
 
-    Option(InfixMode) infix_mode = Frame_Infix_Mode(&L->feed->gotten);
+    Option(InfixMode) infix_mode = Frame_Infix_Mode(OUT);
     if (not infix_mode)
         return false;
 
@@ -750,7 +743,7 @@ Bounce Action_Executor(Level* L)
                 Lookahead_To_Sync_Infix_Defer_Flag(L) and  // ensure got
                 (Get_Flavor_Flag(
                     VARLIST,
-                    Phase_Paramlist(Frame_Phase(&L->feed->gotten)),
+                    Phase_Paramlist(Frame_Phase(OUT)),
                     PARAMLIST_LITERAL_FIRST
                 ))
             ){
@@ -1070,8 +1063,6 @@ Bounce Action_Executor(Level* L)
 
     STATE = STATE_0;  // reset to zero for each phase
 
-    Invalidate_Gotten(L_next_gotten_raw);  // arbitrary code changes variables
-
 } dispatch_phase: { //////////////////////////////////////////////////////////
 
     assert(Not_Action_Executor_Flag(LEVEL, DELEGATE_CONTROL));  // delegated!
@@ -1192,7 +1183,7 @@ Bounce Action_Executor(Level* L)
   // abrupt panic().  (It may have done a `return fail (...)`, however.)
 
   #if RUNTIME_CHECKS
-    Do_After_Action_Checks_Debug(L);
+    Do_After_Action_Checks(L);
   #endif
 
     if (not Is_Failure(OUT))  // !!! Should there be an R_FAIL ?

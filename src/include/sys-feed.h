@@ -463,15 +463,6 @@ INLINE void Fetch_Next_In_Feed(Feed* feed) {
     assert(Not_End(feed->p));  // should test for end before fetching again
     Corrupt_If_Needful(feed->p);
 
-    // We are changing "Feed_At()", and thus by definition any ->gotten value
-    // will be invalid.  It might be "wasteful" to always set this to null,
-    // especially if it's going to be overwritten with the real fetch...but
-    // at a source level, having every call to Fetch_Next_In_Feed have to
-    // explicitly set ->gotten to null is overkill.  Could be split into
-    // a version that just corrupts ->gotten in the checked build vs. null.
-    //
-    Invalidate_Gotten(&feed->gotten);
-
   retry_splice:
     if (Feed_Pending(feed)) {
         assert(Feed_Pending(feed) != nullptr);
@@ -660,7 +651,6 @@ INLINE Result(Feed*) Prep_Feed_Common(
 
     feed->flags.bits = flags;
     Corrupt_If_Needful(feed->p);
-    Force_Invalidate_Gotten(&feed->gotten);
 
     feed->refcount = 0;  // putting in levels should add references
 
@@ -709,7 +699,6 @@ INLINE Result(Feed*) Prep_Array_Feed(
         Set_Feed_Flag(feed, TOOK_HOLD);
     }
 
-    Force_Invalidate_Gotten(&feed->gotten);
     if (Is_Feed_At_End(feed))
         assert(Feed_Pending(feed) == nullptr);
     else
@@ -778,8 +767,6 @@ INLINE Result(Feed*) Prep_Variadic_Feed(
     // The upshot of this is that if feed->p is a pointer to UTF8 or an
     // "instruction", it must be synchronized before you get a cell pointer.
     // So At_Feed() will assert if you do not synchronize first.
-
-    Force_Invalidate_Gotten(&feed->gotten);
 
     return feed;
 }

@@ -598,6 +598,8 @@ static void Make_Native_In_Lib_By_Hand(Level* const L, SymId id)
 
 } make_native: {
 
+    assert(Is_Cell_Erased(SPARE));
+
     Element* spec = Copy_Cell_May_Bind(SPARE, At_Level(L), g_lib_context);
     Fetch_Next_In_Feed(L->feed);
 
@@ -615,6 +617,9 @@ static void Make_Native_In_Lib_By_Hand(Level* const L, SymId id)
     action->header.bits |= cell_flags;
 
     assert(cast(Details*, Frame_Phase(Lib_Value(id))) == details);
+
+    assert(not Is_Cell_Erased(SPARE));
+    Erase_Cell(SPARE);  // clean up for STATE_0 expectations
 }}
 
 

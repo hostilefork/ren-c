@@ -410,7 +410,6 @@ DECLARE_NATIVE(OF)
     );
     Copy_Plain_Cell(Evaluator_Level_Current(sub), OUT);
     assert(Is_Frame(Evaluator_Level_Current(sub)));
-    Force_Invalidate_Gotten(&sub->u.eval.current_gotten);
 
     Push_Level(Erase_Cell(OUT), sub);
 
