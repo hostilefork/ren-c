@@ -6,7 +6,7 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Copyright 2012-2025 Ren-C Open Source Contributors
+// Copyright 2012-2026 Ren-C Open Source Contributors
 // Copyright 2012 REBOL Technologies
 // REBOL is a trademark of REBOL Technologies
 //
@@ -339,7 +339,7 @@ Bounce Inert_Stepper_Executor(Level* L)
 //       ]
 //
 #define Next_Not_Word_Or_Is_Newline_Or_End(L) ( \
-    (u_cast(Cell*, L->feed->p)->header.bits & ( /* maybe g_cell_aligned_end [1] */ \
+    (u_cast(Cell*, L->feed->p)->header.bits & ( /* g_cell_aligned_end? [1] */ \
         FLAG_KIND_BYTE(255) \
             | FLAG_LIFT_BYTE(255) \
             | CELL_FLAG_NEWLINE_BEFORE \
@@ -348,6 +348,152 @@ Bounce Inert_Stepper_Executor(Level* L)
             | FLAG_LIFT_BYTE(NOQUOTE_3)   \
             | (not CELL_FLAG_NEWLINE_BEFORE)  /* no infix newlines [3] */ \
     ))
+
+
+// Due to Feeds canonizing rebEND to g_cell_aligned_end, we can take advantage
+// of the kind byte and lift byte matching that of a BLANK! to test for both
+// end and blank in one masking operation.
+//
+#define Next_Is_End_Or_Blank(L) ( \
+    (u_cast(Cell*, L->feed->p)->header.bits & ( \
+        FLAG_KIND_BYTE(255) \
+            | FLAG_LIFT_BYTE(255) \
+    )) == ( \
+        FLAG_KIND_BYTE(TYPE_BLANK) \
+            | FLAG_LIFT_BYTE(NOQUOTE_3) \
+    ))
+
+
+// This is factored out into its own routine because we have to call it in
+// two separate situations.
+//
+Option(Phase*) Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(
+    Level* L,
+    Sink(Option(InfixMode)) infix_mode
+){
+    Level* sub = SUBLEVEL;
+
+    assert(sub->executor == &Just_Use_Out_Executor);
+    assert(sub->feed == L->feed);
+
+    Element* sub_current = Copy_Cell(Level_Scratch(sub), As_Element(L_next));
+    Bind_Cell_If_Unbound(sub_current, L_binding);
+    Add_Cell_Sigil(sub_current, SIGIL_META);  // for unstable lookup
+    heeded (sub_current);
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(sub)));
+
+    sub->out = SPARE;  // fetch next into current level's SPARE
+    LEVEL_STATE_BYTE(sub) = 1;
+
+    Get_Var_In_Scratch_To_Out(  // e.g. *sub's* OUT (L's SPARE)
+        sub, NO_STEPS
+    ) except (Error* e) {
+        // don't care (will hit on next step if we care)
+        UNUSED(e);
+        return nullptr;
+    }
+
+    if (not Is_Action(SPARE))
+        return nullptr;
+
+    *infix_mode = Frame_Infix_Mode(SPARE);
+    if (not *infix_mode)
+        return nullptr;
+
+    Phase* phase = Frame_Phase(SPARE);
+
+  check_first_infix_parameter_class: {
+
+  // 1. Lookback args are fetched from OUT, then copied into an arg slot.
+  //    Put the backwards quoted value into OUT.  (Do this before next
+  //    step because we need value for type check)
+
+    Option(ParamClass) pclass = Get_First_Param_Literal_Class(phase);
+    if (not pclass)
+        return nullptr;
+
+    assert(
+        pclass == PARAMCLASS_LITERAL  // infix func [@x ...] [...]
+        or pclass == PARAMCLASS_SOFT
+    );
+
+} save_out_and_current_for_caller_recovery: {
+
+  // When we've identified that we are dealing with a lookback function, the
+  // idea is that we put the lookback value (which had been in CURRENT) into
+  // the OUT Cell so the function can consume it as its first argument.  Then
+  // we advance the feed and put the WORD! that had been next into CURRENT.
+  // This is done so we can check to see if we're at an end point after that
+  // which would cause an exemption.
+  //
+  // But there's currently a more complex calling situation that deals with
+  // assignments, where we're storing a SET-XXX in OUT that this routine
+  // "isn't supposed to touch".  But in the current shape, we are...so we
+  // have to put things back.  It's awkward and slow the way that the Feed
+  // is rebuilt from splices--so all of this needs review--it's just an
+  // initial implementation to get it working.
+
+    Copy_Cell(Level_Scratch(sub), CURRENT);
+    Force_Blit_Cell(Level_Spare(sub), OUT);
+
+} move_current_to_out_and_advance_feed: {
+
+    Copy_Cell_May_Bind(OUT, CURRENT, L_binding);
+
+    Copy_Cell(
+        CURRENT,  // CURRENT now invoking word (->-, OF, =>)
+        As_Element(L_next)
+      );
+    Fetch_Next_In_Feed(L->feed);  // ...now skip that invoking word
+
+} check_for_nothing_to_the_right_exemption: {
+
+  // We make a special exemption for left-stealing arguments, when they have
+  // nothing to their right.  They lose their priority and we run the left
+  // hand side with priority instead.  This lets us do (the ->) or (help of)
+
+    attempt {
+        if (not Next_Is_End_Or_Blank(L)) {
+            if (Not_Cell_Flag(L_next, NEWLINE_BEFORE))
+                continue;  // reified BLANK! likely, so that would handle this
+        }
+        else {
+            assert(
+                Is_Feed_At_End(L->feed)  // fakes a BLANK! in kind/lift
+                or Is_Blank(As_Element(L_next))
+            );
+        }
+
+        if (  // v-- OUT is what used to be on left
+            Type_Of_Unchecked(OUT) != TYPE_WORD
+            and Type_Of_Unchecked(OUT) != TYPE_PATH
+        ){
+            continue;
+        }
+
+        break;
+    }
+    then {  // don't have to back out for exemption
+        return phase;
+    }
+
+} handle_exemption_by_restoring_out_and_current: {
+
+  // Put OUT back in CURRENT and CURRENT back in feed
+
+    Move_Cell(&L->feed->fetched, CURRENT);
+    L->feed->p = &L->feed->fetched;
+
+    Move_Cell(CURRENT, As_Element(OUT));
+    Erase_Cell(OUT);
+
+    Set_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);
+
+    return nullptr;
+}}
+
+#define Reuse_Sublevel_To_Determine_Left_Literal_Infix(infix_mode) \
+    Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(L, (infix_mode))
 
 
 //
@@ -531,92 +677,55 @@ Bounce Stepper_Executor(Level* L)
         goto give_up_backward_quote_priority;
     }
 
-    Option(InfixMode) infix_mode;
-    Phase* infixed;
+    attempt {  // need special logic for assignments
+        if (not Is_Set_Word(CURRENT))
+            break;
 
-    Element* sub_current = Copy_Cell(
-        Level_Scratch(SUBLEVEL),
-        As_Element(L_next)
-    );
-    Bind_Cell_If_Unbound(sub_current, L_binding);
-    Add_Cell_Sigil(sub_current, SIGIL_META);  // for unstable lookup
-    heeded (sub_current);
-    heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
+        Copy_Cell(OUT, L_next);  // preserve next
+        Fetch_Next_In_Feed(L->feed);
 
-    SUBLEVEL->out = SPARE;  // fetch next into current level's SPARE
-    LEVEL_STATE_BYTE(SUBLEVEL) = 1;
+        if (Next_Not_Word_Or_Is_Newline_Or_End(L))
+            continue;
 
-    Get_Var_In_Scratch_To_Out(  // e.g. *sub's* OUT (L's SPARE)
-        SUBLEVEL, NO_STEPS
-    ) except (Error* e) {
-        // don't care (will hit on next step if we care)
-        UNUSED(e);
-        goto give_up_backward_quote_priority;
-    }
+        Option(InfixMode) infix_mode;
+        Phase* infixed = opt Reuse_Sublevel_To_Determine_Left_Literal_Infix(
+            &infix_mode
+        );
 
-    if (
-        not Is_Action(SPARE)
-        or not (
-            infix_mode = Frame_Infix_Mode(SPARE)
-        )
-    ){
-        goto give_up_backward_quote_priority;
-    }
-
-    infixed = Frame_Phase(SPARE);
-
-  check_first_infix_parameter_class: {
-
-    // 1. Lookback args are fetched from OUT, then copied into an arg slot.
-    //    Put the backwards quoted value into OUT.  (Do this before next
-    //    step because we need value for type check)
-    //
-    // 2. We make a special exemption for left-stealing arguments, when they
-    //    have nothing to their right.  They lose their priority and we run
-    //    the left hand side with them as a priority instead.  This lets us
-    //    do (the ->) or (help of)
-
-    Option(ParamClass) pclass = Get_First_Param_Literal_Class(infixed);
-    if (not pclass)
-        goto give_up_backward_quote_priority;
-
-    assert(
-        pclass == PARAMCLASS_LITERAL  // infix func [@x ...] [...]
-        or pclass == PARAMCLASS_SOFT
-    );
-    Copy_Cell_May_Bind(OUT, CURRENT, L_binding);  // left side in OUT [1]
-
-    Copy_Cell(
-        CURRENT,  // CURRENT now invoking word (->-, OF, =>)
-        As_Element(L_next)
-      );
-    Fetch_Next_In_Feed(L->feed);  // ...now skip that invoking word
-
-    if (
-        Is_Feed_At_End(L->feed)  // v-- OUT is what used to be on left
-        and (
-            Type_Of_Unchecked(OUT) == TYPE_WORD
-            or Type_Of_Unchecked(OUT) == TYPE_PATH
-        )
-    ){  // exemption: put OUT back in CURRENT and CURRENT back in feed [2]
-        Move_Cell(&L->feed->fetched, CURRENT);
-        L->feed->p = &L->feed->fetched;
-
-        Move_Cell(CURRENT, cast(Element*, OUT));
-
-        Set_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);
-
-        if (Is_Word(CURRENT)) {
-            STATE = cast(StepperState, TYPE_WORD);
-            goto handle_word_where_action_lookups_are_active;
+        if (not infixed) {
+            Erase_Cell(SPARE);
+            continue;
         }
 
-        assert(Is_Path(CURRENT));
-        STATE = cast(StepperState, TYPE_PATH);
-        goto handle_path_where_action_lookups_are_active;
+        // we actually want to run an assignment frame, where the right-hand
+        // side is the infix operator with the left-hand side as the preload.
+        // but in order to get infix working on the right, it has to be an
+        // evaluator step frame.  We can build that exact Level configuration
+        // by hand and continue it (more efficient) but for now what we do
+        // is just reassemble the feed, and we'll do this test again.
+
+        Splice_Element_Into_Feed(L->feed, CURRENT);  // e.g. OF or ->
+        Splice_Element_Into_Feed(L->feed, As_Element(Level_Spare(SUBLEVEL)));  // length
+
+        Copy_Cell(CURRENT, As_Element(Level_Scratch(SUBLEVEL)));  // was saved
+        assert(Is_Set_Word(CURRENT));
+
+        Erase_Cell(OUT);
+        Erase_Cell(SPARE);  // we could have used this
+        goto give_up_backward_quote_priority;
+    }
+    then {  // we have to put OUT back as the next thing
+        Splice_Element_Into_Feed(L->feed, As_Element(OUT));
+        Erase_Cell(OUT);
     }
 
-} right_hand_literal_infix_wins: {
+    Option(InfixMode) infix_mode;
+    Phase* infixed = opt Reuse_Sublevel_To_Determine_Left_Literal_Infix(
+        &infix_mode
+    );
+
+    if (not infixed)
+        goto give_up_backward_quote_priority;
 
     require (
       Reuse_Sublevel_Target_Out_For_Action(SPARE, infix_mode)
@@ -626,7 +735,7 @@ Bounce Stepper_Executor(Level* L)
     goto process_action;
 
 
-}} give_up_backward_quote_priority: { ///////////////////////////////////////
+} give_up_backward_quote_priority: { /////////////////////////////////////////
 
     assert(Is_Cell_Erased(OUT));
 

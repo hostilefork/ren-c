@@ -25,13 +25,33 @@
     ~discarded-value~ !! (ten-twenty 304)
 ]
 
-; Simple test of locked things
+; Basic tests of locked things
+;
+; 1. A somewhat complicated mechanic is required for the pattern of
+;
+;      word!: word! word!  ; for instance `value: type of`
+;
+;    In general, a WORD! is consulted and asked if it wants to take the left
+;    hand side literally.  But this pure function example shows that we do
+;    not want TYPE to be offered the opportunity to take VALUE literally, as
+;    it isn't part of the pure scope.  We want OF to get the first choice.
+;    Mechanics peculiar to SET-WORD and this pattern are used to make that
+;    offer.
 [
-    (all [
+    (all {
         slow-is-word?: pure lambda [value] [word! = type of value]
         slow-is-word? 'abba
         not slow-is-word? 1020
-    ])
+    })
+
+    (all {
+        slow-is-word?: pure lambda [value] [
+            value: type of value  ; lookback not offered to TYPE [1]
+            word! = value
+        ]
+        slow-is-word? 'abba
+        not slow-is-word? 1020
+    })
 ]
 
 
