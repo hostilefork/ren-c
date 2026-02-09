@@ -161,12 +161,12 @@ INLINE PointerDetect Detect_Rebol_Pointer(const void *p)
         if (not (b & BASE_BYTEMASK_0x04_MANAGED))
             return DETECTED_AS_UTF8;
 
-        if (b == END_SIGNAL_BYTE) {  // 0xF7
+        if (b == BASE_BYTE_END) {  // 0xF7
             assert(SECOND_BYTE(p) == '\0');
             return DETECTED_AS_END;
         }
 
-        if (b == FREE_POOLUNIT_BYTE)  // 0xF6
+        if (b == BASE_BYTE_FREE)  // 0xF6
             return DETECTED_AS_FREE;
 
         if (b == BASE_BYTE_WILD)  // 0xF5
@@ -175,7 +175,7 @@ INLINE PointerDetect Detect_Rebol_Pointer(const void *p)
         return DETECTED_AS_STUB;
     }
 
-    if (b == DIMINISHED_CANON_BYTE or b == DIMINISHED_NON_CANON_BYTE)
+    if (b == BASE_BYTE_DIMINISHING or b == BASE_BYTE_DIMINISHED)
         return DETECTED_AS_FREE;  // 11000000 and 11000001 illegal UTF-8
 
     return DETECTED_AS_UTF8;
@@ -184,19 +184,20 @@ INLINE PointerDetect Detect_Rebol_Pointer(const void *p)
 
 // Allocate a Unit from a pool.
 //
-// 1. The first byte of the returned allocation will be FREE_POOLUNIT_BYTE
-//    in release builds.  It's up to the client to update the bytes of the
-//    returned unit.
-//
-// 2. Checked builds scramble the first byte occasionally, just to keep code
-//    from depending on the allocation returning FREE_POOLUNIT_BYTE.  There's
-//    not a good reason to depend on it at this time, and it may be desirable
-//    to change the implementation so guaranteeing it is avoided.
-//
-// 3. All nodes are 64-bit aligned.  This way, data allocated in nodes can be
+// 1. PoolUnits are 64-bit aligned.  This way, data allocated in units can be
 //    structured to know where legal 64-bit alignment points would be.  This
 //    is required for correct functioning of some types.  (See notes on
 //    alignment in %struct-cell.h.)
+//
+// 2. It is up to the client to update the bytes of the returned unit, so
+//    that the first byte is not BASE_BYTE_FREE if the allocation is in a
+//    pool which is "swept" (e.g. for GC).
+//
+// 3. Checked builds scramble the first byte occasionally, just to keep code
+//    from depending on the allocation returning BASE_BYTE_FREE.  (There's
+//    not a good reason to depend on it at this time, and it may be desirable
+//    to change the implementation, so guaranteeing it is avoided.)
+//
 //
 INLINE Result(void*) Raw_Pooled_Alloc(PoolId pool_id)
 {
@@ -224,7 +225,7 @@ INLINE Result(void*) Raw_Pooled_Alloc(PoolId pool_id)
 
     pool->free--;
 
-  #if CHECK_MEMORY_ALIGNMENT  // always 64-bit aligned returns [3]
+  #if CHECK_MEMORY_ALIGNMENT  // always 64-bit aligned returns [1]
     if (i_cast(uintptr_t, unit) % sizeof(REBI64) != 0) {
         printf(
             "Pool Unit address %p not aligned to %d bytes\n",
@@ -239,9 +240,9 @@ INLINE Result(void*) Raw_Pooled_Alloc(PoolId pool_id)
     }
   #endif
 
-    assert(FIRST_BYTE(unit) == FREE_POOLUNIT_BYTE);  // client must adjust [1]
+    assert(FIRST_BYTE(unit) == BASE_BYTE_FREE);  // client *must* adjust [2]
 
-  #if RUNTIME_CHECKS && TRAMPOLINE_COUNTS_TICKS  // scramble occasionally [2]
+  #if RUNTIME_CHECKS && TRAMPOLINE_COUNTS_TICKS  // scramble occasionally [3]
     if (SPORADICALLY(8))
         FIRST_BYTE(unit) = u_cast(Byte, g_tick % 256);
   #endif
@@ -272,7 +273,7 @@ INLINE void Raw_Pooled_Free(PoolId pool_id, void* p)
 
     PoolUnit* unit = cast(PoolUnit*, p);
 
-    FIRST_BYTE(unit) = FREE_POOLUNIT_BYTE;
+    FIRST_BYTE(unit) = BASE_BYTE_FREE;
 
     Pool* pool = &g_mem.pools[pool_id];
 

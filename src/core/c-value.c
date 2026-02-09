@@ -185,20 +185,23 @@ void* Probe_Core_Debug(
         Probe_Cell_Print_Helper(mo, p, expr, file, line);
         goto cleanup; }
 
-      case DETECTED_AS_END:
-        Probe_Print_Helper(p, expr, "rebEND Signal (192)", file, line);
-        goto cleanup;
+      case DETECTED_AS_END: {
+        STATIC_ASSERT(BASE_BYTE_END == 0xF7);
+        Probe_Print_Helper(p, expr, "rebEND Signal (0xF7)", file, line);
+        goto cleanup; }
 
       case DETECTED_AS_STUB:
         break;  // lots of possibilities, break to handle
 
-      case DETECTED_AS_FREE:
-        Probe_Print_Helper(p, expr, "Freed PoolUnit (193)", file, line);
-        goto cleanup;
+      case DETECTED_AS_FREE: {
+        STATIC_ASSERT(BASE_BYTE_FREE == 0xF6);
+        Probe_Print_Helper(p, expr, "Freed PoolUnit (0xF6)", file, line);
+        goto cleanup; }
 
-      case DETECTED_AS_WILD:
-        Probe_Print_Helper(p, expr, "Wild Pointer (194)", file, line);
-        goto cleanup;
+      case DETECTED_AS_WILD: {
+        STATIC_ASSERT(BASE_BYTE_WILD == 0xF5);
+        Probe_Print_Helper(p, expr, "Wild Pointer (0xF5)", file, line);
+        goto cleanup; }
     }
 
     // If we didn't jump to cleanup above, it's a Flex.  New switch().

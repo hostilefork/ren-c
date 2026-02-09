@@ -85,7 +85,7 @@
 // how this is done.
 //
 // Additional non-UTF-8 states that have BASE_FLAG_UNREADABLE set are
-// END_SIGNAL_BYTE, which uses 11000000, and FREE_POOLUNIT_BYTE, which uses
+// BASE_BYTE_END, which uses 11000000, and BASE_BYTE_FREE, which uses
 // 110000001... which are the illegal UTF-8 bytes 192 and 193.
 //
 #define BASE_FLAG_UNREADABLE \
@@ -184,10 +184,8 @@
 // On Stubs, this flag is used by the mark-and-sweep of the garbage collector,
 // and should not be referenced outside of %m-gc.c.
 //
-// 1. THE CHOICE OF BEING THE LAST BIT IS NOT RANDOM.  This means that decayed
-//    Stub states can be represented as 11000000 and 11000001, where you have
-//    just BASE_FLAG_BASE and BASE_FLAG_STUB plus whether the stub has been
-//    marked or not, and these are illegal UTF-8.
+// 1. THE CHOICE OF BASE_FLAG_MARKED BEING THE LAST BIT IS NOT RANDOM.  See
+//    BASE_BYTE_DIMINISHING and BASE_BYTE_DIMINISHED for why.
 //
 // 2. See `FLEX_INFO_BLACK` for a generic bit available to other routines
 //    that wish to have an arbitrary marker on a Flex (for things like
@@ -202,8 +200,18 @@
     FLAG_LEFT_BIT(7)
 #define BASE_BYTEMASK_0x01_MARKED  0x01
 
-#define DIMINISHED_NON_CANON_BYTE      0xC0  // 11000000: illegal UTF-8 [1]
-#define DIMINISHED_CANON_BYTE          0xC1  // 11000001: illegal UTF-8 [1]
+
+// A "Diminished" Stub is one which may have references to it in GC-reachable
+// places, but that has had its data freed.  Hence the Stub must stick around
+// until those GC-reachable places can be touched up to point to a canon
+// pointer for an inaccessible thing.
+//
+// 1. Stub states can be represented as 11000000 and 11000001, where you have
+//    just BASE_FLAG_BASE and BASE_FLAG_STUB plus whether the stub has been
+//    marked or not, and these are illegal UTF-8.
+
+#define BASE_BYTE_DIMINISHING           0xC0  // 11000000: illegal UTF-8 [1]
+#define BASE_BYTE_DIMINISHED            0xC1  // 11000001: illegal UTF-8 [1]
 
 
 // All the illegal UTF-8 bit patterns are in use for some purpose in the
@@ -215,18 +223,18 @@
 //
 //    11110xxx: Flags: NODE | UNREADABLE | GC_ONE | GC_TWO
 //
-// 0xF7 is used for END_SIGNAL_BYTE
-// 0xF6 is used for FREE_POOLUNIT_BYTE
+// 0xF7 is used for BASE_BYTE_END
+// 0xF6 is used for BASE_BYTE_FREE
 // 0xF5 is BASE_BYTE_WILD that is used for Bounce, and other purposes
 //
-// 1. At time of writing, the END_SIGNAL_BYTE must always be followed by a
-//    zero byte.  It's easy to do with C strings(*see rebEND definition*).
+// 1. At time of writing, the BASE_BYTE_END must always be followed by a
+//    zero byte.  It's easy to do with C strings (*see rebEND definition*).
 //    Not strictly necessary--one byte suffices--but it's a good sanity check.
 
-#define END_SIGNAL_BYTE  0xF7  // followed by a zero byte [1]
-STATIC_ASSERT(not (END_SIGNAL_BYTE & BASE_BYTEMASK_0x08_CELL));
+#define BASE_BYTE_END  0xF7  // followed by a zero byte [1]
+STATIC_ASSERT(not (BASE_BYTE_END & BASE_BYTEMASK_0x08_CELL));
 
-#define FREE_POOLUNIT_BYTE  0xF6
+#define BASE_BYTE_FREE  0xF6
 
 #define BASE_BYTE_WILD  0xF5  // not BASE_FLAG_CELL, use for whatever purposes
 

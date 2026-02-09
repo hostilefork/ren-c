@@ -349,7 +349,7 @@ void Shutdown_Pools(void)
         Byte* unit = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             ++num_leaks;
@@ -470,7 +470,7 @@ Result(None) Fill_Pool(Pool* pool)
     }
 
     while (true) {
-        FIRST_BYTE(unit) = FREE_POOLUNIT_BYTE;
+        FIRST_BYTE(unit) = BASE_BYTE_FREE;
 
         if (--num_units == 0) {
             unit->next_if_free = nullptr;
@@ -504,7 +504,7 @@ Base* Try_Find_Containing_Base_Debug(const void *p)
         Byte* unit = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             if (unit[0] & BASE_BYTEMASK_0x08_CELL) {  // a "pairing"
@@ -683,7 +683,7 @@ static void Free_Unbiased_Flex_Data(char *unbiased, Size total)
         pool->first = unit;
         pool->free++;
 
-        cast(Byte*, unit)[0] = FREE_POOLUNIT_BYTE;
+        cast(Byte*, unit)[0] = BASE_BYTE_FREE;
     }
     else {
         Free_Memory_N(char, total, unbiased);
@@ -1209,13 +1209,13 @@ Stub* Diminish_Stub(Stub* s)
 void GC_Kill_Stub(Stub* s)
 {
   #if RUNTIME_CHECKS
-    if (BASE_BYTE(s) == FREE_POOLUNIT_BYTE) {
+    if (BASE_BYTE(s) == BASE_BYTE_FREE) {
         printf("Killing already deallocated stub.\n");
         crash (s);
     }
   #endif
 
-    assert(Is_Stub_Diminished(s));  // must Diminish_Stub() first
+    assert(Not_Stub_Readable(s));  // must Diminish_Stub() first
 
     // By default the Stub is touched so its tick reflects the tick that
     // freed it.  If you need to know the tick where it was allocated, then
@@ -1246,7 +1246,7 @@ void GC_Kill_Stub(Stub* s)
 void Free_Unmanaged_Flex(Flex* f)
 {
   #if RUNTIME_CHECKS
-    if (BASE_BYTE(f) == FREE_POOLUNIT_BYTE or Not_Base_Readable(f)) {
+    if (BASE_BYTE(f) == BASE_BYTE_FREE or Not_Base_Readable(f)) {
         printf("Called Free_Unmanaged_Flex() on decayed or freed Flex\n");
         crash (f);  // erroring here helps not conflate with tracking problems
     }
@@ -1313,7 +1313,7 @@ REBLEN Check_Memory_Debug(void)
         Byte* unit = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             if (unit[0] & BASE_BYTEMASK_0x08_CELL)
@@ -1343,7 +1343,7 @@ REBLEN Check_Memory_Debug(void)
 
         PoolUnit* unit = g_mem.pools[pool_id].first;
         for (; unit != nullptr; unit = unit->next_if_free) {
-            assert(FIRST_BYTE(unit) == FREE_POOLUNIT_BYTE);
+            assert(FIRST_BYTE(unit) == BASE_BYTE_FREE);
 
             ++pool_free_units;
 
@@ -1391,7 +1391,7 @@ void Check_Level_Pool_For_Leaks(void)
         Byte* unit = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, unit += g_mem.pools[LEVEL_POOL].wide) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             Level* L = cast(Level*, unit);  // ^-- pool size may round up
@@ -1420,7 +1420,7 @@ void Check_Feed_Pool_For_Leaks(void)
         Byte* unit = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, unit += g_mem.pools[FEED_POOL].wide) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             Feed* feed = cast(Feed*, unit);
@@ -1450,7 +1450,7 @@ void Dump_All_Series_Of_Width(Size wide)
         Byte* unit = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             if (unit[0] & BASE_BYTEMASK_0x08_CELL)  // a pairing
@@ -1486,7 +1486,7 @@ void Dump_All_Flex_In_Pool(PoolId pool_id)
         Byte* unit = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             if (unit[0] & BASE_BYTEMASK_0x08_CELL)
@@ -1586,7 +1586,7 @@ REBU64 Inspect_Flex(bool show)
         Byte* unit = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE) {
+            if (unit[0] == BASE_BYTE_FREE) {
                 ++fre;
                 continue;
             }

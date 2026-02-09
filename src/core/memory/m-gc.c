@@ -204,7 +204,7 @@ static void Queue_Mark_Base_Deep(Base** npp) {  // ** for canonizing
 
     Stub* s = cast(Stub*, *npp);  // (define before needed for debug watching)
 
-    if (base_byte == DIMINISHED_NON_CANON_BYTE) {
+    if (base_byte == BASE_BYTE_DIMINISHING) {
         *npp = &PG_Inaccessible_Stub;  // adjust to the global diminished
         return;  // skip marking, it will be GC'd
     }
@@ -238,14 +238,14 @@ static void Queue_Unmarked_Accessible_Stub_Deep(const Stub* s)
     if (not Is_Base_Readable(s)) {
         BaseByte base_byte = BASE_BYTE(s);
         switch (base_byte) {
-          case FREE_POOLUNIT_BYTE:
-            printf("Queue Stub w/FREE_POOLUNIT_BYTE, Stub wasn't GC safe\n");
+          case BASE_BYTE_FREE:
+            printf("Queue Stub w/BASE_BYTE_FREE, Stub wasn't GC safe\n");
             printf("Not using safe Cells?  Missing a Push_Lifeguard()?\n");
             break;
 
-          case END_SIGNAL_BYTE:
-            printf("Queue stub w/END_SIGNAL_BYTE, crazy corruption!\n");
-            printf("END_SIGNAL_BYTE should never be found in the Stub Pool\n");
+          case BASE_BYTE_END:
+            printf("Queue stub w/BASE_BYTE_END, crazy corruption!\n");
+            printf("BASE_BYTE_END should never be found in the Stub Pool\n");
             break;
 
           case BASE_BYTE_WILD:
@@ -253,13 +253,13 @@ static void Queue_Unmarked_Accessible_Stub_Deep(const Stub* s)
             printf("BASE_BYTE_WILD should never be found in the Stub Pool\n");
             break;
 
-          case DIMINISHED_NON_CANON_BYTE:
-            printf("Queue stub w/DIMINISHED_NON_CANON_BYTE, not accessible!\n");
+          case BASE_BYTE_DIMINISHING:
+            printf("Queue stub w/BASE_BYTE_DIMINISHING, not accessible!\n");
             printf("Checked before Queue_Unmarked_Accessible_Stub_Deep()!\n");
             break;
 
-          case DIMINISHED_CANON_BYTE:
-            printf("Queue stub w/DIMINISHED_CANON_BYTE, it's marked!\n");
+          case BASE_BYTE_DIMINISHED:
+            printf("Queue stub w/BASE_BYTE_DIMINISHED, it's marked!\n");
             printf("Checked before Queue_Unmarked_Accessible_Stub_Deep()!\n");
             break;
 
@@ -576,15 +576,18 @@ void Run_All_Handle_Cleaners(void) {
         Byte* unit = cast(Byte*, seg + 1);
         Length n = g_mem.pools[STUB_POOL].num_units_per_segment;
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             if (unit[0] & BASE_BYTEMASK_0x08_CELL)
                 continue;  // not a stub
 
-            Stub* stub = cast(Stub*, unit);
-            if (Is_Stub_Diminished(stub))
+            if (unit[0] == BASE_BYTE_DIMINISHING)
                 continue;  // freed, but not canonized
+
+            assert(unit[0] != BASE_BYTE_DIMINISHED);  // shouldn't be in pool
+
+            Stub* stub = cast(Stub*, unit);
 
             if (Stub_Flavor(stub) != FLAVOR_HANDLE)
                 continue;  // only interested in handles
@@ -626,7 +629,7 @@ static void Mark_Root_Stubs(void)
         Length n = g_mem.pools[STUB_POOL].num_units_per_segment;
 
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             assert(unit[0] & BASE_BYTEMASK_0x80_NODE);
@@ -887,7 +890,7 @@ static void Mark_All_Levels(void)
         Byte* unit = cast(Byte*, seg + 1);  // byte beats strict alias
 
         for (; n > 0; --n, unit += wide) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             Level* level = cast(Level*, unit);
@@ -913,7 +916,7 @@ static REBLEN Sweep_Distinct_Pairing_Pool(void)
 
         Byte* unit = u_cast(Byte*, seg + 1);
         for (; n > 0; --n, unit += wide) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;
 
             assert(unit[0] & BASE_BYTEMASK_0x08_CELL);
@@ -970,7 +973,7 @@ Count Sweep_Stubs(void)
         Byte* unit = cast(Byte*, seg + 1);  // byte beats strict alias [1]
 
         for (; n > 0; --n, unit += sizeof(Stub)) {
-            if (unit[0] == FREE_POOLUNIT_BYTE)
+            if (unit[0] == BASE_BYTE_FREE)
                 continue;  // only unit without BASE_FLAG_BASE (in ASCII range)
 
             assert(unit[0] & BASE_BYTEMASK_0x80_NODE);
@@ -978,7 +981,7 @@ Count Sweep_Stubs(void)
             if (not (unit[0] & BASE_BYTEMASK_0x04_MANAGED)) {
                 assert(not (unit[0] & BASE_BYTEMASK_0x01_MARKED));
 
-                if (unit[0] == DIMINISHED_NON_CANON_BYTE) {
+                if (unit[0] == BASE_BYTE_DIMINISHING) {
                     Raw_Pooled_Free(STUB_POOL, unit);
                     continue;
                 }
@@ -1113,7 +1116,7 @@ void Emergency_Shutdown_Gc_Debug(void)
         Byte* stub = cast(Byte*, seg + 1);
 
         for (; n > 0; --n, stub += sizeof(Stub)) {
-            if (*stub == FREE_POOLUNIT_BYTE)
+            if (*stub == BASE_BYTE_FREE)
                 continue;
 
             if (*stub & BASE_BYTEMASK_0x01_MARKED)
@@ -1129,7 +1132,7 @@ void Emergency_Shutdown_Gc_Debug(void)
         Byte* unit = cast(Byte*, pseg + 1);
 
         for (; n > 0; --n, unit += sizeof(Pairing)) {
-            if (*unit == FREE_POOLUNIT_BYTE)
+            if (*unit == BASE_BYTE_FREE)
                 continue;
 
             if (*unit & BASE_BYTEMASK_0x01_MARKED)
@@ -1589,8 +1592,8 @@ void Startup_GC(void)
             | BASE_FLAG_MARKED,
         &PG_Inaccessible_Stub
     ));
-    assert(Is_Stub_Diminished(&PG_Inaccessible_Stub));
-    assert(BASE_BYTE(s) == DIMINISHED_CANON_BYTE);
+    assert(Not_Stub_Readable(&PG_Inaccessible_Stub));
+    assert(BASE_BYTE(s) == BASE_BYTE_DIMINISHED);
     UNUSED(s);
 }
 

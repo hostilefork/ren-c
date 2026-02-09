@@ -1017,7 +1017,7 @@ $[Non-Variadic-Api-Macros]
  * Since a C nullptr (pointer cast of 0) is used to represent the ~null~
  * antiform in the API, something different must be used to indicate the end
  * of variadic input.  So a *pointer to data* is used where the first byte of
- * that data is 0xF7 (END_SIGNAL_BYTE)--illegal in UTF-8 sequences.
+ * that data is 0xF7 (BASE_BYTE_END)--illegal in UTF-8 sequences.
  *
  * There were three seemingly-arbitrary choices that were out of band for
  * UTF-8 and not applied to other purposes internally to the system which
@@ -1025,7 +1025,7 @@ $[Non-Variadic-Api-Macros]
  *
  *     0xF5 (11110101), 0xF6 (11110110), 0xF7 (11110111)
  *
- * The first bit being 1 means it's a "Base" (any non-UTF8 pointer for an
+ * The first bit being 1 means it's a "Base" (any non-UTF-8 pointer for an
  * entity in the interpreter), the second that it's "Unreadable", the third
  * and fourth bits would pertain to GC behavior (if it were applicable), the
  * fifth bit being clear means it's *not* a Cell.  The seventh bit is for GC
@@ -1033,8 +1033,8 @@ $[Non-Variadic-Api-Macros]
  * unmarked states of "diminished Stubs")
  *
  * It seems there's not any obvious reason to pick one of these over the
- * other to signify END_SIGNAL_BYTE, so 0xF7 was chosen--and the other two
- * are used for internal purposes.
+ * other to signify BASE_BYTE_END, so 0xF7 was chosen--and the other two are
+ * used for internal purposes.
  *
  * rebEND's second byte is 0, coming from the '\0' terminator of the C string.
  * This isn't strictly necessary, as the 0xF7 is enough to know it's not a

@@ -86,7 +86,7 @@ void Shutdown_Data_Stack(void)
 //
 void Startup_Feeds(void)
 {
-    PG_Feed_At_End.header.bits = FLAG_FIRST_BYTE(END_SIGNAL_BYTE);
+    PG_Feed_At_End.header.bits = FLAG_FIRST_BYTE(BASE_BYTE_END);
 
     static const void* packed = &PG_Feed_At_End;  // "packed feed items"
     require (

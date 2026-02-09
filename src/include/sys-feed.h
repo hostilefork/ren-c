@@ -49,7 +49,7 @@
 
 #if (! DEBUG_CHECK_ENDS)
     #define Is_End(p) \
-        (((const Byte*)(p))[0] == END_SIGNAL_BYTE)  // Note: needs (p) parens!
+        (((const Byte*)(p))[0] == BASE_BYTE_END)  // Note: needs (p) parens!
 #else
     template<typename T>  // should only test const void* for ends
     INLINE bool Is_End(T* p) {
@@ -58,7 +58,7 @@
             "Is_End() is not designed to operate on Cell, Flex, etc."
         );
         const Byte* bp = cast(Byte*, p);
-        if (*bp != END_SIGNAL_BYTE) {
+        if (*bp != BASE_BYTE_END) {
             assert(*bp & BASE_BYTEMASK_0x08_CELL);
             return false;
         }

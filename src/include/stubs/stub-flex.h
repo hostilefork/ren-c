@@ -61,38 +61,37 @@
 // inaccessible stub.  This compacts memory of references that have expired.
 //
 // 1. We can't just set BASE_FLAG_UNREADABLE, because if the only flag that
-//    was set in the Stub header was BASE_FLAG_BASE then this would give
-//    us a bit pattern of 11000000, which is FREE_POOLUNIT_BYTE.  We want
-//    the decayed state to be distinct and potentially encode more info,
-//    so we push it out of the valid leading UTF-8 byte range...the patterns
-//    that we actually have are:
+//    was set in the Stub header was BASE_FLAG_BASE then this would give us a
+//    bit pattern of 11000000, which is BASE_BYTE_FREE.  We want the decayed
+//    state to be distinct and potentially encode more info, so we push it out
+//    of the valid leading UTF-8 byte range...the patterns we have are:
 //
 //        0xF5 (11110101), 0xF6 (11110110), 0xF7 (11110111)
 //
 
-INLINE bool Is_Stub_Diminished(const Stub* s) {
+INLINE bool Not_Stub_Readable(const Stub* s) {
     if (Is_Base_Readable(s))
         return false;
     BaseByte b = BASE_BYTE(s);
-    assert(b == DIMINISHED_CANON_BYTE or b == DIMINISHED_NON_CANON_BYTE);
+    assert(b == BASE_BYTE_DIMINISHING or b == BASE_BYTE_DIMINISHED);
     UNUSED(b);
     return true;
 }
 
 #if CPLUSPLUS_11  // cast(Flex*, stub) of diminished Stub would assert
-    bool Is_Stub_Diminished(const Flex*) = delete;
+    bool Not_Stub_Readable(const Flex*) = delete;
 #endif
 
-#define Not_Stub_Diminished(s) \
-    (not Is_Stub_Diminished(s))
+#define Is_Stub_Readable(s) \
+    (not Not_Stub_Readable(s))
 
-#define STUB_MASK_NON_CANON_UNREADABLE \
+#define STUB_MASK_DIMINISHING \
     (BASE_FLAG_BASE | BASE_FLAG_UNREADABLE | STUB_MASK_TASTE)
 
 INLINE Stub* Set_Stub_Unreadable(Stub* s) {
     assert(Is_Base_Readable(s));
-    s->header.bits = STUB_MASK_NON_CANON_UNREADABLE;
-    assert(BASE_BYTE(s) == DIMINISHED_NON_CANON_BYTE);
+    s->header.bits = STUB_MASK_DIMINISHING;
+    assert(BASE_BYTE(s) == BASE_BYTE_DIMINISHING);
 
     Corrupt_If_Needful(s->link.corrupt);
     Corrupt_If_Needful(s->misc.corrupt);
@@ -308,7 +307,7 @@ MUTABLE_IF_C(Byte*, INLINE) Flex_Data_At(
 
   #if RUNTIME_CHECKS
     if (w != Flex_Wide(f)) {
-        if (BASE_BYTE(f) == FREE_POOLUNIT_BYTE)
+        if (BASE_BYTE(f) == BASE_BYTE_FREE)
             printf("Flex_Data_At() asked on free PoolUnit\n");
         else if (Not_Base_Readable(f))
             printf("Flex_Data_At() asked on diminished Flex\n");

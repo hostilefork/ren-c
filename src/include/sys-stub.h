@@ -48,7 +48,7 @@
     INLINE void Touch_Stub(Stub *s)  // if alloc, only header valid [1]
     {
         s->guard = cast(Byte*, malloc(sizeof(Byte)));  // smallest allocation
-        *s->guard = FREE_POOLUNIT_BYTE;  // irrelevant, but disruptive choice
+        *s->guard = BASE_BYTE_FREE;  // irrelevant, but disruptive choice
         free(s->guard);
 
         s->tick = TICK;  // 0 if not TRAMPOLINE_COUNTS_TICKS

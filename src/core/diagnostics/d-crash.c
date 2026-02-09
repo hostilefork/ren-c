@@ -137,7 +137,7 @@ ATTRIBUTE_NO_RETURN void Crash_With_Stub_Debug(const Stub* s)
       Printf_Stderr(" has no tick tracking (see TRAMPOLINE_COUNTS_TICKS)\n");
     #endif
 
-    if (*s->guard == FREE_POOLUNIT_BYTE)  // should make valgrind or asan alert
+    if (*s->guard == BASE_BYTE_FREE)  // should make valgrind or asan alert
         NOOP;
 
     Printf_Stderr(

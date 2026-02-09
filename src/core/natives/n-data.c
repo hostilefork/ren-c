@@ -1260,15 +1260,15 @@ DECLARE_NATIVE(FREE_Q)
     if (Is_Null(v))
         return LOGIC_OUT(false);
 
-    if (not Cell_Payload_1_Needs_Mark(v))  // freeable values have Flex in payload payload1
+    if (not Cell_Payload_1_Needs_Mark(v))  // freeables have Flex in payload
         return LOGIC_OUT(false);
 
     Base* b = CELL_PAYLOAD_1(v);
     if (b == nullptr or not Is_Base_A_Stub(b))
         return LOGIC_OUT(false);  // no decayed pairing form at this time [1]
 
-    if (Is_Stub_Diminished(cast(Stub*, b)))
-        return LOGIC_OUT(true);  // decayed is as "free" as outstanding refs get
+    if (Not_Stub_Readable(cast(Stub*, b)))
+        return LOGIC_OUT(true);
 
     return LOGIC_OUT(false);
 }
