@@ -692,7 +692,7 @@ INLINE Result(Level*) Prep_Level_Core(
     Make_Level_At_Core((executor), (list), SPECIFIED, (flags))
 
 #define Make_End_Level(executor,flags) \
-    Make_Level((executor), TG_End_Feed, (flags))
+    Make_Level((executor), g_end_feed, (flags))
 
 
 // 1. In the case of an abrupt panic, the stack may be unwound without the

@@ -339,7 +339,7 @@ Bounce Inert_Stepper_Executor(Level* L)
 //       ]
 //
 #define Next_Not_Word_Or_Is_Newline_Or_End(L) ( \
-    (u_cast(Cell*, L->feed->p)->header.bits & ( /* maybe PG_Feed_At_End [1] */ \
+    (u_cast(Cell*, L->feed->p)->header.bits & ( /* maybe g_cell_aligned_end [1] */ \
         FLAG_KIND_BYTE(255) \
             | FLAG_LIFT_BYTE(255) \
             | CELL_FLAG_NEWLINE_BEFORE \

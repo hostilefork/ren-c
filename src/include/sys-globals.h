@@ -61,7 +61,7 @@ PVAR Codepoint* g_lower_cases;
 #endif
 
 
-PVAR Stable PG_Feed_At_End;  // Canon pointer; internals use instead of rebEND
+PVAR Cell g_cell_aligned_end;  // Feed internals canonize rebENDs to this
 
 // These are special return values that can be checked easily by pointer.  They
 // are turned into a `Bounce` (which is a `Base*` at time of writing).
@@ -124,7 +124,7 @@ PVAR Stable* g_error_illegal_zero_byte;
 
 PVAR Cell g_erased_cell;  // target of bottommost level, always erased cell
 
-TVAR Feed* TG_End_Feed;
+TVAR Feed* g_end_feed;
 
 TVAR Binary* TG_Byte_Buf;  // byte buffer used in various spots (as BYTE_BUF)
 

@@ -62,7 +62,13 @@
             assert(*bp & BASE_BYTEMASK_0x08_CELL);
             return false;
         }
-        assert(bp[1] == 0);  // not strictly necessary, but rebEND is 2 bytes
+        assert(
+            bp[1] == 0  // not strictly necessary, but rebEND is 2 bytes
+            or (
+                bp[1] == u_cast(Byte, TYPE_BLANK)
+                and bp[2] == u_cast(Byte, NOQUOTE_3)
+            )
+        );
         return true;
     }
 #endif
@@ -89,7 +95,7 @@
 // would check faster).
 //
 #define Is_Feed_At_End(feed) \
-    ((feed)->p == &PG_Feed_At_End)
+    ((feed)->p == &g_cell_aligned_end)
 
 #define Not_Feed_At_End(feed) \
     (not Is_Feed_At_End(feed))
@@ -137,7 +143,7 @@ INLINE void Tweak_Link_Feedstub_Splice(
 
 INLINE const Element* At_Feed(Feed* feed) {
     assert(Not_Feed_Flag(feed, NEEDS_SYNC));
-    assert(feed->p != &PG_Feed_At_End);
+    assert(feed->p != &g_cell_aligned_end);
 
     const Value* v = cast(Value*, feed->p);
     if (Is_Antiform(v))
@@ -148,7 +154,7 @@ INLINE const Element* At_Feed(Feed* feed) {
 
 INLINE const Element* Try_At_Feed(Feed* feed) {
     assert(Not_Feed_Flag(feed, NEEDS_SYNC));
-    if (feed->p == &PG_Feed_At_End)
+    if (feed->p == &g_cell_aligned_end)
         return nullptr;
 
     return At_Feed(feed);
@@ -285,7 +291,7 @@ INLINE Option(const Element*) Try_Reify_Variadic_Feed_At(
         }
 
         if (Is_Block(single)) {
-            feed->p = &PG_Feed_At_End;  // will become Feed_Pending(), ignored
+            feed->p = &g_cell_aligned_end;  // will become Feed_Pending(), ignored
             Splice_Block_Into_Feed(feed, single);
         }
         else {
@@ -371,7 +377,7 @@ INLINE void Force_Variadic_Feed_At_Cell_Or_End_May_Panic(Feed* feed)
     } else switch (Detect_Rebol_Pointer(feed->p)) {
 
       case DETECTED_AS_END:  // end of input (all feeds must be spooled to end)
-        feed->p = &PG_Feed_At_End;
+        feed->p = &g_cell_aligned_end;
         break;  // va_end() handled by Free_Feed() logic
 
       case DETECTED_AS_CELL: {  // antiforms handled specially in feeds
@@ -494,7 +500,7 @@ INLINE void Fetch_Next_In_Feed(Feed* feed) {
             ++FEED_INDEX(feed);
         }
         else {
-            feed->p = &PG_Feed_At_End;
+            feed->p = &g_cell_aligned_end;
 
             // !!! At first this dropped the hold here; but that created
             // problems if you write `eval code: [clear code]`, because END
@@ -680,7 +686,7 @@ INLINE Result(Feed*) Prep_Array_Feed(
     else {
         feed->p = Array_At(array, index);
         if (feed->p == Array_Tail(array))
-            feed->p = &PG_Feed_At_End;
+            feed->p = &g_cell_aligned_end;
         Init_Any_List_At_Core(
             Feed_Data(feed), TYPE_BLOCK, array, index + 1, binding
         );

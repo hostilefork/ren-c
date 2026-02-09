@@ -183,7 +183,7 @@ DECLARE_NATIVE(TRANSCODE)
     // bad as soon as we yielded to the trampoline.  Have to use an END feed
     // and preload the transcode->at of the scanner here.
     //
-    // Note: Could reuse global TG_End_Feed if context was null.
+    // Note: Could reuse global g_end_feed if context was null.
 
     require (
       Feed* feed = Make_Array_Feed_Core(EMPTY_ARRAY, 0, SPECIFIED)

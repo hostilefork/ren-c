@@ -162,7 +162,13 @@ INLINE PointerDetect Detect_Rebol_Pointer(const void *p)
             return DETECTED_AS_UTF8;
 
         if (b == BASE_BYTE_END) {  // 0xF7
-            assert(SECOND_BYTE(p) == '\0');
+            assert(
+                SECOND_BYTE(p) == '\0'  // rebEND
+                or (
+                    SECOND_BYTE(p) == u_cast(Byte, TYPE_BLANK)
+                    and THIRD_BYTE(p) == u_cast(Byte, NOQUOTE_3)
+                )
+            );
             return DETECTED_AS_END;
         }
 

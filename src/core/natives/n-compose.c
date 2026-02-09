@@ -832,7 +832,7 @@ DECLARE_NATIVE(COMPOSE2)
             if (stack_index != TOP_INDEX - 1)
                 flags |= SCAN_EXECUTOR_FLAG_SAVE_LEVEL_DONT_POP_ARRAY;
 
-            Level* sub = Make_Scan_Level(transcode, TG_End_Feed, flags);
+            Level* sub = Make_Scan_Level(transcode, g_end_feed, flags);
             sub->baseline.stack_base = base;  // we will drop to this
 
             unnecessary(Erase_Cell(OUT));  // LEVEL_STATE_BYTE is not STATE_0

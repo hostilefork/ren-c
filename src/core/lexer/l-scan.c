@@ -855,7 +855,7 @@ Result(const Byte*) Scan_Utf8_Item_Into_Mold(
                  FLAG_STATE_BYTE(Scanner_State_For_Terminal(terminal))
             );
 
-            Level* scan = Make_Scan_Level(&transcode, TG_End_Feed, flags);
+            Level* scan = Make_Scan_Level(&transcode, g_end_feed, flags);
 
             DECLARE_VALUE (discard);
             definitely(Is_Cell_Erased(discard));  // DECLARE_VALUE erases
@@ -1272,7 +1272,7 @@ static Result(Token) Locate_Token_May_Push_Mold(Molder* mo, Level* L)
         }
         else switch (Detect_Rebol_Pointer(L->feed->p)) {
           case DETECTED_AS_END:
-            L->feed->p = &PG_Feed_At_End;
+            L->feed->p = &g_cell_aligned_end;
             return TOKEN_END;
 
           case DETECTED_AS_CELL: {

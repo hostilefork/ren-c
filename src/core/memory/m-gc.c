@@ -551,7 +551,7 @@ void Reify_Variadic_Feed_As_Array_Feed(
         else
             Init_Any_List_At(Feed_Data(feed), TYPE_BLOCK, EMPTY_ARRAY, 0);
 
-        feed->p = &PG_Feed_At_End;
+        feed->p = &g_cell_aligned_end;
     }
 
     Tweak_Cell_Binding(Feed_Data(feed), binding);

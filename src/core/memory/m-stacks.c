@@ -84,17 +84,25 @@ void Shutdown_Data_Stack(void)
 //
 //  Startup_Feeds: C
 //
+// 1. Sometimes we look at a Feed's pointer and have the same interpretation
+//    if it's either an end or a blank.  Because we canonize the feed pointer
+//    to g_cell_aligned_end, this is possible to make a tiny bit faster.
+//
 void Startup_Feeds(void)
 {
-    PG_Feed_At_End.header.bits = FLAG_FIRST_BYTE(BASE_BYTE_END);
-
-    static const void* packed = &PG_Feed_At_End;  // "packed feed items"
-    require (
-      TG_End_Feed = Make_Variadic_Feed(&packed, nullptr, FEED_MASK_DEFAULT)
+    g_cell_aligned_end.header.bits = (
+        FLAG_FIRST_BYTE(BASE_BYTE_END)
+            | FLAG_KIND_BYTE(TYPE_BLANK)  // make testable as BLANK! too [1]
+            | FLAG_LIFT_BYTE(NOQUOTE_3)
     );
-    Clear_Feed_Flag(TG_End_Feed, NEEDS_SYNC);  // !!! or asserts on shutdown
-    Add_Feed_Reference(TG_End_Feed);
-    assert(Is_Feed_At_End(TG_End_Feed));
+
+    static const void* packed = &g_cell_aligned_end;  // "packed feed items"
+    require (
+      g_end_feed = Make_Variadic_Feed(&packed, nullptr, FEED_MASK_DEFAULT)
+    );
+    Clear_Feed_Flag(g_end_feed, NEEDS_SYNC);  // !!! or asserts on shutdown
+    Add_Feed_Reference(g_end_feed);
+    assert(Is_Feed_At_End(g_end_feed));
 }
 
 
@@ -102,10 +110,10 @@ void Startup_Feeds(void)
 //  Shutdown_Feeds: C
 //
 void Shutdown_Feeds(void) {
-    PG_Feed_At_End.header.bits = 0;
+    g_cell_aligned_end.header.bits = 0;
 
-    Release_Feed(TG_End_Feed);
-    TG_End_Feed = nullptr;
+    Release_Feed(g_end_feed);
+    g_end_feed = nullptr;
 }
 
 
