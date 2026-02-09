@@ -136,7 +136,7 @@ Bounce Trampoline_From_Top_Maybe_Root(void)
   //    meant every trampoline bounce in the release build would have to test
   //    the state byte...and sometimes cells were getting doubly erased.  So
   //    the responsbility was shifted to Push_Level() and cases that reuse
-  //    levels, e.g. Reset_Evaluator_Erase_Out())
+  //    levels, e.g. Reset_Stepper_Erase_Out())
 
   bounce_on_trampoline_skip_just_use_out:
 

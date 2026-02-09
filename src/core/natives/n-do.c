@@ -900,7 +900,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     assert(not param or Ensure_Readable(param));  // nullptr means toss result
   #endif
 
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     return CONTINUE_SUBLEVEL;
 
 } labeled_step_result_in_spare: {  ///////////////////////////////////////////

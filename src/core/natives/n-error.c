@@ -228,7 +228,7 @@ DECLARE_NATIVE(ENRESCUE)  // wrapped as RESCUE
     if (Is_Level_At_End(SUBLEVEL))
         goto finished;
 
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     return CONTINUE_SUBLEVEL;
 
 } finished: {  ///////////////////////////////////////////////////////////////

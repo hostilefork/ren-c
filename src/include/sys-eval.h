@@ -85,7 +85,7 @@ INLINE Sink(Value) Level_Lifetime_Value(Level* L) {
 // state on exit.  But that added a branch on every trampoline bounce to
 // check the Level's state, and led to erasing cells redundantly.
 //
-INLINE void Reset_Evaluator_Erase_Out(Level* L) {
+INLINE void Reset_Stepper_Erase_Out(Level* L) {
     assert(
         L->executor == &Stepper_Executor
         or L->executor == &Inert_Stepper_Executor

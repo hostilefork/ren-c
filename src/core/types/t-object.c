@@ -1983,7 +1983,7 @@ DECLARE_NATIVE(CONSTRUCT)
         goto initial_entry;
 
       case ST_CONSTRUCT_EVAL_STEP:
-        Reset_Evaluator_Erase_Out(SUBLEVEL);
+        Reset_Stepper_Erase_Out(SUBLEVEL);
         goto continue_processing_spec;
 
       case ST_CONSTRUCT_EVAL_SET_STEP:
@@ -2123,7 +2123,7 @@ DECLARE_NATIVE(CONSTRUCT)
     }
 
     assert(STATE == ST_CONSTRUCT_EVAL_SET_STEP);
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
 
     goto continue_processing_spec;
 }}

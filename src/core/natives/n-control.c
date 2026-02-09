@@ -633,7 +633,7 @@ Bounce Any_All_None_Native_Core(Level* level_, WhichAnyAllNone which)
     if (Is_Level_At_End(SUBLEVEL))
         goto reached_end;
 
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     return CONTINUE_SUBLEVEL;
 
 } reached_end: {  ////////////////////////////////////////////////////////////
@@ -799,7 +799,7 @@ DECLARE_NATIVE(CASE)
 
     STATE = ST_CASE_CONDITION_EVAL_STEP;
     SUBLEVEL->executor = &Stepper_Executor;  // undo &Just_Use_Out_Executor
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
 
     return CONTINUE_SUBLEVEL;  // one step to pass predicate [1]
 
@@ -1030,7 +1030,7 @@ DECLARE_NATIVE(SWITCH)
 
     STATE = ST_SWITCH_EVALUATING_RIGHT;
     SUBLEVEL->executor = &Stepper_Executor;
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     return CONTINUE_SUBLEVEL;  // no direct predicate call [1]
 
 } right_result_in_spare: {  //////////////////////////////////////////////////

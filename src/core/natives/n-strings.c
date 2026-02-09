@@ -345,7 +345,7 @@ DECLARE_NATIVE(JOIN)
 
 }} next_mold_step: { /////////////////////////////////////////////////////////
 
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     Clear_Level_Flag(LEVEL, DELIMIT_MOLD_RESULT);
 
 } first_mold_step: { /////////////////////////////////////////////////////////
@@ -503,7 +503,7 @@ DECLARE_NATIVE(JOIN)
     if (Is_Level_At_End(sub))
         goto finish_stack_join;
 
-    Reset_Evaluator_Erase_Out(sub);
+    Reset_Stepper_Erase_Out(sub);
     /* Clear_Level_Flag(LEVEL, DELIMIT_MOLD_RESULT); */
 
     return CONTINUE_SUBLEVEL;

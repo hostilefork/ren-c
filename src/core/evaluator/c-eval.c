@@ -252,7 +252,7 @@ Bounce Evaluator_Executor(Level* const L)
   //    reset, we immediately calls the stepper again, before returning to
   //    the trampoline.  So it never re-enters with zero.
 
-    Reset_Evaluator_Erase_Out(stepper);
+    Reset_Stepper_Erase_Out(stepper);
 
     if (STATE == ST_EVALUATOR_STEPPING_IN_SUBLEVEL)
         return BOUNCE_CONTINUE;

@@ -124,7 +124,7 @@ static Result(None) Push_Keys_And_Params_For_Fence(
             }
         }
 
-        Reset_Evaluator_Erase_Out(sub);
+        Reset_Stepper_Erase_Out(sub);
     }
 
     Drop_Level_Unbalanced(sub);  // we pushed values

@@ -457,7 +457,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
         goto finished;
 
     STATE = ST_MAKE_MAP_EVAL_STEP_KEY;
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     return CONTINUE_SUBLEVEL;
 
 } key_step_result_in_out: { //////////////////////////////////////////////////
@@ -481,7 +481,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
         panic ("Key without value terminating MAKE MAP!");
 
     STATE = ST_MAKE_MAP_EVAL_STEP_VALUE;
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     return CONTINUE_SUBLEVEL;
 
 } value_step_result_in_out: { ////////////////////////////////////////////////

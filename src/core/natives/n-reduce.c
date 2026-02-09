@@ -234,7 +234,7 @@ DECLARE_NATIVE(REDUCE)
 
     SUBLEVEL->executor = &Stepper_Executor;
     STATE = ST_REDUCE_EVAL_STEP;
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     return CONTINUE_SUBLEVEL;
 
 } reduce_step_result_in_spare: { /////////////////////////////////////////////
@@ -499,7 +499,7 @@ DECLARE_NATIVE(REDUCE_EACH)
         SUBLEVEL->executor = &Stepper_Executor;
 
     STATE = ST_REDUCE_EACH_REDUCING_STEP;
-    Reset_Evaluator_Erase_Out(SUBLEVEL);
+    Reset_Stepper_Erase_Out(SUBLEVEL);
     return CONTINUE_SUBLEVEL;
 
 } reduce_step_result_in_spare: {  ////////////////////////////////////////////
