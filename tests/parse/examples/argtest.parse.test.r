@@ -28,8 +28,7 @@
             port: subparse text! integer!
             |
             root-dir: /to-file text!
-        ]]
-        else [
+        ]] else [
             return null
         ]
         return reduce:predicate [access-dir port root-dir verbose] reify/

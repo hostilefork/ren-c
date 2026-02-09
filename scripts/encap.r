@@ -592,8 +592,7 @@ pe-format: context [
         if ignore [
             if word? ignore [
                 ignore: reduce [ignore]  ; !!! should FIND on WORD! work?
-            ]
-            else [
+            ] else [
                 ; assert [all:word? ignore]  ; coming soon!
             ]
         ]

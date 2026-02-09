@@ -191,8 +191,7 @@ if os = 'Windows [
 
         <msc:/wd4668>  ; Microsoft's own header files, as usual, are bad [1]
     ]
-]
-else [
+] else [
     append definitions spread [
         _FILE_OFFSET_BITS=64
         _LARGEFILE_SOURCE

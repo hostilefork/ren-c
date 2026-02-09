@@ -66,8 +66,7 @@
                 'the [
                     if param.escapable and (group? block.1) [
                         frame.(key): reeval block.1
-                    ]
-                    else [
+                    ] else [
                         frame.(key): block.1
                     ]
                     block: skip block 1  ; avoided NEXT when mezzanine

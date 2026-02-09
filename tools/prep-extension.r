@@ -408,8 +408,7 @@ if yes? use-librebol [
                 LIBREBOL_BINDING_NAME() = level_;
         ]--]
     ]
-]
-else [
+] else [
     for-each 'info natives [
         emit-include-params-macro e1 info.proto
     ]

@@ -759,8 +759,7 @@ for-next 'pos sym-table [
         e-ext-symids/emit [symid name
             --[$<name> $<symid>]--
         ]
-    ]
-    else [
+    ] else [
         append sym-enum-items cscape [symid name
             --[/* $<Name> */  SYM_${FORM NAME} = $<symid>]--
         ]
@@ -950,8 +949,7 @@ append:line boot-molded "["
 for-each 'sec sections [
     if get-word3? sec [  ; wasn't LOAD-ed (no bootstrap compatibility issues)
         append boot-molded (get inside sections unchain sec)
-    ]
-    else [  ; was LOAD-ed for easier analysis (makes bootstrap complicated)
+    ] else [  ; was LOAD-ed for easier analysis (makes bootstrap complicated)
         append:line boot-molded mold:flat (get inside sections sec)
     ]
 ]

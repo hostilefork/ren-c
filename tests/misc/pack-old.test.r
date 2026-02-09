@@ -40,8 +40,7 @@
     ;
     block: if match [@block!] block [
         map-each 'item unpin block [quote item]
-    ]
-    else [
+    ] else [
         reduce:predicate block lift/
     ]
 

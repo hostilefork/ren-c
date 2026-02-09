@@ -216,8 +216,7 @@ emit: proc [
             let word: unchain code.1
             add-let-binding (binding of $return*) word (tail of ctx.msg)
             code: my next
-        ]
-        else [
+        ] else [
             let result
             if [code ^result]: evaluate:step code [
                 if any-void? ^result [continue]  ; invisible

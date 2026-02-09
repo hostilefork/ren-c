@@ -688,8 +688,7 @@ main-startup: nonfinal function [  ; overwrites self when finished
         ; %main.r...if it does, we run it.
 
         main: select boot-embedded %main.r
-    ]
-    then [
+    ] then [
         if not blob? main [
             die "%main.r not a BLOB! in encapped data"
         ]

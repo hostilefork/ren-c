@@ -518,8 +518,7 @@ append: func3 [
             ]
             return series
         ]
-    ]
-    else [
+    ] else [
         f.value: value
         f.only: okay
     ]
@@ -576,8 +575,7 @@ change: func3 [
             panic ["CHANGE to SPLICE not currently in shim for non-lists"]
         ]
         f.value: second value
-    ]
-    else [
+    ] else [
         f.value: value
         f.only: okay
     ]

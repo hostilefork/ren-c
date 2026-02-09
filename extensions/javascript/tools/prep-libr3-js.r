@@ -405,8 +405,7 @@ for-each-api [
         name = "rebStartup"  ; the reb.Startup() is offered by load_r3.js
         name = "rebBytes"  ; JS variant returns array that knows its size
         name = "rebRequestHalt"  ; JS variant adds canceling JS promises too
-    ]
-    then [
+    ] then [
         continue
     ]
 
@@ -944,8 +943,7 @@ json-collect: func [
         keep: adapt keep/ [  ; Emscripten prefixes functions w/underscore
             if text? value [
                 value: unspaced [-["_]- value -["]-]  ; bootstrap semantics
-            ]
-            else [
+            ] else [
                 value: quote unspaced [-["_]- unquote value -["]-]  ; ^META
             ]
         ]

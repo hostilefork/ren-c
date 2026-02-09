@@ -227,8 +227,7 @@ process-tests: proc [
 
                 sys.util/recover [
                     handler flags collected
-                ]
-                then (error -> [
+                ] then (error -> [
                     log [space "error:" mold error newline]
                 ])
                 else [
@@ -295,8 +294,7 @@ export do-recover: func [
     if not exists? .log-file [
         print "new log"
         test-sources: collect-tests file
-    ]
-    else [
+    ] else [
         parse3 read .log-file [
             (last-vector: null)
             opt some [

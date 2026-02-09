@@ -121,8 +121,7 @@ do-request: func [
         Accept-Charset: "utf-8"
         Host: (if not find [80 443] spec.port-id [
             unspaced [@spec.host ":" spec.port-id]  ; spec.host can be TUPLE!
-        ]
-        else [
+        ] else [
             form spec.host
         ])
         User-Agent: "REBOL"
@@ -427,8 +426,7 @@ do-redirect: proc [
     all [
         new-uri.host = spec.host
         new-uri.port-id = spec.port-id
-    ]
-    else [
+    ] else [
         ; !!! @gchiu's pharmac relies on EXISTS? answering false for this
         ; case, which means not being a hard FAIL.  It's technically a wrong
         ; answer--and redirects were never reasonably articulated in R3-Alpha

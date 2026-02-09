@@ -655,8 +655,7 @@ bootstrap: proc [
             call [unzip master.zip]
         ]
         bypass [noop]
-    ]
-    else [
+    ] else [
         unzip:quiet %./ zipped-url
     ]
 

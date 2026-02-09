@@ -278,8 +278,7 @@ export console!: make object! [
             port? v [
                 print [result "&[port! [...] [...]]"]
             ]
-        ]
-        else [  ; print first 20 lines of the first 2048 characters of mold
+        ] else [  ; print first 20 lines of the first 2048 characters of mold
             let molded: mold:limit v 2048
             let pos: molded
             repeat 20 [
@@ -466,8 +465,7 @@ bind construct [
             proto-skin.is-loaded: 'yes
             proto-skin.name: default ["loaded"]
             append o.loaded skin-file
-        ]
-        except (e -> [
+        ] except (e -> [
             skin-error: e  ; show error later if `--verbose`
             proto-skin.name: "error"
         ])

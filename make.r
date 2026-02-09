@@ -90,8 +90,7 @@ options: commands: ~
 if (commands: find args '|) [
     options: copy:part args commands
     commands: next commands
-]
-else [
+] else [
     options: args
 ]
 
@@ -1560,8 +1559,7 @@ add-project-flags: proc [
     if D [
         if null? project.definitions [
             project.definitions: D
-        ]
-        else [
+        ] else [
             append project.definitions spread D
         ]
     ]
@@ -1576,8 +1574,7 @@ add-project-flags: proc [
     if c [
         if null? project.cflags [
             project.cflags: c
-        ]
-        else [
+        ] else [
             append project.cflags spread c
         ]
     ]
@@ -1673,8 +1670,7 @@ for-each 'ext extensions [
                 if find [#object-library #object-file] obj.class [
                     keep s
                     ; #object-library has already been taken care of above
-                ]
-                else [
+                ] else [
                     veto
                 ]
             )
@@ -1772,8 +1768,7 @@ for-each 'ext extensions [
         append app-config.libraries spread opt ext-objlib.libraries
         append app-config.ldflags spread opt ext.ldflags
         append app-config.searches spread opt ext.searches
-    ]
-    else [
+    ] else [
         append dynamic-ext-objlibs ext-objlib
 
         ; We need to make a new "Project" abstraction to represent the DLL

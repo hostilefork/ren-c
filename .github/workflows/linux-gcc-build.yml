@@ -372,8 +372,7 @@ jobs:
             time.minute = r3time.minute
             ; Don't check seconds, likely different moments of capture
             zone = r3time.zone
-          ]
-          then [
+          ] then [
             print "Times matched!"
             quit 0
           ]

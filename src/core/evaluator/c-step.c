@@ -137,6 +137,7 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
     sub->flags.bits = (
         LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
             | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
+            | (L->flags.bits & LEVEL_FLAG_PURE)
             | LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK  // [1]
             | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // [2]
             | (Get_Cell_Flag(action, WEIRD_VANISHABLE) ? 0
@@ -169,6 +170,7 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
     sub->flags.bits = (
         LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
             | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
+            | (L->flags.bits & LEVEL_FLAG_PURE)
             | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // group semantics [1]
     );
 
@@ -215,6 +217,7 @@ static Result(None) Reuse_Sublevel_Target_Spare_For_Intrinsic_Arg_Core(
     sub->flags.bits = (
         LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
             | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
+            | (L->flags.bits & LEVEL_FLAG_PURE)
             | EVAL_EXECUTOR_FLAG_FULFILLING_ARG
     );
     inapplicable(LEVEL_FLAG_VANISHABLE_VOIDS_ONLY);  // single step, not multi
@@ -259,7 +262,8 @@ INLINE Result(None) Reuse_Sublevel_Target_Out_For_Step_Core(Level* L)
 
     sub->flags.bits = (
         LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
-            | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // v-- if L fulfilling, we are
+            | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
+            | (L->flags.bits & LEVEL_FLAG_PURE)  // v-- if L fulfilling, we are
             | (L->flags.bits & EVAL_EXECUTOR_FLAG_FULFILLING_ARG)
     );
     inapplicable(LEVEL_FLAG_VANISHABLE_VOIDS_ONLY);  // single step, not multi
@@ -310,6 +314,40 @@ Bounce Inert_Stepper_Executor(Level* L)
     Fetch_Next_In_Feed(L->feed);
     return OUT;
 }
+
+
+// This test is used to check for an infix operator in the next feed position.
+//
+// 1. The system for sync'ing feeds makes sure that we never see null pointers
+//    in the feed->p.  API nulls are turned into nulled cells, and rebEND
+//    signals (which are smaller than a Cell and not Cell-aligned) are
+//    canonized into Cell-aligned memory with BASE_BYTE_END.  Hence this test
+//    is safe, and will reject both nulls and ends.
+//
+// 2. It has been considered whether CHAIN! or PATH! should be allowed to
+//    dispatch infix.  It's certainly more work and would cost more.  Whether
+//    it's worth it is an open question.
+//
+// 3. Infix operators don't work across newlines, so even things like this
+//    are no longer legal:
+//
+//       if condition [
+//          ...
+//       ]
+//       else [
+//          ...
+//       ]
+//
+#define Next_Not_Word_Or_Is_Newline_Or_End(L) ( \
+    (u_cast(Cell*, L->feed->p)->header.bits & ( /* maybe PG_Feed_At_End [1] */ \
+        FLAG_KIND_BYTE(255) \
+            | FLAG_LIFT_BYTE(255) \
+            | CELL_FLAG_NEWLINE_BEFORE \
+    )) != ( \
+        FLAG_KIND_BYTE(TYPE_WORD) /* CHAIN! or PATH!...worth it? [2] */ \
+            | FLAG_LIFT_BYTE(NOQUOTE_3)   \
+            | (not CELL_FLAG_NEWLINE_BEFORE)  /* no infix newlines [3] */ \
+    ))
 
 
 //
@@ -488,23 +526,13 @@ Bounce Stepper_Executor(Level* L)
     assert(Is_Cell_Erased(SPARE));
     assert(Is_Cell_Erased(OUT));
 
-    if (Is_Feed_At_End(L->feed))
+    if (Next_Not_Word_Or_Is_Newline_Or_End(L)) {
+        possibly(Is_Antiform(L_next));  // API calls, rebValue("^", antiform)
         goto give_up_backward_quote_priority;
-
-    if (Is_Antiform(L_next))
-        panic ("Antiform passed in through API, must use @ or ^ operators");
-
-    if (Is_Blank(As_Element(L_next)))  // e.g. a "comma" or blank line
-        goto give_up_backward_quote_priority;
-
-    if (LIFT_BYTE(L_next) != NOQUOTE_3)  // quoted right can't look back
-        goto give_up_backward_quote_priority;
+    }
 
     Option(InfixMode) infix_mode;
     Phase* infixed;
-
-    if (not Is_Word(As_Element(L_next)))  // REVIEW: infix CHAIN! ?
-       goto give_up_backward_quote_priority;
 
     Element* sub_current = Copy_Cell(
         Level_Scratch(SUBLEVEL),
@@ -619,12 +647,11 @@ Bounce Stepper_Executor(Level* L)
         }
     }
 
-    if (LIFT_BYTE(CURRENT) == QUASIFORM_4)
-        goto handle_quasiform;
+    if (LIFT_BYTE(CURRENT) > QUASIFORM_4)
+        goto handle_quoted;
 
-    assert(LIFT_BYTE(CURRENT) > STABLE_ANTIFORM_2);
-    goto handle_quoted;
-
+    assert(LIFT_BYTE(CURRENT) == QUASIFORM_4);
+    goto handle_quasiform;
 
 } handle_quoted: { //// QUOTED! [ 'XXX  '''@XXX  '~XXX~ ] ////////////////////
 
@@ -1876,12 +1903,8 @@ Bounce Stepper_Executor(Level* L)
     if (Get_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH))
         panic (Error_Literal_Left_Path_Raw());  // [1]
 
-    if (Is_Feed_At_End(L->feed)) {
-        Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
-        goto finished;  // hitting end is common, avoid do_next's switch()
-    }
-
-    if (not Is_Word(At_Feed(L->feed))) {
+    if (Next_Not_Word_Or_Is_Newline_Or_End(L)) {
+        possibly(Is_Antiform(L_next));  // API calls, rebValue("^", antiform)
         Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
         goto finished;
     }

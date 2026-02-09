@@ -1519,8 +1519,7 @@ default-combinators: make map! [
                 eval unquote pending
                 pending: none
             ]
-        ]
-        else [
+        ] else [
             remove-each 'item pending [
                 if group? item [
                     eval item
@@ -2680,14 +2679,12 @@ comment [/combinatorize: func [
                 any [
                     not r
                     find [, | ||] r
-                ]
-                then [
+                ] then [
                     if not param.endable [
                         panic "Too few parameters for combinator"
                     ]
                     ; leave unset
-                ]
-                else [
+                ] else [
                     set key either param.class = 'just [r] [inside rules r]
                     rules: next rules
                 ]
@@ -2707,14 +2704,12 @@ comment [/combinatorize: func [
                 any [
                     not r
                     find [, | ||] r
-                ]
-                then [
+                ] then [
                     if not param.endable [
                         panic "Too few parameters for combinator"
                     ]
                     set key null
-                ]
-                else [
+                ] else [
                     set key [{_} rules]: parsify state rules
                 ]
             ]

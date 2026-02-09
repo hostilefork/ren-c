@@ -476,11 +476,9 @@ cc: make compiler-class [
                 .name: tcc.name
                 .id: tcc.id
             ]
-        ]
-        then [
+        ] then [
             print [.name "detected from COMPILER-PATH:" .exec-file]
-        ]
-        else [
+        ] else [
             .name: "cc"
             .id: "cc"
             print ["Unknown C compiler, COMPILER-PATH:" .exec-file]
@@ -656,8 +654,7 @@ cc: make compiler-class [
                 either tag? dep.output [
                     if let lib: filter-flag dep.output .id [
                         unspaced ["-l" lib]
-                    ]
-                    else [
+                    ] else [
                         reify null
                     ]
                 ][

@@ -379,8 +379,7 @@ export make-emitter: func [
                 text? template [
                     if not find template #"$" [
                         append .buf-emit trim:auto copy template
-                    ]
-                    else [
+                    ] else [
                         append .buf-emit cscape reduce [template]
                     ]
                 ]
@@ -446,8 +445,7 @@ export make-emitter: func [
             **
             ***********************************************************************/
         ]--]
-    ]
-    else [
+    ] else [
         e/emit [title stem --[
             Rebol [
                 system: "Rebol [R3] Language Interpreter and Run-time Environment"

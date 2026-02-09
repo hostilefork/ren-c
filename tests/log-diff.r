@@ -123,8 +123,7 @@ make-diff: proc [
                     space "regression," new-result newline
                 ]
             ]
-        ]
-        else [
+        ] else [
             ; progression
             progressions: progressions + 1
             write:append diff-file spaced [

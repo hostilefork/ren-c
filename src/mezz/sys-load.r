@@ -193,8 +193,7 @@ bind construct [
                     [rest binary]: transcode:next:file:line rest file $line
                     rest: gunzip binary
                 ]
-            ]
-            else [
+            ] else [
                 return fail "bad-compress"
             ]
         ]
@@ -264,8 +263,7 @@ bind construct [
             header: null
             return pack [data header]
         ]
-    ]
-    else [
+    ] else [
         file: null
         data: source
         type: default ['rebol]

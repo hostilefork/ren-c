@@ -43,16 +43,15 @@ decode-url: sys.util.decode-url/
         ]
         if #"%" = first path [
             panic ["Likely mistake, % in TAG!-style import path:" path]
-        ]
-        else [
+        ] else [
             path: join system.script.path (as text! path)
         ]
     ]
 
     if match [@word!] path [  ; lookup @tool on the internet [2]
-        path: switch as tag! unpin path  ; !!! list used tags, should change
-            (load system.locale.library.utilities)
-        else [
+        path: switch as tag! unpin path (  ; !!! list used tags, should change
+            load system.locale.library.utilities
+        ) else [
             panic ["Module" path "not in system.locale.library.utilities"]
         ]
     ]

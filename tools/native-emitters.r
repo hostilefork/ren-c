@@ -286,8 +286,7 @@ export emit-include-params-macro: func [
                     if group? iter.2 [  ; escapable
                         param.class: 'soft
                         iter.2: first iter.2
-                    ]
-                    else [
+                    ] else [
                         param.class: 'literal
                     ]
                 ]
@@ -315,8 +314,7 @@ export emit-include-params-macro: func [
             ]
             if param.spec: match block! cond try pick cond iter 1 [
                 iter: next iter
-            ]
-            else [
+            ] else [
                 if not param.refinement [  ; !!! fix this once everything ready
                    ; panic "Non-refinement arg missing spec block:" mold item
                 ]
@@ -361,8 +359,7 @@ export emit-include-params-macro: func [
             ] else [
                 if is-intrinsic and (n = 1) [
                     argmode: 'ARGMODE_INTRINSIC
-                ]
-                else [
+                ] else [
                     argmode: 'ARGMODE_REQUIRED
                 ]
             ]

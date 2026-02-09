@@ -44,11 +44,11 @@
                 pos: null
                 parse buffer (rule)
                 if pos [break]
-                (spread if same? src system.ports.input
-                    '[data: read port]
-                    else
-                    '[data: read:part port 4096]
-                )
+                (if same? src system.ports.input [
+                    ~[data: read port]~
+                ] else [
+                    ~[data: read:part port 4096]~
+                ])
                 if empty? opt data [
                     eof: 'true
                     pos: tail of buffer
