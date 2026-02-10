@@ -26,7 +26,7 @@ verify: vanishable func [
             not any-void? ^result
             not ^result
 
-            if handler [  ; may or may-not take two arguments
+            ghostly if handler [  ; may or may-not take two arguments
                 let reaction: if block? handler [
                     eval handler
                 ] else [
