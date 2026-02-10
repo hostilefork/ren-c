@@ -186,6 +186,11 @@ DECLARE_NATIVE(CONTINUE)
 
     INCLUDE_PARAMS_OF_CONTINUE;
 
+    possibly(  // BREAK and AGAIN are implemented by calling this native
+        Level_Label(LEVEL) == CANON(BREAK)
+        or Level_Label(LEVEL) == CANON(AGAIN)
+    );
+
     Element* continue_p = Init_Word(LOCAL(CONTINUE_P), CANON(CONTINUE_P));
     Add_Cell_Sigil(continue_p, SIGIL_META);  // !!! /CONTINUE* or CONTINUE*/
     Bind_Cell_If_Unbound(continue_p, Level_Binding(LEVEL));
@@ -200,19 +205,20 @@ DECLARE_NATIVE(CONTINUE)
     );
 
     if (not Is_Action(OUT))
-        panic ("BREAK found a CONTINUE* that wasn't an ACTION!");
+        panic ("found a CONTINUE* that wasn't an ACTION!");
 
-    if (Frame_Phase(OUT) != Frame_Phase(LIB(DEFINITIONAL_CONTINUE))) {
-        Param* param = ARG(VALUE);
-        if (Is_Cell_A_Bedrock_Hole(param))
-            return rebDelegate(rebRUN(OUT));
+    if (Frame_Phase(OUT) == Frame_Phase(LIB(DEFINITIONAL_CONTINUE)))
+        goto optimized_builtin_continue_call;  // avoid rebDelegate overhead
 
-        Value* v = As_Value(param);
-        Lift_Cell(v);
-        return rebDelegate(rebRUN(OUT), v);
-    }
+    Param* param = ARG(VALUE);
+    if (Is_Cell_A_Bedrock_Hole(param))  // no argument
+        return rebDelegate(rebRUN(OUT));
 
-} optimized_builtin_continue_call: {
+    Value* v = As_Value(param);
+    Lift_Cell(v);  // one argument, lift it (eval will unlift)
+    return rebDelegate(rebRUN(OUT), v);
+
+} optimized_builtin_continue_call: { /////////////////////////////////////////
 
     INCLUDE_PARAMS_OF_DEFINITIONAL_CONTINUE;
 
@@ -236,42 +242,16 @@ DECLARE_NATIVE(CONTINUE)
 //
 DECLARE_NATIVE(BREAK)
 //
-// BREAK is implemented by calling the CONTINUE* currently in scope, giving
-// it the ~(veto)~ "hot potato".
+// The default BREAK is just a specialization of CONTINUE that uses the
+// ~(veto)~ "hot potato".  This could be done with specialization, but a
+// native is slightly faster.
 {
-  default_handling: {
+    INCLUDE_PARAMS_OF_CONTINUE;  // BREAK must be frame compatible
 
-    INCLUDE_PARAMS_OF_BREAK;
+    Copy_Cell(LOCAL(VALUE), LIB(VETO));
 
-    Element* continue_p = Init_Word(LOCAL(CONTINUE_P), CANON(CONTINUE_P));
-    Add_Cell_Sigil(continue_p, SIGIL_META);  // !!! /CONTINUE* or CONTINUE*/
-    Bind_Cell_If_Unbound(continue_p, Level_Binding(LEVEL));
-
-    heeded (Corrupt_Cell_If_Needful(SPARE));
-    heeded (Corrupt_Cell_If_Needful(SCRATCH));
-
-    STATE = ST_TWEAK_GETTING;
-
-    require (
-      Get_Var_To_Out_Use_Toplevel(continue_p, GROUP_EVAL_NO)
-    );
-
-    if (not Is_Action(OUT))
-        panic ("BREAK found a CONTINUE* that wasn't an ACTION!");
-
-    if (Frame_Phase(OUT) != Frame_Phase(LIB(DEFINITIONAL_CONTINUE)))
-        return rebDelegate(rebRUN(OUT), CANON(VETO));
-
-} optimized_builtin_continue_call: {
-
-    INCLUDE_PARAMS_OF_DEFINITIONAL_CONTINUE;
-
-    Copy_Cell(ARG(VALUE), LIB(VETO));  // pass along veto
-
-    Tweak_Level_Coupling(LEVEL, Frame_Coupling(OUT));
-
-    return Apply_Cfunc(NATIVE_CFUNC(DEFINITIONAL_CONTINUE), LEVEL);
-}}
+    return Apply_Cfunc(NATIVE_CFUNC(CONTINUE), LEVEL);
+}
 
 
 //
@@ -286,42 +266,16 @@ DECLARE_NATIVE(BREAK)
 //
 DECLARE_NATIVE(AGAIN)
 //
-// AGAIN is implemented via a call to whatever CONTINUE is currently in scope,
-// passing it the ~(retry)~ "hot potato".
+// The default AGAIN is just a specialization of CONTINUE that uses the
+// ~(retry)~ "hot potato".  This could be done with specialization, but a
+// native is slightly faster.
 {
-  default_handling: {
+    INCLUDE_PARAMS_OF_CONTINUE;  // AGAIN must be frame compatible
 
-    INCLUDE_PARAMS_OF_AGAIN;
+    Copy_Cell(LOCAL(VALUE), LIB(RETRY));
 
-    Element* continue_p = Init_Word(LOCAL(CONTINUE_P), CANON(CONTINUE_P));
-    Add_Cell_Sigil(continue_p, SIGIL_META);  // !!! /CONTINUE* or CONTINUE*/
-    Bind_Cell_If_Unbound(continue_p, Level_Binding(LEVEL));
-
-    heeded (Corrupt_Cell_If_Needful(SPARE));
-    heeded (Corrupt_Cell_If_Needful(SCRATCH));
-
-    STATE = ST_TWEAK_GETTING;
-
-    require (
-      Get_Var_To_Out_Use_Toplevel(continue_p, GROUP_EVAL_NO)
-    );
-
-    if (not Is_Action(OUT))
-        panic ("AGAIN found a CONTINUE* that wasn't an ACTION!");
-
-    if (Frame_Phase(OUT) != Frame_Phase(LIB(DEFINITIONAL_CONTINUE)))
-        return rebDelegate(rebRUN(OUT), CANON(RETRY));
-
-} optimized_builtin_continue_call: {
-
-    INCLUDE_PARAMS_OF_DEFINITIONAL_CONTINUE;
-
-    Copy_Cell(ARG(VALUE), LIB(RETRY));  // pass along retry
-
-    Tweak_Level_Coupling(LEVEL, Frame_Coupling(OUT));
-
-    return Apply_Cfunc(NATIVE_CFUNC(DEFINITIONAL_CONTINUE), LEVEL);
-}}
+    return Apply_Cfunc(NATIVE_CFUNC(CONTINUE), LEVEL);
+}
 
 
 //
