@@ -291,29 +291,22 @@ DECLARE_NATIVE(PROTECT)
 {
     INCLUDE_PARAMS_OF_PROTECT;
 
-    enum {
-        ST_PROTECT_INITIAL_ENTRY = STATE_0,
-        ST_PROTECT_POKING
-    };
-
     Element* v = Element_ARG(VALUE);
 
     if (Any_Word(v) or Is_Tuple(v)) {
         if (ARG(HIDE))
-            Init_Word(OUT, CANON(HIDE));
+            heeded (Init_Word(OUT, CANON(HIDE)));
         else
-            Init_Word(OUT, CANON(PROTECT));
-
-        Copy_Cell(SCRATCH, v);
-
-        STATE = ST_PROTECT_POKING;
+            heeded (Init_Word(OUT, CANON(PROTECT)));
 
         heeded (Corrupt_Cell_If_Needful(SPARE));
+        heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-        Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-            LEVEL,
-            NO_STEPS,
-            ST_TWEAK_TWEAKING  // !!! does mode matter?
+        STATE = ST_TWEAK_TWEAKING;
+
+        Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+            v,
+            NO_STEPS
         );
         if (e)
             panic (unwrap e);
@@ -355,11 +348,6 @@ DECLARE_NATIVE(UNPROTECT)
 {
     INCLUDE_PARAMS_OF_UNPROTECT;
 
-    enum {
-        ST_UNPROTECT_INITIAL_ENTRY = STATE_0,
-        ST_UNPROTECT_POKING
-    };
-
     // Core handles these via LEVEL
     //
     USED(PARAM(DEEP));
@@ -372,18 +360,16 @@ DECLARE_NATIVE(UNPROTECT)
     Element* v = Element_ARG(VALUE);
 
     if (Any_Word(v) or Is_Tuple(v)) {
-        Init_Word(OUT, CANON(UNPROTECT));
 
-        Copy_Cell(SCRATCH, v);
-
-        STATE = ST_UNPROTECT_POKING;
-
+        heeded (Init_Word(OUT, CANON(UNPROTECT)));
         heeded (Corrupt_Cell_If_Needful(SPARE));
+        heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-        Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-            LEVEL,
-            NO_STEPS,
-            ST_TWEAK_TWEAKING  // !!! does mode matter?
+        STATE = ST_TWEAK_TWEAKING;
+
+        Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+            v,
+            NO_STEPS
         );
         if (e)
             panic (unwrap e);

@@ -1069,7 +1069,7 @@ DECLARE_NATIVE(SWITCH)
         if (not Is_Datatype(spare) and not Is_Frame(spare))
             panic ("switch:type conditions must be DATATYPE! or FRAME!");
 
-        if (not Typecheck_Uses_Spare_And_Scratch(  // *sublevel*'s SPARE!
+        if (not Typecheck_Use_Toplevel(  // *sublevel*'s SPARE!
             SUBLEVEL, left, spare, SPECIFIED  // ...so passing L->spare ok
         )){
             goto next_switch_step;
@@ -1144,6 +1144,8 @@ DECLARE_NATIVE(SWITCH)
 }}
 
 
+#define CELL_FLAG_OUT_NOTE_WAS_SLASHED  CELL_FLAG_NOTE
+
 //
 //  /default: infix native [
 //
@@ -1203,12 +1205,11 @@ DECLARE_NATIVE(DEFAULT)
     Element* steps = u_cast(Element*, SCRATCH);  // avoid double-eval [1]
     STATE = ST_DEFAULT_GETTING_TARGET;  // can't leave at STATE_0
 
-    bool slashed = false;
     if (Is_Set_Run_Word(target)) {
         assume (
           Unsingleheart_Sequence(target)  // make it into a plain set-word
         );
-        slashed = true;  // so we put the slash back on
+        Set_Cell_Flag(target, OUT_NOTE_WAS_SLASHED);
     }
 
     assert(not Sigil_Of(target) or Sigil_Of(target) == SIGIL_META);
@@ -1216,20 +1217,34 @@ DECLARE_NATIVE(DEFAULT)
       Unsingleheart_Sequence_Preserve_Sigil(target)
     );
 
-    Element* scratch_var = Copy_Cell(SCRATCH, target);
-    Force_Cell_Sigil(scratch_var, SIGIL_META);  // for fetch, always use ^META
+    Force_Cell_Sigil(target, SIGIL_META);  // for fetch, always use ^META
 
-    if (slashed) { assume (
-        Blank_Head_Or_Tail_Sequencify(  // put slash back for the write
-            target, TYPE_PATH, CELL_FLAG_LEADING_BLANK
-        )
-    );}
+  get_variable_with_steps_to_out: {
+
+  // The Get_Var() mechanics are temporarily (?) being changed to not expose
+  // the returning of "Steps" as that is a rarely-needed feature.  So for
+  // now you use TWEAK if you want steps, and get a lifted result.
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
+
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
+
+    STATE = ST_TWEAK_GETTING;
+
+    Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+        target,
+        steps
+    );
+
+    if (e)
+        panic (unwrap e);
 
     require (
-        Get_Var_In_Scratch_To_Out(level_, steps)
+      Unlift_Cell_No_Decay(OUT)  // not unstable if wasn't ^META [1]
     );
+
+} check_for_defaultability: {  // !!! change to use lifted value?
 
     if (not (Any_Void(OUT) or Is_Trash(OUT))) {
         require (  // may need decay [2]
@@ -1242,12 +1257,21 @@ DECLARE_NATIVE(DEFAULT)
     STATE = ST_DEFAULT_EVALUATING_BRANCH;
     return CONTINUE(OUT, branch, OUT);
 
-} branch_result_in_out: {  ///////////////////////////////////////////////////
+}} branch_result_in_out: {  ///////////////////////////////////////////////////
 
-    assert(Is_Tied(As_Element(SCRATCH)));  // steps is the "var" to set
+    possibly(Get_Cell_Flag(target, OUT_NOTE_WAS_SLASHED));  // how to honor?
+
+    Copy_Cell(target, As_Element(SCRATCH));
+    assert(Is_Tied(target));  // steps is the "var" to set
+
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS) except (Error* e) {
+    STATE = ST_TWEAK_SETTING;
+
+    Set_Var_To_Out_Use_Toplevel(
+        target, GROUP_EVAL_NO
+    ) except (Error* e) {
         assert(false);  // shouldn't be able to happen (steps is pinned)
         panic (e);
     }

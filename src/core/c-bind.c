@@ -1020,20 +1020,19 @@ DECLARE_NATIVE(DEFINITIONAL)
     if (Cell_Binding(var) != nullptr)
         panic ("DEFINITIONAL requires unbound word or tuple");
 
-    Copy_Cell(SCRATCH, var);
-
     Context* binding = Level_Binding(
         Level_Of_Varlist_May_Panic(Cell_Varlist(ARG(FRAME)))
     );
 
-    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), binding));
+    Bind_Cell_If_Unbound(var, binding);
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+    STATE = ST_TWEAK_GETTING;
 
     require (
-      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+      Get_Var_To_Out_Use_Toplevel(var, GROUP_EVAL_NO)
     );
 
     return OUT;

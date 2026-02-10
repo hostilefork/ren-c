@@ -359,7 +359,7 @@ bool Do_Vararg_Op_Maybe_End_Throws(
 
     if (param) {
         require (
-          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+          bool check = Typecheck_Coerce_Use_Toplevel(
             TOP_LEVEL, Known_Unspecialized(unwrap param), out
           )
         );

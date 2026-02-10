@@ -295,7 +295,7 @@ bool Specialize_Action_Throws(
         Value* v = As_Value(arg);
 
         require (
-          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+          bool check = Typecheck_Coerce_Use_Toplevel(
             TOP_LEVEL, Known_Unspecialized(param), v
           )
         );

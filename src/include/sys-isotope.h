@@ -302,7 +302,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
 
     if (Is_Dual_Alias(first)) {
         trap (
-            Get_Word_Or_Tuple(v, first, SPECIFIED)
+          Get_Word_Or_Tuple(v, first)
         );
         require (
           Decay_If_Unstable(v)

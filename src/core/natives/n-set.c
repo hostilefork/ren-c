@@ -52,7 +52,7 @@
 
 
 //
-//  Set_Var_In_Scratch_To_Out: C
+//  Set_Var_To_Out_Use_Toplevel: C
 //
 // !!! As this code is refactored and figured out, the goal should be that
 // the mechanics of SET-the-NATIVE are available as a C function...so this
@@ -61,21 +61,136 @@
 // the variable is `_`, etc.  This is an ongoing process which is making more
 // sense over time.
 //
-Result(None) Set_Var_In_Scratch_To_Out(
-    Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    Option(Element*) steps_out  // no GROUP!s if nulled
+Result(None) Set_Var_To_Out_Use_Toplevel(
+    const Element* var,  // OUT may be FAILURE! antiform, see [A]
+    GroupEval group_eval  // no GROUP!s if nulled
 ){
+    Level* level_ = TOP_LEVEL;
+    assert(STATE == ST_TWEAK_SETTING);
+
+    bool out_was_set_final = false;
+
+    if (Is_Word(var) or Is_Tuple(var)) {
+        if (Is_Cell_Stable(OUT))
+            goto lift_and_tweak;
+
+        if (Is_Pack(OUT)) {
+            const Dual* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(OUT);
+            if (  // allow only some bedrock forms
+                dual and (
+                    Is_Dual_Alias(dual)
+                    or Is_Dual_Accessor(dual)
+                    or Is_Dual_Drain(dual)
+                )
+            ){
+                Copy_Cell(OUT, dual);  // don't want to lift
+                goto skip_lift_and_tweak;
+            }
+            else {
+                require (
+                  Decay_If_Unstable(OUT)
+                );
+            }
+        }
+        else if (Is_Failure(OUT)) {
+            return fail (Cell_Error(OUT));
+        }
+        else {
+            // we leave ACTION!, TRASH!, VOID! despite instability
+            //
+            // this will need restriction to `foo:` or `foo.bar:` as we do
+            // not want ordinray SET $FOO to be setting things to unstable
+            // antiforms.
+            //
+            assert(Is_Non_Meta_Assignable_Unstable_Antiform(OUT));
+        }
+    }
+    else if (Is_Meta_Form_Of(WORD, var) or Is_Meta_Form_Of(TUPLE, var)) {
+        //
+        // Allow... although we should be wary of arbitrary code setting
+        // things to FAILURE! and not finding out about it, even using
+        // ^META assigns.
+    }
+    else if (Is_Tied_Form_Of(BLOCK, var)) {
+        //
+        // Allow STEPS (how do steps encode meta or not meta?  it could be
+        // just a ^ at the beginning of the block if it's meta)
+        //
+    }
+    else {  // this should grow out into more forms, like space
+        panic ("SET target must be WORD! or TUPLE!, or their META-forms");
+    }
+
+    if (Get_Cell_Flag(var, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
+        if (not Is_Action(OUT)) {
+            return fail (
+                "/word: and /obj.field: assignments need ACTION!"
+            );
+        }
+        if (Not_Cell_Flag(OUT, FINAL)) {
+            Set_Cell_Flag(OUT, FINAL);
+            out_was_set_final = true;
+        }
+    }
+
+  lift_and_tweak: { //////////////////////////////////////////////////////////
+
     Lift_Cell(OUT);  // must be lifted to be taken literally in dual protocol
-    Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-        level_,
-        steps_out,
-        ST_TWEAK_SETTING
+    goto skip_lift_and_tweak;
+
+} skip_lift_and_tweak: { /////////////////////////////////////////////////////
+
+    Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+        var,
+        group_eval == GROUP_EVAL_YES ? GROUPS_OK : NO_STEPS
     );
-    require (
-      Unlift_Cell_No_Decay(OUT)
-    );
+
+    if (out_was_set_final)
+        Clear_Cell_Flag(OUT, FINAL);
+
     if (e)
         return fail (unwrap e);
+
+    if (not Any_Lifted(OUT)) {  // bedrock dual (we extracted, re-pack)
+        Source* pack = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
+        Copy_Cell(Stub_Cell(pack), As_Element(OUT));
+        Init_Pack(OUT, pack);
+    }
+    else {
+        require (
+          Unlift_Cell_No_Decay(OUT)
+        );
+    }
+
+    return none;
+}}
+
+
+//
+//  Set_Word_Or_Tuple: C
+//
+Result(None) Set_Word_Or_Tuple(const Element* var, const Value* value)
+{
+    DECLARE_VALUE (setval);
+    Copy_Cell(setval, value);
+
+    require (
+      Level* sub = Make_End_Level(&Just_Use_Out_Executor, LEVEL_MASK_NONE)
+    );
+    LEVEL_STATE_BYTE(sub) = ST_TWEAK_SETTING;  // != 0, tolerate unerased out
+    Push_Level(setval, sub);
+
+    Corrupt_Cell_If_Needful(Level_Spare(sub));
+    Corrupt_Cell_If_Needful(Level_Scratch(sub));
+
+    require (
+      Set_Var_To_Out_Use_Toplevel(var, GROUP_EVAL_NO)
+    );
+    require (  // Set_Var() can return FAILURE! on missing non-meta assigns
+      Ensure_No_Failures_Including_In_Packs(setval)
+    );
+
+    Drop_Level(sub);
 
     return none;
 }
@@ -144,6 +259,9 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
     Context* binding
 ){
     USE_LEVEL_SHORTHANDS (L);
+
+    Level* sub = SUBLEVEL;
+    assert(sub->executor == &Just_Use_Out_Executor);
 
     Element* scratch = As_Element(SCRATCH);
 
@@ -262,6 +380,7 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
         or Is_Pinned_Form_Of(GROUP, scratch)
         or Is_Meta_Form_Of(GROUP, scratch)
     ){
+        // should be using SUBLEVEL here!
         if (Eval_Any_List_At_Throws(SPARE, scratch, SPECIFIED)) {
             Drop_Data_Stack_To(STACK_BASE);
             return true;
@@ -316,10 +435,15 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
 
 }}} set_block_eval_right_hand_side: {
 
-    level_->u.eval.stackindex_circled = circled;  // remember it
+    L->u.eval.stackindex_circled = circled;  // remember it
+
+    sub->baseline.stack_base = TOP_INDEX;  // variables now underneath
 
     return false;
 }}
+
+
+#define CELL_FLAG_OUT_NOTE_LIFTED  CELL_FLAG_NOTE
 
 
 //
@@ -328,6 +452,14 @@ Result(bool) Push_Set_Block_Instructions_To_Stack_Throws(
 Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 {
     USE_LEVEL_SHORTHANDS (L);
+
+    Level* sub = SUBLEVEL;
+    assert(sub->executor == &Just_Use_Out_Executor);
+    sub->out = SPARE;
+
+    const StackIndex base = STACK_BASE;  // L's stack base for Set_Block()
+    const StackIndex stackindex_limit = TOP_INDEX + 1;  // one past pushed
+    assert(TOP_INDEX == sub->baseline.stack_base);
 
   // 1. On errors we don't assign variables, yet pass the error through.  That
   // permits code like this to work:
@@ -339,17 +471,11 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 
  set_block_result_not_error: {
 
-  // 1. The OUT cell is used by the Set_Var() mechanics as the place to write
-  //    from.  Free it up so there's more space to work.  (This means we have
-  //    to stop our variable enumeration right before the top of the stack.)
-  //
   // 2. We enumerate from left to right in the SET-BLOCK!, with the "main"
   //    being the first assigned to any variables.  This has the benefit that
   //    if any of the multi-returns were marked as "circled" then the
   //    overwrite of the returned OUT for the whole evaluation will happen
   //    *after* the original OUT was captured into any desired variable.
-
-    Copy_Cell(PUSH(), OUT);  // free up OUT cell [1]
 
     const Source* pack_array;  // needs GC guarding when OUT overwritten
     const Element* pack_at_lifted;  // individual pack block items are lifted
@@ -357,36 +483,24 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
 
     if (Is_Pack(OUT)) {  // antiform block
         pack_at_lifted = List_At(&pack_tail, OUT);
-
-        if (
-            pack_at_lifted + 1 == pack_tail
-            and Is_Lifted_Action(pack_at_lifted)  // "action pack", keep it
-        ){
-            Copy_Lifted_Cell(SPARE, OUT);
-            pack_at_lifted = As_Element(SPARE);
-            pack_tail = pack_at_lifted + 1;  // not a valid cell
-
-            pack_array = nullptr;
-        }
-        else {
-            pack_array = Cell_Array(OUT);
-            Push_Lifeguard(pack_array);
-        }
+        pack_array = Cell_Array(OUT);
+        Push_Lifeguard(pack_array);
     }
     else {  // single item
-        Copy_Lifted_Cell(SPARE, OUT);
-        pack_at_lifted = As_Element(SPARE);
+        pack_at_lifted = Lift_Cell(OUT);
+        Set_Cell_Flag(OUT, OUT_NOTE_LIFTED);  // we'll undo this
+
         pack_tail = pack_at_lifted + 1;  // not a valid cell
 
         pack_array = nullptr;
     }
 
-    StackIndex stackindex_var = STACK_BASE + 1;  // [2]
+    StackIndex stackindex_var = base + 1;  // [2]
     Option(StackIndex) circled = level_->u.eval.stackindex_circled;
 
   next_pack_item: {
 
-    if (stackindex_var == (TOP_INDEX + 1) - 1)  // -1 accounts for pushed OUT
+    if (stackindex_var == stackindex_limit)
         goto set_block_finalize_and_drop_stack;
 
     bool is_optional = Get_Cell_Flag(
@@ -413,29 +527,34 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
             if (circled == stackindex_var)
                 panic ("Circled item has no multi-return value to use");
 
-            Init_Void_Signifying_Unset(OUT);
+            Init_Void_Signifying_Unset(SPARE);
 
-            heeded (Corrupt_Cell_If_Needful(SPARE));
+            heeded (Corrupt_Cell_If_Needful(Level_Spare(sub)));
+            heeded (Corrupt_Cell_If_Needful(Level_Scratch(sub)));
+
+            LEVEL_STATE_BYTE(sub) = ST_TWEAK_SETTING;
+
             require (
-              Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+              Set_Var_To_Out_Use_Toplevel(var, GROUP_EVAL_NO)
             );
+
             goto skip_circled_check;  // we checked it wasn't circled
         }
 
-        Init_Null(OUT);
+        Init_Null(SPARE);
     }
     else {
-        Copy_Cell(OUT, pack_at_lifted);
+        Copy_Cell(SPARE, pack_at_lifted);
         require (
-          Unlift_Cell_No_Decay(OUT)  // unlift for output...
+          Unlift_Cell_No_Decay(SPARE)  // unlift for output...
         );
     }
 
     if (Is_Metaform_Blank(var))
         goto circled_check;
 
-    if (Is_Failure(OUT))  // don't pass thru errors if not ^ sigil
-        panic (Cell_Error(OUT));
+    if (Is_Failure(SPARE))  // don't pass thru errors if not ^ sigil
+        panic (Cell_Error(SPARE));
 
     if (Is_Space(var))
         goto circled_check;
@@ -443,9 +562,14 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
     if (Is_Pinned_Form_Of(WORD, var))
         Clear_Cell_Sigil(var);  // !!! Should use $ and not @
 
-    heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(sub)));
+    heeded (Corrupt_Cell_If_Needful(Level_Scratch(sub)));
+    LEVEL_STATE_BYTE(sub) = ST_TWEAK_SETTING;
+
     require (
-        Set_Var_In_Scratch_To_Out(LEVEL, GROUPS_OK)
+      Set_Var_To_Out_Use_Toplevel(  // sub's OUT! (L's SPARE)
+        var, GROUP_EVAL_YES
+      )
     );
 
     goto circled_check;
@@ -455,7 +579,7 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
   // Note: no circling passes through the original PACK!
 
     if (circled == stackindex_var)
-        Copy_Cell(TOP, OUT);
+        Copy_Cell(OUT, SPARE);
 
 } skip_circled_check: { //////////////////////////////////////////////////////
 
@@ -476,23 +600,20 @@ Result(None) Set_Block_From_Instructions_On_Stack_To_Out(Level* const L)
     if (pack_array)
         Drop_Lifeguard(pack_array);
 
-    Move_Cell(OUT, TOP);  // restore OUT (or circled) from stack [1]
+    if (Get_Cell_Flag(OUT, OUT_NOTE_LIFTED)) {
+        assume (
+          Unlift_Cell_No_Decay(OUT)
+        );
+        Clear_Cell_Flag(OUT, OUT_NOTE_LIFTED);
+    }
 
 }} set_block_drop_stack_and_continue: {
 
-  // We've just changed the values of variables, and these variables might be
-  // coming up next.  Consider:
-  //
-  //     304 = [a]: test 1020
-  //     a = 304
-  //
-  // The `a` was fetched and found to not be infix, and in the process
-  // its value was known.  But then we assigned that a with a new value
-  // in the implementation of SET-BLOCK! here, so, it's incorrect.
-
     Drop_Data_Stack_To(STACK_BASE);  // drop writeback variables
+    SUBLEVEL->baseline.stack_base = STACK_BASE;
 
     Corrupt_Cell_If_Needful(SPARE);  // we trashed it
+    Corrupt_Cell_If_Needful(SCRATCH);  // we trashed it too
 
     return none;
 }}
@@ -562,6 +683,11 @@ DECLARE_NATIVE(SET)
         STATE = ST_STEPPER_SET_BLOCK;
 
         require (
+          Level* sub = Make_End_Level(&Just_Use_Out_Executor, LEVEL_MASK_NONE)
+        );
+        Push_Level(SPARE, sub);
+
+        require (
           Push_Set_Block_Instructions_To_Stack_Throws(
             LEVEL,
             SPECIFIED
@@ -570,6 +696,9 @@ DECLARE_NATIVE(SET)
         require (
           Set_Block_From_Instructions_On_Stack_To_Out(LEVEL)
         );
+
+        Drop_Level(sub);
+
         return OUT;
     }
 

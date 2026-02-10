@@ -269,7 +269,7 @@ Details* Make_Typechecker(TypesetByte typeset_byte)  // parameter cache [1]
 
 
 //
-//  Typecheck_Pack_Uses_Scratch_And_Spare: C
+//  Typecheck_Pack_Use_Toplevel: C
 //
 // It's possible in function type specs to check packs with ~(...)~ notation.
 // This routine itemwise checks a pack against one of those type specs, with
@@ -281,9 +281,9 @@ Details* Make_Typechecker(TypesetByte typeset_byte)  // parameter cache [1]
 //
 // 2. Note that blocks are legal, as in ~([integer! word!] object!)~, which
 //    means that the first item in the pack can be either an integer or word.
-//    So we don't call Typecheck_Unoptimized_Uses_Spare_And_Scratch() here.
+//    So we don't call Typecheck_Unoptimized_Use_Toplevel() here.
 //
-bool Typecheck_Pack_Uses_Scratch_And_Spare(  // scratch and spare used [1]
+bool Typecheck_Pack_Use_Toplevel(  // scratch and spare used [1]
     Level* const L,
     const Value* pack,
     const Element* types
@@ -314,7 +314,7 @@ bool Typecheck_Pack_Uses_Scratch_And_Spare(  // scratch and spare used [1]
         assume (
           Unlift_Cell_No_Decay(unlifted)
         );
-        if (not Typecheck_Uses_Spare_And_Scratch(  // might be BLOCK!, etc [2]
+        if (not Typecheck_Use_Toplevel(  // might be BLOCK!, etc [2]
             L, unlifted, types_at, types_binding
         )){
             result = false;
@@ -401,7 +401,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
           );
         }
 
-        Copy_Cell(SCRATCH, predicate);  // intrinsic may need, panic() requires
+        Copy_Plain_Cell(SCRATCH, predicate);  // intrinsic, panic() requires
         possibly(Is_Antiform(SCRATCH));  // don't bother canonizing LIFT_BYTE()
         Remember_Cell_Is_Lifeguard(SCRATCH);
 
@@ -473,7 +473,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
     Copy_Cell(arg, SPARE);  // do not decay [4]
 
     require (
-      bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+      bool check = Typecheck_Coerce_Use_Toplevel(
         sub, Known_Unspecialized(param), cast(Value*, arg)
       )
     );
@@ -527,7 +527,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
 // the more complex forms that can't be optimized into a TypesetByte or
 // a flag.
 //
-static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
+static bool Typecheck_Unoptimized_Use_Toplevel(
     Level* const L,
     const Value* v,
     const Element* at,
@@ -539,7 +539,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
 
     bool result;
 
-    DECLARE_STABLE (test);
+    DECLARE_VALUE (test);
     Push_Lifeguard(test);
 
     if (at == tail)
@@ -629,7 +629,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
     if (Heart_Of(at) == TYPE_GROUP) {  // typecheck pack [1]
         if (not Is_Pack(v))
             goto test_failed;
-        if (Typecheck_Pack_Uses_Scratch_And_Spare(L, v, at))
+        if (Typecheck_Pack_Use_Toplevel(L, v, at))
             goto test_succeeded;
         goto test_failed;
     }
@@ -760,33 +760,39 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
 } handle_after_any_quoting_adjustments: {
 
     DECLARE_ELEMENT (temp_item_word);
-    Init_Word(temp_item_word, label);
+    Init_Word(temp_item_word, label);  // v-- this used Cell_Binding(at) (?)
     Tweak_Cell_Binding(temp_item_word, Cell_Binding(at));
+    Bind_Cell_If_Unbound(temp_item_word, binding);
+    Add_Cell_Sigil(temp_item_word, SIGIL_META);
 
     require (
-      Get_Word(test, temp_item_word, binding)
+      Get_Word_Or_Tuple(test, temp_item_word)
     );
 
-    if (Is_Frame(test)) {
+    if (Is_Action(test)) {
         if (Predicate_Check_Spare_Uses_Scratch(L, test, label))
             goto test_succeeded;
         goto test_failed;
     }
 
-    switch (opt Type_Of_Unchecked(test)) {
+    require (
+        Stable* stable_test = Decay_If_Unstable(test)
+    );
+
+    switch (opt Type_Of_Unchecked(stable_test)) {
       case TYPE_PARAMETER:  // !! Problem: spare use
-        if (Typecheck_Uses_Spare_And_Scratch(L, SPARE, test, SPECIFIED))
+        if (Typecheck_Use_Toplevel(L, SPARE, stable_test, SPECIFIED))
             goto test_succeeded;
         goto test_failed;
 
       case TYPE_DATATYPE: {
         Option(Type) t = Type_Of_Maybe_Unstable(SPARE);
         if (t) {  // builtin type
-            if (Datatype_Type(test) == t)
+            if (Datatype_Type(stable_test) == t)
                 goto test_succeeded;
             goto test_failed;
         }
-        if (Datatype_Extra_Heart(test) == Cell_Extra_Heart(SPARE))
+        if (Datatype_Extra_Heart(stable_test) == Cell_Extra_Heart(SPARE))
             goto test_succeeded;
         goto test_failed; }
 
@@ -840,7 +846,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
 
 
 //
-//  Typecheck_Uses_Spare_And_Scratch: C
+//  Typecheck_Use_Toplevel: C
 //
 // 1. SPARE and SCRATCH are GC-safe cells in a Level that are usually free
 //    for whatever purposes an Executor wants.  But when a Level is being
@@ -855,7 +861,7 @@ static bool Typecheck_Unoptimized_Uses_Spare_And_Scratch(
 //    to have it not be quoted and yet not gather a local from the callsite,
 //    this is under review.
 //
-bool Typecheck_Uses_Spare_And_Scratch(
+bool Typecheck_Use_Toplevel(
     Level* const L,
     const Value* v,
     const Cell* tests,
@@ -1007,20 +1013,20 @@ bool Typecheck_Uses_Spare_And_Scratch(
 
 } call_unoptimized_checker: {
 
-    return Typecheck_Unoptimized_Uses_Spare_And_Scratch(
+    return Typecheck_Unoptimized_Use_Toplevel(
         L, v, at, tail, derived, match_all
     );
 }}
 
 
 //
-//  Typecheck_Coerce_Uses_Spare_And_Scratch: C
+//  Typecheck_Coerce_Use_Toplevel: C
 //
 // This has some steps that are beyond the basic typechecking, where the
 // Parameter_Class() being ^META or not is taken into account for decay and
 // coercion.  It also applies the <const> property.
 //
-Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
+Result(bool) Typecheck_Coerce_Use_Toplevel(
     Level* const L,
     const Cell* param,
     Value* v  // not `const Value*` -- coercion needs mutability
@@ -1074,7 +1080,7 @@ Result(bool) Typecheck_Coerce_Uses_Spare_And_Scratch(
 
 } call_typecheck: {  /////////////////////////////////////////////////////////
 
-    if (Typecheck_Uses_Spare_And_Scratch(L, v, param, SPECIFIED))
+    if (Typecheck_Use_Toplevel(L, v, param, SPECIFIED))
         goto return_true;
 
     if (coerced)
@@ -1254,7 +1260,7 @@ DECLARE_NATIVE(TYPECHECK)
       );
     }
 
-    if (Typecheck_Uses_Spare_And_Scratch(LEVEL, v, test, SPECIFIED))
+    if (Typecheck_Use_Toplevel(LEVEL, v, test, SPECIFIED))
         return LOGIC_OUT(true);
 
     if (Is_Failure(v)) {
@@ -1298,7 +1304,7 @@ DECLARE_NATIVE(MATCH)
     if (Is_Null(v))  // [1]
         panic ("NULL input to MATCH not currently allowed, use TYPECHECK");
 
-    if (not Typecheck_Uses_Spare_And_Scratch(LEVEL, v, test, SPECIFIED))
+    if (not Typecheck_Use_Toplevel(LEVEL, v, test, SPECIFIED))
         return nullptr;
 
     return COPY_TO_OUT(v);  // test matched, return input value

@@ -85,6 +85,12 @@ INLINE Sink(Value) Level_Lifetime_Value(Level* L) {
 // state on exit.  But that added a branch on every trampoline bounce to
 // check the Level's state, and led to erasing cells redundantly.
 //
+// 1. To stop leaking values between evaluations, it's been the case that the
+//    spare and scratch are guaranteed erased on entry to the stepper.  This
+//    is not the case with other state bytes.  But since the first thing the
+//    stepper does in STATE_0 is overwrite L->scratch for current, tolerate
+//    not erasing it (also helps preload for ST_STEPPER_REEVALUATING)
+//
 INLINE void Reset_Stepper_Erase_Out(Level* L) {
     assert(
         L->executor == &Stepper_Executor
@@ -95,9 +101,10 @@ INLINE void Reset_Stepper_Erase_Out(Level* L) {
         FLAG_STATE_BYTE(255)  // set state byte to 0
             | EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE  // what else?
     ));
+    L->baseline.stack_base = TOP_INDEX;  // may have accrued state
     Erase_Cell(L->out);
     Erase_Cell(&L->spare);
-    Erase_Cell(&L->scratch);
+    dont(Erase_Cell(&L->scratch));  // stepper tolerant of not erasing [1]
 }
 
 #define Init_Pushed_Refinement(out,symbol) \

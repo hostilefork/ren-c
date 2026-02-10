@@ -1979,15 +1979,9 @@ DECLARE_NATIVE(CONSTRUCT)
     };
 
     switch (STATE) {
-      case ST_CONSTRUCT_INITIAL_ENTRY:
-        goto initial_entry;
-
-      case ST_CONSTRUCT_EVAL_STEP:
-        Reset_Stepper_Erase_Out(SUBLEVEL);
-        goto continue_processing_spec;
-
-      case ST_CONSTRUCT_EVAL_SET_STEP:
-        goto eval_set_step_result_in_spare;
+      case ST_CONSTRUCT_INITIAL_ENTRY: goto initial_entry;
+      case ST_CONSTRUCT_EVAL_STEP: goto continue_processing_spec;
+      case ST_CONSTRUCT_EVAL_SET_STEP:  goto eval_set_step_result_in_spare;
 
       default: assert(false);
     }
@@ -2079,11 +2073,15 @@ DECLARE_NATIVE(CONSTRUCT)
 
     } while ((symbol = Try_Get_Settable_Word_Symbol(nullptr, at)));
 
-    if (not Is_Pinned_Form_Of(BLOCK, spec)) {
+    if (not Is_Pinned_Form_Of(BLOCK, spec)) {  // run normal SET-WORD assign
         Copy_Cell(Level_Scratch(SUBLEVEL), TOP_STABLE);
         DROP();
 
+        Reset_Stepper_Erase_Out(SUBLEVEL);  // state accrued, reset stack top
         LEVEL_STATE_BYTE(SUBLEVEL) = ST_STEPPER_REEVALUATING;
+    }
+    else {
+        Reset_Stepper_Erase_Out(SUBLEVEL);  // state accrued, reset stack top
     }
 
     STATE = ST_CONSTRUCT_EVAL_SET_STEP;
@@ -2123,8 +2121,6 @@ DECLARE_NATIVE(CONSTRUCT)
     }
 
     assert(STATE == ST_CONSTRUCT_EVAL_SET_STEP);
-    Reset_Stepper_Erase_Out(SUBLEVEL);
-
     goto continue_processing_spec;
 }}
 

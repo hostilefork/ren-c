@@ -449,27 +449,32 @@ INLINE bool Eval_Logic_Op_Right_Side_Uses_Scratch_And_Out(
     INCLUDE_PARAMS_OF_AND_1;  // should be same as OR and XOR
 
     Element* right = ARG(RIGHT);
+    STATIC_ASSERT(  // !!! temporary until flagging mechanism rethought
+        CELL_FLAG_SCRATCH_VAR_NOTE_ONLY_ACTION
+        == CELL_FLAG_PARAM_NOTE_TYPECHECKED
+    );
+    Clear_Cell_Flag(right, PARAM_NOTE_TYPECHECKED);
 
     if (Is_Group(right)) {
         if (Eval_Any_List_At_Throws(OUT, right, SPECIFIED))
             panic (Error_No_Catch_For_Throw(level_));
     }
     else {
-        Element* scratch = Copy_Cell(SCRATCH, right);
         heeded (Corrupt_Cell_If_Needful(SPARE));
+        heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
         assert(STATE == STATE_0);
-        STATE = 1;
+        STATE = ST_TWEAK_GETTING;
 
         if (Is_Chain(right)) {
             assume (
-              Unsingleheart_Sequence(scratch)
+              Unsingleheart_Sequence(right)
             );
-            Add_Cell_Sigil(scratch, SIGIL_META);
+            Add_Cell_Sigil(right, SIGIL_META);  // ACTION!s ok
         }
 
         require (
-          Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+          Get_Var_To_Out_Use_Toplevel(right, GROUP_EVAL_NO)
         );
 
         if (Is_Chain(right)) {

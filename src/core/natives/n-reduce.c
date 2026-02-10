@@ -273,9 +273,6 @@ DECLARE_NATIVE(REDUCE)
   //
   // 2. See above section for how we remembered the newline that was on the
   //    source originally, and cache it on the input argument cell.
-  //
-  // 3. We're performing more evaluations using the same sublevel, and it
-  //    needs to know its baseline correctly.  Adjust for any pushes we do.
 
     if (Is_Void(SPARE))
         goto next_reduce_step;  // void results are skipped by reduce
@@ -292,7 +289,6 @@ DECLARE_NATIVE(REDUCE)
         bool newline = Get_Cell_Flag(v, NEWLINE_BEFORE);  // [2]
         for (; at != tail; ++at) {
             Copy_Cell(PUSH(), at);  // Note: no binding on antiform SPLICE!
-            SUBLEVEL->baseline.stack_base += 1;  // [3]
             if (newline) {
                 Set_Cell_Flag(TOP, NEWLINE_BEFORE);  // [2]
                 newline = false;
@@ -303,7 +299,6 @@ DECLARE_NATIVE(REDUCE)
         panic (Error_Bad_Antiform(spare));  // [4]
     else {
         Move_Cell(PUSH(), As_Element(spare));
-        SUBLEVEL->baseline.stack_base += 1;  // [3]
 
         if (Get_Cell_Flag(v, NEWLINE_BEFORE))  // [2]
             Set_Cell_Flag(TOP, NEWLINE_BEFORE);

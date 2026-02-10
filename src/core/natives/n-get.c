@@ -95,22 +95,25 @@ void Restore_Level_Scratch_Spare(
 
 
 //
-//  Get_Var_In_Scratch_To_Out: C
+//  Get_Var_To_Out_Use_Toplevel: C
 //
-Result(None) Get_Var_In_Scratch_To_Out(
-    Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    Option(Element*) steps_out  // no GROUP!s if nulled
+// Uses TOP_LEVEL.  OUT may be FAILURE! antiform, see [A]
+//
+Result(None) Get_Var_To_Out_Use_Toplevel(
+    const Element* var,
+    GroupEval group_eval  // no GROUP!s if nulled
 ){
-    assert(level_ == TOP_LEVEL);
+    Level* level_ = TOP_LEVEL;
+    assert(STATE == ST_TWEAK_GETTING);
+
+    possibly(Get_Cell_Flag(var, SCRATCH_VAR_NOTE_ONLY_ACTION));
 
     heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
 
-    Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-        level_,
-        steps_out,
-        ST_TWEAK_GETTING
+    Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+        var,
+        group_eval == GROUP_EVAL_YES ? GROUPS_OK : NO_STEPS
     );
-    assert(level_ == TOP_LEVEL);
 
     if (e)
         return fail (unwrap e);
@@ -118,6 +121,61 @@ Result(None) Get_Var_In_Scratch_To_Out(
     require (
       Unlift_Cell_No_Decay(OUT)  // not unstable if wasn't ^META [1]
     );
+
+    if (Get_Cell_Flag(var, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
+        if (not Is_Action(OUT))
+            panic ("GET of word/ or obj.field/ did not yield ACTION!");
+    }
+
+    if (Is_Word(var) or Is_Tuple(var)) {
+
+        /* if (Is_Lifted_Unstable_Antiform(SPARE)) {
+            if (
+                Is_Lifted_Action(As_Stable(SPARE))  // e.g. asking APPEND.DUP
+                and stackindex != limit - 1
+            ){
+                continue;  // allow it if NOT last step (picks PARAMETER!)
+            }
+            if (
+                Is_Lifted_Hot_Potato(As_Stable(SPARE))
+                and stackindex == limit - 1
+            ){
+                continue;  // last non-meta pick can be unstable if hot-potato
+            }
+            if (Is_Lifted_Void(As_Stable(SPARE))) {
+                goto treat_like_pick_absent_signal;  // like before void pick
+            }
+            error = Error_Unstable_Non_Meta_Raw(
+                Data_Stack_At(Element, stackindex)
+            );
+            goto return_error;
+        }
+        */
+
+        if (
+            Not_Cell_Stable(OUT)
+            and not Is_Hot_Potato(OUT)  // !!! review exception, probably bad
+        ){
+            if (Is_Void(OUT))
+                return fail (Error_Bad_Pick_Raw(var));
+
+            panic ("GET of non-meta WORD!/TUPLE! should always be stable");
+        }
+    }
+    else if (Is_Meta_Form_Of(WORD, var) or Is_Meta_Form_Of(TUPLE, var)) {
+        //
+        // Allow...
+    }
+    else if (Is_Tied_Form_Of(BLOCK, var)) {
+        //
+        // Allow STEPS (how do steps encode meta or not meta?  it could be
+        // just a ^ at the beginning of the block if it's meta)
+        //
+    }
+    else {  // this should grow out into more forms, like space
+        panic ("GET target must be WORD! or TUPLE!, or their META-forms");
+    }
+
     return none;
 }
 
@@ -125,64 +183,30 @@ Result(None) Get_Var_In_Scratch_To_Out(
 //
 //  Get_Word_Or_Tuple: C
 //
-// Uses TOP_LEVEL to do its work; has to save fields it corrupts.
+// Makes a new Level... if you have a Level already, use it.
 //
-Result(None) Get_Word_Or_Tuple(
-    Sink(Value) out,
-    const Element* var,
-    Context* context
-){
-    Level* const L = TOP_LEVEL;
-
-    USE_LEVEL_SHORTHANDS (L);
-
-    possibly(out == OUT);
-    possibly(var == SPARE);
-    assert(var != SCRATCH);  // need to put bound word in scratch
-
-    assert(
-        Is_Word(var) or Is_Meta_Form_Of(WORD, var)
-        or Is_Tuple(var) or Is_Meta_Form_Of(TUPLE, var)
+Result(None) Get_Word_Or_Tuple(Sink(Value) out, const Element* var)
+{
+    require (
+      Level* sub = Make_End_Level(&Just_Use_Out_Executor, LEVEL_MASK_NONE)
     );
+    Erase_Cell(out);
+    Push_Level(out, sub);
 
-    if (OUT != out) {
-        Blit_Cell(PUSH(), OUT);
-        Assert_Cell_Initable(OUT);  // don't need to erase
-    }
-
-    StateByte saved_state = Save_Level_Scratch_Spare(L);
-
-    Force_Erase_Cell(SCRATCH);  // clears protection bit
-
-    heeded (Copy_Cell_May_Bind(  // do after SCRATCH erase, in case protected
-        SCRATCH,
-        var,  // have to do before SPARE erase, in case (v = SPARE)
-        context
-    ));
-    Force_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);  // maybe meta already
-
-    Force_Erase_Cell(SPARE);  // clears protection bit
-
-    heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(sub)));
+    heeded (Corrupt_Cell_If_Needful(Level_Scratch(sub)));
 
     Option(Error*) error = SUCCESS;
 
-    STATE = 1;
-    Get_Var_In_Scratch_To_Out(L, GROUPS_OK) except (Error* e) {
-        // still need to restore state and scratch
+    LEVEL_STATE_BYTE(sub) = ST_TWEAK_GETTING;
+
+    Get_Var_To_Out_Use_Toplevel(
+        var, GROUP_EVAL_YES
+    ) except (Error* e) {
         error = e;
     }
 
-    Restore_Level_Scratch_Spare(L, saved_state);
-
-    if (OUT != out) {
-        if (error)
-            Corrupt_If_Needful(out);  // propagate corruption (can't copy)
-        else
-            Copy_Cell(out, OUT);
-        Force_Blit_Cell(OUT, TOP);
-        DROP();
-    }
+    Drop_Level(sub);
 
     if (error)
         return fail (unwrap error);
@@ -196,15 +220,12 @@ Result(None) Get_Word_Or_Tuple(
 //
 // Uses TOP_LEVEL to do its work; has to save fields it corrupts.
 //
-Result(None) Get_Word(
-    Sink(Stable) out,
-    const Element* word,
-    Context* context
-){
+Result(None) Get_Word(Sink(Stable) out, const Element* word)
+{
     assert(Is_Word(word));
 
     trap (
-        Get_Word_Or_Tuple(u_cast(Value*, out), word, context)
+      Get_Word_Or_Tuple(u_cast(Value*, out), word)
     );
 
     require (
@@ -239,10 +260,14 @@ Result(Value*) Get_Chain_Push_Refinements(
             panic (Error_No_Catch_For_Throw(TOP_LEVEL));
     }
     else if (Is_Word(head) or Is_Tuple(head)) {  // .member:refinement is legal
+        DECLARE_ELEMENT (word_or_tuple);
+        Copy_Cell(word_or_tuple, head);
+        Bind_Cell_If_Unbound(word_or_tuple, derived);
+        Add_Cell_Sigil(word_or_tuple, SIGIL_META);  // want ACTION!
+
         require (  // must panic on error
-          Get_Word_Or_Tuple(
-            out, head, derived
-        ));
+          Get_Word_Or_Tuple(out, word_or_tuple)
+        );
     }
     else
         panic (head);  // what else could it have been?
@@ -317,9 +342,9 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
     else switch (Stub_Flavor(cast(Flex*, payload1))) {
       case FLAVOR_SYMBOL: {  // `/a` or `a/`
         Element* spare = Copy_Cell(SPARE, path);
-        KIND_BYTE(spare) = TYPE_WORD;
+        KIND_BYTE(spare) = Kind_From_Sigil_And_Heart(SIGIL_META, TYPE_WORD);
 
-        Get_Word(OUT, spare, SPECIFIED) except (Error* e) {
+        Get_Word_Or_Tuple(OUT, spare) except (Error* e) {
             error = e;
             goto return_error;
         }
@@ -356,8 +381,12 @@ Result(None) Get_Path_Push_Refinements(Level* level_)
         );
     }
     else if (Is_Word(at) or Is_Tuple(at)) {
+        Element *word_or_tuple = Copy_Cell(SPARE, at);
+        Bind_Cell_If_Unbound(word_or_tuple, binding);
+        Add_Cell_Sigil(word_or_tuple, SIGIL_META);  // want ACTION!
+
         Get_Word_Or_Tuple(
-            OUT, at, binding
+            OUT, word_or_tuple
         ) except (Error* e) {
             error = e;
             goto return_error;
@@ -585,8 +614,13 @@ Result(Value*) Meta_Get_Var(
             Init_Quasar(unwrap steps_out);  // !!! What to return?
     }
     else {
+        DECLARE_ELEMENT (word_or_tuple);
+        Copy_Cell(word_or_tuple, var);
+        Bind_Cell_If_Unbound(word_or_tuple, context);
+        Force_Cell_Sigil(word_or_tuple, SIGIL_META);  // want ACTION!
+
         trap (
-            Get_Word_Or_Tuple(out, var, context)
+          Get_Word_Or_Tuple(out, word_or_tuple)
         );
     }
 
@@ -660,7 +694,7 @@ Result(bool) Recalculate_Group_Arg_Vanishes(Level* level_, SymId id)
     );
 
     require (
-      bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(LEVEL, param, out)
+      bool check = Typecheck_Coerce_Use_Toplevel(LEVEL, param, out)
     );
 
     if (not check)
@@ -799,15 +833,16 @@ DECLARE_NATIVE(DEFINED_Q)
 {
     INCLUDE_PARAMS_OF_DEFINED_Q;
 
-    heeded (Copy_Cell(SCRATCH, Element_ARG(TARGET)));
-    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
+    Element* target = Element_ARG(TARGET);
+    Add_Cell_Sigil(target, SIGIL_META);
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    STATE = 1;
+    STATE = ST_TWEAK_GETTING;
 
-    Get_Var_In_Scratch_To_Out(
-        LEVEL, NO_STEPS
+    Get_Var_To_Out_Use_Toplevel(
+        target, GROUP_EVAL_NO
     ) except (Error* e) {
         UNUSED(e);
         return LOGIC_OUT(false);

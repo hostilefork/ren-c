@@ -128,24 +128,16 @@ DECLARE_NATIVE(PICK)
     Value* location = ARG(LOCATION);
     Stable* picker = ARG(PICKER);
 
-    StackIndex base = TOP_INDEX;
-
     Copy_Lifted_Cell(PUSH(), location);
     Copy_Lifted_Cell(PUSH(), picker);
 
-    heeded (Init_Quasar(SCRATCH));  // carries flags...
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
+    heeded (STATE = ST_TWEAK_GETTING);
 
-    Init_Null_Signifying_Tweak_Is_Pick(OUT);
-
-    STATE = 1;
-
-    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out(
-        LEVEL,
-        base,
-        ST_TWEAK_GETTING
-    );
-    Drop_Data_Stack_To(base);
+    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Drop_Data_Stack_To(STACK_BASE);
 
     if (e) {  // should be willing to bounce to trampoline...
         Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);
@@ -157,6 +149,12 @@ DECLARE_NATIVE(PICK)
       Unlift_Cell_No_Decay(OUT)  // !!! use faster version, known ok antiform?
     );
 
+    if (Is_Void(OUT)) // workaround for old pick tolerance on missing
+        return fail (Error_Bad_Pick_Raw(picker));
+
+    require (
+      Decay_If_Unstable(OUT)
+    );
     return OUT;
 }
 
@@ -274,8 +272,6 @@ DECLARE_NATIVE(POKE)
     Stable* picker = ARG(PICKER);
     Value* v = ARG(VALUE);
 
-    StackIndex base = TOP_INDEX;
-
     Copy_Lifted_Cell(PUSH(), location);
     Copy_Lifted_Cell(PUSH(), picker);
 
@@ -284,14 +280,10 @@ DECLARE_NATIVE(POKE)
 
     Copy_Lifted_Cell(OUT, v);
 
-    STATE = 1;
+    STATE = ST_TWEAK_SETTING;
 
-    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out(
-        LEVEL,
-        base,
-        ST_TWEAK_SETTING
-    );
-    Drop_Data_Stack_To(base);
+    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Drop_Data_Stack_To(STACK_BASE);
 
     if (e) {
         Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);

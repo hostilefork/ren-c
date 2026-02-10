@@ -289,6 +289,7 @@ DECLARE_NATIVE(EXCEPT)
 //
 //      return: [any-value?]
 //      ^value [any-value? failure!]
+//      {return*}
 //  ]
 //
 DECLARE_NATIVE(TRAP)
@@ -307,16 +308,17 @@ DECLARE_NATIVE(TRAP)
     if (not Is_Failure(v))
         return COPY_TO_OUT(v);  // pass thru any non-failures
 
-    Element* return_word = Init_Word(SCRATCH, CANON(RETURN_P));  // [1]
-    Bind_Cell_If_Unbound(return_word, Feed_Binding(LEVEL->feed));
-    Add_Cell_Sigil(return_word, SIGIL_META);  // want ACTION!s (unstable)
+    Element* return_p = Init_Word(LOCAL(RETURN_P), CANON(RETURN_P));  // [1]
+    Bind_Cell_If_Unbound(return_p, Level_Binding(LEVEL));
+    Add_Cell_Sigil(return_p, SIGIL_META);  // !!! use /RETURN* or RETURN*/
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    STATE = 1;
+    STATE = ST_TWEAK_GETTING;
 
     require (
-      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+      Get_Var_To_Out_Use_Toplevel(return_p, GROUP_EVAL_NO)
     );
 
     if (not Is_Action(OUT))

@@ -654,7 +654,7 @@ static Result(REBIXO) Parse_One_Rule(
 
           case TYPE_PARAMETER: {
             assert(rule != SPARE);
-            if (Typecheck_Uses_Spare_And_Scratch(
+            if (Typecheck_Use_Toplevel(
                 LEVEL, item, rule, P_RULE_BINDING
             )){
                 return pos + 1;  // type was in typeset
@@ -1162,32 +1162,16 @@ static Result(None) Handle_Mark_Rule(
     // !!! Experiment: Put the quote level of the original series back on when
     // setting positions (then remove)
     //
-    //     parse just '''{abc} ["a" mark x:]` => '''{bc}
+    //     parse just '''{abc} ["a" x: <here>]` => '''{bc}
 
     Quotify_Depth(Element_ARG(POSITION), P_NUM_QUOTES);
 
     // !!! Assume we might not be able to corrupt SPARE or SCRATCH (rule may
     // be in SPARE?)  Review.
 
-    Blit_Cell(PUSH(), SPARE);
-    Blit_Cell(PUSH(), SCRATCH);
-
-    heeded (Copy_Cell(SCRATCH, set_or_copy_word));
-    heeded (Corrupt_Cell_If_Needful(SPARE));
-    STATE = 1;
-
-    Copy_Cell(OUT, ARG(POSITION));
-
     require (
-        Set_Var_In_Scratch_To_Out(level_, NO_STEPS)
+      Set_Word_Or_Tuple(set_or_copy_word, ARG(POSITION))
     );
-
-    Force_Blit_Cell(SCRATCH, TOP);
-    DROP();
-    Force_Blit_Cell(SPARE, TOP);
-    DROP();
-
-    Erase_Cell(OUT);
 
     Noquotify(Element_ARG(POSITION));  // go back to 0 quote level
 
@@ -2300,12 +2284,15 @@ DECLARE_NATIVE(SUBPARSE)
                 // sense to carry forward the quoting on the input.  It is not
                 // obvious what marking a position should do.
 
-                heeded (Copy_Cell(SCRATCH, set_or_copy_word));
                 heeded (Corrupt_Cell_If_Needful(SPARE));
-                STATE = 1;
+                heeded (Corrupt_Cell_If_Needful(SCRATCH));
+
+                STATE = ST_TWEAK_SETTING;
 
                 require (
-                    Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+                  Set_Var_To_Out_Use_Toplevel(
+                    set_or_copy_word, GROUP_EVAL_NO
+                  )
                 );
                 Erase_Cell(OUT);
             }
@@ -2347,12 +2334,14 @@ DECLARE_NATIVE(SUBPARSE)
                         );
                 }
 
-                heeded (Copy_Cell(SCRATCH, set_or_copy_word));
                 heeded (Corrupt_Cell_If_Needful(SPARE));
-                STATE = 1;
+                heeded (Corrupt_Cell_If_Needful(SCRATCH));
+                STATE = ST_TWEAK_SETTING;
 
                 require (
-                  Set_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+                  Set_Var_To_Out_Use_Toplevel(
+                    set_or_copy_word, GROUP_EVAL_NO
+                  )
                 );
                 Erase_Cell(OUT);
             }

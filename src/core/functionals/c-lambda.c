@@ -169,7 +169,7 @@ Bounce Lambda_Dispatcher(Level* const L)
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
     require (
-      bool check = Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
+      bool check = Typecheck_Coerce_Return_Use_Toplevel(
         LEVEL, unwrap result_param, OUT
       )
     );

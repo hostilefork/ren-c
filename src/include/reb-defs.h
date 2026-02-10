@@ -421,9 +421,23 @@ typedef Flags CollectFlags;
 
 #define STATE_0  0  // use macro vs. just hardcoding 0 around the system
 
+#if RUNTIME_CHECKS  // shuffle numbers to make less likely to be accidents
+    typedef enum {
+        ST_TWEAK_INITIAL_ENTRY = STATE_0,
+        ST_TWEAK_TWEAKING = 77,
+        ST_TWEAK_SETTING = 101,
+        ST_TWEAK_GETTING = 202
+    } TweakMode;
+#else
+    typedef enum {
+        ST_TWEAK_INITIAL_ENTRY = STATE_0,
+        ST_TWEAK_TWEAKING,  // trampoline rule: OUT must be erased if STATE_0
+        ST_TWEAK_SETTING,
+        ST_TWEAK_GETTING
+    } TweakMode;
+#endif
+
 typedef enum {
-    ST_TWEAK_INITIAL_ENTRY = STATE_0,
-    ST_TWEAK_TWEAKING,  // trampoline rule: OUT must be erased if STATE_0
-    ST_TWEAK_SETTING,
-    ST_TWEAK_GETTING
-} TweakMode;
+    GROUP_EVAL_NO,
+    GROUP_EVAL_YES
+} GroupEval;

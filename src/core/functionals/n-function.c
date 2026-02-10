@@ -667,7 +667,7 @@ DECLARE_NATIVE(UNWIND)
 
 
 //
-//  Typecheck_Coerce_Return_Uses_Spare_And_Scratch: C
+//  Typecheck_Coerce_Return_Use_Toplevel: C
 //
 // 1. It may be that tighter controls should be put on, that you must say
 //    you return FAILURE! in order to return failures (or at least say that
@@ -676,7 +676,7 @@ DECLARE_NATIVE(UNWIND)
 //    is returned, in particular ~(veto)~.  Because generic constructs like
 //    CASE are already saying they can return ANY-VALUE?.
 //
-Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
+Result(bool) Typecheck_Coerce_Return_Use_Toplevel(
     Level* L,  // Level whose spare/scratch used (not necessarily return level)
     const Cell* param,  // parameter for the RETURN (may be quoted)
     Value* v  // not `const Value*` -- coercion needs mutability
@@ -698,7 +698,7 @@ Result(bool) Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
         return true;  // for now, all functions allow these [1]
 
     trap (
-      bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(L, param, v)
+      bool check = Typecheck_Coerce_Use_Toplevel(L, param, v)
     );
 
     return check;
@@ -782,7 +782,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
 
     if (not ARG(RUN)) {  // plain simple RETURN (not weird tail-call)
         require (
-          bool check = Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
+          bool check = Typecheck_Coerce_Return_Use_Toplevel(
             LEVEL, return_param, v
           )
         );
@@ -859,6 +859,7 @@ DECLARE_NATIVE(DEFINITIONAL_RETURN)
 //      ^value [<hole> <veto> any-value?]
 //      :run "Reuse stack level for another call (<redo> uses locals/args too)"
 //      ;   [<variadic> any-stable?]  ; would force this frame managed
+//      {return*}
 //  ]
 //
 DECLARE_NATIVE(RETURN)
@@ -870,16 +871,17 @@ DECLARE_NATIVE(RETURN)
 
     INCLUDE_PARAMS_OF_RETURN;
 
-    heeded (Init_Word(SCRATCH, CANON(RETURN_P)));
-    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
-    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+    Element* return_p = Init_Word(LOCAL(RETURN_P), CANON(RETURN_P));
+    Add_Cell_Sigil(return_p, SIGIL_META);
+    Bind_Cell_If_Unbound(return_p, Level_Binding(LEVEL));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+    STATE = ST_TWEAK_GETTING;
 
     require (
-      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+      Get_Var_To_Out_Use_Toplevel(return_p, GROUP_EVAL_NO)
     );
 
     if (not Is_Action(OUT))

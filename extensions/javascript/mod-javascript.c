@@ -836,7 +836,7 @@ Bounce JavaScript_Dispatcher(Level* const L)
     );
 
     require (
-      bool check = Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
+      bool check = Typecheck_Coerce_Return_Use_Toplevel(
         L, param, OUT
       )
     );

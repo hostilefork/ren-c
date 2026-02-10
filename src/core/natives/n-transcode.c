@@ -273,12 +273,19 @@ DECLARE_NATIVE(TRANSCODE)
 
     if (ARG(LINE) and Is_Word(unwrap ARG(LINE))) {  // want line number updated
         Init_Integer(OUT, transcode->line);
-        Copy_Cell(Level_Scratch(SUBLEVEL), Element_ARG(LINE));  // variable
+
         heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
+        heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
+
+        LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_SETTING;
+        SUBLEVEL->baseline.stack_base = TOP_INDEX;  // expected
 
         require (
-          Set_Var_In_Scratch_To_Out(SUBLEVEL, NO_STEPS)
+          Set_Var_To_Out_Use_Toplevel(
+            Element_ARG(LINE), GROUP_EVAL_NO
+          )
         );
+        SUBLEVEL->baseline.stack_base = STACK_BASE;
         UNUSED(*OUT);
     }
 

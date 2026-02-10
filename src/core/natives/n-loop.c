@@ -174,6 +174,7 @@ DECLARE_NATIVE(DEFINITIONAL_CONTINUE)
 //      return: []
 //      ^value "Act as if loop body finished with this value (VETO is BREAK)"
 //          [<hole> <veto> any-value?]
+//      {continue*}
 //  ]
 //
 DECLARE_NATIVE(CONTINUE)
@@ -185,16 +186,17 @@ DECLARE_NATIVE(CONTINUE)
 
     INCLUDE_PARAMS_OF_CONTINUE;
 
-    heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
-    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
-    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+    Element* continue_p = Init_Word(LOCAL(CONTINUE_P), CANON(CONTINUE_P));
+    Add_Cell_Sigil(continue_p, SIGIL_META);  // !!! /CONTINUE* or CONTINUE*/
+    Bind_Cell_If_Unbound(continue_p, Level_Binding(LEVEL));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+    STATE = ST_TWEAK_GETTING;
 
     require (
-      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+      Get_Var_To_Out_Use_Toplevel(continue_p, GROUP_EVAL_NO)
     );
 
     if (not Is_Action(OUT))
@@ -229,6 +231,7 @@ DECLARE_NATIVE(CONTINUE)
 //
 //      return: []
 //      {value}  ; FRAME!-compatibility with CONTINUE (optimization may reuse)
+//      {continue*}
 //  ]
 //
 DECLARE_NATIVE(BREAK)
@@ -240,16 +243,17 @@ DECLARE_NATIVE(BREAK)
 
     INCLUDE_PARAMS_OF_BREAK;
 
-    heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
-    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
-    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+    Element* continue_p = Init_Word(LOCAL(CONTINUE_P), CANON(CONTINUE_P));
+    Add_Cell_Sigil(continue_p, SIGIL_META);  // !!! /CONTINUE* or CONTINUE*/
+    Bind_Cell_If_Unbound(continue_p, Level_Binding(LEVEL));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+    STATE = ST_TWEAK_GETTING;
 
     require (
-      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+      Get_Var_To_Out_Use_Toplevel(continue_p, GROUP_EVAL_NO)
     );
 
     if (not Is_Action(OUT))
@@ -277,6 +281,7 @@ DECLARE_NATIVE(BREAK)
 //
 //      return: []
 //      {value}  ; FRAME!-compatibility with CONTINUE (optimization may reuse)
+//      {continue*}
 //  ]
 //
 DECLARE_NATIVE(AGAIN)
@@ -288,16 +293,17 @@ DECLARE_NATIVE(AGAIN)
 
     INCLUDE_PARAMS_OF_AGAIN;
 
-    heeded (Init_Word(SCRATCH, CANON(CONTINUE_P)));
-    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
-    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+    Element* continue_p = Init_Word(LOCAL(CONTINUE_P), CANON(CONTINUE_P));
+    Add_Cell_Sigil(continue_p, SIGIL_META);  // !!! /CONTINUE* or CONTINUE*/
+    Bind_Cell_If_Unbound(continue_p, Level_Binding(LEVEL));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+    STATE = ST_TWEAK_GETTING;
 
     require (
-      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+      Get_Var_To_Out_Use_Toplevel(continue_p, GROUP_EVAL_NO)
     );
 
     if (not Is_Action(OUT))

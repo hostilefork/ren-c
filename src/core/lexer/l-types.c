@@ -312,6 +312,7 @@ IMPLEMENT_GENERIC(ADDRESS_OF, Is_Frame)
 //      return: [any-stable?]
 //      '@(property) "Escapable slot for WORD!"
 //          [word!]
+//      {property-of}
 //  ]
 //
 DECLARE_NATIVE(OF)
@@ -388,16 +389,17 @@ DECLARE_NATIVE(OF)
 
 } have_sym_of: { /////////////////////////////////////////////////////////////
 
-    heeded (Init_Word(SCRATCH, sym_of));
-    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);
-    heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(LEVEL->feed)));
+    Element* property_of = Init_Word(LOCAL(PROPERTY_OF), sym_of);
+    Add_Cell_Sigil(property_of, SIGIL_META);
+    Bind_Cell_If_Unbound(property_of, Level_Binding(LEVEL));
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    STATE = 1;  // Get_Var_In_Scratch_To_Out() requires
+    STATE = ST_TWEAK_GETTING;
 
     require (
-      Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+      Get_Var_To_Out_Use_Toplevel(property_of, GROUP_EVAL_NO)
     );
 
     if (not Is_Action(OUT))

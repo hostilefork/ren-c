@@ -379,8 +379,8 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
     heeded (Bind_Cell_If_Unbound(As_Element(SCRATCH), spec_binding));
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    require (
-      Get_Var_In_Scratch_To_Out(L, NO_STEPS)
+    require (  // !!! should have a persistent Level to hold var
+      Get_Word_Or_Tuple(OUT, As_Element(SCRATCH))
     );
 
   handle_datatype: {

@@ -215,7 +215,8 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
 //
 // Returns TRUE if it set the flag.
 //
-bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
+bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L)
+{
     assert(Not_Feed_Flag(L->feed, DEFERRING_INFIX));
 
     Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
@@ -226,17 +227,31 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L) {
     if (Type_Of_Unchecked(At_Feed(L->feed)) != TYPE_WORD)
         return false;
 
-    heeded (Copy_Cell(SCRATCH, At_Feed(L->feed)));
-    Bind_Cell_If_Unbound(As_Element(SCRATCH), Feed_Binding(L->feed));
-    Add_Cell_Sigil(As_Element(SCRATCH), SIGIL_META);  // for unstable lookup
-    heeded (Corrupt_Cell_If_Needful(SPARE));
+    const StackIndex base = TOP_INDEX;
+    assert(base == STACK_BASE);
 
-    Get_Var_In_Scratch_To_Out(L, NO_STEPS) except (Error* e) {
-        UNUSED(e);  // don't care (if we care, we'll hit it on next step)
+    Element* var = Copy_Cell(SCRATCH, At_Feed(L->feed));
+    Bind_Cell_If_Unbound(var, Level_Binding(L));
+
+    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(var);
+    if (e)
         return false;
-    }
 
-    if (not Is_Action(OUT))
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
+
+    StateByte saved_state = STATE;
+    heeded (STATE = ST_TWEAK_GETTING);
+
+    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Drop_Data_Stack_To(base);
+    STATE = saved_state;
+
+    if (e)
+        return false;
+
+    if (not Is_Lifted_Action(As_Stable(OUT)))  // DUAL protocol (lifted!)
         return false;
 
     Option(InfixMode) infix_mode = Frame_Infix_Mode(OUT);
@@ -991,7 +1006,7 @@ Bounce Action_Executor(Level* L)
         }
 
         require (
-          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+          bool check = Typecheck_Coerce_Use_Toplevel(
             L, Known_Unspecialized(PARAM), arg
           )
         );

@@ -208,7 +208,7 @@ IMPLEMENT_GENERIC(MAKE, Any_List)
             else
                 param = Phase_Param(phase, CELL_VARARGS_SIGNED_PARAM_INDEX(arg));
 
-            if (Typecheck_Uses_Spare_And_Scratch(
+            if (Typecheck_Use_Toplevel(
                 LEVEL, LIB(NULL), Known_Unspecialized(param), SPECIFIED
             )){
                 return fail (Error_Null_Vararg_List_Raw());
@@ -1644,20 +1644,27 @@ DECLARE_NATIVE(GLOM)
     assert(Is_Cell_Erased(SCRATCH));
 
     if (Is_Word(ARG(ITEMS1)) or Is_Tuple(ARG(ITEMS1))) {
-        Copy_Cell(SCRATCH, ARG(ITEMS1));
-        heeded (Corrupt_Cell_If_Needful(SPARE));
+        Element* items1 = Element_ARG(ITEMS1);
+        STATIC_ASSERT(  // !!! temporary until flagging mechanism rethought
+            CELL_FLAG_SCRATCH_VAR_NOTE_ONLY_ACTION
+            == CELL_FLAG_PARAM_NOTE_TYPECHECKED
+        );
+        Clear_Cell_Flag(items1, PARAM_NOTE_TYPECHECKED);
 
-        STATE = 1;  // required :-/
+        heeded (Corrupt_Cell_If_Needful(SPARE));
+        heeded (Corrupt_Cell_If_Needful(SCRATCH));
+
+        STATE = ST_TWEAK_GETTING;
 
         require (
-            Get_Var_In_Scratch_To_Out(LEVEL, NO_STEPS)
+          Get_Var_To_Out_Use_Toplevel(items1, GROUP_EVAL_NO)
         );
 
         ParamList* paramlist = Phase_Paramlist(Frame_Phase(LIB(GLOM)));
         Param* param = Phase_Param(paramlist, PARAM_INDEX(ITEMS2));
 
         require (
-          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+          bool check = Typecheck_Coerce_Use_Toplevel(
             LEVEL, Known_Unspecialized(param), OUT
           )
         );
@@ -1757,9 +1764,18 @@ DECLARE_NATIVE(GLOM)
   // update of that variable with whatever we put in OUT.
 
     if (not Is_Cell_Erased(SCRATCH)) {
-      require (
-        Set_Var_In_Scratch_To_Out(LEVEL, GROUPS_OK)
-      );
+        Element* items1 = Copy_Cell(  // restore original for writeback
+            ARG(ITEMS1), As_Element(SCRATCH)
+        );
+
+        heeded (Corrupt_Cell_If_Needful(SPARE));
+        heeded (Corrupt_Cell_If_Needful(SCRATCH));
+
+        STATE = ST_TWEAK_SETTING;
+
+        require (
+          Set_Var_To_Out_Use_Toplevel(items1, GROUP_EVAL_YES)
+        );
     }
 
     return OUT;

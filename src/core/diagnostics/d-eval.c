@@ -292,7 +292,7 @@ void Do_After_Action_Checks(Level* level_) {
             Details_At(details, IDX_RAW_NATIVE_RETURN)
         );
         assert(Is_Parameter(param));
-        bool check = Typecheck_Coerce_Return_Uses_Spare_And_Scratch(
+        bool check = Typecheck_Coerce_Return_Use_Toplevel(
             LEVEL, param, OUT
         ) except (Error* e) {
             assert(!"'Raw' native code did not decay/panic value correctly!");

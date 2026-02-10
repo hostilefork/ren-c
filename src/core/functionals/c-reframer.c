@@ -390,7 +390,7 @@ Details* Alloc_Action_From_Exemplar(
         }
 
         require (
-          bool check = Typecheck_Coerce_Uses_Spare_And_Scratch(
+          bool check = Typecheck_Coerce_Use_Toplevel(
             TOP_LEVEL, Known_Unspecialized(param), arg
           )
         );

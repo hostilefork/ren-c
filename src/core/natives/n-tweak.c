@@ -269,8 +269,6 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
     if (Is_Lifted_Antiform(Level_Spare(parent)))
         return Error_User("TWEAK* cannot be used on antiforms");
 
-    Element* scratch_var = As_Element(Level_Scratch(parent));
-
     if (Get_Cell_Flag(Level_Spare(parent), BINDING_MUST_BE_FINAL))
         return Error_Pure_Non_Final_Raw(  // if we're poking, that's bad
             Data_Stack_At(Element, picker_index)
@@ -355,71 +353,21 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         Option(Sigil) picker_sigil = Sigil_Of(picker_instruction);
         UNUSED(picker_sigil);  // ideas on the table for this...
 
-        if (SIGIL_META == Cell_Underlying_Sigil(scratch_var))
-            continue;  // don't decay TOP_ELEMENT
-
-        // if not meta, needs to decay if unstable
-
-        if (not Any_Lifted(TOP_ELEMENT))
-            continue;  // dual signal, do not lift dual
-
         if (Is_Lifted_Action(TOP_ELEMENT)) {  // !!! must generalize all sets
-            if (Get_Cell_Flag(scratch_var, SCRATCH_VAR_NOTE_ONLY_ACTION))
-                Set_Cell_Flag(TOP_ELEMENT, FINAL);  // force finality
-
             if (Is_Word(picker_arg)) {
                 Update_Frame_Cell_Label(  // !!! is this a good idea?
                     TOP_ELEMENT, Word_Symbol(picker_arg)
                 );
             }
-            continue;
         }
 
-        if (Get_Cell_Flag(scratch_var, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
-            Drop_Action(sub);
-            return Error_User(
-                "/word: and /obj.field: assignments need ACTION!"
-            );
-        }
-
-        if (Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(TOP_ELEMENT))
-            continue;  // (x: ()) or (x: ~) works, (x: ~()~ doesn't)
-
-        bool was_singular_pack = (
-            Is_Lifted_Pack(TOP_ELEMENT) and Series_Len_At(TOP_ELEMENT) == 1
-        );
-
-        if (was_singular_pack) {  // alias hack: allow (alias: ~(^word)~)
-            const Dual* at = u_cast(Dual*, List_Item_At(TOP_ELEMENT));
-            if (  // allow only some bedrock forms
-                Is_Dual_Alias(at)
-                or Is_Dual_Accessor(at)
-                or Is_Dual_Drain(at)
-            ){
-                Copy_Cell(TOP_ELEMENT, at);
-                continue;
-            }
-        }
-
-        Value* sub_spare = Copy_Cell(Level_Spare(sub), TOP_ELEMENT);
-        require (
-          Unlift_Cell_No_Decay(sub_spare)
-        );
-        Decay_If_Unstable(sub_spare) except (Error* e) {
-            Drop_Action(sub);
-            return e;
-        };
-        Copy_Lifted_Cell(TOP_ELEMENT, sub_spare);
+        continue;  // don't decay TOP_ELEMENT
     }
     then {  // not quoted...
         Clear_Cell_Sigil(As_Element(picker_arg));  // drop any sigils
     }
 
     Copy_Cell(value_arg, TOP_ELEMENT);
-
-    Clear_Cell_Flag(
-        scratch_var, SCRATCH_VAR_NOTE_ONLY_ACTION  // consider *once*
-    );
 
 } call_updater: {
 
@@ -504,39 +452,29 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
 
 //
-//  Trap_Push_Steps_To_Stack: C
+//  Trap_Push_Steps_To_Stack_For_Word: C
 //
-Option(Error*) Trap_Push_Steps_To_Stack(
-    Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    bool groups_ok
-){
-    StackIndex base = TOP_INDEX;
+Option(Error*) Trap_Push_Steps_To_Stack_For_Word(const Element* wordlike)
+{
+    Level* level_ = TOP_LEVEL;
 
-    Element* scratch_var = As_Element(SCRATCH);
+    assert(level_ == TOP_LEVEL);
+    UNUSED(level_);
+
+    assert(Is_Word(wordlike) or Is_Meta_Form_Of(WORD, wordlike));
 
     Option(Error*) error = SUCCESS;
 
-    if (Is_Word(scratch_var) or Is_Meta_Form_Of(WORD, scratch_var))
-        goto handle_scratch_var_as_wordlike;
+    StackIndex base = TOP_INDEX;
 
-    if (Is_Tuple(scratch_var) or Is_Meta_Form_Of(TUPLE, scratch_var))
-        goto handle_scratch_var_as_sequence;
-
-    if (Is_Tied_Form_Of(BLOCK, scratch_var))
-        goto handle_scratch_var_as_tied_steps_block;
-
-    error = Error_Bad_Value(scratch_var);
-    goto return_error;
-
-  handle_scratch_var_as_wordlike: {
-
-    if (not Try_Get_Binding_Of(PUSH(), scratch_var)) {
-        error = Error_No_Binding_Raw(scratch_var);
+    if (not Try_Get_Binding_Of(PUSH(), wordlike)) {
+        error = Error_No_Binding_Raw(wordlike);
         goto return_error;
     }
+
     Lift_Cell(TOP_ELEMENT);  // dual protocol, lift (?)
 
-    Copy_Cell(PUSH(), scratch_var);  // variable is what we're picking with
+    Copy_Cell(PUSH(), wordlike);  // variable is what we're picking with
     switch (opt Cell_Underlying_Sigil(TOP_ELEMENT)) {
       case SIGIL_0:
         break;
@@ -554,35 +492,72 @@ Option(Error*) Trap_Push_Steps_To_Stack(
     }
     unnecessary(Lift_Cell(TOP_STABLE));  // !!! unlifted picker is ok--why?
 
-    goto return_success;
+    return SUCCESS;
 
-} handle_scratch_var_as_sequence: {
+  return_error: { ////////////////////////////////////////////////////////////
+
+    Drop_Data_Stack_To(base);
+    return error;
+}}
+
+
+//
+//  Trap_Push_Steps_To_Stack: C
+//
+Option(Error*) Trap_Push_Steps_To_Stack(
+    const Element* var,
+    bool groups_ok
+){
+    Level* level_ = TOP_LEVEL;
+
+    assert(TOP_INDEX == STACK_BASE);
+    const StackIndex base = TOP_INDEX;
+
+    Option(Error*) error = SUCCESS;
+
+    if (Is_Word(var) or Is_Meta_Form_Of(WORD, var)) {
+        error = Trap_Push_Steps_To_Stack_For_Word(var);
+        if (error)
+            goto return_error;
+        goto return_success;
+    }
+
+    if (Is_Tuple(var) or Is_Meta_Form_Of(TUPLE, var))
+        goto handle_var_as_sequence;
+
+    if (Is_Tied_Form_Of(BLOCK, var))
+        goto handle_var_as_tied_steps_block;
+
+    error = Error_Bad_Value(var);
+    goto return_error;
+
+  handle_var_as_sequence: {
 
     // If we have a sequence, then GROUP!s must be evaluated.  (If we're given
     // a steps array as input, then a GROUP! is literally meant as a
     // GROUP! by value).  These evaluations should only be allowed if the
     // caller has asked us to return steps.
 
-    if (not Sequence_Has_Pointer(scratch_var)) {  // compressed byte form
-        error = Error_Bad_Value(scratch_var);
+    if (not Sequence_Has_Pointer(var)) {  // compressed byte form
+        error = Error_Bad_Value(var);
         goto return_error;
     }
 
-    const Base* payload1 = CELL_PAYLOAD_1(scratch_var);
+    const Base* payload1 = CELL_PAYLOAD_1(var);
     if (Is_Base_A_Cell(payload1)) {  // pair optimization
         // pairings considered "Listlike", handled by List_At()
     }
     else switch (Stub_Flavor(cast(Flex*, payload1))) {
       case FLAVOR_SYMBOL: {
-        if (Get_Cell_Flag(scratch_var, LEADING_BLANK)) {  // `/a` or `.a`
-            if (Heart_Of(scratch_var) != TYPE_TUPLE) {
+        if (Get_Cell_Flag(var, LEADING_BLANK)) {  // `/a` or `.a`
+            if (Heart_Of(var) != TYPE_TUPLE) {
                 error = Error_User("GET leading space only allowed on TUPLE!");
                 goto return_error;
             }
             Init_Word(SPARE, CANON(DOT_1));
             Tweak_Cell_Binding(
                 u_cast(Element*, SPARE),
-                Cell_Binding(scratch_var)
+                Cell_Binding(var)
             );
             if (not Try_Get_Binding_Of(PUSH(), u_cast(Element*, SPARE))) {
                 DROP();
@@ -600,19 +575,22 @@ Option(Error*) Trap_Push_Steps_To_Stack(
         // !!! If this is a PATH!, it should error if it's not an action...
         // and if it's a TUPLE! it should error if it is an action.  Review.
         //
-        goto handle_scratch_var_as_wordlike; }
+        error = Trap_Push_Steps_To_Stack_For_Word(var);
+        if (error)
+            goto return_error;
+        goto return_success; }
 
       case FLAVOR_SOURCE:
         break;  // fall through
 
       default:
-        crash (scratch_var);
+        crash (var);
     }
 
     const Element* tail;
-    const Element* head = List_At(&tail, scratch_var);
+    const Element* head = List_At(&tail, var);
     const Element* at;
-    Context* at_binding = Cell_Binding(scratch_var);
+    Context* at_binding = Cell_Binding(var);
 
     if (Any_Word(head)) {  // add binding at head
         if (not Try_Get_Binding_Of(
@@ -642,7 +620,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
 
         if (Heart_Of(at) == TYPE_GROUP) {
             if (not groups_ok) {
-                error = Error_Bad_Get_Group_Raw(scratch_var);
+                error = Error_Bad_Get_Group_Raw(var);
                 goto return_error;
             }
 
@@ -677,12 +655,12 @@ Option(Error*) Trap_Push_Steps_To_Stack(
 
     goto return_success;
 
-} handle_scratch_var_as_tied_steps_block: {
+} handle_var_as_tied_steps_block: {
 
     const Element* tail;
-    const Element* head = List_At(&tail, scratch_var);
+    const Element* head = List_At(&tail, var);
     const Element* at;
-    Context* at_binding = Cell_Binding(scratch_var);
+    Context* at_binding = Cell_Binding(var);
     for (at = head; at != tail; ++at)
         Copy_Cell_May_Bind(PUSH(), at, at_binding);
 
@@ -716,20 +694,25 @@ Option(Error*) Trap_Push_Steps_To_Stack(
 //    better than trying to work "Corrupts_Spare()" into the already quite-long
 //    name of the function.)
 //
-Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
-    Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    StackIndex base,
-    TweakMode mode
-){
+Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
+{
+    Level* level_ = TOP_LEVEL;
+    const StackIndex base = STACK_BASE;
+
+    assert(
+        STATE == ST_TWEAK_TWEAKING
+        or STATE == ST_TWEAK_GETTING
+        or STATE == ST_TWEAK_SETTING
+    );
+    const TweakMode mode = u_cast(TweakMode, STATE);
+
     assert(OUT != SCRATCH and OUT != SPARE);
 
     Stable* out = As_Stable(OUT);
 
-    assert(LEVEL == TOP_LEVEL);
-    possibly(Get_Cell_Flag(SCRATCH, SCRATCH_VAR_NOTE_ONLY_ACTION));
-
   #if NEEDFUL_DOES_CORRUPTIONS  // confirm caller pre-corrupted spare [1]
     assert(Not_Cell_Readable(SPARE));
+    assert(Not_Cell_Readable(SCRATCH));
   #endif
 
     Sink(Stable) spare_location_dual = SPARE;
@@ -738,10 +721,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
     Option(Error*) error = SUCCESS;  // for common exit path on error
 
-    Element* scratch_var = As_Element(SCRATCH);
-
   #if RUNTIME_CHECKS
-    Protect_Cell(scratch_var);  // (common exit path undoes this protect)
     Protect_Cell(OUT);
   #endif
 
@@ -827,48 +807,10 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
         assert(Any_Lifted(SPARE));  // successful pick
 
-        if (Is_Metaform(scratch_var))
-            continue;  // all meta picks are as-is
-
-        if (Is_Lifted_Unstable_Antiform(SPARE)) {
-            if (
-                Is_Lifted_Action(As_Stable(SPARE))  // e.g. asking APPEND.DUP
-                and stackindex != limit - 1
-            ){
-                continue;  // allow it if NOT last step (picks PARAMETER!)
-            }
-            if (
-                Is_Lifted_Hot_Potato(As_Stable(SPARE))
-                and stackindex == limit - 1
-            ){
-                continue;  // last non-meta pick can be unstable if hot-potato
-            }
-            if (Is_Lifted_Void(As_Stable(SPARE))) {
-                goto treat_like_pick_absent_signal;  // like before void pick
-            }
-            error = Error_Unstable_Non_Meta_Raw(
-                Data_Stack_At(Element, stackindex)
-            );
-            goto return_error;
-        }
-
         continue;  // if not last pick in tuple, pick again from this product
     }
 
 }} check_for_updater: {
-
-    if (
-        not Is_Metaform(scratch_var)
-        and Is_Lifted_Antiform(spare_location_dual)
-        and Not_Stable_Antiform_Heart(
-            Heart_Of_Unsigiled_Isotopic(spare_location_dual)
-        )
-        and not Is_Lifted_Hot_Potato(spare_location_dual)  // allow e.g. VETO
-        and not Is_Lifted_Action(spare_location_dual) // temporarily allow
-        // allow VOID!, also?
-    ){
-        panic ("PICK result cannot be unstable unless metaform");
-    }
 
     // 1. SPARE was picked via dual protocol.  At the moment of the PICK,
     //    the picker may have been ^META, in which case we wouldn't want to
@@ -911,12 +853,6 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
     if (Is_Null_Signifying_Slot_Unavailable(spare_writeback_dual)) {
         error = Error_Bad_Pick_Raw(Data_Stack_At(Element, stackindex));
-        if (
-            mode != ST_TWEAK_TWEAKING
-            and Is_Metaform(scratch_var)  // would conflate, panic vs. error
-        ){
-            panic (unwrap error);
-        }
         goto return_error;
     }
 
@@ -959,12 +895,9 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
 } finalize_and_return: { /////////////////////////////////////////////////////
 
-    assert(LEVEL == TOP_LEVEL);
-
     Corrupt_Cell_If_Needful(SPARE);
 
   #if RUNTIME_CHECKS
-    Unprotect_Cell(scratch_var);
     assert(not (OUT->header.bits & CELL_FLAG_PROTECTED));
   #endif
 
@@ -973,26 +906,27 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(
 
 
 //
-//  Trap_Tweak_Var_In_Scratch_With_Dual_Out: C
+//  Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel: C
 //
-Option(Error*) Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-    Level* level_,  // OUT may be FAILURE! antiform, see [A]
-    Option(Element*) steps_out,  // no GROUP!s if nulled
-    TweakMode mode
+// OUT may be FAILURE! antiform, see [A]
+//
+Option(Error*) Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+    const Element* var,
+    Option(Element*) steps_out  // no GROUP!s if nulled
 ){
+    Level* level_ = TOP_LEVEL;
+
     possibly(SPARE == steps_out or SCRATCH == steps_out);
 
-    assert(STATE != STATE_0);  // trampoline rule: OUT only erased if STATE_0
-
-    possibly(TOP_INDEX != STACK_BASE);
-    StackIndex base = TOP_INDEX;
+    const StackIndex base = STACK_BASE;
+    assert(TOP_INDEX == STACK_BASE);
 
     bool groups_ok = (steps_out != nullptr);
-    Option(Error*) e = Trap_Push_Steps_To_Stack(level_, groups_ok);
+    Option(Error*) e = Trap_Push_Steps_To_Stack(var, groups_ok);
     if (e)
         return e;
 
-    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out(level_, base, mode);
+    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
     if (e) {
         Drop_Data_Stack_To(base);
         return e;
@@ -1068,13 +1002,12 @@ DECLARE_NATIVE(TWEAK)
     if (STATE == STATE_0)
         STATE = ST_TWEAK_TWEAKING;  // we'll set out to something not erased
 
-    heeded (Copy_Cell(SCRATCH, target));
     heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-    Option(Error*) e = Trap_Tweak_Var_In_Scratch_With_Dual_Out(
-        LEVEL,
-        steps,
-        u_cast(TweakMode, STATE)  // should last step of pick not indirect?
+    Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+        target,
+        steps
     );
     if (e) {
         Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);

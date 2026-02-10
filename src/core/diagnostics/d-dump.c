@@ -154,22 +154,25 @@ DECLARE_NATIVE(DUMP)
 
   #if RUNTIME_CHECKS
     Element* v = Element_ARG(VALUE);
+    assert(Is_Word(v));
 
     PROBE(v);
+    printf("=> ");
 
-    if (Is_Word(v)) {
-        printf("=> ");
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
-        Get_Word(
-            SPARE, v, SPECIFIED
-        ) except (Error* e) {
-            printf("!!! ERROR FETCHING WORD FOR DUMP !!!");
-            PROBE(e);
-            return TRASH_OUT;
-        }
+    STATE = ST_TWEAK_GETTING;
 
-        PROBE(SPARE);
+    Get_Var_To_Out_Use_Toplevel(
+        v, GROUP_EVAL_NO
+    ) except (Error* e) {
+        printf("!!! ERROR FETCHING WORD FOR DUMP !!!");
+        PROBE(e);
+        return TRASH_OUT;
     }
+
+    PROBE(OUT);
 
     return TRASH_OUT;
   #else
