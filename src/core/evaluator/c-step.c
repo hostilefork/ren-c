@@ -319,54 +319,6 @@ Bounce Inert_Stepper_Executor(Level* L)
 }
 
 
-// This test is used to check for an infix operator in the next feed position.
-//
-// 1. The system for sync'ing feeds makes sure that we never see null pointers
-//    in the feed->p.  API nulls are turned into nulled cells, and rebEND
-//    signals (which are smaller than a Cell and not Cell-aligned) are
-//    canonized into Cell-aligned memory with BASE_BYTE_END.  Hence this test
-//    is safe, and will reject both nulls and ends.
-//
-// 2. It has been considered whether CHAIN! or PATH! should be allowed to
-//    dispatch infix.  It's certainly more work and would cost more.  Whether
-//    it's worth it is an open question.
-//
-// 3. Infix operators don't work across newlines, so even things like this
-//    are no longer legal:
-//
-//       if condition [
-//          ...
-//       ]
-//       else [
-//          ...
-//       ]
-//
-#define Next_Not_Word_Or_Is_Newline_Or_End(L) ( \
-    (u_cast(Cell*, L->feed->p)->header.bits & ( /* g_cell_aligned_end? [1] */ \
-        FLAG_KIND_BYTE(255) \
-            | FLAG_LIFT_BYTE(255) \
-            | CELL_FLAG_NEWLINE_BEFORE \
-    )) != ( \
-        FLAG_KIND_BYTE(TYPE_WORD) /* CHAIN! or PATH!...worth it? [2] */ \
-            | FLAG_LIFT_BYTE(NOQUOTE_3)   \
-            | (not CELL_FLAG_NEWLINE_BEFORE)  /* no infix newlines [3] */ \
-    ))
-
-
-// Due to Feeds canonizing rebEND to g_cell_aligned_end, we can take advantage
-// of the kind byte and lift byte matching that of a BLANK! to test for both
-// end and blank in one masking operation.
-//
-#define Next_Is_End_Or_Blank(L) ( \
-    (u_cast(Cell*, L->feed->p)->header.bits & ( \
-        FLAG_KIND_BYTE(255) \
-            | FLAG_LIFT_BYTE(255) \
-    )) == ( \
-        FLAG_KIND_BYTE(TYPE_BLANK) \
-            | FLAG_LIFT_BYTE(NOQUOTE_3) \
-    ))
-
-
 // This is factored out into its own routine because we have to call it in
 // two separate situations.
 //

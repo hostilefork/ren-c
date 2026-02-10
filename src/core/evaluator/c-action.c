@@ -662,7 +662,7 @@ Bounce Action_Executor(Level* L)
 
      // 1. Right now you can't process BLANK! as an argument, not even if the
      //    parameter is @literal.  A <blank> annotation that lets you say
-     //    that you want literal blanks should probably be available.
+     //    that you want literal blanks should (maybe?) be available.
      //
      // 2. It's probably a good idea for expressions to have some kind of
      //    line-continuation in general.  But variadics present a particular
@@ -677,7 +677,7 @@ Bounce Action_Executor(Level* L)
      //    Detecting a NEWLINE_BEFORE signal on the next item in the feed is
      //    a cheap and effective way to enforce the rule in a systemic way.
 
-        if (Is_Level_At_End(L) or Is_Blank(At_Feed(L->feed))) {  // [1]
+        if (Next_Is_End_Or_Blank(L)) {  // [1]
             Handle_Barrier_Hit(ARG, L);
             goto continue_fulfilling;
         }
