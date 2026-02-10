@@ -92,6 +92,13 @@ void Probe_Cell_Print_Helper(
         return;
     }
 
+    if (Is_Possibly_Unstable_Value_Blank(v)) {
+        require (
+          Append_Ascii(mo->strand, "\\\\blank\\\\")
+        );
+        return;
+    }
+
     if (LIFT_BYTE(v) <= STABLE_ANTIFORM_2) {
         DECLARE_ELEMENT (reified);
         Copy_Cell_Core(reified, v, CELL_MASK_ALL);
@@ -106,7 +113,8 @@ void Probe_Cell_Print_Helper(
               Append_Ascii(mo->strand, "\\~")
             );
         }
-        Mold_Element(mo, reified);
+        if (not Is_Blank(reified))
+            Mold_Element(mo, reified);
         if (LIFT_BYTE(v) == BEDROCK_0) {
             require (
               Append_Ascii(mo->strand, "\\\\  ; bedrock")
