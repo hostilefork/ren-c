@@ -372,7 +372,9 @@ change at-value 'platform reduce [
     any [platform-config.build-label ""]
 ]
 
-c-debug-break: ~<C-DEBUG-BREAK applies in non-bootstrap %sysobj.r only>~
+c-debug-break: does [
+    ~<C-DEBUG-BREAK applies in non-bootstrap %sysobj.r only>~
+]
 
 ob: make object! boot-sysobj
 
