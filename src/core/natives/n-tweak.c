@@ -454,8 +454,10 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 //
 //  Trap_Push_Steps_To_Stack_For_Word: C
 //
-Option(Error*) Trap_Push_Steps_To_Stack_For_Word(const Element* wordlike)
-{
+Option(Error*) Trap_Push_Steps_To_Stack_For_Word(
+    const Element* wordlike,
+    Context* binding
+){
     Level* level_ = TOP_LEVEL;
 
     assert(level_ == TOP_LEVEL);
@@ -467,7 +469,7 @@ Option(Error*) Trap_Push_Steps_To_Stack_For_Word(const Element* wordlike)
 
     StackIndex base = TOP_INDEX;
 
-    if (not Try_Get_Binding_Of(PUSH(), wordlike)) {
+    if (not Try_Get_Binding_Of(PUSH(), wordlike, binding)) {
         error = Error_No_Binding_Raw(wordlike);
         goto return_error;
     }
@@ -516,7 +518,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
     Option(Error*) error = SUCCESS;
 
     if (Is_Word(var) or Is_Meta_Form_Of(WORD, var)) {
-        error = Trap_Push_Steps_To_Stack_For_Word(var);
+        error = Trap_Push_Steps_To_Stack_For_Word(var, SPECIFIED);
         if (error)
             goto return_error;
         goto return_success;
@@ -554,12 +556,8 @@ Option(Error*) Trap_Push_Steps_To_Stack(
                 error = Error_User("GET leading space only allowed on TUPLE!");
                 goto return_error;
             }
-            Init_Word(SPARE, CANON(DOT_1));
-            Tweak_Cell_Binding(
-                u_cast(Element*, SPARE),
-                Cell_Binding(var)
-            );
-            if (not Try_Get_Binding_Of(PUSH(), u_cast(Element*, SPARE))) {
+            Element* dot1 = Init_Word(SPARE, CANON(DOT_1));
+            if (not Try_Get_Binding_Of(PUSH(), dot1, Cell_Binding(var))) {
                 DROP();
                 error = Error_No_Binding_Raw(As_Element(SPARE));
                 goto return_error;
@@ -575,7 +573,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
         // !!! If this is a PATH!, it should error if it's not an action...
         // and if it's a TUPLE! it should error if it is an action.  Review.
         //
-        error = Trap_Push_Steps_To_Stack_For_Word(var);
+        error = Trap_Push_Steps_To_Stack_For_Word(var, SPECIFIED);
         if (error)
             goto return_error;
         goto return_success; }
@@ -594,7 +592,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
 
     if (Any_Word(head)) {  // add binding at head
         if (not Try_Get_Binding_Of(
-            PUSH(), Copy_Cell_May_Bind(SPARE, head, at_binding)
+            PUSH(), head, at_binding
         )){
             error = Error_No_Binding_Raw(As_Element(SPARE));
             goto return_error;

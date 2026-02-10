@@ -230,10 +230,10 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L)
     const StackIndex base = TOP_INDEX;
     assert(base == STACK_BASE);
 
-    Element* var = Copy_Cell(SCRATCH, At_Feed(L->feed));
-    Bind_Cell_If_Unbound(var, Level_Binding(L));
-
-    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(var);
+    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(
+        At_Feed(L->feed),
+        Level_Binding(L)
+    );
     if (e)
         return false;
 

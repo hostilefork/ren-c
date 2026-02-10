@@ -232,7 +232,7 @@ IMPLEMENT_GENERIC(BINDING_OF, Is_Word)
 
     Element* any_word = Element_ARG(VALUE);
 
-    if (not Try_Get_Binding_Of(OUT, any_word))
+    if (not Try_Get_Binding_Of(OUT, any_word, SPECIFIED))
         return NULL_OUT;
 
     Clear_Cell_Flag(OUT, BINDING_MUST_BE_FINAL);

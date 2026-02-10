@@ -334,16 +334,15 @@ Option(Phase*) Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(
     const StackIndex base = TOP_INDEX;
     assert(base == STACK_BASE);
 
-    DECLARE_ELEMENT (var);
-    Copy_Cell(var, As_Element(L_next));
-    Bind_Cell_If_Unbound(var, L_binding);
-
     heeded (Corrupt_Cell_If_Needful(Level_Spare(sub)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(sub)));
 
     sub->out = SPARE;  // fetch next into current level's SPARE
 
-    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(var);
+    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(
+        As_Element(L_next),
+        L_binding
+    );
     if (e)
         return nullptr;
 
@@ -1983,42 +1982,34 @@ Bounce Stepper_Executor(Level* L)
         goto finished;
     }
 
-    Copy_Cell(
-        CURRENT,
-        As_Element(L_next)  // don't advance yet (maybe non-infix, next step)
+    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(
+        As_Element(L_next),  // don't advance yet (maybe non-infix, next step)
+        L_binding
     );
-    Bind_Cell_If_Unbound(CURRENT, L_binding);
-    Add_Cell_Sigil(CURRENT, SIGIL_META);  // need for unstable lookup
+    if (e)
+        goto finished;
 
     heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(SPARE));
+    LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_TWEAKING;
 
-    Erase_Cell(SPARE);  // ideally we'd reuse if we could
+    SUBLEVEL->out = SPARE;  // calculating SPARE, but ideally we'd reuse
 
-    SUBLEVEL->out = SPARE;
-    LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_GETTING;
+    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Drop_Data_Stack_To(STACK_BASE);
 
-    Get_Var_To_Out_Use_Toplevel(
-        CURRENT, GROUP_EVAL_NO
-    ) except (Error* e) {
-        UNUSED(e);
-        goto finished;  // lookup failure not a problem (for *this* step)
-    }
+    if (e)
+        goto finished;
+
+    if (not Is_Lifted_Action(As_Stable(SPARE)))  // dual protocol
+        goto finished;
 
 } test_word_or_action_for_infix: { ///////////////////////////////////////////
 
-    Option(InfixMode) infix_mode;
+    Option(InfixMode) infix_mode = Frame_Infix_Mode(SPARE);
 
-    if (
-        (
-            not (
-                Is_Word(As_Element(L_next))
-                and Is_Action(SPARE)
-            )
-            and not Is_Frame(As_Element(L_next))
-        )
-        or not (infix_mode = Frame_Infix_Mode(SPARE))
-    ){
+    if (not infix_mode) {
       lookback_quote_too_late: // run as if starting new expression
 
         Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);

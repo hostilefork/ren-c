@@ -375,7 +375,7 @@ DECLARE_NATIVE(SET_LOCATION_OF_ERROR)
     if (Is_Word(location)) {
         Sink(Element) spare_context = SPARE;
         if (
-            not Try_Get_Binding_Of(spare_context, location)
+            not Try_Get_Binding_Of(spare_context, location, SPECIFIED)
             or not Is_Frame(spare_context)
         ){
             panic ("SET-LOCATION-OF-ERROR requires FRAME!-bound WORD!");

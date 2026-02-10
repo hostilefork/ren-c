@@ -272,12 +272,17 @@ Let* Make_Let_Variable(
 // Find the context a word is bound into.  This has to account for things
 // including what "Lens" should be used for the phase of a function.
 //
-bool Try_Get_Binding_Of(Sink(Element) out, const Element* wordlike)
-{
-    Context* binding = Cell_Binding(wordlike);
+bool Try_Get_Binding_Of(
+    Sink(Element) out,
+    const Element* wordlike,
+    Context* binding  // only heeded if wordlike has no binding
+){
     const Symbol* symbol = Word_Symbol(wordlike);
 
-    Context* c = binding;
+    Context* c = Cell_Binding(wordlike);
+    if (not c)
+        c = binding;  // fall back on provided binding if none in Cell
+
     Context* next;
 
     if (not c)
