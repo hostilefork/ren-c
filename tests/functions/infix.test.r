@@ -87,7 +87,7 @@
     )
 
     (
-        bar: func [
+        bar: vanishable func [
             "Invisible normal arity-0 function should run on next eval"
             return: [void!]
         ][
@@ -103,7 +103,7 @@
             null? bar
         }
     )(
-        i-bar: infix func [
+        i-bar: vanishable infix func [
             "Invisible infix arity-0 function should run on same step"
             left
         ][
@@ -119,20 +119,23 @@
     )
 ]
 
-; Parameters in-between soft quoted functions (one trying to quote right and
-; one trying to quote left) will be processed by the right hand function
-; first.
+; There is no longer a "tiebreak" strategy between functions that are competing
+; for the same literal argument.  The tiebreaking was too complex, and not
+; obviously a good idea.  Once `then x -> [...]` became `then (x -> [...])`
+; the argument for the weirdness just broke down.
 [
-    (
-        rightq: lambda [@(x)] [compose [<rightq> was (x)]]
-        leftq: infix lambda [@(y)] [compose [<leftq> was (y)]]
+    ~invalid-lookback~ !! (
+        rightq: lambda [@(x)] [compose [<@(rightq)> was (x)]]
+        leftq: infix lambda [@(y)] [compose [(y) was <@(leftq)>]]
 
-        [<rightq> was [<leftq> was foo]] = rightq foo leftq
-    )(
-        rightq: lambda [@(x)] [compose [<rightq> was (x)]]
-        leftq: infix lambda ['y] [compose [<leftq> was (y)]]
+        rightq foo leftq  ; not [[<@(rightq)> was foo] was <@(leftq)>]
+    )
 
-        [<rightq> was [<leftq> was foo]] = rightq foo leftq
+    ~invalid-lookback~ !! (
+        rightq: lambda [@(x)] [compose [<@(rightq)> was (x)]]
+        leftq: infix lambda [@y] [compose [(y) was <@leftq>]]
+
+        rightq foo leftq  ; not [<@(rightq)> was [<@leftq> was foo]]
     )
 
     ((1 then (x -> [x * 10])) = 10)
@@ -144,3 +147,8 @@
     a.1: me / 2
     a = [152]
 )
+
+; Squandered lookback situations
+[
+    ~invalid-lookback~ !! (x: 10 x ->)
+]

@@ -170,7 +170,7 @@
     ('o.i = o.i left-the)
     (o.i ->- left-the = 'o.i)
 
-    ~literal-left-path~ !! (o/f left-the)
+    ~invalid-lookback~ !! (o/f left-the)
     (o/f ->- left-the = 'o/f)
 ]
 

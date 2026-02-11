@@ -126,7 +126,7 @@ cannot-use:         "cannot use $1 on $2 value"
 no-binding:         "Couldn't get binding for $1"
 
 ambiguous-infix:    "Ambiguous infix expression--use GROUP! to clarify"
-literal-left-path:  "Use ->- to pass literal left PATH! parameters right"
+invalid-lookback:   "Invalid lookback situation for infix function"
 
 sequence-too-short: "PATH!, CHAIN!, and TUPLE! must have more than 2 items"
 conflated-sequence: "Sequence would conflate with $1 -- $2"

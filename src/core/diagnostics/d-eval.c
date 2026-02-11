@@ -255,7 +255,6 @@ void Stepper_Start_New_Expression_Checks(Level* L)
 {
     assert(Not_Executor_Flag(EVAL, L, OUT_IS_DISCARDABLE));
 
-    assert(Not_Executor_Flag(EVAL, L, DIDNT_LEFT_QUOTE_PATH));
     if (Not_Executor_Flag(EVAL, L, FULFILLING_ARG))
         assert(Not_Feed_Flag(L->feed, NO_LOOKAHEAD));
     assert(Not_Feed_Flag(L->feed, DEFERRING_INFIX));

@@ -472,363 +472,242 @@ Bounce Action_Executor(Level* L)
 
   //=//// ARGUMENT FULFILLMENT ////////////////////////////////////////////=//
 
-      fulfill_arg: ;  // semicolon needed--next statement is declaration
+  // 1. Evaluation argument "hook" parameters (marked in FUNC by `<variadic>`).
+  //    They point back to this call through a reified FRAME!, and are able to
+  //    consume additional arguments during the function run.
 
-        ParamClass pclass = Parameter_Class(PARAM);
+  fulfill_arg: {
 
-  //=//// HANDLE IF NEXT ARG IS IN OUT SLOT (e.g. INFIX, CHAIN) ///////////=//
+    ParamClass pclass = Parameter_Class(PARAM);
 
-    // 1. Seeing a fresh  output slot could mean that there was really
-    //    "nothing" to the left:
-    //
-    //        (else [...])
-    //
-    //    -or- it could be a consequence of being in a cell where arguments
-    //    are gathering; e.g. the `+` here will perceive "nothing":
-    //
-    //        if + 2 [...]
-    //
-    // 2. Something like `lib/help left-lit` is allowed to work, but if it was
-    //    just `obj/int-value left-lit` then the path evaluation won...but
-    //    LEFT-LIT still gets run.  It appears it has nothing to its left, but
-    //    since we remembered what happened we can give an informative error
-    //    instead of a perplexing one.
-    //
-    // 3. If an infix function finds it has a variadic in its first slot,
-    //    then nothing available on the left is o.k.  It means we have to put
-    //    a VARARGS! in that argument slot which will react with TRUE to TAIL?,
-    //    so feed it from the global empty array.
-    //
-    // 4. Infix functions with variadics on the left can also deal with a
-    //    single value.  An unevaluated is stored into an array-form variadic,
-    //    so the user can do 0 or 1 TAKEs of it.
-    //
-    //    !!! It be evaluated when they TAKE (it if it's an evaluative arg),
-    //    but not if they don't.  Should failing to TAKE be seen as an error?
-    //    Failing to take first gives out-of-order evaluation.
-    //
-    // 5. The idea behind quoting not getting binding isn't that it *removes*
-    //    binding, but that it doesn't add it.  But the mechanics aren't
-    //    sorted out to communicate "don't add binding" here yet.  Give a
-    //    first-cut approximation by unbinding.
+    if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT)
+        goto fill_next_arg_from_out_cell;
 
-        if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT) {
-            STATE = ST_ACTION_FULFILLING_ARGS;
-
-            if (Is_Cell_Erased(OUT)) {  // "nothing" to left, but [1]
-
-                if (
-                    L->prior->executor == &Action_Executor
-                    and Get_Executor_Flag(EVAL, L->prior, DIDNT_LEFT_QUOTE_PATH)
-                ){
-                    panic (Error_Literal_Left_Path_Raw());  // [2]
-                }
-
-                if (Get_Parameter_Flag(PARAM, VARIADIC)) {  // empty is ok [3]
-                    Init_Varargs_Untyped_Infix(ARG, nullptr);
-                    goto continue_fulfilling;
-                }
-
-                Handle_Barrier_Hit(ARG, L);
-                goto continue_fulfilling;
-            }
-
-            if (Get_Parameter_Flag(PARAM, VARIADIC)) {  // non-empty is ok [4]
-                require (
-                  Stable* out = Decay_If_Unstable(OUT)  // !!! ^META?
-                );
-                Init_Varargs_Untyped_Infix(ARG, out);
-                Erase_Cell(OUT);
-            }
-            else switch (pclass) {
-              case PARAMCLASS_NORMAL: {
-                require (
-                  Decay_If_Unstable(OUT)
-                );
-                Move_Cell(ARG, OUT);
-                break; }
-
-              case PARAMCLASS_META: {
-                Move_Cell(ARG, OUT);
-                break; }
-
-              case PARAMCLASS_LITERAL: {
-                assert(Not_Antiform(OUT));
-                Move_Cell(ARG, OUT);
-                break; }
-
-              case PARAMCLASS_SOFT: {
-                /*assert(Not_Antiform(OUT));*/
-                if (Is_Antiform(OUT))  // !!! Fix this
-                    panic ("Unexpected antiform on left of soft escape");
-
-                if (Is_Soft_Escapable_Group(cast(Element*, OUT))) {
-                    if (Eval_Any_List_At_Throws(
-                        ARG,
-                        cast(Element*, OUT),
-                        SPECIFIED
-                    )){
-                        goto handle_thrown;
-                    }
-                    Erase_Cell(OUT);
-                }
-                else
-                    Move_Cell(ARG, OUT);
-                break; }
-
-              default:
-                assert(false);
-            }
-
-            // When we see `1 + 2 * 3`, when we're at the 2, we don't
-            // want to let the * run yet.  So set a flag which says we
-            // won't do lookahead that will be cleared when function
-            // takes an argument *or* when a new expression starts.
-            //
-            // This effectively puts the infix into a *single step defer*.
-            //
-            Option(InfixMode) infix_mode = Get_Level_Infix_Mode(L);
-            if (infix_mode) {
-                assert(Not_Feed_Flag(L->feed, NO_LOOKAHEAD));
-                if (infix_mode == INFIX_TIGHT)  // not postpone or defer
-                    Set_Feed_Flag(L->feed, NO_LOOKAHEAD);
-            }
-
-            assert(Not_Cell_Readable(OUT));  // output should be "used up"
-            goto continue_fulfilling;
-        }
-
-  //=//// NON-INFIX VARIADIC ARG (doesn't consume anything *yet*) /////////=//
-
-        // Evaluation argument "hook" parameters (marked in FUNC by
-        // `<variadic>`).  They point back to this call through a reified
-        // FRAME!, and are able to consume additional arguments during the
-        // function run.
-        //
-        if (Get_Parameter_Flag(PARAM, VARIADIC)) {
-            Force_Level_Varlist_Managed(L);
-            Init_Varargs_Untyped_Normal(ARG, L);
-            goto continue_fulfilling;
-        }
-
-  //=//// AFTER THIS, PARAMS CONSUME FROM CALLSITE IF NOT APPLY ///////////=//
-
-        // If this is a non-infix action, we're at least at *second* slot:
-        //
-        //     1 + non-infix-action <we-are-here> * 3
-        //
-        // That's enough to indicate we're not going to read this as
-        // `(1 + non-infix-action <we-are-here>) * 3`.  Contrast with the
-        // zero-arity case:
-        //
-        //     >> two: does [2]
-        //     >> 1 + two * 3
-        //     == 9
-        //
-        // We don't get here to clear the flag, so it's `(1 + two) * 3`
-        //
-        // But if it's infix, arg gathering could still be like:
-        //
-        //      1 + <we-are-here> * 3
-        //
-        // So it has to wait until -after- the callsite gather happens to
-        // be assured it can delete the flag, to ensure that:
-        //
-        //      >> 1 + 2 * 3
-        //      == 9
-        //
-        if (not Is_Level_Infix(L))
-            Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
-
-        // Once a deferred flag is set, it must be cleared during the
-        // evaluation of the argument it was set for... OR the function
-        // call has to end.  If we need to gather an argument when that
-        // is happening, it means neither of those things are true, e.g.:
-        //
-        //     if 1 then [<bad>] [print "this is illegal"]
-        //     if (1 then [<good>]) [print "but you can do this"]
-        //
-        // The situation also arises in multiple arity infix:
-        //
-        //     arity-3-op: func [a b c] [...]
-        //
-        //     1 arity-3-op 2 + 3 <ambiguous>
-        //     1 arity-3-op (2 + 3) <unambiguous>
-        //
-        if (Get_Feed_Flag(L->feed, DEFERRING_INFIX))
-            panic (Error_Ambiguous_Infix_Raw());
-
-  //=//// ERROR ON END MARKER, BAR! IF APPLICABLE /////////////////////////=//
-
-     // 1. Right now you can't process BLANK! as an argument, not even if the
-     //    parameter is @literal.  A <blank> annotation that lets you say
-     //    that you want literal blanks should (maybe?) be available.
-     //
-     // 2. It's probably a good idea for expressions to have some kind of
-     //    line-continuation in general.  But variadics present a particular
-     //    problem for line continuation with <hole>-taking functions
-     //    (such as RETURN, QUIT, CONTINUE, THROW ...)
-     //
-     //        foo: func [x [integer!]] [
-     //            return
-     //            print "We want this to be disallowed"
-     //        ]
-     //
-     //    Detecting a NEWLINE_BEFORE signal on the next item in the feed is
-     //    a cheap and effective way to enforce the rule in a systemic way.
-
-        if (Next_Is_End_Or_Blank(L)) {  // [1]
-            Handle_Barrier_Hit(ARG, L);
-            goto continue_fulfilling;
-        }
-
-        if (Get_Parameter_Flag(PARAM, HOLE_OK)) {
-            if (Get_Cell_Flag(At_Feed(L->feed), NEWLINE_BEFORE))
-                panic (Error_Hole_Spans_Newline(L));  // [2]
-        }
-
-        switch (pclass) {
-
-  //=//// REGULAR ARG-OR-REFINEMENT-ARG (consumes 1 EVALUATE's worth) /////=//
-
-          case PARAMCLASS_NORMAL:
-          case PARAMCLASS_META: {
-            Flags flags = EVAL_EXECUTOR_FLAG_FULFILLING_ARG;
-
-            require (
-              Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
-            );
-            possibly(Is_Light_Null(ARG));  // !!! review
-            Push_Level(Erase_Cell(ARG), sub);
-
-            return CONTINUE_SUBLEVEL; }
-
-  //=//// LITERAL ARG-OR-REFINEMENT-ARG ///////////////////////////////////=//
-
-    // 1. Have to account for infix deferrals in cases like:
-    //
-    //        return the 10 then (x => [x + 10])
-
-          case PARAMCLASS_LITERAL:
-            The_Next_In_Feed(ARG, L->feed);  // pick up binding
-            Lookahead_To_Sync_Infix_Defer_Flag(L);  // [1]
-            goto continue_fulfilling;
-
-  //=//// SOFT QUOTED ARG-OR-REFINEMENT-ARG  //////////////////////////////=//
-
-    // Quotes from the right already "win" over quotes from the left, in
-    // a case like `help left-quoter` where they point at teach other.
-    // But there's also an issue where something sits between quoting
-    // constructs like the `x` in between the `else` and `->`:
-    //
-    //     if condition [...] else x -> [...]
-    //
-    // Here the neutral `x` is meant to be a left argument to the lambda,
-    // producing the effect of:
-    //
-    //     if condition [...] else (`x` -> [...])
-    //
-    // To get this effect, we need a different kind of deferment that
-    // hops over a unit of material.  Soft quoting is unique in that it
-    // means we can do that hop over exactly one unit without breaking
-    // the evaluator mechanics of feeding one element at a time with
-    // "no takebacks".
-    //
-    // First, we cache the quoted argument into the frame slot.  This is
-    // the common case of what is desired.  But if we advance the feed and
-    // notice a quoting infix construct afterward looking left, we call
-    // into a nested evaluator before finishing the operation.
-
-          case PARAMCLASS_SOFT:
-            The_Next_In_Feed(ARG, L->feed);
-
-            // See remarks on Lookahead_To_Sync_Infix_Defer_Flag().  We
-            // have to account for infix deferrals in cases like:
-            //
-            //     return if null '[foo] else '[bar]
-            //
-            // Note that this quoting lookahead ("lookback?") is exempt
-            // from the usual "no lookahead" rule while gathering infix
-            // arguments.  This supports `null then x -> [1] else [2]`,
-            // being 2.  See details at:
-            //
-            // https://forum.rebol.info/t/1361
-            //
-            if (
-                Lookahead_To_Sync_Infix_Defer_Flag(L) and  // ensure got
-                (Get_Flavor_Flag(
-                    VARLIST,
-                    Phase_Paramlist(Frame_Phase(OUT)),
-                    PARAMLIST_LITERAL_FIRST
-                ))
-            ){
-                // We need to defer and let the right hand quote that is
-                // quoting leftward win.  We use ST_STEPPER_LOOKING_AHEAD
-                // to jump into a sublevel where sub->out is the ARG,
-                // and it knows to get the arg from there.
-
-                Flags flags =
-                    FLAG_STATE_BYTE(ST_STEPPER_LOOKING_AHEAD)
-                    | EVAL_EXECUTOR_FLAG_FULFILLING_ARG
-                    | EVAL_EXECUTOR_FLAG_INERT_OPTIMIZATION;
-
-                require (
-                  Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
-                );
-                dont(Erase_Cell(ARG));  // LEVEL_STATE_BYTE is not STATE_0
-                Push_Level(ARG, sub);
-                return CONTINUE_SUBLEVEL;
-            }
-            else if (Is_Soft_Escapable_Group(cast(Element*, ARG))) {
-                //
-                // We did not defer the literal argument.  If the argument
-                // is a GROUP!, it has to be evaluated.
-                //
-                Element* arg_in_spare = Move_Cell(SPARE, cast(Element*, ARG));
-                if (Eval_Any_List_At_Throws(ARG, arg_in_spare, SPECIFIED))
-                    goto handle_thrown;
-            }
-            break;
-
-          default:
-            assert(false);
-        }
-
-        // If FEED_FLAG_NO_LOOKAHEAD was set going into the argument
-        // gathering above, it should have been cleared or converted into
-        // FEED_FLAG_DEFERRING_INFIX.
-        //
-        //     1 + 2 * 3
-        //           ^-- this deferred its chance, so 1 + 2 will complete
-        //
-        // !!! The case of:
-        //
-        //     30 = (10 + 20 eval [comment "hi"])
-        //
-        // Is breaking this.  Review when there is time, and put the assert
-        // back if it makes sense.
-        //
-        /* assert(Not_Feed_Flag(L->feed, NO_LOOKAHEAD)); */
-        Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
-
+    if (Get_Parameter_Flag(PARAM, VARIADIC)) {  // don't consume *yet* [1]
+        Force_Level_Varlist_Managed(L);
+        Init_Varargs_Untyped_Normal(ARG, L);
         goto continue_fulfilling;
     }
+
+    goto fill_next_arg_from_callsite;
+
+
+  fill_next_arg_from_out_cell: { /////////////////////////////////////////////
+
+  // ST_ACTION_FULFILLING_INFIX_FROM_OUT is primarily for infix, but also
+  // CASCADE, etc... as a trick for slipping in the first argument when you
+  // want the rest of the arguments to come from an input feed.
+
+    STATE = ST_ACTION_FULFILLING_ARGS;
+
+    if (Is_Cell_Erased(OUT)) {  // "nothing" to left
+        if (
+            L->prior->executor == &Stepper_Executor
+            and Get_Executor_Flag(EVAL, L->prior, FULFILLING_ARG)
+        ){
+            panic (Error_Invalid_Lookback_Raw());  // (if + 2 [...]), no good
+        }
+
+        Handle_Barrier_Hit(ARG, L);  // (else [...]), treated as <hole>
+        Init_Unreadable(OUT);
+    }
+    else if (Get_Parameter_Flag(PARAM, VARIADIC)) {  // treat as single value
+        Init_Varargs_Untyped_Infix(ARG, As_Element(OUT));
+        Init_Unreadable(OUT);
+    }
+    else switch (pclass) {
+      case PARAMCLASS_NORMAL:  // decay happens during typechecking
+      case PARAMCLASS_META:  // !!! ...META "ParamClass" is going away!
+        possibly(Not_Cell_Stable(OUT));  // e.g. VOID! as left hand of ELSE
+        Move_Cell(ARG, OUT);
+        break;
+
+      case PARAMCLASS_LITERAL:
+        assert(not Is_Antiform(OUT));
+        Move_Cell(ARG, OUT);
+        break;
+
+      case PARAMCLASS_SOFT:
+        assert(not Is_Antiform(OUT));
+        if (Is_Soft_Escapable_Group(As_Element(OUT))) {
+            if (Eval_Any_List_At_Throws(ARG, As_Element(OUT), SPECIFIED))
+                goto handle_thrown;
+            Init_Unreadable(OUT);
+        }
+        else
+            Move_Cell(ARG, OUT);
+        break;
+
+      default:
+        assert(false);
+    }
+
+    assert(Not_Cell_Readable(OUT));  // output should be "used up"
+
+} update_no_lookahead_flag_and_continue_fulfilling: {
+
+  // When we see `1 + 2 * 3`, when we're at the 2, we don't want to let the
+  // `*` run yet.  So set a flag which says not to do lookahead.  It gets
+  // cleared when a function takes an argument *or* a new expression starts.
+  //
+  // (This effectively puts the infix into a "single step defer")
+
+    Option(InfixMode) infix_mode = Get_Level_Infix_Mode(L);
+    if (infix_mode) {
+        assert(Not_Feed_Flag(L->feed, NO_LOOKAHEAD));
+        if (infix_mode == INFIX_TIGHT)  // not postpone or defer
+            Set_Feed_Flag(L->feed, NO_LOOKAHEAD);
+    }
+
+    goto continue_fulfilling;
+
+
+} fill_next_arg_from_callsite: { /////////////////////////////////////////////
+
+  clear_no_lookahead_flag_if_not_infix: {
+
+  // If this is a non-infix action, we're at least at *second* slot:
+  //
+  //     1 + non-infix-action <we-are-here> * 3
+  //
+  // That's enough to indicate we're not going to read this as:
+  //
+  //     (1 + non-infix-action <we-are-here>) * 3
+  //
+  // Contrast with the zero-arity case:
+  //
+  //     >> two: does [2]
+  //     >> 1 + two * 3
+  //     == 9
+  //
+  // We don't get here to clear the flag, so it's `(1 + two) * 3`
+  //
+  // But if it's infix, arg gathering could still be like:
+  //
+  //      1 + <we-are-here> * 3
+  //
+  // So it has to wait until -after- the callsite gather happens to be assured
+  // it can delete the flag, to ensure that:
+  //
+  //      >> 1 + 2 * 3
+  //      == 9
+
+    if (not Is_Level_Infix(L))
+        Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
+
+} error_if_deferring_infix_when_we_reach_here: {
+
+  // Once a deferred flag is set, it must be cleared during the evaluation of
+  // the argument it was set for... OR the function call has to end.  If we
+  // need to gather an argument when that is happening, it means neither of
+  // those things are true, e.g.:
+  //
+  //     if 1 then [<bad>] [print "this is illegal"]
+  //     if (1 then [<good>]) [print "but you can do this"]
+  //
+  // The situation also arises in multiple arity infix:
+  //
+  //     arity-3-op: func [a b c] [...]
+  //
+  //     1 arity-3-op 2 + 3 <ambiguous>
+  //     1 arity-3-op (2 + 3) <unambiguous>
+
+    if (Get_Feed_Flag(L->feed, DEFERRING_INFIX))
+        panic (Error_Ambiguous_Infix_Raw());
+
+} handle_hitting_blank_or_end_of_feed: {
+
+  // 1. Right now you can't process BLANK! as an argument, not even if the
+  //    parameter is @literal.  A <blank> annotation that lets you say that
+  //    you want literal blanks should (maybe?) be available?  Or maybe not.
+  //
+  // 2. Newlines pose a problem for <hole>-taking functions (RETURN, QUIT,
+  //    CONTINUE, THROW ...)
+  //
+  //        foo: func [x [integer!]] [
+  //            return
+  //            print "We want this to be disallowed"
+  //        ]
+  //
+  //    Note: This will likely escalate to a general rule that evaluations
+  //    can't span newlines like this, which will require a special line
+  //    continuation character in the scanner--probably backslash).
+
+    if (Next_Is_End_Or_Blank(L)) {  // [1]
+        Handle_Barrier_Hit(ARG, L);
+        goto continue_fulfilling;
+    }
+
+    if (Get_Parameter_Flag(PARAM, HOLE_OK)) {
+        if (Get_Cell_Flag(At_Feed(L->feed), NEWLINE_BEFORE))
+            panic (Error_Hole_Spans_Newline(L));  // [2]
+    }
+
+} feed_has_arg_and_we_want_it: {
+
+  // 1. We want this to work, see Lookahead_To_Sync_Infix_Defer_Flag():
+  //
+  //        return the 10 then (x => [x + 10])
+  //
+  // 2. If FEED_FLAG_NO_LOOKAHEAD was set going into this argument gathering,
+  //    it should get cleared or converted into FEED_FLAG_DEFERRING_INFIX.
+  //
+  //     1 + 2 * 3
+  //           ^-- this deferred its chance, so 1 + 2 will complete
+
+    switch (pclass) {
+      case PARAMCLASS_NORMAL:
+      case PARAMCLASS_META: {
+        Flags flags = EVAL_EXECUTOR_FLAG_FULFILLING_ARG;
+
+        require (
+          Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
+        );
+        possibly(Is_Light_Null(ARG));  // !!! review
+        Push_Level(Erase_Cell(ARG), sub);
+
+        return CONTINUE_SUBLEVEL; }
+
+      case PARAMCLASS_LITERAL:
+        The_Next_In_Feed(ARG, L->feed);  // pick up binding (may throw away)
+        Lookahead_To_Sync_Infix_Defer_Flag(L);  // [1]
+        goto continue_fulfilling;
+
+      case PARAMCLASS_SOFT: {
+        The_Next_In_Feed(ARG, L->feed);  // pick up binding (may throw away)
+        Lookahead_To_Sync_Infix_Defer_Flag(L);  // [1]
+
+        if (Is_Soft_Escapable_Group(As_Element(ARG))) {
+            Element* arg_in_spare = Move_Cell(SPARE, As_Element(ARG));
+            if (Eval_Any_List_At_Throws(ARG, arg_in_spare, SPECIFIED))
+                goto handle_thrown;
+        }
+        break; }
+
+      default:
+        assert(false);
+    }
+
+    assert(Not_Feed_Flag(L->feed, NO_LOOKAHEAD));  // should be clear now [1]
+
+    goto continue_fulfilling;
+
+}}}}  // <-- this ends for() loop, rethink to not use for()!
+
+  // There may have been refinements that were skipped because the order of
+  // definition did not match the order of usage.  They were left on the stack
+  // with a pointer to the `param` and `arg` after them for later fulfillment.
+  //
+  // Note that there may be functions on the stack if this is the second time
+  // through, and we were just jumping up to check the parameters in response
+  // to a BOUNCE_REDO_CHECKED; if so, skip this.
+  //
+  // 1. PANIC() uses the data stack, so we can't pass stack values to it.
 
   #if DEBUG_POISON_FLEX_TAILS
     assert(Is_Cell_Poisoned(ARG));  // arg can otherwise point to any arg cell
   #endif
 
-    // There may have been refinements that were skipped because the
-    // order of definition did not match the order of usage.  They were
-    // left on the stack with a pointer to the `param` and `arg` after
-    // them for later fulfillment.
-    //
-    // Note that there may be functions on the stack if this is the
-    // second time through, and we were just jumping up to check the
-    // parameters in response to a BOUNCE_REDO_CHECKED; if so, skip this.
-    //
-    // 1. PANIC() uses the data stack, so we can't pass stack values to it.
-    //
     if (TOP_INDEX != STACK_BASE) {
 
       next_pickup:
@@ -868,7 +747,7 @@ Bounce Action_Executor(Level* L)
         goto fulfill_arg;
     }
 
-} fulfill_and_any_pickups_done: {
+} fulfill_and_any_pickups_done: { ////////////////////////////////////////////
 
     if (Get_Action_Executor_Flag(L, FULFILL_ONLY)) {  // no typecheck
         assert(Is_Cell_Erased(OUT));  // didn't touch out, should be fresh
@@ -878,9 +757,10 @@ Bounce Action_Executor(Level* L)
 
     STATE = ST_ACTION_TYPECHECKING;
 
-    // Action arguments now gathered, do typecheck pass
+    goto typecheck_then_dispatch;  // action arguments are all now gathered
 
-} typecheck_then_dispatch: {
+
+} typecheck_then_dispatch: { /////////////////////////////////////////////////
 
   // It might seem convenient to type check arguments while they are being
   // fulfilled vs. performing another loop.  But the semantics of the system
@@ -954,6 +834,9 @@ Bounce Action_Executor(Level* L)
 
         if (Is_Cell_A_Bedrock_Hole(ARG)) {
             if (Get_Parameter_Flag(PARAM, HOLE_OK)) {
+                if (Get_Parameter_Flag(PARAM, VARIADIC))  // good or bad idea?
+                    Init_Varargs_Untyped_Infix(ARG, nullptr);
+
                 Mark_Typechecked(ARG);
                 continue;  // !!! standardize hole to the parameter?
             }
@@ -1028,13 +911,9 @@ Bounce Action_Executor(Level* L)
 
 }} dispatch: {
 
-  // 1. This happens if you have something intending to act as infix but
-  //    that does not consume arguments, e.g. (x: infix func [] []).  An
-  //    infix function with no arguments might sound dumb, but it allows
-  //    a 0-arity function to run in the same evaluation step as the left
-  //    hand side.  This is how expression work (see `|:`)
-  //
-  //    !!! This is dealt with in `skip_output_check`, is it needed here too?
+  // 1. This happens when infix doesn't consume args, e.g. (x: infix does []).
+  //    Such functions aren't useless: they allow a 0-arity function to run
+  //    in the same evaluation step as its left hand side.
   //
   // 2. Resetting OUT, SPARE, and SCRATCH for a dispatcher's STATE_0 entry
   //    has a slight cost.  The output cell may have CELL_MASK_PERSIST flags
@@ -1054,16 +933,8 @@ Bounce Action_Executor(Level* L)
     assert(Not_Action_Executor_Flag(L, IN_DISPATCH));
     Set_Action_Executor_Flag(L, IN_DISPATCH);
 
-    if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT) {  // can happen [1]
-        if (
-            L->prior->executor == &Stepper_Executor
-            and Get_Executor_Flag(EVAL, L->prior, DIDNT_LEFT_QUOTE_PATH)
-        ){  // see notes
-            panic (Error_Literal_Left_Path_Raw());
-        }
-
+    if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT)  // arity-0 infix [1]
         assert(Is_Level_Infix(L));
-    }
 
     assert(Get_Action_Executor_Flag(L, IN_DISPATCH));
 
@@ -1214,30 +1085,9 @@ Bounce Action_Executor(Level* L)
   // argument fulfillment and no execution.
   //
   // NOTE: Anything that calls panic() must do so before Drop_Action()!
-  //
-  // 1. !!! This used to assert rather than panic, but it turns out this can
-  //    actually happen:
-  //
-  //      >> left-soft: infix func ['x [word!]] [return x]
-  //      >> (|| left-soft)
-  //
-  //    The LEFT-SOFT looked back, and would have been able to take the ||
-  //    except it noticed that it took no arguments.  So it allowed the ||
-  //    to win the context (this is how HELP can quote things that quote
-  //    left and would usually win, but don't when they have no args).
-  //
-  // 2. Want to keep this flag between an operation and an ensuing infix in
-  //    the same level, so can't clear in Drop_Action(), e.g. due to:
-  //
-  //      left-the: infix the/
-  //      o: make object! [f: does [1]]
-  //      o.f left-the  ; want error suggesting -> here, need flag for that
 
-    if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT)  // [1]
-        panic ("Left lookback toward thing that took no args");
-
-    if (L->prior->executor == &Stepper_Executor)
-        Clear_Executor_Flag(EVAL, L->prior, DIDNT_LEFT_QUOTE_PATH);  // [2]
+    if (STATE == ST_ACTION_FULFILLING_INFIX_FROM_OUT)  // !!! can this happen?
+        panic ("skip_output_check + ST_ACTION_FULFILLING_INFIX_FROM_OUT");
 
     Drop_Action(L);  // must panic before Drop_Action()
 

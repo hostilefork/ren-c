@@ -284,6 +284,19 @@ INLINE Result(None) Reuse_Sublevel_Target_Out_For_Step_Core(Level* L)
     Reuse_Sublevel_Target_Out_For_Step_Core(L)
 
 
+// A note on the use of this read: "Before stackless it was always the case
+// when we got here that a function level was fulfilling, because setting word
+// would reuse levels while fulfilling arguments...but stackless changed this
+// and has setting words start new Levels."  Review relevance.
+//
+bool Prior_Level_Was_Fulfilling_A_Variadic_Argument(const Level* L) {
+    if (not Is_Action_Level(L->prior))
+        return false;
+
+    return not Is_Level_Fulfilling_Or_Typechecking(L->prior);
+}
+
+
 //
 //  Inert_Stepper_Executor: C
 //
@@ -449,8 +462,6 @@ Option(Phase*) Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(
 
     Move_Cell(CURRENT, As_Element(OUT));
     Erase_Cell(OUT);
-
-    Set_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);
 
     return nullptr;
 }}
@@ -1277,13 +1288,6 @@ Bounce Stepper_Executor(Level* L)
         }
     }
 
-    if (Get_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH)) {
-        if (infix_mode)
-            assert(false);  // !!! this won't work, can it happen?
-
-        Clear_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);
-    }
-
   #if (! DEBUG_DISABLE_INTRINSICS)
     Details* details = opt Try_Frame_Details(OUT);
     if (
@@ -1938,47 +1942,37 @@ Bounce Stepper_Executor(Level* L)
 
 } lookahead: { ///////////////////////////////////////////////////////////////
 
-    // We're sitting at what "looks like the end" of an evaluation step.
-    // But we still have to consider infix.  e.g.
-    //
-    //    [pos val]: evaluate:step [1 + 2 * 3]
-    //
-    // We want that to give a position of [] and `val = 9`.  The evaluator
-    // cannot just dispatch on TYPE_INTEGER in the switch() above, give you 1,
-    // and consider its job done.  It has to notice that the word `+` looks up
-    // to an ACTION! whose cell has an InfixMode set in the header.
-    //
-    // Next, there's a subtlety with FEED_FLAG_NO_LOOKAHEAD which explains why
-    // processing of the 2 argument doesn't greedily continue to advance, but
-    // waits for `1 + 2` to finish.  This is because the right hand argument
-    // of math operations tend to be declared #tight.
-    //
-    // If that's not enough to consider :-) it can even be the case that
-    // subsequent infix gets "deferred".  Then, possibly later the evaluated
-    // value gets re-fed back in, and we jump right to this post-switch point
-    // to give it a "second chance" to take the infix.  (See 'deferred'.)
-    //
-    // So this post-switch step is where all of it happens, and it's tricky!
-    //
-    // 1. If something was run with the expectation it should take the next
-    //    arg from the output cell, and an evaluation cycle ran that wasn't
-    //    an ACTION! (or that was an arity-0 action), that's not what was
-    //    meant.  But it can happen, e.g. `x: 10 | x ->-`, where ->- doesn't
-    //    get an opportunity to quote left because it has no argument...and
-    //    instead retriggers and lets x run.
-    //
-    // 2. For long-pondered technical reasons, only WORD! is able to dispatch
-    //    infix.  If necessary to dispatch an infix function via path, then
-    //    a word is used to do it, like `>>` in `x: >> lib/default [...]`.
+  // We're sitting at what "looks like the end" of an evaluation step.  But we
+  // still have to consider infix.  e.g.
+  //
+  //    [pos val]: evaluate:step [1 + 2 * 3]
+  //
+  // We want a `pos = []` and `val = 9`.  The evaluator can't just dispatch on
+  // TYPE_INTEGER in the switch() above, give 1, and consider its job done.
+  // It has to notice that the word `+` looks up to an ACTION! whose cell has
+  // an InfixMode set in the header.
 
     assert(SUBLEVEL->executor == &Just_Use_Out_Executor);
 
-    if (Get_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH))
-        panic (Error_Literal_Left_Path_Raw());  // [1]
+} skip_looking_if_no_lookahead_flag_set: {
 
-    if (Next_Not_Word_Or_Is_Newline_Or_End(L)) {
-        possibly(Is_Antiform(L_next));  // API calls, rebValue("^", antiform)
+  // The FEED_FLAG_NO_LOOKAHEAD contributes the subtlety of why processing
+  // the `2` in `1 + 2 * 3` doesn't greedily continue to advance and run `*`
+  // immediately, but rather waits for `1 + 2` to finish.
+
+    if (Get_Feed_Flag(L->feed, NO_LOOKAHEAD)) {
         Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
+        goto finished;
+    }
+
+} fetch_next_word_for_infix: {
+
+  // 1. For long-pondered technical reasons, only WORD! is able to dispatch
+  //    infix.  If necessary to dispatch an infix function via path, then
+  //    a word is used to do it, like `->-` in `x: ->- lib/default [...]`.
+
+    if (Next_Not_Word_Or_Is_Newline_Or_End(L)) {  // only WORD! is infix [1]
+        possibly(Is_Antiform(L_next));  // API calls, rebValue("^", antiform)
         goto finished;
     }
 
@@ -2005,81 +1999,59 @@ Bounce Stepper_Executor(Level* L)
     if (not Is_Lifted_Action(As_Stable(SPARE)))  // dual protocol
         goto finished;
 
-} test_word_or_action_for_infix: { ///////////////////////////////////////////
-
     Option(InfixMode) infix_mode = Frame_Infix_Mode(SPARE);
-
-    if (not infix_mode) {
-      lookback_quote_too_late: // run as if starting new expression
-
-        Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
-        Clear_Eval_Executor_Flag(L, INERT_OPTIMIZATION);
-
+    if (not infix_mode)
         goto finished;
-    }
 
-  check_for_literal_first: { /////////////////////////////////////////////////
+  error_if_infix_operator_takes_left_side_literally: {
 
-    // 1. Left-quoting by infix needs to be done in the lookahead before an
-    //    evaluation, not this one that's after.  This happens in cases like:
-    //
-    //        left-the: infix func [@value] [value]
-    //        the <something> left-the
-    //
-    //    But due to the existence of <hole>-able parameters, the left quoting
-    //    function might be okay with seeing nothing on the left.  Start a
-    //    new expression and let it error if that's not ok.
+  // Getting an argument literally on the left using infix needs to be done
+  // *before* a step, not this lookahead that's after.  But since functions
+  // gathering an argument literally do so without asking about lookahead,
+  // you can get to this point if that happens:
+  //
+  //     grab-left: infix func [@value [<hole> any-element?]] [value]
+  //     grab-right <something> grab-left
+  //
+  // We treat this as an error, as opposed to making it synonymous with:
+  //
+  //     (grab-right <something>) (grab-left)
+  //
+  // You have to break it up like that, or use a comma or newline, if you
+  // want the left to see "nothing".
+  //
+  // Another case where this can happen is if the left-looking infix function
+  // gave an exemption due to having nothing on the right, but the left-hand
+  // side "squandered" the opportunity (e.g. it *wasn't* HELP or similar)
+  //
+  //     x: 10 x ->
 
     Phase* infixed = Frame_Phase(SPARE);
     ParamList* paramlist = Phase_Paramlist(infixed);
 
-    if (Get_Flavor_Flag(VARLIST, paramlist, PARAMLIST_LITERAL_FIRST)) {  // [1]
-        assert(Not_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH));
-        if (Get_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH))
-            panic (Error_Literal_Left_Path_Raw());
+    if (Get_Flavor_Flag(VARLIST, paramlist, PARAMLIST_LITERAL_FIRST))
+        panic (Error_Invalid_Lookback_Raw());
 
-        const Param* first = First_Unspecialized_Param(nullptr, infixed);
-        if (Parameter_Class(first) == PARAMCLASS_SOFT) {
-            if (Get_Feed_Flag(L->feed, NO_LOOKAHEAD)) {
-                Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
-                Clear_Eval_Executor_Flag(L, INERT_OPTIMIZATION);
-                goto finished;
-            }
-        }
-        else if (Not_Eval_Executor_Flag(L, INERT_OPTIMIZATION))
-            goto lookback_quote_too_late;
-    }
+} defer_or_postpone: {
 
-    Clear_Eval_Executor_Flag(L, INERT_OPTIMIZATION);  // served purpose if set
+  // A deferral occurs, e.g. with:
+  //
+  //     any [...] else [...]
+  //
+  // The first time the ELSE is seen, ANY is fulfilling its block argument and
+  // doesn't know if its done or not.  So this code senses that allows the
+  // plain BLOCK! to be returned without running ELSE, but setting a flag to
+  // know not to do the deferral more than once.
+  //
+  // 1. We are trying to defer running the THEN when we have just fulfilled
+  //    the `2` in cases like:
+  //
+  //        variadic2 1 2 then (t -> [print ["t is" t] <then>])
+  //
+  //    Unlike with a regular function, the variadic is *already running*...
+  //    not merely fulfilling arguments before it has started running.  Hence
+  //    we do NOT want to set FEED_FLAG_DEFERRING_INFIX.
 
-    if (
-        Get_Eval_Executor_Flag(L, FULFILLING_ARG)
-        and infix_mode != INFIX_DEFER
-                            // ^-- (1 + if null [2] else [3]) => 4
-    ){
-        if (Get_Feed_Flag(L->feed, NO_LOOKAHEAD)) {
-            // Don't do infix lookahead if asked *not* to look.
-
-            Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
-
-            assert(Not_Feed_Flag(L->feed, DEFERRING_INFIX));
-            Set_Feed_Flag(L->feed, DEFERRING_INFIX);
-
-            goto finished;
-        }
-
-        Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
-    }
-
-    // A deferral occurs, e.g. with:
-    //
-    //     return if condition [...] else [...]
-    //
-    // The first time the ELSE is seen, IF is fulfilling its branch argument
-    // and doesn't know if its done or not.  So this code senses that and
-    // runs, returning the output without running ELSE, but setting a flag
-    // to know not to do the deferral more than once.
-    //
     if (
         Get_Eval_Executor_Flag(L, FULFILLING_ARG)
         and (
@@ -2091,59 +2063,31 @@ Bounce Stepper_Executor(Level* L)
         )
     ){
         if (
-            Is_Action_Level(L->prior)
+            Is_Action_Level(L->prior)  // see notes on this flag --v
             and Get_Executor_Flag(ACTION, L->prior, ERROR_ON_DEFERRED_INFIX)
         ){
-            // Operations that inline functions by proxy (such as MATCH and
-            // ENSURE) cannot directly interoperate with THEN or ELSE...they
-            // are building a frame with PG_Dummy_Action as the function, so
-            // running a deferred operation in the same step is not an option.
-            // The expression to the left must be in a GROUP!.
-            //
             panic (Error_Ambiguous_Infix_Raw());
         }
 
         Clear_Feed_Flag(L->feed, NO_LOOKAHEAD);
 
-        if (
-            Is_Action_Level(L->prior)
-            //
-            // ^-- !!! Before stackless it was always the case when we got
-            // here that a function level was fulfilling, because setting word
-            // would reuse levels while fulfilling arguments...but stackless
-            // changed this and has setting words start new Levels.  Review.
-            //
-            and not Is_Level_Fulfilling_Or_Typechecking(L->prior)
-        ){
-            // This should mean it's a variadic level, e.g. when we have
-            // the 2 in the output slot and are at the THEN in:
-            //
-            //     variadic2 1 2 then (t => [print ["t is" t] <then>])
-            //
-            // We used to treat this like a barrier, but there is now no such
-            // thing as a "BARRIER_HIT" flag.  What should we do now?  Try
-            // just jumping to `finished`.
-            //
-            goto finished;
-        }
+        if (Prior_Level_Was_Fulfilling_A_Variadic_Argument(L))
+            goto finished;  // don't set flag...see [1]
 
         Set_Feed_Flag(L->feed, DEFERRING_INFIX);
-
-        // Leave infix operator pending in the feed.  It's up to the parent
-        // level to decide whether to ST_STEPPER_LOOKING_AHEAD to jump
-        // back in and finish fulfilling this arg or not.  If it does resume
-        // and we get to this check again, L->prior->deferred can't be null,
-        // otherwise it would be an infinite loop.
-        //
-        goto finished;
+        goto finished;  // leave infix operator pending in the feed
     }
 
     Clear_Feed_Flag(L->feed, DEFERRING_INFIX);
 
-    // An evaluative lookback argument we don't want to defer, e.g. a normal
-    // argument or a deferable one which is not being requested in the context
-    // of parameter fulfillment.  We want to reuse the OUT value and get it
-    // into the new function's frame.
+} handle_typical_infix: {
+
+  // This is for an evaluative lookback argument we don't want to defer.
+  // So that would be a normal infix, or an infix:defer which is not being
+  // requested in the context of parameter fulfillment.
+  //
+  // We want to reuse the OUT value and get it into the new function's frame,
+  // running it in the same step.
 
     require (
       Reuse_Sublevel_Target_Out_For_Action(SPARE, infix_mode)
@@ -2151,30 +2095,19 @@ Bounce Stepper_Executor(Level* L)
 
     Fetch_Next_In_Feed(L->feed);
 
-    if (infix_mode == PREFIX_0)  // infix_mode sets STATE_0 if prefix
-        Erase_Cell(OUT);
     goto process_action;
 
 
 }} finished: { ///////////////////////////////////////////////////////////////
 
-  // 1. Want to keep this flag between an operation and an ensuing infix in
-  //    the same level, so can't clear in Drop_Action(), e.g. due to:
-  //
-  //        left-the: infix the/
-  //        o: make object! [f: does [1]]
-  //        o.f left-the  ; want error suggesting SHOVE, need flag for it
-  //
-  // 2. We wait until the end of the stepper to turn voids into heavy void.
+  // 1. We wait until the end of the stepper to turn voids into heavy void.
   //    If we did it sooner, we would prevent infix routines (e.g. ELSE)
   //    from seeing the voids.
 
     assert(TOP_LEVEL->prior == L);
     Drop_Level(TOP_LEVEL);
 
-    Clear_Eval_Executor_Flag(L, DIDNT_LEFT_QUOTE_PATH);  // [1]
-
-    if (Is_Level_Out_Noted_Void_To_Make_Heavy(L))  // [2]
+    if (Is_Level_Out_Noted_Void_To_Make_Heavy(L))  // [1]
         Init_Heavy_Void(OUT);
 
   #if RUNTIME_CHECKS

@@ -81,9 +81,9 @@ DECLARE_NATIVE(REEVAL)
 //  "Shove a parameter into an ACTION! as its first argument"
 //
 //      return: [any-value?]
-//      '@left "Hard literal, will be processed according to right's first arg"
+//      @left "Hard literal, will be processed according to right's first arg"
 //          [element?]
-//      '@right "Arbitrary variadic feed of expressions on the right"
+//      @right "Arbitrary variadic feed of expressions on the right"
 //          [<variadic> element?]
 //  ]
 //
@@ -109,7 +109,7 @@ DECLARE_NATIVE(SHOVE)
 
     Level* L;
     if (not Is_Level_Style_Varargs_May_Panic(&L, ARG(RIGHT)))
-        panic ("SHOVE (>-) not implemented for MAKE VARARGS! [...] yet");
+        panic ("SHOVE (->-) not implemented for MAKE VARARGS! [...] yet");
 
     Element* left = Element_ARG(LEFT);
 
@@ -237,16 +237,17 @@ DECLARE_NATIVE(SHOVE)
   //        >> 1 + 2 ->- negate * 3
   //
 
-    Flags flags = FLAG_STATE_BYTE(ST_ACTION_INITIAL_ENTRY_INFIX);  // [1]
+    Flags flags = FLAG_STATE_BYTE(ST_ACTION_INITIAL_ENTRY_INFIX)
+        | LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK;  // [1]
 
     require (
       Level* sub = Make_Level(&Action_Executor, level_->feed, flags)
     );
+    Push_Level(OUT, sub);
     require (
       Push_Action(sub, shovee, infix_mode)  // know if it's infix [2]
     );
     dont(Erase_Cell(OUT));  // infix wants OUT, LEVEL_STATE_BYTE not STATE_0
-    Push_Level(OUT, sub);
     return DELEGATE_SUBLEVEL;
 }
 
@@ -1109,8 +1110,7 @@ DECLARE_NATIVE(_S_S)  // [_s]lash [_s]lash (see TO-C-NAME)
 // From %c-eval.c -- decide if this should be shared or otherwise.
 //
 #define Make_Action_Sublevel(parent) \
-    Make_Level(&Action_Executor, (parent)->feed, \
-        ((parent)->flags.bits & EVAL_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH))
+    Make_Level(&Action_Executor, (parent)->feed, LEVEL_MASK_NONE)
 
 
 

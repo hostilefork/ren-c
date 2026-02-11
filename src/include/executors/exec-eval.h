@@ -59,23 +59,9 @@
     LEVEL_EXECUTOR_FLAG_26
 
 
-//=//// EVAL_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH //////////////////////////=//
+//=//// EVAL_EXECUTOR_FLAG_27 /////////////////////////////////////////////=//
 //
-// There is a contention between operators that want to quote their left hand
-// side and ones that want to quote their right hand side.  The left hand side
-// wins in order for things like `help default` to work.  But deciding on
-// whether the left hand side should win or not if it's a PATH! is a tricky
-// case, as one must evaluate the path to know if it winds up producing a
-// right quoting action or not.
-//
-// So paths win automatically unless a special (rare) override is used.  But
-// if that path doesn't end up being a right quoting operator, it's less
-// confusing to give an error message informing the user to use >- vs. just
-// make it appear there was no left hand side.
-//
-// There is a parallel flag in ACTION_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH
-//
-#define EVAL_EXECUTOR_FLAG_DIDNT_LEFT_QUOTE_PATH \
+#define EVAL_EXECUTOR_FLAG_27 \
     LEVEL_EXECUTOR_FLAG_27
 
 
@@ -137,13 +123,9 @@
     LEVEL_EXECUTOR_FLAG_30
 
 
-//=//// EVAL_EXECUTOR_FLAG_INERT_OPTIMIZATION /////////////////////////////=//
+//=//// EVAL_EXECUTOR_FLAG_31 /////////////////////////////////////////////=//
 //
-// If ST_STEPPER_LOOKING_AHEAD is being used due to an inert optimization,
-// this flag is set, so that the quoting machinery can realize the lookback
-// quote is not actually too late.
-//
-#define EVAL_EXECUTOR_FLAG_INERT_OPTIMIZATION \
+#define EVAL_EXECUTOR_FLAG_31 \
     LEVEL_EXECUTOR_FLAG_31
 
 

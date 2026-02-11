@@ -86,7 +86,7 @@
     )
 
     ([] = eval [soft])
-    ~literal-left-path~ !! (
+    ~invalid-lookback~ !! (
         a: ~null~
         (a soft)
     )
@@ -104,7 +104,7 @@
     )
 
     ([] = eval [hard])
-    ~literal-left-path~ !! (
+    ~invalid-lookback~ !! (
         a: ~null~
         (a hard)
     )
