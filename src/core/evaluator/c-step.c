@@ -97,6 +97,26 @@
 #define L_binding Level_Binding(L)
 
 
+
+// We pre-fetch WORD!s in situations like `[1] w` because we want to know if
+// `w` is a leftward literal infix operator (like `<-`).  The value is fetched
+// into SPARE to be tested.  If it turns out to not be such an operator, we
+// may not need to use SPARE (e.g. evaluating the block [1] doesn't need to)
+// so we could reach the end of the function without having used it.  This
+// means we don't have to re-fetch it to find out if it's an infix operator.
+//
+// Since CELL_FLAG_NOTE is overwritten if SPARE changes, we can assume that
+// if the flag is still present when we reach the lookahead code that the
+// answer it gives is still valid.
+//
+#define CELL_FLAG_NOTE_SPARE_IS_LIFTED_NEXT_FETCH  CELL_FLAG_NOTE
+
+INLINE void Invalidate_Next_Fetched_In_Spare(Level* level_) {
+    assert(SUBLEVEL != level_);
+    Erase_Cell(SPARE);
+}
+
+
 // !!! In earlier development, the Level* for evaluating across a block was
 // reused for each action invocation.  Since no more than one action was
 // running at a time, this seemed to work.  However, because "Levels" and
@@ -116,6 +136,10 @@
 // 2. We keep the Level alive and do Drop_Level() manually because it gives
 //    us an opportunity to examine the state bits of the action frame before
 //    it gets thrown away--and doesn't cost any more to do so.
+//
+// 3. The only way that the SPARE value we are holding from an infix prefetch
+//    will still be usable after an action will be if it takes no arguments,
+//    and is also PURE.  It's not worth trying to optimize that rare case.
 //
 static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
     Level* L,
@@ -149,6 +173,8 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
       Push_Action(sub, action, infix_mode)
     );
 
+    Invalidate_Next_Fetched_In_Spare(L);  // can advance feed, invalidates [3]
+
     return none;
 }
 
@@ -156,6 +182,11 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
     Reuse_Sublevel_Target_Out_For_Action_Core(L, (action), (infix_mode))
 
 
+// 1. We're evaluating a GROUP!, and if it happens to be pure then that means
+//    any lookahead we did e.g. for the `w` in `(1 + 2) w` will still be at
+//    the same position when the group is finished.  So if we're in a pure
+//    evaluation context, that `w` should still be the same when we're done.
+//
 static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
     Level* L,
     const Element* list
@@ -171,7 +202,7 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
         LEVEL_FLAG_0_IS_TRUE | LEVEL_FLAG_4_IS_TRUE
             | LEVEL_FLAG_TRAMPOLINE_KEEPALIVE
             | (L->flags.bits & LEVEL_FLAG_PURE)
-            | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // group semantics [1]
+            | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // group semantics
     );
 
     sub->out = L->out;
@@ -190,6 +221,9 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
 
     Erase_Cell(Level_Spare(sub));
     Erase_Cell(Level_Scratch(sub));
+
+    if (not (L->flags.bits & LEVEL_FLAG_PURE))
+        Invalidate_Next_Fetched_In_Spare(L);  // no feed advance, maybe ok [1]
 
     return none;
 }
@@ -226,6 +260,8 @@ static Result(None) Reuse_Sublevel_Target_Spare_For_Intrinsic_Arg_Core(
 
     Erase_Cell(Level_Spare(sub));
     Erase_Cell(Level_Scratch(sub));
+
+    Invalidate_Next_Fetched_In_Spare(L);  // feed advances
 
     return none;
 }
@@ -276,6 +312,8 @@ INLINE Result(None) Reuse_Sublevel_Target_Out_For_Step_Core(Level* L)
 
     Erase_Cell(Level_Spare(sub));
     Erase_Cell(Level_Scratch(sub));
+
+    Invalidate_Next_Fetched_In_Spare(L);  // feed advances
 
     return none;
 }
@@ -335,6 +373,12 @@ Bounce Inert_Stepper_Executor(Level* L)
 // This is factored out into its own routine because we have to call it in
 // two separate situations.
 //
+// 1. When a lookahead sees `(...) asdf`, it may find that `asdf` is not
+//    defined.  But it may be that the left hand side will define asdf and
+//    then it will be defined when the evaluator gets to it.  Or perhaps it
+//    will take it literally, as in `(the asdf)`.  So we don't want to
+//    error yet, just reject it as a left-looking infix operator.
+//
 Option(Phase*) Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(
     Level* L,
     Sink(Option(InfixMode)) infix_mode
@@ -352,22 +396,20 @@ Option(Phase*) Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(
 
     sub->out = SPARE;  // fetch next into current level's SPARE
 
-    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(
-        As_Element(L_next),
-        L_binding
-    );
-    if (e)
-        return nullptr;
+    if (not Try_Push_Steps_To_Stack_For_Word(As_Element(L_next), L_binding))
+        return nullptr;  // no binding (may get quoted, or exist later) [1]
 
     Init_Null_Signifying_Tweak_Is_Pick(SPARE);
 
     LEVEL_STATE_BYTE(sub) = ST_TWEAK_GETTING;
 
-    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();  // *sub's* OUT (L's SPARE)
-    Drop_Data_Stack_To(base);
+    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Drop_Data_Stack_To(base);  // *sub's* OUT (L's SPARE) --^
 
     if (e)
         return nullptr;  // don't care (will hit on next step if we care)
+
+    SPARE->header.bits |= CELL_FLAG_NOTE_SPARE_IS_LIFTED_NEXT_FETCH;
 
     if (not Is_Lifted_Action(As_Stable(SPARE)))  // DUAL protocol (lifted!)
         return nullptr;
@@ -822,6 +864,7 @@ Bounce Stepper_Executor(Level* L)
     else {  // need to honor CELL_FLAG_CONST, etc.
         Just_Next_In_Feed(L->out, L->feed);  // !!! review infix interop
     }
+    Invalidate_Next_Fetched_In_Spare(L);
     goto lookahead;
 
 } default: { //// MISCELLANEOUS PINNED! TYPE /////////////////////////////////
@@ -909,6 +952,7 @@ Bounce Stepper_Executor(Level* L)
     if (Is_Antiform(L_next)) {  // special featur: tolerate antiforms as-is
         Copy_Cell(OUT, L_next);
         Fetch_Next_In_Feed(L->feed);
+        Invalidate_Next_Fetched_In_Spare(L);
         goto lookahead;
     }
 
@@ -1952,8 +1996,15 @@ Bounce Stepper_Executor(Level* L)
         goto finished;
     }
 
+} check_for_cached_infix_fetch_in_spare: {
+
+    if (SPARE->header.bits & CELL_FLAG_NOTE_SPARE_IS_LIFTED_NEXT_FETCH)
+        goto spare_is_word_fetched_lifted;
+
 } fetch_next_word_for_infix: {
 
+  // don't advance yet (maybe non-infix, next step)
+  //
   // 1. For long-pondered technical reasons, only WORD! is able to dispatch
   //    infix.  If necessary to dispatch an infix function via path, then
   //    a word is used to do it, like `->-` in `x: ->- lib/default [...]`.
@@ -1963,12 +2014,8 @@ Bounce Stepper_Executor(Level* L)
         goto finished;
     }
 
-    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(
-        As_Element(L_next),  // don't advance yet (maybe non-infix, next step)
-        L_binding
-    );
-    if (e)
-        goto finished;
+    if (not Try_Push_Steps_To_Stack_For_Word(As_Element(L_next), L_binding))
+        goto finished;  // let next step error on it (if another step runs)
 
     heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
@@ -1977,11 +2024,15 @@ Bounce Stepper_Executor(Level* L)
 
     SUBLEVEL->out = SPARE;  // calculating SPARE, but ideally we'd reuse
 
-    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
     Drop_Data_Stack_To(STACK_BASE);
 
     if (e)
         goto finished;
+
+    goto spare_is_word_fetched_lifted;
+
+} spare_is_word_fetched_lifted: { ////////////////////////////////////////////
 
     if (not Is_Lifted_Action(As_Stable(SPARE)))  // dual protocol
         goto finished;

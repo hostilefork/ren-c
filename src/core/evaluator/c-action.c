@@ -230,11 +230,7 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L)
     const StackIndex base = TOP_INDEX;
     assert(base == STACK_BASE);
 
-    Option(Error*) e = Trap_Push_Steps_To_Stack_For_Word(
-        At_Feed(L->feed),
-        Level_Binding(L)
-    );
-    if (e)
+    if (not Try_Push_Steps_To_Stack_For_Word(At_Feed(L->feed), L_binding))
         return false;
 
     heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
@@ -244,7 +240,7 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L)
     StateByte saved_state = STATE;
     heeded (STATE = ST_TWEAK_GETTING);
 
-    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
     Drop_Data_Stack_To(base);
     STATE = saved_state;
 

@@ -452,26 +452,20 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
 
 //
-//  Trap_Push_Steps_To_Stack_For_Word: C
+//  Try_Push_Steps_To_Stack_For_Word: C
 //
-Option(Error*) Trap_Push_Steps_To_Stack_For_Word(
+// This doesn't generate an ERROR! because some clients (e.g. infix detection)
+// don't want to pay a heavy cost if a word doesn't have a binding.
+//
+bool Try_Push_Steps_To_Stack_For_Word(
     const Element* wordlike,
     Context* binding
 ){
-    Level* level_ = TOP_LEVEL;
-
-    assert(level_ == TOP_LEVEL);
-    UNUSED(level_);
-
     assert(Is_Word(wordlike) or Is_Meta_Form_Of(WORD, wordlike));
 
-    Option(Error*) error = SUCCESS;
-
-    StackIndex base = TOP_INDEX;
-
     if (not Try_Get_Binding_Of(PUSH(), wordlike, binding)) {
-        error = Error_No_Binding_Raw(wordlike);
-        goto return_error;
+        DROP();
+        return false;
     }
 
     Lift_Cell(TOP_ELEMENT);  // dual protocol, lift (?)
@@ -487,20 +481,12 @@ Option(Error*) Trap_Push_Steps_To_Stack_For_Word(
 
       case SIGIL_PIN:
       case SIGIL_TIE:
-        error = Error_User(
-            "PICK instruction only understands ^META sigil, for now..."
-        );
-        goto return_error;
+        panic ("PICK instruction only understands ^META sigil, for now...");
     }
     unnecessary(Lift_Cell(TOP_STABLE));  // !!! unlifted picker is ok--why?
 
-    return SUCCESS;
-
-  return_error: { ////////////////////////////////////////////////////////////
-
-    Drop_Data_Stack_To(base);
-    return error;
-}}
+    return true;
+}
 
 
 //
@@ -518,10 +504,10 @@ Option(Error*) Trap_Push_Steps_To_Stack(
     Option(Error*) error = SUCCESS;
 
     if (Is_Word(var) or Is_Meta_Form_Of(WORD, var)) {
-        error = Trap_Push_Steps_To_Stack_For_Word(var, SPECIFIED);
-        if (error)
-            goto return_error;
-        goto return_success;
+        if (Try_Push_Steps_To_Stack_For_Word(var, SPECIFIED))
+            goto return_success;
+        error = Error_No_Binding_Raw(var);
+        goto return_error;
     }
 
     if (Is_Tuple(var) or Is_Meta_Form_Of(TUPLE, var))
@@ -573,10 +559,10 @@ Option(Error*) Trap_Push_Steps_To_Stack(
         // !!! If this is a PATH!, it should error if it's not an action...
         // and if it's a TUPLE! it should error if it is an action.  Review.
         //
-        error = Trap_Push_Steps_To_Stack_For_Word(var, SPECIFIED);
-        if (error)
-            goto return_error;
-        goto return_success; }
+        if (Try_Push_Steps_To_Stack_For_Word(var, SPECIFIED))
+            goto return_success;
+        error = Error_No_Binding_Raw(var);
+        goto return_error; }
 
       case FLAVOR_SOURCE:
         break;  // fall through
