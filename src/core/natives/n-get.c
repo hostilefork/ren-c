@@ -108,15 +108,18 @@ Result(None) Get_Var_To_Out_Use_Toplevel(
 
     possibly(Get_Cell_Flag(var, SCRATCH_VAR_NOTE_ONLY_ACTION));
 
-    heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
+    heeded (Corrupt_Cell_If_Needful(SPARE));
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(SCRATCH));
 
-    Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+    Option(Error*) e = Tweak_Var_With_Dual_Scratch_To_Spare_Use_Toplevel(
         var,
         group_eval == GROUP_EVAL_YES ? GROUPS_OK : NO_STEPS
     );
 
     if (e)
         return fail (unwrap e);
+
+    Copy_Cell(OUT, SPARE);
 
     require (
       Unlift_Cell_No_Decay(OUT)  // not unstable if wasn't ^META [1]

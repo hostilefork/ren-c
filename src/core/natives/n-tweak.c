@@ -626,7 +626,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
 
 
 //
-//  Trap_Tweak_From_Stack_Steps_With_Dual_Out: C
+//  Tweak_Stack_Steps_With_Dual_Scratch_To_Dual_Spare: C
 //
 // This is centralized code for setting or "tweaking" variables.
 //
@@ -641,7 +641,7 @@ Option(Error*) Trap_Push_Steps_To_Stack(
 //    better than trying to work "Corrupts_Spare()" into the already quite-long
 //    name of the function.)
 //
-Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
+Option(Error*) Tweak_Stack_Steps_With_Dual_Scratch_To_Dual_Spare(void)
 {
     Level* level_ = TOP_LEVEL;
     const StackIndex base = STACK_BASE;
@@ -655,12 +655,12 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
 
     assert(OUT != SCRATCH and OUT != SPARE);
 
-    Stable* out = As_Stable(OUT);
-
   #if NEEDFUL_DOES_CORRUPTIONS  // confirm caller pre-corrupted spare [1]
     assert(Not_Cell_Readable(SPARE));
-    assert(Not_Cell_Readable(SCRATCH));
   #endif
+
+    assert(Is_Cell_Stable(SCRATCH));
+    bool tweak_is_pick = Is_Null_Signifying_Tweak_Is_Pick(SCRATCH);
 
     Sink(Stable) spare_location_dual = SPARE;
 
@@ -669,7 +669,8 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
     Option(Error*) error = SUCCESS;  // for common exit path on error
 
   #if RUNTIME_CHECKS
-    Protect_Cell(OUT);
+    if (Not_Cell_Erased(OUT) and Is_Cell_Readable(OUT))
+        Protect_Cell(OUT);
   #endif
 
     // We always poke from the top of the stack, not from OUT.  This is
@@ -679,15 +680,13 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
 
     stackindex_top = TOP_INDEX;  // capture "top of stack" before push
 
-    Copy_Cell(SCRATCH, As_Stable(OUT));
-
     require (
       Level* sub = Make_End_Level(
         &Action_Executor,
         LEVEL_FLAG_DEBUG_STATE_0_OUT_NOT_ERASED_OK
       )
     );
-    dont(Erase_Cell(SPARE));  // spare read before erase
+    dont(Erase_Cell(SPARE));  // spare will be used, then erased before call
     Push_Level(SPARE, sub);
 
   poke_again: { //////////////////////////////////////////////////////////////
@@ -713,7 +712,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
 } calculate_pick_stack_limit: {
 
     StackIndex limit = stackindex_top;
-    if (Is_Null_Signifying_Tweak_Is_Pick(out))
+    if (tweak_is_pick)
         limit = stackindex_top + 1;
 
     if (stackindex == limit)
@@ -765,11 +764,8 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
     //    (it just re-lifted it) so the undecayed won't make an unstable
     //    value here if the picker wasn't ^META.
 
-    if (Is_Null_Signifying_Tweak_Is_Pick(out)) {
-      #if RUNTIME_CHECKS
-        Unprotect_Cell(OUT);
-      #endif
-        Copy_Cell(OUT, spare_location_dual);
+    if (tweak_is_pick) {
+        definitely(spare_location_dual);  // returning this
         goto return_success;
     }
 
@@ -790,12 +786,8 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
 
     // Subsequent updates become pokes, regardless of initial updater function
 
-    if (Is_Okay_Signifying_No_Writeback(spare_writeback_dual_or_logic)) {
-      #if RUNTIME_CHECKS
-        Unprotect_Cell(OUT);
-      #endif
+    if (Is_Okay_Signifying_No_Writeback(spare_writeback_dual_or_logic))
         goto return_success;
-    }
 
     if (Is_Null_Signifying_Slot_Unavailable(spare_writeback_dual_or_logic)) {
         error = Error_Bad_Pick_Raw(Data_Stack_At(Element, stackindex));
@@ -818,11 +810,9 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
 }} return_error: { ///////////////////////////////////////////////////////////
 
     assert(error);
-  #if RUNTIME_CHECKS
-    Unprotect_Cell(OUT);
-    if (Is_Null_Signifying_Tweak_Is_Pick(OUT))
-        Corrupt_Cell_If_Needful(OUT);  // so you don't think it picked null
-  #endif
+
+    if (tweak_is_pick)
+        Corrupt_Cell_If_Needful(SPARE);  // so you don't think it picked null
 
     Drop_Level(sub);
     goto finalize_and_return;
@@ -839,10 +829,11 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
 
 } finalize_and_return: { /////////////////////////////////////////////////////
 
-    Corrupt_Cell_If_Needful(SPARE);
+    Corrupt_Cell_If_Needful(SCRATCH);
 
   #if RUNTIME_CHECKS
-    assert(not (OUT->header.bits & CELL_FLAG_PROTECTED));
+    if (Not_Cell_Erased(OUT) and Is_Cell_Readable(OUT))
+        Unprotect_Cell(OUT);
   #endif
 
     return error;
@@ -850,17 +841,18 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
 
 
 //
-//  Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel: C
+//  Tweak_Var_With_Dual_Scratch_To_Spare_Use_Toplevel: C
 //
-// OUT may be FAILURE! antiform, see [A]
+// SPARE may be given back as FAILURE! antiform, see [A]
 //
-Option(Error*) Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+Option(Error*) Tweak_Var_With_Dual_Scratch_To_Spare_Use_Toplevel(
     const Element* var,
     Option(Element*) steps_out  // no GROUP!s if nulled
 ){
     Level* level_ = TOP_LEVEL;
 
-    possibly(SPARE == steps_out or SCRATCH == steps_out);
+    possibly(SCRATCH == steps_out);
+    assert(SPARE != steps_out);
 
     const StackIndex base = STACK_BASE;
     assert(TOP_INDEX == STACK_BASE);
@@ -870,7 +862,7 @@ Option(Error*) Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
     if (e)
         return e;
 
-    e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    e = Tweak_Stack_Steps_With_Dual_Scratch_To_Dual_Spare();
     if (e) {
         Drop_Data_Stack_To(base);
         return e;
@@ -930,10 +922,8 @@ DECLARE_NATIVE(TWEAK)
     INCLUDE_PARAMS_OF_TWEAK;
     UNUSED(ARG(STEPS));  // TBD
 
-    Copy_Cell(OUT, LOCAL(DUAL));
-
     if (not ARG(TARGET))
-        return OUT;   // same for SET as [10 = (void): 10]
+        return COPY_TO_OUT(LOCAL(DUAL));   // same for SET as [10 = (void): 10]
 
     Element* target = Element_ARG(TARGET);
 
@@ -947,9 +937,9 @@ DECLARE_NATIVE(TWEAK)
         STATE = ST_TWEAK_TWEAKING;  // we'll set out to something not erased
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
-    heeded (Corrupt_Cell_If_Needful(SCRATCH));
+    heeded (Copy_Cell(SCRATCH, LOCAL(DUAL)));
 
-    Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+    Option(Error*) e = Tweak_Var_With_Dual_Scratch_To_Spare_Use_Toplevel(
         target,
         steps
     );
@@ -968,5 +958,8 @@ DECLARE_NATIVE(TWEAK)
   // Note that (set $ '^x fail "hi") will assign the failure! to X, but will
   // still pass through the failure as the overall expression result.
 
-    return OUT;
+    if (ARG(DUAL))
+        return COPY_TO_OUT(LOCAL(DUAL));
+
+    return COPY_TO_OUT(SPARE);
 }}

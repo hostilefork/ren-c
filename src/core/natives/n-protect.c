@@ -294,17 +294,15 @@ DECLARE_NATIVE(PROTECT)
     Element* v = Element_ARG(VALUE);
 
     if (Any_Word(v) or Is_Tuple(v)) {
-        if (ARG(HIDE))
-            heeded (Init_Word(OUT, CANON(HIDE)));
-        else
-            heeded (Init_Word(OUT, CANON(PROTECT)));
-
         heeded (Corrupt_Cell_If_Needful(SPARE));
-        heeded (Corrupt_Cell_If_Needful(SCRATCH));
+        if (ARG(HIDE))
+            heeded (Init_Word(SCRATCH, CANON(HIDE)));
+        else
+            heeded (Init_Word(SCRATCH, CANON(PROTECT)));
 
         STATE = ST_TWEAK_TWEAKING;
 
-        Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+        Option(Error*) e = Tweak_Var_With_Dual_Scratch_To_Spare_Use_Toplevel(
             v,
             NO_STEPS
         );
@@ -360,14 +358,12 @@ DECLARE_NATIVE(UNPROTECT)
     Element* v = Element_ARG(VALUE);
 
     if (Any_Word(v) or Is_Tuple(v)) {
-
-        heeded (Init_Word(OUT, CANON(UNPROTECT)));
         heeded (Corrupt_Cell_If_Needful(SPARE));
-        heeded (Corrupt_Cell_If_Needful(SCRATCH));
+        heeded (Init_Word(SCRATCH, CANON(UNPROTECT)));
 
         STATE = ST_TWEAK_TWEAKING;
 
-        Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+        Option(Error*) e = Tweak_Var_With_Dual_Scratch_To_Spare_Use_Toplevel(
             v,
             NO_STEPS
         );

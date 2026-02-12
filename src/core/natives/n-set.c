@@ -68,14 +68,14 @@ Result(None) Set_Var_To_Out_Use_Toplevel(
     Level* level_ = TOP_LEVEL;
     assert(STATE == ST_TWEAK_SETTING);
 
-    bool out_was_set_final = false;
+    Copy_Cell(SCRATCH, OUT);
 
     if (Is_Word(var) or Is_Tuple(var)) {
-        if (Is_Cell_Stable(OUT))
+        if (Is_Cell_Stable(SCRATCH))
             goto lift_and_tweak;
 
-        if (Is_Pack(OUT)) {
-            const Dual* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(OUT);
+        if (Is_Pack(SCRATCH)) {
+            const Dual* dual = Opt_Extract_Dual_If_Undecayed_Bedrock(SCRATCH);
             if (  // allow only some bedrock forms
                 dual and (
                     Is_Dual_Alias(dual)
@@ -83,17 +83,17 @@ Result(None) Set_Var_To_Out_Use_Toplevel(
                     or Is_Dual_Drain(dual)
                 )
             ){
-                Copy_Cell(OUT, dual);  // don't want to lift
+                Copy_Cell(SCRATCH, dual);  // don't want to lift
                 goto skip_lift_and_tweak;
             }
             else {
                 require (
-                  Decay_If_Unstable(OUT)
+                  Decay_If_Unstable(SCRATCH)
                 );
             }
         }
-        else if (Is_Failure(OUT)) {
-            return fail (Cell_Error(OUT));
+        else if (Is_Failure(SCRATCH)) {
+            return fail (Cell_Error(SCRATCH));
         }
         else {
             // we leave ACTION!, TRASH!, VOID! despite instability
@@ -102,7 +102,7 @@ Result(None) Set_Var_To_Out_Use_Toplevel(
             // not want ordinray SET $FOO to be setting things to unstable
             // antiforms.
             //
-            assert(Is_Non_Meta_Assignable_Unstable_Antiform(OUT));
+            assert(Is_Non_Meta_Assignable_Unstable_Antiform(SCRATCH));
         }
     }
     else if (Is_Meta_Form_Of(WORD, var) or Is_Meta_Form_Of(TUPLE, var)) {
@@ -122,45 +122,29 @@ Result(None) Set_Var_To_Out_Use_Toplevel(
     }
 
     if (Get_Cell_Flag(var, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
-        if (not Is_Action(OUT)) {
+        if (not Is_Action(SCRATCH)) {
             return fail (
                 "/word: and /obj.field: assignments need ACTION!"
             );
         }
-        if (Not_Cell_Flag(OUT, FINAL)) {
-            Set_Cell_Flag(OUT, FINAL);
-            out_was_set_final = true;
-        }
+        possibly(Get_Cell_Flag(SCRATCH, FINAL));
+        Set_Cell_Flag(SCRATCH, FINAL);
     }
 
   lift_and_tweak: { //////////////////////////////////////////////////////////
 
-    Lift_Cell(OUT);  // must be lifted to be taken literally in dual protocol
+    Lift_Cell(SCRATCH);  // must be lifted to be taken literally in dual
     goto skip_lift_and_tweak;
 
 } skip_lift_and_tweak: { /////////////////////////////////////////////////////
 
-    Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+    Option(Error*) e = Tweak_Var_With_Dual_Scratch_To_Spare_Use_Toplevel(
         var,
         group_eval == GROUP_EVAL_YES ? GROUPS_OK : NO_STEPS
     );
 
-    if (out_was_set_final)
-        Clear_Cell_Flag(OUT, FINAL);
-
     if (e)
         return fail (unwrap e);
-
-    if (not Any_Lifted(OUT)) {  // bedrock dual (we extracted, re-pack)
-        Source* pack = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
-        Copy_Cell(Stub_Cell(pack), As_Element(OUT));
-        Init_Pack(OUT, pack);
-    }
-    else {
-        require (
-          Unlift_Cell_No_Decay(OUT)
-        );
-    }
 
     return none;
 }}

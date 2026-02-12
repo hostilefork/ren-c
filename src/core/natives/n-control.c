@@ -1226,13 +1226,11 @@ DECLARE_NATIVE(DEFAULT)
   // now you use TWEAK if you want steps, and get a lifted result.
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
-    heeded (Corrupt_Cell_If_Needful(SCRATCH));
-
-    heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(SCRATCH));
 
     STATE = ST_TWEAK_GETTING;
 
-    Option(Error*) e = Trap_Tweak_Var_With_Dual_To_Out_Use_Toplevel(
+    Option(Error*) e = Tweak_Var_With_Dual_Scratch_To_Spare_Use_Toplevel(
         target,
         steps
     );
@@ -1241,21 +1239,21 @@ DECLARE_NATIVE(DEFAULT)
         panic (unwrap e);
 
     require (
-      Unlift_Cell_No_Decay(OUT)  // not unstable if wasn't ^META [1]
+      Unlift_Cell_No_Decay(SPARE)  // not unstable if wasn't ^META [1]
     );
 
 } check_for_defaultability: {  // !!! change to use lifted value?
 
-    if (not (Any_Void(OUT) or Is_Trash(OUT))) {
+    if (not (Any_Void(SPARE) or Is_Trash(SPARE))) {
         require (  // may need decay [2]
-            Stable* out = Decay_If_Unstable(OUT)
+            Stable* stable_spare = Decay_If_Unstable(SPARE)
         );
-        if (not (Is_Null(out) or Is_None(out)))
-            return OUT;  // consider it a "value" [3]
+        if (not (Is_Null(stable_spare) or Is_None(stable_spare)))
+            return COPY_TO_OUT(SPARE);  // consider it a "value" [3]
     }
 
     STATE = ST_DEFAULT_EVALUATING_BRANCH;
-    return CONTINUE(OUT, branch, OUT);
+    return CONTINUE(OUT, branch, SPARE);
 
 }} branch_result_in_out: {  ///////////////////////////////////////////////////
 

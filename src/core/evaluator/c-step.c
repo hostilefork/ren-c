@@ -141,7 +141,7 @@ INLINE void Invalidate_Next_Fetched_In_Spare(Level* level_) {
 //    will still be usable after an action will be if it takes no arguments,
 //    and is also PURE.  It's not worth trying to optimize that rare case.
 //
-static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
+static Result(None) Reuse_Sublevel_For_Action_Core(
     Level* L,
     const Value* action,
     Option(InfixMode) infix_mode
@@ -152,6 +152,7 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
     assert(sub->executor == &Just_Use_Out_Executor);
     assert(sub->feed == L->feed);
     assert(sub->baseline.stack_base == L->baseline.stack_base);
+    assert(sub->out == OUT);
 
     Phase *phase = Frame_Phase(action);
     if (Not_Stub_Flag(phase, PHASE_PURE))
@@ -167,7 +168,6 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
             | (Get_Cell_Flag(action, WEIRD_VANISHABLE) ? 0
                 : (L->flags.bits & LEVEL_FLAG_VANISHABLE_VOIDS_ONLY))
     );
-    sub->out = L->out;
 
     trap (
       Push_Action(sub, action, infix_mode)
@@ -178,8 +178,8 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
     return none;
 }
 
-#define Reuse_Sublevel_Target_Out_For_Action(action,infix_mode) \
-    Reuse_Sublevel_Target_Out_For_Action_Core(L, (action), (infix_mode))
+#define Reuse_Sublevel_For_Action(action,infix_mode) \
+    Reuse_Sublevel_For_Action_Core(L, (action), (infix_mode))
 
 
 // 1. We're evaluating a GROUP!, and if it happens to be pure then that means
@@ -187,7 +187,7 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Action_Core(
 //    the same position when the group is finished.  So if we're in a pure
 //    evaluation context, that `w` should still be the same when we're done.
 //
-static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
+static Result(None) Reuse_Sublevel_For_Eval_Core(
     Level* L,
     const Element* list
 ){
@@ -195,6 +195,7 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
     assert(sub->executor == &Just_Use_Out_Executor);
     assert(sub->feed == L->feed);  // we change it, and change back later
     assert(sub->baseline.stack_base == L->baseline.stack_base);
+    assert(sub->out == OUT);
 
     sub->executor = &Evaluator_Executor;
 
@@ -204,8 +205,6 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
             | (L->flags.bits & LEVEL_FLAG_PURE)
             | (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)  // group semantics
     );
-
-    sub->out = L->out;
 
   trap (
     Feed* feed = Prep_At_Feed(
@@ -228,8 +227,8 @@ static Result(None) Reuse_Sublevel_Target_Out_For_Eval_Core(
     return none;
 }
 
-#define Reuse_Sublevel_Target_Out_For_Eval(list) \
-    Reuse_Sublevel_Target_Out_For_Eval_Core(L, (list))
+#define Reuse_Sublevel_For_Eval(list) \
+    Reuse_Sublevel_For_Eval_Core(L, (list))
 
 
 // 1. L's SPARE is where we are storing the lookahead for the next value.  It
@@ -245,6 +244,7 @@ static Result(None) Reuse_Sublevel_Target_Spare_For_Intrinsic_Arg_Core(
     assert(sub->executor == &Just_Use_Out_Executor);
     assert(sub->feed == L->feed);
     assert(sub->baseline.stack_base == L->baseline.stack_base);
+    assert(sub->out == OUT);  // we tweak it... :-/
 
     sub->executor = &Stepper_Executor;
 
@@ -285,12 +285,13 @@ static Result(None) Reuse_Sublevel_Target_Spare_For_Intrinsic_Arg_Core(
 //    an arity-1 function.  `1 + x: whatever ...`.  This overrides the no
 //    lookahead behavior flag right up front.
 //
-INLINE Result(None) Reuse_Sublevel_Target_Out_For_Step_Core(Level* L)
+INLINE Result(None) Reuse_Sublevel_Same_Feed_For_Step_Core(Level* L)
 {
     Level *sub = SUBLEVEL;
     assert(sub->executor == &Just_Use_Out_Executor);
     assert(sub->feed == L->feed);
     possibly(sub->baseline.stack_base != L->baseline.stack_base);   // [0]
+    assert(sub->out == OUT);
 
     if (Is_Feed_At_End(L->feed))  // `eval [x:]`, `eval [o.x:]`, etc. illegal
         return fail (Error_Need_Non_End(CURRENT));
@@ -308,7 +309,6 @@ INLINE Result(None) Reuse_Sublevel_Target_Out_For_Step_Core(Level* L)
     inapplicable(LEVEL_FLAG_VANISHABLE_VOIDS_ONLY);  // single step, not multi
 
     assert(Is_Cell_Erased(L->out));
-    sub->out = L->out;
 
     Erase_Cell(Level_Spare(sub));
     Erase_Cell(Level_Scratch(sub));
@@ -318,8 +318,8 @@ INLINE Result(None) Reuse_Sublevel_Target_Out_For_Step_Core(Level* L)
     return none;
 }
 
-#define Reuse_Sublevel_Target_Out_For_Step() \
-    Reuse_Sublevel_Target_Out_For_Step_Core(L)
+#define Reuse_Sublevel_Same_Feed_For_Step() \
+    Reuse_Sublevel_Same_Feed_For_Step_Core(L)
 
 
 // A note on the use of this read: "Before stackless it was always the case
@@ -387,6 +387,7 @@ Option(Phase*) Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(
     assert(sub->executor == &Just_Use_Out_Executor);
     assert(sub->feed == L->feed);
     assert(sub->baseline.stack_base == L->baseline.stack_base);
+    assert(sub->out == OUT);
 
     const StackIndex base = TOP_INDEX;
     assert(base == STACK_BASE);
@@ -394,21 +395,21 @@ Option(Phase*) Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(
     heeded (Corrupt_Cell_If_Needful(Level_Spare(sub)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(sub)));
 
-    sub->out = SPARE;  // fetch next into current level's SPARE
-
     if (not Try_Push_Steps_To_Stack_For_Word(As_Element(L_next), L_binding))
         return nullptr;  // no binding (may get quoted, or exist later) [1]
 
-    Init_Null_Signifying_Tweak_Is_Pick(SPARE);
+    heeded (Corrupt_Cell_If_Needful(Level_Spare(sub)));
+    Init_Null_Signifying_Tweak_Is_Pick(Level_Scratch(sub));
 
     LEVEL_STATE_BYTE(sub) = ST_TWEAK_GETTING;
 
-    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Option(Error*) e = Tweak_Stack_Steps_With_Dual_Scratch_To_Dual_Spare();
     Drop_Data_Stack_To(base);  // *sub's* OUT (L's SPARE) --^
 
     if (e)
         return nullptr;  // don't care (will hit on next step if we care)
 
+    Copy_Cell(SPARE, Level_Spare(sub));  // save fetched result
     SPARE->header.bits |= CELL_FLAG_NOTE_SPARE_IS_LIFTED_NEXT_FETCH;
 
     if (not Is_Lifted_Action(As_Stable(SPARE)))  // DUAL protocol (lifted!)
@@ -561,7 +562,7 @@ Bounce Stepper_Executor(Level* L)
   // a NO_LOOKAHEAD flag.
   //
   // To make the invariants easier, we always push a Level that can be used
-  // by whatever processing that we do--.
+  // by whatever processing that we do.
 
     require (  // for the sake of simpler invariants, always push a Level
       Level* sub = Make_Level(
@@ -570,7 +571,7 @@ Bounce Stepper_Executor(Level* L)
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // flags overwritten
       )
     );
-    Push_Level(SPARE, sub);  // by default target spare (this can change)
+    Push_Level(OUT, sub);  // by default target OUT (intrinsic changes, atm)
     definitely(sub == SUBLEVEL);
     goto start_new_expression;
 
@@ -614,6 +615,8 @@ Bounce Stepper_Executor(Level* L)
   // the expression index, so as far as error messages and such are concerned,
   // `reeval x` will still start with `reeval`.
 
+    assert(Is_Cell_Erased(OUT));
+
     require (  // for the sake of simpler invariants, always push a Level
       Level* sub = Make_Level(
         &Just_Use_Out_Executor,
@@ -621,10 +624,8 @@ Bounce Stepper_Executor(Level* L)
         LEVEL_FLAG_TRAMPOLINE_KEEPALIVE  // flags overwritten
       )
     );
-    Push_Level(SPARE, sub);  // by default target spare (this can change)
+    Push_Level(OUT, sub);  // by default target OUT (intrinsic changes, atm)
     definitely(sub == SUBLEVEL);
-
-    Erase_Cell(OUT);
 
     goto lookahead_for_left_literal_infix;
 
@@ -731,7 +732,7 @@ Bounce Stepper_Executor(Level* L)
         goto give_up_backward_quote_priority;
 
     require (
-      Reuse_Sublevel_Target_Out_For_Action(SPARE, infix_mode)
+      Reuse_Sublevel_For_Action(SPARE, infix_mode)
     );
     if (infix_mode == PREFIX_0)  // sets STATE_0 for level
         Erase_Cell(OUT);
@@ -910,7 +911,7 @@ Bounce Stepper_Executor(Level* L)
   // product into the current evaluator environment.
 
     require (
-      Reuse_Sublevel_Target_Out_For_Step()
+      Reuse_Sublevel_Same_Feed_For_Step()
     );
 
     STATE = ST_STEPPER_BIND_OPERATOR;
@@ -957,7 +958,7 @@ Bounce Stepper_Executor(Level* L)
     }
 
     require (
-      Reuse_Sublevel_Target_Out_For_Step()
+      Reuse_Sublevel_Same_Feed_For_Step()
     );
 
     STATE = ST_STEPPER_IDENTITY_OPERATOR;
@@ -991,7 +992,6 @@ Bounce Stepper_Executor(Level* L)
     heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
 
-    SUBLEVEL->out = OUT;
     LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_GETTING;
 
     require (
@@ -1032,7 +1032,6 @@ Bounce Stepper_Executor(Level* L)
     heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
 
-    SUBLEVEL->out = OUT;
     LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_GETTING;
 
     require (
@@ -1185,7 +1184,7 @@ Bounce Stepper_Executor(Level* L)
     Option(InfixMode) infix_mode = Frame_Infix_Mode(CURRENT);
 
     require (
-      Reuse_Sublevel_Target_Out_For_Action(CURRENT, infix_mode)
+      Reuse_Sublevel_For_Action(CURRENT, infix_mode)
     );
     assert(Is_Cell_Erased(OUT));  // so nothing on left [1]
 
@@ -1231,7 +1230,6 @@ Bounce Stepper_Executor(Level* L)
     heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
 
-    SUBLEVEL->out = OUT;
     LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_GETTING;
 
     require (
@@ -1341,6 +1339,7 @@ Bounce Stepper_Executor(Level* L)
 
           case PARAMCLASS_LITERAL:
             The_Next_In_Feed(SPARE, L->feed);
+            SUBLEVEL->out = SPARE;  // honor expected invariant
             goto intrinsic_arg_in_spare;
 
           default:
@@ -1360,7 +1359,7 @@ Bounce Stepper_Executor(Level* L)
   #endif
 
     require (
-      Reuse_Sublevel_Target_Out_For_Action(OUT, infix_mode)
+      Reuse_Sublevel_For_Action(OUT, infix_mode)
     );
     Erase_Cell(OUT);  // want OUT clear, even if infix_mode sets state nonzero
 
@@ -1370,6 +1369,8 @@ Bounce Stepper_Executor(Level* L)
 
     SUBLEVEL->executor = &Just_Use_Out_Executor;  // temporary (?) invariant
     assert(SUBLEVEL->feed == L->feed);  // we didn't change it
+    assert(SUBLEVEL->out == SPARE);  // we redirected it
+    SUBLEVEL->out = OUT;  // put it back
 
   #if (! DEBUG_DISABLE_INTRINSICS)
 
@@ -1401,7 +1402,6 @@ Bounce Stepper_Executor(Level* L)
 
     Copy_Cell(Level_Spare(SUBLEVEL), SPARE);
     Copy_Cell(Level_Scratch(SUBLEVEL), CURRENT);
-    SUBLEVEL->out = OUT;
 
     Bounce b = Apply_Cfunc(dispatcher, SUBLEVEL);
 
@@ -1468,7 +1468,7 @@ Bounce Stepper_Executor(Level* L)
       case TRAILING_BLANK_AND(GROUP): {  // (xxx): -- generic retrigger set
         Bind_Cell_If_Unbound(CURRENT, L_binding);
         require (
-          Reuse_Sublevel_Target_Out_For_Eval(CURRENT)
+          Reuse_Sublevel_For_Eval(CURRENT)
         );
         // (not LEVEL_FLAG_VANISHABLE_VOIDS_ONLY)
 
@@ -1484,7 +1484,6 @@ Bounce Stepper_Executor(Level* L)
         heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
         heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
 
-        SUBLEVEL->out = OUT;
         LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_GETTING;
 
         require (
@@ -1535,7 +1534,7 @@ Bounce Stepper_Executor(Level* L)
 } handle_action_in_out_with_refinements_pushed: {
 
     require (
-      Reuse_Sublevel_Target_Out_For_Action(OUT, PREFIX_0)
+      Reuse_Sublevel_For_Action(OUT, PREFIX_0)
     );
     SUBLEVEL->baseline.stack_base = STACK_BASE;  // !!! refinements, review
     Erase_Cell(OUT);  // not infix, sub state is 0
@@ -1555,7 +1554,7 @@ Bounce Stepper_Executor(Level* L)
   //    VOID! vanishing don't apply to inline groups.
 
     require (
-      Reuse_Sublevel_Target_Out_For_Eval(CURRENT)
+      Reuse_Sublevel_For_Eval(CURRENT)
     );
 
     Erase_Cell(OUT);
@@ -1612,7 +1611,6 @@ Bounce Stepper_Executor(Level* L)
     heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
 
-    SUBLEVEL->out = OUT;
     LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_GETTING;
 
     Get_Var_To_Out_Use_Toplevel(
@@ -1741,7 +1739,6 @@ Bounce Stepper_Executor(Level* L)
     possibly(TOP_INDEX != STACK_BASE);  // make map!, reduce [], etc.
     StackIndex base = TOP_INDEX;
 
-    SUBLEVEL->out = OUT;
     LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_GETTING;
 
     Get_Path_Push_Refinements(SUBLEVEL) except (Error* e) {
@@ -1796,7 +1793,7 @@ Bounce Stepper_Executor(Level* L)
     STATE = ST_STEPPER_GENERIC_SET;
 
     require (
-      Reuse_Sublevel_Target_Out_For_Step()
+      Reuse_Sublevel_Same_Feed_For_Step()
     );
 
     return CONTINUE_SUBLEVEL;
@@ -1818,7 +1815,6 @@ Bounce Stepper_Executor(Level* L)
     heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
 
-    SUBLEVEL->out = OUT;
     LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_SETTING;
 
     Set_Var_To_Out_Use_Toplevel(
@@ -1887,7 +1883,7 @@ Bounce Stepper_Executor(Level* L)
         goto return_thrown;
 
     require (
-      Reuse_Sublevel_Target_Out_For_Step()
+      Reuse_Sublevel_Same_Feed_For_Step()
     );
 
     return CONTINUE_SUBLEVEL;
@@ -2018,18 +2014,16 @@ Bounce Stepper_Executor(Level* L)
         goto finished;  // let next step error on it (if another step runs)
 
     heeded (Corrupt_Cell_If_Needful(Level_Spare(SUBLEVEL)));
-    heeded (Corrupt_Cell_If_Needful(Level_Scratch(SUBLEVEL)));
-    heeded (Init_Null_Signifying_Tweak_Is_Pick(SPARE));
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(Level_Scratch(SUBLEVEL)));
     LEVEL_STATE_BYTE(SUBLEVEL) = ST_TWEAK_TWEAKING;
 
-    SUBLEVEL->out = SPARE;  // calculating SPARE, but ideally we'd reuse
-
-    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Option(Error*) e = Tweak_Stack_Steps_With_Dual_Scratch_To_Dual_Spare();
     Drop_Data_Stack_To(STACK_BASE);
 
     if (e)
         goto finished;
 
+    Copy_Cell(SPARE, Level_Spare(SUBLEVEL));
     goto spare_is_word_fetched_lifted;
 
 } spare_is_word_fetched_lifted: { ////////////////////////////////////////////
@@ -2126,7 +2120,7 @@ Bounce Stepper_Executor(Level* L)
   // running it in the same step.
 
     require (
-      Reuse_Sublevel_Target_Out_For_Action(SPARE, infix_mode)
+      Reuse_Sublevel_For_Action(SPARE, infix_mode)
     );
 
     Fetch_Next_In_Feed(L->feed);

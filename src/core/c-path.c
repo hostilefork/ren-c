@@ -133,10 +133,10 @@ DECLARE_NATIVE(PICK)
 
     heeded (Corrupt_Cell_If_Needful(SPARE));
     heeded (Corrupt_Cell_If_Needful(SCRATCH));
-    heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(SCRATCH));
     heeded (STATE = ST_TWEAK_GETTING);
 
-    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Option(Error*) e = Tweak_Stack_Steps_With_Dual_Scratch_To_Dual_Spare();
     Drop_Data_Stack_To(STACK_BASE);
 
     if (e) {  // should be willing to bounce to trampoline...
@@ -146,16 +146,16 @@ DECLARE_NATIVE(PICK)
     }
 
     require (
-      Unlift_Cell_No_Decay(OUT)  // !!! use faster version, known ok antiform?
+      Unlift_Cell_No_Decay(SPARE)  // !!! faster version, known ok antiform?
     );
 
-    if (Is_Void(OUT)) // workaround for old pick tolerance on missing
+    if (Is_Void(SPARE)) // workaround for old pick tolerance on missing
         return fail (Error_Bad_Pick_Raw(picker));
 
     require (
-      Decay_If_Unstable(OUT)
+      Decay_If_Unstable(SPARE)
     );
-    return OUT;
+    return COPY_TO_OUT(SPARE);
 }
 
 
@@ -275,14 +275,13 @@ DECLARE_NATIVE(POKE)
     Copy_Lifted_Cell(PUSH(), location);
     Copy_Lifted_Cell(PUSH(), picker);
 
-    heeded (Init_Quasar(SCRATCH));  // carries flags...
     heeded (Corrupt_Cell_If_Needful(SPARE));
 
-    Copy_Lifted_Cell(OUT, v);
+    Copy_Lifted_Cell(SCRATCH, v);  // !!! review decaying logic
 
     STATE = ST_TWEAK_SETTING;
 
-    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Option(Error*) e = Tweak_Stack_Steps_With_Dual_Scratch_To_Dual_Spare();
     Drop_Data_Stack_To(STACK_BASE);
 
     if (e) {
@@ -291,11 +290,7 @@ DECLARE_NATIVE(POKE)
         return OUT;
     }
 
-    require (
-      Unlift_Cell_No_Decay(OUT)  // !!! use faster version, known ok antiform?
-    );
-
-    return OUT;
+    return Copy_Cell(OUT, v);
 }
 
 

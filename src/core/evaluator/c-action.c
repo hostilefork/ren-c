@@ -233,24 +233,23 @@ bool Lookahead_To_Sync_Infix_Defer_Flag(Level* L)
     if (not Try_Push_Steps_To_Stack_For_Word(At_Feed(L->feed), L_binding))
         return false;
 
-    heeded (Init_Null_Signifying_Tweak_Is_Pick(OUT));
+    heeded (Init_Null_Signifying_Tweak_Is_Pick(SCRATCH));
     heeded (Corrupt_Cell_If_Needful(SPARE));
-    heeded (Corrupt_Cell_If_Needful(SCRATCH));
 
     StateByte saved_state = STATE;
     heeded (STATE = ST_TWEAK_GETTING);
 
-    Option(Error*) e = Trap_Tweak_From_Stack_Steps_With_Dual_Out();
+    Option(Error*) e = Tweak_Stack_Steps_With_Dual_Scratch_To_Dual_Spare();
     Drop_Data_Stack_To(base);
     STATE = saved_state;
 
     if (e)
         return false;
 
-    if (not Is_Lifted_Action(As_Stable(OUT)))  // DUAL protocol (lifted!)
+    if (not Is_Lifted_Action(As_Stable(SPARE)))  // DUAL protocol (lifted!)
         return false;
 
-    Option(InfixMode) infix_mode = Frame_Infix_Mode(OUT);
+    Option(InfixMode) infix_mode = Frame_Infix_Mode(SPARE);
     if (not infix_mode)
         return false;
 
