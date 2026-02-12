@@ -492,9 +492,11 @@ void Startup_Trampoline(void)
     assert(TOP_LEVEL == nullptr);
     assert(BOTTOM_LEVEL == nullptr);
 
+    FORCE_TRACK_VALID_EVAL_TARGET(&g_erased_cell);  // never actually written
+
     require (
       Level* L = Make_End_Level(  // ensure L->prior [1]
-        &Stepper_Executor,  // executor is irrelevant (permit nullptr?)
+        &Just_Use_Out_Executor,  // executor is irrelevant (permit nullptr?)
         LEVEL_FLAG_UNINTERRUPTIBLE  // can't interrupt while initializing [2]
     ));
     Push_Level_Dont_Inherit_Interruptibility(  // to attach API handles to [3]
@@ -514,6 +516,8 @@ void Startup_Trampoline(void)
     //
     assert(Is_Cell_Erased(&g_ts.thrown_arg));
     assert(Is_Cell_Erased(&g_ts.thrown_label));
+    FORCE_TRACK_0(&g_ts.thrown_arg);
+    FORCE_TRACK_0(&g_ts.thrown_label);
     Init_Unreadable(&g_ts.thrown_arg);
     Init_Unreadable(&g_ts.thrown_label);
 

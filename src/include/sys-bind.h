@@ -65,10 +65,10 @@ INLINE Element* Copy_Cell_May_Bind_Untracked(
     }
 
   #if DEBUG_TRACK_COPY_PRESERVES
+    dont(out->track_flags = v->track_flags);  // see definition
     out->file = v->file;
     out->line = v->line;
     out->tick = v->tick;
-    out->touch = v->touch;  // see also arbitrary debug use via Touch_Cell()
   #endif
 
     return out;

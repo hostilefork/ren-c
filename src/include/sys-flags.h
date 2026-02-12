@@ -107,10 +107,17 @@
 //    This means supposedly, it doesn't matter what type the memory you are
 //    reading from...you will get the correct up-to-date value of that byte.
 
-#define FIRST_BYTE(p)       u_cast(Byte*, (p))[0]  // CAPS_NAME: LValue [1]
-#define SECOND_BYTE(p)      u_cast(Byte*, (p))[1]  // const-preserving [2]
-#define THIRD_BYTE(p)       u_cast(Byte*, (p))[2]  // Byte strict exempt [3]
-#define FOURTH_BYTE(p)      u_cast(Byte*, (p))[3]
+#define FIRST_BYTE(p) \
+    u_cast(Byte*, known(void*, (p)))[0]  // CAPS_NAME: LValue [1]
+
+#define SECOND_BYTE(p) \
+    u_cast(Byte*, known(void*, (p)))[1]  // const-preserving [2]
+
+#define THIRD_BYTE(p) \
+    u_cast(Byte*, known(void*, (p)))[2]  // Byte strict exempt [3]
+
+#define FOURTH_BYTE(p) \
+    u_cast(Byte*, known(void*, (p)))[3]
 
 
 // There might not seem to be a good reason to keep the uint16_t variant in

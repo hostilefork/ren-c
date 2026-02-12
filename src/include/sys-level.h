@@ -512,6 +512,10 @@ INLINE void Push_Level_Dont_Inherit_Interruptibility(
     );
   #endif
 
+  #if DEBUG_TRACK_EXTEND_CELLS
+    assert(out->track_flags.bits & TRACK_FLAG_VALID_EVAL_TARGET);
+  #endif
+
     if (
         LEVEL_STATE_BYTE(L) == STATE_0
         and Not_Level_Flag(L, DEBUG_STATE_0_OUT_NOT_ERASED_OK)
@@ -615,8 +619,8 @@ INLINE Result(Level*) Prep_Level_Core(
 
     Add_Feed_Reference(L->feed);
 
-    Force_Erase_Cell(&L->spare);
-    Force_Erase_Cell(&L->scratch);
+    FORCE_TRACK_VALID_EVAL_TARGET(Force_Erase_Cell_Untracked(&L->spare));
+    FORCE_TRACK_VALID_EVAL_TARGET(Force_Erase_Cell_Untracked(&L->scratch));
     Corrupt_If_Needful(L->out);
 
     L->varlist = nullptr;

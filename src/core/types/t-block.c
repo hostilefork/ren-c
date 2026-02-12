@@ -1215,20 +1215,20 @@ IMPLEMENT_GENERIC(REVERSE, Any_List)
         temp.extra = front->extra;
         temp.payload = front->payload;
       #if DEBUG_TRACK_EXTEND_CELLS
+        dont(temp.track_flags = front->track_flags);  // see definition
         temp.file = front->file;
         temp.line = front->line;
         temp.tick = front->tick;
-        temp.touch = front->touch;
       #endif
 
         front->header = back->header;
         front->extra = back->extra;
         front->payload = back->payload;
       #if DEBUG_TRACK_EXTEND_CELLS
+        dont(front->track_flags = back->track_flags);  // see definition
         front->file = back->file;
         front->line = back->line;
         front->tick = back->tick;
-        front->touch = back->touch;
       #endif
         if (line_back)  // back to front gets flag that was *after* it [2]
             Set_Cell_Flag(front, NEWLINE_BEFORE);
@@ -1240,10 +1240,10 @@ IMPLEMENT_GENERIC(REVERSE, Any_List)
         back->extra = temp.extra;
         back->payload = temp.payload;
       #if DEBUG_TRACK_EXTEND_CELLS
+        dont(back->track_flags = temp.track_flags);  // see definition
         back->file = temp.file;
         back->line = temp.line;
         back->tick = temp.tick;
-        back->touch = temp.touch;
       #endif
         if (line_front)  // flag on back will be after for next blit [3]
             Set_Cell_Flag(back, NEWLINE_BEFORE);
@@ -1388,14 +1388,14 @@ static int Qsort_Values_Callback(void *state, const void *p1, const void *p2)
 {
     SortInfo* info = cast(SortInfo*, state);
 
-    const Element* v1 = As_Element(cast(Value*, p1));
-    const Element* v2 = As_Element(cast(Value*, p2));
+    const Element* v1 = cast(Element*, p1);
+    const Element* v2 = cast(Element*, p2);
     possibly(info->cased);  // !!! not applicable in LESSER? comparisons
     bool strict = false;
 
-    DECLARE_STABLE (result);
+    DECLARE_VALUE (eval);
     if (rebRunThrows(
-        result,  // <-- output cell
+        eval,  // <-- output cell
         rebRUN(info->comparator),
             info->reverse ? rebQ(v1) : rebQ(v2),
             info->reverse ? rebQ(v2) : rebQ(v1)
@@ -1403,6 +1403,9 @@ static int Qsort_Values_Callback(void *state, const void *p1, const void *p2)
         panic (Error_No_Catch_For_Throw(TOP_LEVEL));
     }
 
+    require (
+      Stable* result = Decay_If_Unstable(eval)
+    );
     if (not Is_Logic(result))
         panic ("SORT predicate must return logic (NULL or OKAY antiform)");
 

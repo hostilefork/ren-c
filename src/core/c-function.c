@@ -154,7 +154,7 @@ static Result(None) Push_Keys_And_Params_Core(
     bool seen_returner = false;
     StackIndex returner_index;
 
-    Value* eval = Level_Lifetime_Value(L);
+    Sink(Value) eval = Stepper_Primed_Value(L);
     Push_Level(Erase_Cell(eval), L);
 
   push_returner_if_not_augmenting: {

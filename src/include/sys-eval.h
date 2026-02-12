@@ -66,15 +66,18 @@
 // Simply put, when the Trampoline gets control after a longjmp() or throw, the
 // Level's L->out pointer will be corrupt...the stack-declared result is gone.
 //
-// Instead of DECLARE_VALUE, use Level_Lifetime_Value(L).  This takes advantage
+// Instead of DECLARE_VALUE, use Stepper_Primed_Value(L).  It takes advantage
 // of the fact that there's a cell's worth of spare space which a stepper
 // that is not called by Evaluator_Executor() does not use.
 //
-INLINE Sink(Value) Level_Lifetime_Value(Level* L) {
+INLINE Cell* Stepper_Primed_Value_Untracked(Level* L) {
     assert(L->executor == &Stepper_Executor);
-    Force_Erase_Cell_Untracked(&L->u.eval.primed);
     return &L->u.eval.primed;
 }
+
+#define Stepper_Primed_Value(L) \
+    u_cast(Sink(Value), FORCE_TRACK_VALID_EVAL_TARGET( \
+        Stepper_Primed_Value_Untracked(L)))
 
 
 // Does not check for ST_STEPPER_LEVEL_FINISHED, because generalized loops

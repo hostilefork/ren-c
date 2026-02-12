@@ -211,10 +211,10 @@ Array* Pop_Stack_Values_Core(Flags flags, StackIndex base) {
           #if (DEBUG_TRACK_COPY_PRESERVES)
               // Move_Cell() would already copy the original tracking
           #else
+              dont(dest->track_flags = src->track_flags);  // see definition
               dest->file = src->file;
               dest->line = src->line;
               dest->tick = src->tick;
-              dest->touch = src->touch;
           #endif
         #endif
 

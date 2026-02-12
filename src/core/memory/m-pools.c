@@ -591,7 +591,8 @@ Pairing* Alloc_Pairing(Flags flags) {
     );
     Pairing_First(p)->header.bits = CELL_MASK_UNREADABLE | flags;
     Pairing_Second(p)->header.bits = CELL_MASK_UNREADABLE;
-
+    FORCE_TRACK_0(Pairing_First(p));
+    FORCE_TRACK_0(Pairing_Second(p));
     return p;
 }
 

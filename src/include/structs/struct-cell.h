@@ -695,10 +695,10 @@ STATIC_ASSERT(sizeof(PayloadUnion) == sizeof(uintptr_t) * 2);
         PayloadUnion payload;
 
       #if DEBUG_TRACK_EXTEND_CELLS  // can be VERY handy [2]
+        HeaderUnion track_flags;  // unique to this cell, not copied
         const char *file;  // is Byte (UTF-8), but char* for debug watch
         uintptr_t line;
         uintptr_t tick;
-        uintptr_t touch;  // see Touch_Cell(), pads out to 4 * sizeof(void*)
       #endif
 
     #if CHECK_CELL_SUBCLASSES

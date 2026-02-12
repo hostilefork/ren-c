@@ -353,6 +353,10 @@ Bounce Action_Executor(Level* L)
 
       continue_fulfilling:
 
+      #if DEBUG_TRACK_EXTEND_CELLS  // undo exception before user can see it
+        ARG->track_flags.bits &= (~ TRACK_FLAG_VALID_EVAL_TARGET);
+      #endif
+
         if (Get_Action_Executor_Flag(L, DOING_PICKUPS)) {
             if (TOP_INDEX != L->baseline.stack_base)
                 goto next_pickup;
@@ -659,6 +663,11 @@ Bounce Action_Executor(Level* L)
           Level* sub = Make_Level(&Stepper_Executor, L->feed, flags)
         );
         possibly(Is_Light_Null(ARG));  // !!! review
+
+      #if DEBUG_TRACK_EXTEND_CELLS  // special exception--not user visible yet
+        ARG->track_flags.bits |= TRACK_FLAG_VALID_EVAL_TARGET;
+      #endif
+
         Push_Level(Erase_Cell(ARG), sub);
 
         return CONTINUE_SUBLEVEL; }
@@ -674,7 +683,18 @@ Bounce Action_Executor(Level* L)
 
         if (Is_Soft_Escapable_Group(As_Element(ARG))) {
             Element* arg_in_spare = Move_Cell(SPARE, As_Element(ARG));
-            if (Eval_Any_List_At_Throws(ARG, arg_in_spare, SPECIFIED))
+
+          #if DEBUG_TRACK_EXTEND_CELLS  // special exception
+            ARG->track_flags.bits |= TRACK_FLAG_VALID_EVAL_TARGET;
+          #endif
+
+            bool threw = Eval_Any_List_At_Throws(ARG, arg_in_spare, SPECIFIED);
+
+          #if DEBUG_TRACK_EXTEND_CELLS  // undo special exception
+            ARG->track_flags.bits &= (~ TRACK_FLAG_VALID_EVAL_TARGET);
+          #endif
+
+            if (threw)
                 goto handle_thrown;
         }
         break; }
@@ -1163,7 +1183,7 @@ Result(None) Push_Action(
 
     possibly(LIFT_BYTE(frame) != NOQUOTE_3);  // can be ACTION!, quasi, etc.
 
-    TRACK(L->rootvar)->header.bits
+    FORCE_TRACK_0(L->rootvar)->header.bits
         = (frame->header.bits & (~ CELL_MASK_LIFT))
             | FLAG_LIFT_BYTE(NOQUOTE_3)  // canonize as FRAME!
             | CELL_FLAG_PROTECTED;  // rootvars protected from modification

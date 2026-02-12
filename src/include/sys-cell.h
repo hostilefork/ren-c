@@ -285,7 +285,7 @@ INLINE Cell* Force_Poison_Cell_Untracked(Cell* c) {  // for random bits [3]
 }
 
 #define Force_Poison_Cell(c)  /* unchecked version, use sparingly! [3] */ \
-    TRACK(Force_Poison_Cell_Untracked(c))
+    FORCE_TRACK_0(Force_Poison_Cell_Untracked(c))
 
 #define Is_Cell_Poisoned(c)  /* non-poison state not always readable [4] */ \
     (known(Cell*, (c))->header.bits == CELL_MASK_POISON)
@@ -321,7 +321,7 @@ INLINE Cell* Erase_Cell_Untracked(Cell* c) {
 }
 
 #define Erase_Cell(c) \
-    TRACK(Erase_Cell_Untracked(c))  // not safe on all cells, e.g. API [1]
+    TRACK(Erase_Cell_Untracked(c))  // not safe on API cells [1]
 
 INLINE Cell* Force_Erase_Cell_Untracked(Cell* c) {
     Assert_Cell_Aligned(c);  // only have to check on first initialization
@@ -330,7 +330,7 @@ INLINE Cell* Force_Erase_Cell_Untracked(Cell* c) {
 }
 
 #define Force_Erase_Cell(c)  /* unchecked version, use sparingly! [2] */ \
-    TRACK(Force_Erase_Cell_Untracked(c))
+    FORCE_TRACK_0(Force_Erase_Cell_Untracked(c))
 
 #define Is_Cell_Erased(c) /* initable, not read/writable */ \
     (known(Cell*, (c))->header.bits == CELL_MASK_ERASED_0)
@@ -1161,10 +1161,10 @@ INLINE Cell* Copy_Cell_Core_Untracked(
     out->payload = v->payload;
 
   #if DEBUG_TRACK_COPY_PRESERVES
+    dont(out->track_flags = v->track_flags);  // see definition
     out->file = v->file;
     out->line = v->line;
     out->tick = v->tick;
-    out->touch = v->touch;
   #endif
 
     return out;
@@ -1242,10 +1242,10 @@ INLINE Cell* Force_Blit_Cell_Untracked(Cell* out, const Cell* c) {
     out->payload = c->payload;
 
   #if DEBUG_TRACK_COPY_PRESERVES
+    dont(out->track_flags = c->track_flags);  // see definition
     out->file = c->file;
     out->line = c->line;
     out->tick = c->tick;
-    out->touch = c->touch;
   #endif
 
     return out;
@@ -1329,17 +1329,17 @@ INLINE Stable* Constify(Stable* v) {
 
 #define DECLARE_VALUE(name) \
     Value name##_atom; \
-    Value* const name = TRACK(&name##_atom); \
+    Value* const name = FORCE_TRACK_VALID_EVAL_TARGET(&name##_atom); \
     Force_Erase_Cell_Untracked(name)  // single assignment of 0 to header
 
 #define DECLARE_STABLE(name) \
     Stable name##_value; \
-    Stable* const name = TRACK(&name##_value); \
+    Stable* const name = FORCE_TRACK_0(&name##_value); \
     Force_Erase_Cell_Untracked(name)  // single assignment of 0 to header
 
 #define DECLARE_ELEMENT(name) \
     Element name##_element; \
-    Element* const name = TRACK(&name##_element); \
+    Element* const name = FORCE_TRACK_0(&name##_element); \
     Force_Erase_Cell_Untracked(name)  // single assignment of 0 to header
 
 

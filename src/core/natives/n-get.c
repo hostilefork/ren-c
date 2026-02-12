@@ -193,8 +193,8 @@ Result(None) Get_Word_Or_Tuple(Sink(Value) out, const Element* var)
     require (
       Level* sub = Make_End_Level(&Just_Use_Out_Executor, LEVEL_MASK_NONE)
     );
-    Erase_Cell(out);
-    Push_Level(out, sub);
+    DECLARE_VALUE (temp);  // !!! out may not be TRACK_FLAG_VALID_EVAL_TARGET
+    Push_Level(temp, sub);
 
     heeded (Corrupt_Cell_If_Needful(Level_Spare(sub)));
     heeded (Corrupt_Cell_If_Needful(Level_Scratch(sub)));
@@ -211,9 +211,12 @@ Result(None) Get_Word_Or_Tuple(Sink(Value) out, const Element* var)
 
     Drop_Level(sub);
 
-    if (error)
+    if (error) {
+        Corrupt_Cell_If_Needful(out);
         return fail (unwrap error);
+    }
 
+    Copy_Cell(out, temp);
     return none;
 }
 

@@ -2369,7 +2369,8 @@ DECLARE_NATIVE(SUBPARSE)
                 if (not Is_Group(rule))
                     panic ("Splicing (...) only in PARSE3's CHANGE or INSERT");
 
-                DECLARE_STABLE (evaluated);
+                DECLARE_VALUE (evaluated_cell);
+                Stable* evaluated;
                 Context* derived = Derive_Binding(
                     P_RULE_BINDING,
                     rule
@@ -2377,16 +2378,15 @@ DECLARE_NATIVE(SUBPARSE)
 
               perform_evaluation: {
 
-                Value* atom_evaluated = evaluated;
                 if (Eval_Any_List_At_Throws(
-                    atom_evaluated,
+                    evaluated_cell,
                     rule,
                     derived
                 )){
                     goto return_thrown;
                 }
                 require (
-                  Decay_If_Unstable(atom_evaluated)
+                  evaluated = Decay_If_Unstable(evaluated_cell)
                 );
 
             } handle_result: {

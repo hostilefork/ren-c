@@ -167,9 +167,9 @@ ATTRIBUTE_NO_RETURN void Crash_With_Cell_Debug(const Cell* c) {
   #if DEBUG_TRACK_EXTEND_CELLS
     Printf_Stderr("Cell init");
 
+    // TBD: dump track_flags?
+
     Printf_Stderr(" @ tick #%d", cast(unsigned int, c->tick));
-    if (c->touch != 0)
-        Printf_Stderr(" @ touch #%d", cast(unsigned int, c->touch));
 
     Printf_Stderr(" @ %s:%ld\n", c->file, cast(unsigned long, c->line));
   #else

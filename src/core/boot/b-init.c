@@ -144,6 +144,7 @@ static void Startup_Lib(void)
     for (SymId16 id = 1; id <= MAX_SYM_LIB_PREMADE; ++id) {
         Patch* patch = &g_lib_patches[id];
         assert(Is_Stub_Erased(patch));  // pre-boot state
+        FORCE_TRACK_0(Stub_Cell(patch));
 
         patch->header.bits = STUB_MASK_PATCH;
 
