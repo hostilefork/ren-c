@@ -377,23 +377,10 @@ Option(Phase*) Reuse_Sublevel_To_Determine_Left_Literal_Infix_Core(
         return nullptr;
 
     Phase* phase = Frame_Phase(SPARE);
-
-  check_first_infix_parameter_class: {
-
-  // 1. Lookback args are fetched from OUT, then copied into an arg slot.
-  //    Put the backwards quoted value into OUT.  (Do this before next
-  //    step because we need value for type check)
-
-    Option(ParamClass) pclass = Get_First_Param_Literal_Class(phase);
-    if (not pclass)
+    if (Not_Stub_Flag(phase, PHASE_LITERAL_FIRST))
         return nullptr;
 
-    assert(
-        pclass == PARAMCLASS_LITERAL  // infix func [@x ...] [...]
-        or pclass == PARAMCLASS_SOFT
-    );
-
-} save_out_and_current_for_caller_recovery: {
+  save_out_and_current_for_caller_recovery: {
 
   // When we've identified that we are dealing with a lookback function, the
   // idea is that we put the lookback value (which had been in CURRENT) into
@@ -2026,10 +2013,8 @@ Bounce Stepper_Executor(Level* L)
   //
   //     x: 10 x ->
 
-    Phase* infixed = Frame_Phase(SPARE);
-    ParamList* paramlist = Phase_Paramlist(infixed);
-
-    if (Get_Flavor_Flag(VARLIST, paramlist, PARAMLIST_LITERAL_FIRST))
+    Phase* phase = Frame_Phase(SPARE);
+    if (Get_Stub_Flag(phase, PHASE_LITERAL_FIRST))
         panic (Error_Invalid_Lookback_Raw());
 
 } defer_or_postpone: {

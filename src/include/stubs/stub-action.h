@@ -335,3 +335,6 @@ INLINE bool Action_Is_Derived_From(Phase* derived, Phase* base) {
 
 #define First_Unspecialized_Param(key_out,phase) \
     First_Unspecialized_Param_Core((key_out), Known_Phase(phase))
+
+#define Force_Phase_Final(phase) \
+    Force_Phase_Final_Core(Known_Phase(phase))

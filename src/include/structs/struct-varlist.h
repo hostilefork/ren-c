@@ -157,15 +157,9 @@ STATIC_ASSERT(VARLIST_FLAG_PURE == STUB_FLAG_CONTEXT_PURE);
     STUB_SUBCLASS_FLAG_27
 
 
-//=//// VARLIST_FLAG_PARAMLIST_LITERAL_FIRST //////////////////////////////=//
+//=//// VARLIST_FLAG_28 ///////////////////////////////////////////////////=//
 //
-// This is a calculated property, which is cached by Make_Dispatch_Details().
-//
-// This is another cached property, needed because lookahead/lookback is done
-// so frequently, and it's quicker to check a bit on the function than to
-// walk the parameter list every time that function is called.
-//
-#define VARLIST_FLAG_PARAMLIST_LITERAL_FIRST \
+#define VARLIST_FLAG_28 \
     STUB_SUBCLASS_FLAG_28
 
 
@@ -175,6 +169,30 @@ STATIC_ASSERT(VARLIST_FLAG_PURE == STUB_FLAG_CONTEXT_PURE);
 //
 #define VARLIST_FLAG_IMMUTABLE \
     STUB_SUBCLASS_FLAG_29
+
+
+//=//// VARLIST_FLAG_30 ///////////////////////////////////////////////////=//
+//
+#define VARLIST_FLAG_30 \
+    STUB_SUBCLASS_FLAG_30
+
+
+//=//// VARLIST_FLAG_PARAMLIST_LITERAL_FIRST //////////////////////////////=//
+//
+// This is a calculated property, which is cached by Make_Dispatch_Details().
+//
+// This is another cached property, needed because lookahead/lookback is done
+// so frequently, and it's quicker to check a bit on the function than to
+// walk the parameter list every time that function is called.
+//
+// (Note that Details mirrors this with DETAILS_FLAG_LITERAL_FIRST, despite it
+// being a property of the paramlist so it's redundant.  It just makes the
+// check for it faster, so you don't indirect Details->ParamList to ask.)
+//
+#define VARLIST_FLAG_PARAMLIST_LITERAL_FIRST \
+    STUB_SUBCLASS_FLAG_31
+
+#define STUB_FLAG_PHASE_LITERAL_FIRST  VARLIST_FLAG_PARAMLIST_LITERAL_FIRST
 
 
 // A context's varlist is always allocated dynamically, in order to speed

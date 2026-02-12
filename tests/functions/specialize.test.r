@@ -188,3 +188,19 @@
 
     data = [a b c [d e f]]
 )
+
+; Specialization should update the literal first flag.
+;
+; 1. REVIEW: impact of specialization on whether a function is infix or not,
+; e.g. should specializing out the first argument make an infix function
+; non-infix?  And if so, should infixness be a property of a parameter?
+[
+    (all {
+        a: #a
+        b: #b
+        lit-first: infix lambda [@x y] [reduce [x y]]
+        [a #b] = (a lit-first b)
+        not-lit-first: specialize lit-first/ [x: <x>]
+        [<x> #b] = (b not-lit-first)  ; still infix [1]
+    })
+]

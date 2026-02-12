@@ -299,20 +299,21 @@ INLINE Element* Init_Frame_Untracked(
 //     == [1 <even> 3 <even> 5]  ; no actual EVEN? antiforms can be in block
 //
 
-INLINE Value* Activate_Frame_Core(Value* val) {
-    assert(Is_Possibly_Unstable_Value_Frame(val));
-    Unstably_Antiformize_Unbound_Fundamental(val);
-    assert(Is_Action(val));
-    return val;
+INLINE Value* Activate_Frame_Core(Value* v) {
+    assert(Is_Possibly_Unstable_Value_Frame(v));
+    Force_Phase_Final(Frame_Phase(v));
+    Unstably_Antiformize_Unbound_Fundamental(v);
+    assert(Is_Action(v));
+    return v;
 }
 
 #define Activate_Frame(v) \
-    Activate_Frame_Core(known(Value*, (v)))
+    Activate_Frame_Core(Known_Value(v))
 
 
 #define Init_Action(out,phase,lens_or_label,coupling) \
     Activate_Frame_Core( \
-        Init_Frame(known(Value*, (out)), (phase), (lens_or_label), (coupling)))
+        Init_Frame(Known_Value(out), (phase), (lens_or_label), (coupling)))
 
 INLINE Element* Deactivate_Action(Exact(Value*) v) {
     assert(Is_Action(v));

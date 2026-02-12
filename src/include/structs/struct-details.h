@@ -180,10 +180,17 @@ typedef enum {
     STUB_SUBCLASS_FLAG_30
 
 
-//=//// DETAILS_FLAG_31 ///////////////////////////////////////////////////=//
+//=//// DETAILS_FLAG_LITERAL_FIRST ////////////////////////////////////////=//
 //
-#define DETAILS_FLAG_31 \
+// We don't technically need to put this flag on DETAILS, but it can speed
+// up a frequent check if we can check it on a phase vs. just on a paramlist.
+//
+// If details flags become too scarce, this optimization could be removed.
+//
+#define DETAILS_FLAG_LITERAL_FIRST \
     STUB_SUBCLASS_FLAG_31
+
+STATIC_ASSERT(DETAILS_FLAG_LITERAL_FIRST == STUB_FLAG_PHASE_LITERAL_FIRST);
 
 
 #define DETAILS_MASK_NONE  0

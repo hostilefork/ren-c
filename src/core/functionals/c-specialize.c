@@ -551,3 +551,61 @@ Arg* First_Unspecialized_Arg(Option(const Param* *) param_out, Level* L)
     Index index = param - Phase_Params_Head(phase);
     return Level_Args_Head(L) + index;
 }
+
+
+//
+//  Force_Phase_Final_Core: C
+//
+// When you make a FRAME!, you can freely modify it up to the point where it
+// is used as the basis for other frames--that rely on its definition for
+// type checking and such.  Hence doing something like an ADAPT or ENCLOSE
+// will forcibly finalize a ParamList-based FRAME! if it wasn't already.
+//
+// An additional constraint is that antiform ACTION! must hold a finalized
+// Phase, as we expect STUB_FLAG_PHASE_LITERAL_FIRST to be set correctly, in
+// order to accelerate the dispatch of infix in %c-step.c
+//
+// !!! This is one reason why plain FRAME! is not considered to be used for
+// infix (though we could Force_Phase_Final() on any frame we encountered
+// spliced in the evaluator that we executed...or do a slow check of the
+// arguments in that case; review necessity).
+//
+Phase* Force_Phase_Final_Core(Phase* phase)
+{
+    if (Is_Stub_Details(phase)) {
+        possibly(Get_Flavor_Flag(DETAILS, phase, LITERAL_FIRST));  // inherited
+        return phase;  // already final, nothing to do
+    }
+
+    if (Get_Flavor_Flag(VARLIST, phase, IMMUTABLE)) {
+        possibly(Get_Flavor_Flag(DETAILS, phase, LITERAL_FIRST));  // decided
+        return phase;
+    }
+
+    ParamList* paramlist = cast(ParamList*, phase);
+
+    assert(Not_Flavor_Flag(VARLIST, paramlist, PARAMLIST_LITERAL_FIRST));
+
+    const Param* first = First_Unspecialized_Param(nullptr, paramlist);
+    if (first) {
+        ParamClass pclass = Parameter_Class(first);
+        switch (pclass) {
+          case PARAMCLASS_NORMAL:
+          case PARAMCLASS_META:
+            break;
+
+          case PARAMCLASS_SOFT:
+          case PARAMCLASS_LITERAL:
+            Set_Flavor_Flag(VARLIST, paramlist, PARAMLIST_LITERAL_FIRST);
+            break;
+
+          default:
+            assert(false);
+        }
+    }
+
+    dont(Set_Flex_Flag(Varlist_Array(paramlist), FIXED_SIZE));  // should we?
+
+    Set_Flavor_Flag(VARLIST, phase, IMMUTABLE);  // don't cache flag again
+    return phase;
+}

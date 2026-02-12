@@ -90,6 +90,7 @@ INLINE Result(Value*) Coerce_To_Antiform(Exact(Value*) v){  // [1]
       case HEART_FRAME_SIGNIFYING_ACTION: {
         if (Frame_Lens(elem))
             Tweak_Frame_Lens_Or_Label(elem, ANONYMOUS);  // show only inputs
+        Force_Phase_Final(Frame_Phase(elem));
         LIFT_BYTE_RAW(v) = UNSTABLE_ANTIFORM_1;  // [1]
         break; }
 

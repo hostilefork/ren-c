@@ -874,6 +874,11 @@ Details* Make_Dispatch_Details(
   //    (You can turn PURE:OFF or IMPURE:OFF if the default inheritance is
   //    not what you want, and purity will still be respected when the phase
   //    is adjusted, see Tweak_Level_Phase())
+  //
+  // 2. We can't build actions on top of other ones unless we can trust they
+  //    are not going to change.  Regardless of whether you are building on
+  //    a FRAME! or an ACTION!, the phase must be final.  This locks down
+  //    the bit for STUB_PHASE_LITERAL_FIRST so we can inherit it.
 
     assert(0 == (flags & (~ (  // make sure no stray flags passed in
         BASE_FLAG_MANAGED
@@ -886,11 +891,17 @@ Details* Make_Dispatch_Details(
     ))));
 
     Phase* exemplar_phase = Frame_Phase(exemplar);
-    flags |= exemplar_phase->header.bits & (
-        STUB_FLAG_PHASE_PURE | STUB_FLAG_PHASE_IMPURE  // inherit
+    Force_Phase_Final(exemplar_phase);  // [2]
+
+    flags |= exemplar_phase->header.bits & (  // inherit flags
+        STUB_FLAG_PHASE_PURE
+            | STUB_FLAG_PHASE_IMPURE
+            | STUB_FLAG_PHASE_LITERAL_FIRST
     );
 
-    if (Get_Flavor_Flag(VARLIST, Cell_Varlist(exemplar), METHODIZED))
+    ParamList* exemplar_paramlist = Phase_Paramlist(exemplar_phase);
+    assert(Get_Flavor_Flag(VARLIST, exemplar_paramlist, IMMUTABLE));  // [2]
+    if (Get_Flavor_Flag(VARLIST, exemplar_paramlist, METHODIZED))
         flags |= DETAILS_FLAG_METHODIZED;
 
 } make_details: {
@@ -915,39 +926,6 @@ Details* Make_Dispatch_Details(
     Tweak_Misc_Details_Adjunct(a, nullptr);  // caller can fill in
 
     Details* details = cast(Details*, a);  // now it's legitimate, can be cast
-
-    // Precalculate cached function flags.  This involves finding the first
-    // unspecialized argument which would be taken at a callsite, which can
-    // be tricky to figure out with partial refinement specialization.  So
-    // the work of doing that is factored into a routine (`PARAMETERS OF`
-    // uses it as well).  !!! Wrong place for this!
-
-    ParamList* paramlist = Phase_Paramlist(details);
-    const Param* first = First_Unspecialized_Param(nullptr, details);
-    if (first) {
-        ParamClass pclass = Parameter_Class(first);
-        switch (pclass) {
-          case PARAMCLASS_NORMAL:
-          case PARAMCLASS_META:
-            break;
-
-          case PARAMCLASS_SOFT:
-          case PARAMCLASS_LITERAL:
-            Set_Flavor_Flag(VARLIST, paramlist, PARAMLIST_LITERAL_FIRST);
-            break;
-
-          default:
-            assert(false);
-        }
-    }
-
-    // The exemplar needs to be frozen, it can't change after this point.
-    // You can't change the types or parameter conventions of an existing
-    // action...you have to make a new variation.  Note that the exemplar
-    // can be exposed by AS FRAME! of this action...
-    //
-    Set_Flex_Flag(Varlist_Array(paramlist), FIXED_SIZE);
-    Set_Flavor_Flag(VARLIST, paramlist, IMMUTABLE);
 
     assert(Details_Querier(details));  // must register querier
     return details;
