@@ -261,11 +261,13 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
 }}
 
 
-Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
+Option(Error*) Trap_Tweak_Spare_Is_Dual_Writeback_Dual_In_Scratch_To_Spare(
     Level* parent,
     Level* const sub,
     StackIndex picker_index
 ){
+    Dual* dual_writeback_scratch = As_Dual(Level_Scratch(parent));
+
     if (Is_Lifted_Antiform(Level_Spare(parent)))
         return Error_User("TWEAK* cannot be used on antiforms");
 
@@ -280,7 +282,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
     Element* location_arg;
     Stable* picker_arg;
-    Value* value_arg;
+    Value* dual_value_arg;
 
   proxy_arguments_to_frame_dont_panic_in_this_scope: {
 
@@ -308,7 +310,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
         Data_Stack_At(Element, picker_index)
     );
 
-    value_arg = u_cast(Value*, Erase_ARG(DUAL));
+    dual_value_arg = u_cast(Value*, Erase_ARG(DUAL));
 
 } erase_parent_spare_now_that_we_are_done_extracting_it: {
 
@@ -317,57 +319,26 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
 } adjust_frame_arguments_now_that_its_safe_to_panic: {
 
-    attempt {  // v-- how to handle cases like ^x.(...) and know it's ^META?
-        if (Any_Lifted(picker_arg)) {  // literal x.'y or x.('y) => 'y
-            Known_Stable_Unlift_Cell(picker_arg);
-
-            if (Is_Logic(picker_arg)) {
-                Drop_Action(sub);
-                return Error_User(
-                    "PICK with logic picker never allowed"
-                );
-            }
-
-            if (Is_Any_Lifted_Void(TOP_ELEMENT)) // don't know if was ^META :-(
-                break;  // remove signal
-
-            if (Is_Quoted(TOP_ELEMENT))
-                break;
-
-            if (Is_Lifted_Non_Meta_Assignable_Unstable_Antiform(TOP_ELEMENT))
-                break;
-
-            Value* sub_spare = Copy_Cell(Level_Spare(sub), TOP_ELEMENT);
-            require (
-              Unlift_Cell_No_Decay(sub_spare)
+    if (Is_Lifted_Action(dual_writeback_scratch)) {  // !!! must generalize
+        if (Is_Word(picker_arg)) {
+            Update_Frame_Cell_Label(  // !!! is this a good idea?
+                dual_writeback_scratch, Word_Symbol(picker_arg)
             );
-            Decay_If_Unstable(sub_spare) except (Error* e) {
-                Drop_Action(sub);
-                return e;
-            }
-            Copy_Cell(TOP_ELEMENT, Lift_Cell(sub_spare));
-            break;
         }
-
-        Element* picker_instruction = As_Element(picker_arg);
-        Option(Sigil) picker_sigil = Sigil_Of(picker_instruction);
-        UNUSED(picker_sigil);  // ideas on the table for this...
-
-        if (Is_Lifted_Action(TOP_ELEMENT)) {  // !!! must generalize all sets
-            if (Is_Word(picker_arg)) {
-                Update_Frame_Cell_Label(  // !!! is this a good idea?
-                    TOP_ELEMENT, Word_Symbol(picker_arg)
-                );
-            }
-        }
-
-        continue;  // don't decay TOP_ELEMENT
-    }
-    then {  // not quoted...
-        Clear_Cell_Sigil(As_Element(picker_arg));  // drop any sigils
     }
 
-    Copy_Cell(value_arg, TOP_ELEMENT);
+    if (Get_Cell_Flag(
+        Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
+    )){
+        Unbind_Cell_If_Bindable_Core(dual_writeback_scratch);  // before write
+    }
+
+    if (Any_Lifted(picker_arg))
+        Known_Stable_Unlift_Cell(picker_arg);
+    else
+        Clear_Cell_Sigil(As_Element(picker_arg));
+
+    Copy_Cell(dual_value_arg, dual_writeback_scratch);
 
 } call_updater: {
 
@@ -376,20 +347,12 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
   //    the pick may not panic.  (Note this is distinct from if the picker was
   //    objectively bad, like using an OBJECT! picker in a BLOCK!)
 
-    if (Get_Cell_Flag(
-        Data_Stack_At(Element, picker_index), STEP_NOTE_WANTS_UNBIND
-    )){
-        Unbind_Cell_If_Bindable_Core(  // unbind before writing
-            Level_Spare(parent)
-        );
-    }
-
     if (SPORADICALLY(32)) {
         LEVEL_STATE_BYTE(sub) = ST_ACTION_TYPECHECKING;
     } else {
         Mark_Typechecked(u_cast(Param*, location_arg));
         Mark_Typechecked(u_cast(Param*, picker_arg));
-        Mark_Typechecked(u_cast(Param*, value_arg));
+        Mark_Typechecked(u_cast(Param*, dual_value_arg));
         Set_Executor_Flag(ACTION, sub, IN_DISPATCH);
     }
 
@@ -446,7 +409,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
 
 }} return_success: { //////////////////////////////////////////////////////////
 
-    Corrupt_Cell_If_Needful(TOP);  // shouldn't use past this point
+    Corrupt_Cell_If_Needful(dual_writeback_scratch);  // done with it
     return SUCCESS;
 }}
 
@@ -716,7 +679,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
 
     stackindex_top = TOP_INDEX;  // capture "top of stack" before push
 
-    Copy_Cell(PUSH(), As_Stable(OUT));
+    Copy_Cell(SCRATCH, As_Stable(OUT));
 
     require (
       Level* sub = Make_End_Level(
@@ -803,7 +766,6 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
     //    value here if the picker wasn't ^META.
 
     if (Is_Null_Signifying_Tweak_Is_Pick(out)) {
-        assert(Is_Null(TOP_STABLE));
       #if RUNTIME_CHECKS
         Unprotect_Cell(OUT);
       #endif
@@ -815,7 +777,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
     // as we go back through the list of steps to update any bits that are
     // required to update in the referencing cells.
 
-    error = Trap_Tweak_Spare_Is_Dual_To_Top_Put_Writeback_Dual_In_Spare(
+    error = Trap_Tweak_Spare_Is_Dual_Writeback_Dual_In_Scratch_To_Spare(
         level_,
         sub,
         stackindex  // picker_index
@@ -824,18 +786,18 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
     if (error)
         goto return_error;
 
-    Stable* spare_writeback_dual = As_Stable(SPARE);
+    Stable* spare_writeback_dual_or_logic = As_Stable(SPARE);
 
     // Subsequent updates become pokes, regardless of initial updater function
 
-    if (Is_Okay_Signifying_No_Writeback(spare_writeback_dual)) {
+    if (Is_Okay_Signifying_No_Writeback(spare_writeback_dual_or_logic)) {
       #if RUNTIME_CHECKS
         Unprotect_Cell(OUT);
       #endif
         goto return_success;
     }
 
-    if (Is_Null_Signifying_Slot_Unavailable(spare_writeback_dual)) {
+    if (Is_Null_Signifying_Slot_Unavailable(spare_writeback_dual_or_logic)) {
         error = Error_Bad_Pick_Raw(Data_Stack_At(Element, stackindex));
         goto return_error;
     }
@@ -846,8 +808,7 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
         );
     }
 
-    Assert_Cell_Stable(spare_writeback_dual);
-    Copy_Cell(Data_Stack_At(Value, TOP_INDEX), spare_writeback_dual);
+    Move_Cell(SCRATCH, spare_writeback_dual_or_logic);  // save for next poke
 
     --stackindex_top;
 
@@ -873,7 +834,6 @@ Option(Error*) Trap_Tweak_From_Stack_Steps_With_Dual_Out(void)
     assert(not error);
 
     Drop_Level(sub);
-    DROP();  // drop pushed cell for decaying OUT/etc.
 
     goto finalize_and_return;
 

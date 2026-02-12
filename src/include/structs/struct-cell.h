@@ -798,6 +798,9 @@ typedef Param Arg;  // !!! Args are in ParamList too; differentiate?
 // they have to be, to be in a List).  But the representational conception is
 // that the values are lifted unless they are signals in the NOQUOTE_3 state.)
 //
+// !!! Should there be a `Lifted` subclass, holding Quoted/Quasi?  Currently
+// functions like Lift_Cell() just return Dual...
+//
 
 #if DONT_CHECK_CELL_SUBCLASSES
     typedef struct RebolValueStruct Dual;

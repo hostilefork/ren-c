@@ -400,13 +400,13 @@ INLINE Value* Unstably_Antiformize_Unbound_Fundamental_Core(Value* v) {
 #define Not_Lifted(v) \
     (LIFT_BYTE(Ensure_Readable(v)) < QUASIFORM_4)  // anti or fundamental
 
-INLINE Element* Lift_Cell(Value* v) {
+INLINE Dual* Lift_Cell(Value* v) {
     if (LIFT_BYTE_RAW(v) > STABLE_ANTIFORM_2)
-        return Quote_Cell(As_Element(v));  // non-antiform winds up quoted
+        return As_Dual(Quote_Cell(As_Element(v)));  // non-antiform -> quoted
 
     assert(LIFT_BYTE_RAW(v) != BEDROCK_0);
     LIFT_BYTE_RAW(v) = QUASIFORM_4;  // both unstable and stable become quasi
-    return As_Element(v);
+    return As_Dual(v);
 }
 
 INLINE Result(Value*) Unlift_Cell_No_Decay_Core(Value* v) {
@@ -434,7 +434,7 @@ INLINE Stable* Known_Stable_Unlift_Cell_Core(Stable* v) {
 #define Known_Stable_Unlift_Cell(v) \
     Known_Stable_Unlift_Cell_Core(Possibly_Antiform(v))
 
-INLINE Element* Copy_Lifted_Cell_Untracked(Init(Element) out, const Value* v)
+INLINE Dual* Copy_Lifted_Cell_Untracked(Init(Dual) out, const Value* v)
 {
     Copy_Cell_Core_Untracked(out, v, CELL_MASK_COPY);
     return Lift_Cell(u_cast(Value*, out));
@@ -443,7 +443,7 @@ INLINE Element* Copy_Lifted_Cell_Untracked(Init(Element) out, const Value* v)
 #define Copy_Lifted_Cell(out,v) \
     MAYBE_TRACK(Copy_Lifted_Cell_Untracked((out), (v)))
 
-INLINE Element* Copy_Plain_Cell_Untracked(Init(Element) out, const Cell* cell) {
+INLINE Dual* Copy_Plain_Cell_Untracked(Init(Dual) out, const Cell* cell) {
     Copy_Cell_Core_Untracked(out, cell, CELL_MASK_COPY);
     LIFT_BYTE(out) = NOQUOTE_3;
     return out;
