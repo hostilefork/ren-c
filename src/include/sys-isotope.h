@@ -194,8 +194,7 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 // 1. We don't want to cast away the error state, but we don't want to give
 //    back a Stable* value either if we didn't decay.  Casting to Result(None)
 //    can be made to work in C++ but it can't work in C because that would
-//    be casting a pointer to an enum.  Cast to a void* which will hopefully
-//    discourage people from using the value directly.
+//    be casting a pointer to an enum.  Use inline function, it's easier.
 //
 // 2. If you want a value, then in the general case of getters and setters
 //    that involves running code, which can't be done from an intrinsic.
@@ -203,12 +202,22 @@ INLINE Result(Element*) Coerce_To_Quasiform(Element* v) {
 //    want a value.  This raises some questions about undecayables that
 //    need greater study.
 
+INLINE Result(Stable*) Decay_Or_Elide_Core(Value* v, bool want_value);
+
 #define Decay_If_Unstable(v) \
     Decay_Or_Elide_Core(Possibly_Unstable(v), true)
 
+INLINE Result(None) Ensure_No_Failures_Including_In_Packs_Core(
+    const Value* v  // this as a macro is a nightmare, use a function [1]
+){
+    trap (
+      Decay_Or_Elide_Core(m_cast(Value*, v), false)
+    );
+    return none;
+}
+
 #define Ensure_No_Failures_Including_In_Packs(v) \
-    u_cast(Result(void*), /* Result(None) cast can't work in C [1] */ \
-        Decay_Or_Elide_Core(m_cast(Value*, Possibly_Unstable(v)), false))
+    Ensure_No_Failures_Including_In_Packs_Core(Possibly_Unstable(v))
 
 INLINE Result(Stable*) Decay_Or_Elide_Core(
     Value* v,
@@ -277,7 +286,7 @@ INLINE Result(Stable*) Decay_Or_Elide_Core(
         assume (
             Unlift_Cell_No_Decay(v)
         );
-        Ensure_No_Failures_Including_In_Packs(v) except (Error* e) {  // [1]
+        Decay_Or_Elide_Core(v, false) except (Error* e) {  // [1]
             return fail (e);
         }
     }
