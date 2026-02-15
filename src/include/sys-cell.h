@@ -163,6 +163,19 @@
         } \
     } while (0)
 
+  #if DEBUG_TRACK_EXTEND_CELLS  // add TRACK_FLAG_SHIELD_FROM_WRITES check
+    #define Assert_Cell_Writable_Evil_Macro(c) do { \
+        /* don't STATIC_ASSERT_LVALUE(out), it's evil on purpose */ \
+        if ( \
+            ((((c)->header.bits) & ( \
+                BASE_FLAG_BASE | BASE_FLAG_CELL | CELL_FLAG_PROTECTED \
+            )) != (BASE_FLAG_BASE | BASE_FLAG_CELL)) \
+            or (((c)->track_flags.bits) & TRACK_FLAG_SHIELD_FROM_WRITES) \
+        ){ \
+            Crash_On_Unwritable_Cell(c);  /* despite write, pass const [2] */ \
+        } \
+    } while (0)
+  #else
     #define Assert_Cell_Writable_Evil_Macro(c) do { \
         /* don't STATIC_ASSERT_LVALUE(out), it's evil on purpose */ \
         if ( \
@@ -173,6 +186,7 @@
             Crash_On_Unwritable_Cell(c);  /* despite write, pass const [2] */ \
         } \
     } while (0)
+  #endif
 
     #define Assert_Cell_Writable(c) do { \
         STATIC_ASSERT_LVALUE(c);  /* ensure "evil macro" used safely [1] */ \
@@ -1253,7 +1267,7 @@ INLINE Cell* Force_Blit_Cell_Untracked(Cell* out, const Cell* c) {
 
 INLINE Cell* Blit_Cell_Untracked(Cell* out, const Cell* c) {
   #if DEBUG_POISON_UNINITIALIZED_CELLS
-    assert(Is_Cell_Poisoned(out) or Is_Cell_Erased(out));
+   assert(Is_Cell_Poisoned(out) or Is_Cell_Erased(out));
   #endif
    return Force_Blit_Cell_Untracked(out, c);
 }
@@ -1278,7 +1292,7 @@ INLINE Value* Inherit_Const(Value* out, const Cell* influencer) {
 }
 
 #define Trust_Const(value) \
-    (value)  // just a marking to say the const is accounted for already
+    PASSTHRU(value)  // just mark to say the const is accounted for already
 
 INLINE Stable* Constify(Stable* v) {
     Set_Cell_Flag(v, CONST);

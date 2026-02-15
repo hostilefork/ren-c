@@ -82,7 +82,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
     Cell* rootvar = Flex_Head_Dynamic(Element, a);
     Copy_Cell(rootvar, action);
     LIFT_BYTE(rootvar) = NOQUOTE_3;  // make sure it's a plain FRAME!
-    Protect_Rootvar_If_Debug(rootvar);
+    Shield_Rootvar_If_Debug(rootvar);
 
     const Key* tail;
     const Key* key = Phase_Keys(&tail, phase);
@@ -94,7 +94,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
 
     for (; key != tail; ++key, ++param, ++arg, ++n) {
         if (Is_Specialized(param)) {  // includes locals
-            Blit_Param_Unprotect_If_Debug(arg, param);
+            Blit_Cell(arg, param);
 
           continue_specialized:
 
@@ -107,7 +107,7 @@ ParamList* Make_Varlist_For_Action_Push_Partials(
           continue_unspecialized:
 
             assert(Not_Cell_Flag(param, PARAM_MARKED_SEALED));
-            Blit_Param_Unprotect_If_Debug(arg, param);
+            Blit_Cell(arg, param);
 
             if (binder)
                 Add_Binder_Index(unwrap binder, symbol, n);

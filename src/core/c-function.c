@@ -709,9 +709,7 @@ Result(ParamList*) Pop_Paramlist(
         else
             Set_Cell_Flag(param, PARAM_NOTE_TYPECHECKED);  // locals "checked"
 
-      #if DEBUG_PROTECT_PARAM_CELLS
-        Protect_Cell(param);
-      #endif
+        Shield_Param_If_Debug(param);
 
         ++key;
         ++param;
@@ -918,7 +916,7 @@ Details* Make_Dispatch_Details(
     Cell* rootvar = Array_Head(a);
     Copy_Cell(rootvar, exemplar);
     LIFT_BYTE(rootvar) = NOQUOTE_3;  // canonize action antiforms to FRAME!
-    Protect_Rootvar_If_Debug(rootvar);
+    Shield_Rootvar_If_Debug(rootvar);
 
     // Leave rest of the cells in the capacity uninitialized (caller fills in)
 

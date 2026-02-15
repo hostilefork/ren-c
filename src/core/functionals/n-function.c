@@ -188,7 +188,7 @@ Bounce Func_Dispatcher(Level* const L)
           #if DEBUG_POISON_UNINITIALIZED_CELLS
             Poison_Cell(arg);
           #endif
-            Blit_Param_Unprotect_If_Debug(arg, param);
+            Blit_Cell(arg, param);
         }
         else {
             // assume arguments assigned to values desired for recursion
@@ -535,9 +535,7 @@ DECLARE_NATIVE(PROCEDURE)
     ));
 
     if (Is_Parameter_Unconstrained(param)) {
-      #if DEBUG_PROTECT_PARAM_CELLS
-        Unprotect_Cell(param);
-      #endif
+        Unshield_Param_If_Debug(param);
 
         const Strand* notes = opt Parameter_Strand(param);
         Copy_Cell(param, g_auto_trash_param);
@@ -549,9 +547,7 @@ DECLARE_NATIVE(PROCEDURE)
         assert(Get_Parameter_Flag(param, TRASH_DEFINITELY_OK));
         assert(Get_Parameter_Flag(param, AUTO_TRASH));
 
-      #if DEBUG_PROTECT_PARAM_CELLS
-        Protect_Cell(param);
-      #endif
+        Shield_Param_If_Debug(param);
     }
     else if (Not_Parameter_Flag(param, AUTO_TRASH))
         panic ("If PROCEDURE has RETURN:, it must be [return: ~]");

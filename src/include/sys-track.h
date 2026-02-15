@@ -51,6 +51,22 @@
     FLAG_LEFT_BIT(0)
 
 
+//=//// TRACK_FLAG_SHIELD_FROM_WRITES /////////////////////////////////////=//
+//
+// While usermode variables can be protected from being written by a flag that
+// is exclusive to VarList, there is no generic bit for stopping an arbitrary
+// Cell (such as one in the middle of a source array) from being written by
+// low-level code.  Such a bit would not be a good idea to expose--as it would
+// cost on every cell write.  And it would use up a scarce CELL_FLAG_XXX bit.
+//
+// But for debugging it can be helpful.  So using the extra track_flags, we
+// can update the Assert_Cell_Writable() in DEBUG_TRACK_EXTEND_CELLS builds
+// to account for an extra flag.
+//
+#define TRACK_FLAG_SHIELD_FROM_WRITES \
+    FLAG_LEFT_BIT(1)
+
+
 #define TRACK_MASK_NONE  0
 
 
@@ -152,9 +168,9 @@
     #define FORCE_TRACK(cell,track_flags) \
         Force_Cell_Tracking((cell), (track_flags), __FILE__, __LINE__)
 #else
-    #define TRACK(cell) (cell)
+    #define TRACK(cell)  PASSTHRU(cell)
 
-    #define FORCE_TRACK(cell,track_flags) (cell)
+    #define FORCE_TRACK(cell,track_flags)  PASSTHRU(cell)
 #endif
 
 #define FORCE_TRACK_0(cell) \
@@ -162,6 +178,13 @@
 
 #define FORCE_TRACK_VALID_EVAL_TARGET(cell) \
     FORCE_TRACK((cell), TRACK_FLAG_VALID_EVAL_TARGET)
+
+
+#if DEBUG_TRACK_COPY_PRESERVES
+    #define MAYBE_TRACK(cell)  PASSTHRU(cell)
+#else
+    #define MAYBE_TRACK(cell)  TRACK(cell)
+#endif
 
 
 //=//// CELL "TOUCH" //////////////////////////////////////////////////////=//
@@ -184,4 +207,45 @@
         STATIC_FAIL(need_DEBUG_TRACK_EXTEND_CELLS_and_TRAMPOLINE_COUNTS_TICKS)
 
     #define Touch_Cell_If_Debug(cell)  NOOP
+#endif
+
+
+//=//// TRACK FLAG HELPERS ////////////////////////////////////////////////=//
+
+#if DEBUG_TRACK_EXTEND_CELLS
+    #define Get_Track_Flag(c,name) \
+        (((c)->track_flags.bits & TRACK_FLAG_##name) != 0)
+
+    #define Not_Track_Flag(c,name) \
+        (((c)->track_flags.bits & TRACK_FLAG_##name) == 0)
+
+    #define Set_Track_Flag(c,name) /* cast away const [1] */ \
+        m_cast(HeaderUnion*, &(c)->track_flags)->bits \
+            |= TRACK_FLAG_##name
+
+    #define Clear_Track_Flag(c,name) /* cast away const [1] */ \
+        m_cast(HeaderUnion*, &(c)->track_flags)->bits \
+            &= ~TRACK_FLAG_##name
+#endif
+
+
+//=//// CELL "SHIELD" /////////////////////////////////////////////////////=//
+
+#if DEBUG_TRACK_EXTEND_CELLS
+   INLINE void Shield_Cell_If_Debug(Cell* cell) {
+       assert(Not_Track_Flag(cell, SHIELD_FROM_WRITES));
+       Set_Track_Flag(cell, SHIELD_FROM_WRITES);
+   }
+
+   INLINE void Unshield_Cell_If_Debug(Cell* cell) {
+       assert(Get_Track_Flag(cell, SHIELD_FROM_WRITES));
+       Clear_Track_Flag(cell, SHIELD_FROM_WRITES);
+   }
+
+   #define Clear_Cell_Shield_If_Debug(cell) \
+       Clear_Track_Flag((cell), SHIELD_FROM_WRITES);
+#else
+    #define Shield_Cell_If_Debug(cell)  NOOP
+    #define Unshield_Cell_If_Debug(cell)  NOOP
+    #define Clear_Cell_Shield_If_Debug(cell)  NOOP
 #endif

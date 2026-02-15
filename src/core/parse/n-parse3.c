@@ -2657,9 +2657,10 @@ DECLARE_NATIVE(PARSE_REJECT)
 //
 void Startup_Parse3(void)
 {
-    known_nullptr(g_trash_parse3_success) = Protect_Cell(rebUndecayed(
+    known_nullptr(g_trash_parse3_success) = rebUndecayed(
         "~<PARSE3 success, so no FAILURE! (no other result unless ACCEPT)>~"
-    ));
+    );
+    Shield_Cell_If_Debug(g_trash_parse3_success);
 }
 
 
@@ -2668,5 +2669,6 @@ void Startup_Parse3(void)
 //
 void Shutdown_Parse3(void)
 {
+    Unshield_Cell_If_Debug(g_trash_parse3_success);
     rebReleaseAndNull(&g_trash_parse3_success);
 }

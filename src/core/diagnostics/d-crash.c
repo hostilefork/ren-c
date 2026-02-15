@@ -522,14 +522,27 @@ void Crash_On_Unreadable_Cell(const Cell* c) {
 // Only called when Assert_Cell_Writable() fails, no reason to inline it.
 //
 void Crash_On_Unwritable_Cell(const Cell* c) {
-    if (not Is_Base(c))
-        printf("Non-Base passed to cell write routine\n");
-    else if (not Is_Base_A_Cell(c))
-        printf("Non-Cell passed to cell write routine\n");
-    else {
-        assert(Get_Cell_Flag(c, PROTECTED));
-        printf("Protected Cell passed to writing routine\n");
+    attempt {
+        if (not Is_Base(c)) {
+            printf("Non-Base passed to cell write routine\n");
+            break;
+        }
+        if (not Is_Base_A_Cell(c)) {
+            printf("Non-Cell passed to cell write routine\n");
+            break;
+        }
+      #if DEBUG_TRACK_EXTEND_CELLS
+        if (Get_Track_Flag(c, SHIELD_FROM_WRITES)) {
+            printf("Debug-Shielded Cell passed to writing routine\n");
+            break;
+        }
+      #endif
     }
+    then {
+        printf("Assert_Cell_Writable() called on seemingly-writable cell?\n");
+        assert(false);
+    }
+
     crash (c);
 }
 

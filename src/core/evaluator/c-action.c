@@ -390,7 +390,7 @@ Bounce Action_Executor(Level* L)
         // underlying phase that will be running.
 
         if (Is_Specialized(PARAM)) {
-            Blit_Param_Unprotect_If_Debug(ARG, PARAM);
+            Blit_Cell(ARG, PARAM);
             goto continue_fulfilling;
         }
 
@@ -832,6 +832,8 @@ Bounce Action_Executor(Level* L)
     PARAM = Phase_Params_Head(phase);
 
     for (; KEY != KEY_TAIL; ++KEY, ++PARAM, ++ARG) {
+        Clear_Cell_Shield_If_Debug(ARG);  // we Mem_Copy(), shield bits copied
+
         ARG->header.bits |= pure_mask;  // when's the right time for this [?]
 
         if (Is_Specialized(PARAM)) {  // no typecheck info in this layer
@@ -1185,10 +1187,11 @@ Result(None) Push_Action(
 
     FORCE_TRACK_0(L->rootvar)->header.bits
         = (frame->header.bits & (~ CELL_MASK_LIFT))
-            | FLAG_LIFT_BYTE(NOQUOTE_3)  // canonize as FRAME!
-            | CELL_FLAG_PROTECTED;  // rootvars protected from modification
+            | FLAG_LIFT_BYTE(NOQUOTE_3);  // canonize as FRAME!
     L->rootvar->extra = frame->extra;
     L->rootvar->payload = frame->payload;
+
+    Shield_Rootvar_If_Debug(L->rootvar);
 
     s->content.dynamic.used = num_args + 1;
 

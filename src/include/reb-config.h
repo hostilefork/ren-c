@@ -898,10 +898,6 @@ Special internal defines used by RT, not Host-Kit developers:
     #define DEBUG_PROTECT_FEED_CELLS  RUNTIME_CHECKS
 #endif
 
-#if !defined(DEBUG_PROTECT_PARAM_CELLS)
-    #define DEBUG_PROTECT_PARAM_CELLS  RUNTIME_CHECKS
-#endif
-
 
 // Uninitialized memory has no predictable pattern.  We could pay to memset()
 // all uninitialized cells to zero to erase them, but that has a cost you
@@ -948,9 +944,6 @@ Special internal defines used by RT, not Host-Kit developers:
     #if (! DEBUG_TRACK_EXTEND_CELLS)
         #error "DEBUG_TRACK_COPY_PRESERVES requires DEBUG_TRACK_EXTEND_CELLS"
     #endif
-    #define MAYBE_TRACK(cell)  (cell)
-#else
-    #define MAYBE_TRACK(cell)  TRACK(cell)
 #endif
 
 

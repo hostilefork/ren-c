@@ -448,20 +448,11 @@ bool Predicate_Check_Spare_Uses_Scratch(
 
   copy_exemplar_frame: {
 
-  #if RUNTIME_CHECKS
-    possibly(DEBUG_PROTECT_PARAM_CELLS);
-    const Key* key = sub->u.action.key;
-    const Param* param = sub->u.action.param;
-    Arg* arg = sub->u.action.arg;
-    for (; key != sub->u.action.key_tail; ++key, ++param, ++arg)
-        Blit_Param_Unprotect_If_Debug(arg, param);
-  #else
-    Mem_Copy(
+    Mem_Copy(  // note: copies TRACK_FLAG_SHIELD_FROM_WRITES, cleared later
         sub->u.action.arg,
         sub->u.action.param,
         sizeof(Cell) * (sub->u.action.key_tail - sub->u.action.key)
     );
-  #endif
 
 } fill_in_first_argument: {
 
@@ -470,6 +461,7 @@ bool Predicate_Check_Spare_Uses_Scratch(
     if (not arg)
         panic (Error_No_Arg_Typecheck(label));  // must take argument
 
+    Clear_Param_Shield_If_Debug(arg);
     Copy_Cell(arg, SPARE);  // do not decay [4]
 
     require (

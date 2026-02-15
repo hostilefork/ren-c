@@ -59,20 +59,11 @@ Result(None) Prep_Action_Level(
 
   copy_exemplar_frame: {
 
-  #if RUNTIME_CHECKS
-    possibly(DEBUG_PROTECT_PARAM_CELLS);
-    const Key* key = L->u.action.key;
-    const Param* param = L->u.action.param;
-    Arg* arg = L->u.action.arg;
-    for (; key != L->u.action.key_tail; ++key, ++param, ++arg)
-        Blit_Param_Unprotect_If_Debug(arg, param);
-  #else
-    Mem_Copy(
+    Mem_Copy(  // note: copies TRACK_FLAG_SHIELD_FROM_WRITES, cleared later
         L->u.action.arg,
         L->u.action.param,
         sizeof(Cell) * (L->u.action.key_tail - L->u.action.key)
     );
-  #endif
 
 } fill_in_first_argument: {
 
@@ -86,6 +77,7 @@ Result(None) Prep_Action_Level(
             break;
         }
 
+        Clear_Param_Shield_If_Debug(arg);
         Value* copied = Copy_Cell(arg, unwrap with);  // do not decay [1]
 
         if (Parameter_Class(param) != PARAMCLASS_META) {
@@ -278,20 +270,11 @@ bool Pushed_Continuation(
 
     copy_exemplar_frame: {
 
-      #if RUNTIME_CHECKS
-        possibly(DEBUG_PROTECT_PARAM_CELLS);
-        const Key* key = L->u.action.key;
-        const Param* param = L->u.action.param;
-        Arg* arg = L->u.action.arg;
-        for (; key != L->u.action.key_tail; ++key, ++param, ++arg)
-            Blit_Param_Unprotect_If_Debug(arg, param);
-      #else
-        Mem_Copy(
+        Mem_Copy(  // note: copies TRACK_FLAG_SHIELD_FROM_WRITES, cleared later
             L->u.action.arg,
             L->u.action.param,
             sizeof(Cell) * (L->u.action.key_tail - L->u.action.key)
         );
-      #endif
 
     } fill_in_first_argument: {
 

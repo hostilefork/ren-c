@@ -916,13 +916,18 @@ void Needful_Panic_Abruptly(const char* error) {
 ** added check, this gives the UNUSED() macro "teeth" in C++11:
 **
 **   https://codereview.stackexchange.com/q/159439
+**
+** 1. Putting the (void)0 at the head of PASSTHRU may seem superfluous, but
+**    if you just define a macro as the plain parenthesization of its args,
+**    Clang will complain about unused results if you pass the product of
+**    a cast.  If you want the warning, just use parentheses, not PASSTHRU.
 */
 
 #define NEEDFUL_USED(...)    ((void)(__VA_ARGS__))
 
 #define NEEDFUL_UNUSED(...)  ((void)(__VA_ARGS__))
 
-#define NEEDFUL_PASSTHRU(...)  (__VA_ARGS__)
+#define NEEDFUL_PASSTHRU(...)  ((void)0, __VA_ARGS__)  /* see [1] */
 
 
 /****[[ STATIC_ASSERT, STATIC_IGNORE, STATIC_FAIL ]]**************************
@@ -1209,6 +1214,10 @@ void Needful_Panic_Abruptly(const char* error) {
 
   #if !defined(NOOP)
     #define NOOP  NEEDFUL_NOOP
+  #endif
+
+  #if !defined(PASSTHRU)
+    #define PASSTHRU  NEEDFUL_PASSTHRU
   #endif
 
   #if !defined(NODISCARD)

@@ -482,44 +482,23 @@ INLINE const Slot* Known_Unspecialized(const Param* p) {
 }
 
 
-//=//// PARAMETER "BLITTING" //////////////////////////////////////////////=//
+//=//// PARAMETER SHIELDING ///////////////////////////////////////////////=//
 //
-// There's a not-insignificant optimization when building function call frames
-// to assume the target slot is uninitialized, and overwrite its bits without
-// doing masking operations to preserve CELL_MASK_PERSIST.  So when proxying
-// specialized slots we can just take the bits directly.
+// Parameter lists we shouldn't write to are marked immutable, but we also
+// shield the cells to prevent accidents with the internals.
 //
-// 1. "sealed" parameters in the ParamList have CELL_FLAG_PARAM_MARKED_SEALED.
-//    This is integral to how AUGMENT can add symbols to a frame which exist
-//    already as locals or specialized parameters in the augmentee's frame.
-//    When optimized builds use Mem_Copy() to get the frame's arguments, we
-//    get those bits...and they need to be cleared out by typechecking.
-//
-// 2. We could similarly put the clearing of protected bits status on the
-//    type checking, but that would be wrong--e.g. what if someone is doing
-//    a tail call and they had protected a FRAME! local?  This means debug
-//    builds that set the protected bit on PARAMETER! in built ParamList for
-//    actions can't use Mem_Copy() to fill a frame's arguments from an
-//    exemplar...
+// !!! Probably marking all varlists immutable should shield all the cells in
+// them, this is something to consider.
 //
 
-#if DEBUG_PROTECT_PARAM_CELLS
-    INLINE Param* Blit_Param_Unprotect_If_Debug_Untracked(
-        Param* out,
-        const Param* p
-    ){
-        possibly(Get_Cell_Flag(p, PARAM_MARKED_SEALED));  // [1]
-        Blit_Cell_Untracked(out, p);
-        Clear_Cell_Flag(out, PROTECTED);  // [2]
-        return out;
-    }
-#else
-    #define Blit_Param_Unprotect_If_Debug_Untracked(out,p) \
-        Blit_Cell_Untracked((out), (p))
-#endif
+#define Shield_Param_If_Debug(param) \
+    Shield_Cell_If_Debug(known(Param*, (param)));
 
-#define Blit_Param_Unprotect_If_Debug(out,p) \
-    TRACK(Blit_Param_Unprotect_If_Debug_Untracked(out,p));
+#define Unshield_Param_If_Debug(param) \
+    Unshield_Cell_If_Debug(known(Param*, (param)));
+
+#define Clear_Param_Shield_If_Debug(param) \
+    Clear_Cell_Shield_If_Debug(known(Param*, (param)));
 
 
 //=//// FAST ANTI-WORD "BLITTING" /////////////////////////////////////////=//
