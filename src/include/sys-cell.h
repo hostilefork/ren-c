@@ -470,7 +470,7 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
   //    and an expression with side effects that synthsized a reference.
   //    There would be ways to make a macro that "approved" a reference:
   //
-  //       Init_Unredable_Untracked(NO_SIDE_EFFECTS(&ref));
+  //       Init_Unreadable_Untracked(NO_SIDE_EFFECTS(&ref));
   //
   //    However, even a constexpr which did this would add cost in the
   //    checked build (functions aren't inlined).  So for this case, we
