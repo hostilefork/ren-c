@@ -590,7 +590,11 @@ INLINE Error* Cell_Error(const Cell* c);
   namespace needful {  // so things like CastHook<> specialization easier
     #include "casts/cast-base.hpp"
     #include "casts/cast-stubs.hpp"
+
+  #if CHECK_CELL_SUBCLASSES
     #include "casts/cast-cells.hpp"
+  #endif
+
     #include "casts/cast-misc.hpp"
   }
 #endif
