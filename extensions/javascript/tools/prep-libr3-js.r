@@ -415,7 +415,7 @@ for-each-api [
     ]
 
     let js-return-type: any [
-        if find name "Promise" [<promise>]
+        all [find name "Promise", <promise>]
         to-js-type return-type
         panic ["No JavaScript return mapping for type" return-type]
     ]
