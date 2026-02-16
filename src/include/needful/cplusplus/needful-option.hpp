@@ -253,12 +253,12 @@ T operator+(  // lower precedence than % [2]
 
 //=/// BLOCK OptionWrapper() CONTRAVARIANCE ///////////////////////////////=//
 //
-// You want compiler errors if you write Sink(Option(T)) or Init(Option(T)).
+// While OptionWrapper() is a "wrapped type", you don't want to be able to
+// pass an Option(T*) to a Sink(T).  This is because Option(T*) might be
+// disengaged (nullptr)... there may be no storage to write through to.  So
+// it can't behave like its "wrapped type" in that situation.
 //
-// Nullability is really the *only* contravariance property that a Needful
-// wrapper would have that would mess up Sink() or Init().  Hence it's an
-// "opt-out" property of the wrapper.
+// We specialize IsContravariant directly to always return false.
 //
-
-template<typename T>
-struct IsTransparentWrapper<OptionWrapper<T>> : std::false_type {};
+template<typename T, typename Target>
+struct IsContravariant<OptionWrapper<T>, Target, true> : std::false_type {};

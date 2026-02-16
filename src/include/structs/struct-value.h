@@ -198,7 +198,7 @@ typedef Param Arg;  // !!! Args should be just Slot; review.
   #if NEEDFUL_CONTRAS_USE_WRAPPER
   namespace needful {
     template<>
-    struct IsUnsafeSinkBase<Slot> : std::true_type {};
+    struct MayUseIndirectEncoding<Slot> : std::true_type {};
   }
   #endif
 #endif
