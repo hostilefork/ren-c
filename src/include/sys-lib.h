@@ -54,14 +54,14 @@ INLINE const Value* Lib_Value(SymId id) {
     Value* v = cast(Value*, Stub_Cell(&g_lib_patches[id]));
     if (id != SYM_VOID)
         assert(not Is_Void(v));
-    cant(assert(Get_Cell_Flag(v, PROTECTED)));  // LIB not protected yet [A]
+    cant(assert(Get_Cell_Flag(v, SLOT_AURA_PROTECTED)));  // not yet [A]
     return v;
 }
 
 INLINE Value* Mutable_Lib_Value(SymId id) {  // writing LIB is risky [A]
     assert(id <= MAX_SYM_LIB_PREMADE);
     Value* v = cast(Value*, Stub_Cell(&g_lib_patches[id]));
-    assert(Not_Cell_Flag(v, PROTECTED));
+    assert(Not_Cell_Flag(v, SLOT_AURA_PROTECTED));
     return v;
 }
 
@@ -71,7 +71,7 @@ INLINE Sink(Value) Sink_Lib_Value(SymId id) {
     assert(id <= MAX_SYM_LIB_PREMADE);
     Value* v = cast(Value*, Stub_Cell(&g_lib_patches[id]));
     assert(Is_Void(v));
-    assert(Not_Cell_Flag(v, PROTECTED));
+    assert(Not_Cell_Flag(v, SLOT_AURA_PROTECTED));
     return v;
 }
 

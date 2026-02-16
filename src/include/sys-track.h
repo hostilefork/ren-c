@@ -230,8 +230,13 @@
 
 
 //=//// CELL "SHIELD" /////////////////////////////////////////////////////=//
+//
+// If we are doing a build where every attempt to a cell write is checked,
+// and we have the Cell `track_flags` available, we have the advantage of
+// being able to guard arbitrary cells against writes.
+//
 
-#if DEBUG_TRACK_EXTEND_CELLS
+#if DEBUG_TRACK_EXTEND_CELLS && DEBUG_CELL_READ_WRITE
    INLINE void Shield_Cell_If_Debug(Cell* cell) {
        assert(Not_Track_Flag(cell, SHIELD_FROM_WRITES));
        Set_Track_Flag(cell, SHIELD_FROM_WRITES);
@@ -244,8 +249,12 @@
 
    #define Clear_Cell_Shield_If_Debug(cell) \
        Clear_Track_Flag((cell), SHIELD_FROM_WRITES);
+
+    #define Assert_Cell_Shielded_If_Debug(cell) \
+        assert(Get_Track_Flag((cell), SHIELD_FROM_WRITES))
 #else
     #define Shield_Cell_If_Debug(cell)  NOOP
     #define Unshield_Cell_If_Debug(cell)  NOOP
     #define Clear_Cell_Shield_If_Debug(cell)  NOOP
+    #define Assert_Cell_Shielded_If_Debug(cell)  NOOP
 #endif

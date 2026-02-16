@@ -894,10 +894,6 @@ Special internal defines used by RT, not Host-Kit developers:
   #endif
 #endif
 
-#if !defined(DEBUG_PROTECT_FEED_CELLS)
-    #define DEBUG_PROTECT_FEED_CELLS  RUNTIME_CHECKS
-#endif
-
 
 // Uninitialized memory has no predictable pattern.  We could pay to memset()
 // all uninitialized cells to zero to erase them, but that has a cost you

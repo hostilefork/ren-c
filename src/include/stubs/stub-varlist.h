@@ -174,11 +174,11 @@ INLINE void Tweak_Non_Frame_Varlist_Rootvar_Untracked(
         FLAG_HEART(heart)
             | (not CELL_FLAG_DONT_MARK_PAYLOAD_1)  // varlist
             | CELL_FLAG_DONT_MARK_PAYLOAD_2  // coupling only on frames
-            | CELL_FLAG_PROTECTED  // should not be modified
     );
     CELL_CONTEXT_VARLIST(rootvar) = varlist;
     CELL_FRAME_PAYLOAD_2_COUPLING(rootvar) = nullptr;  // not a frame
     CELL_FRAME_EXTRA_LENS_OR_LABEL(rootvar) = nullptr;  // not a frame
+    Shield_Rootvar_If_Debug(rootvar);
 }
 
 #define Tweak_Non_Frame_Varlist_Rootvar(heart,varlist) \

@@ -339,29 +339,28 @@ typedef Byte LiftByte;  // help document when Byte means a lifting byte
 
 //=//// CELL_FLAG_FINAL ///////////////////////////////////////////////////=//
 //
-#define CELL_FLAG_FINAL \
-    FLAG_LEFT_BIT(26)
-
-#define CELL_FLAG_BINDING_MUST_BE_FINAL  CELL_FLAG_FINAL
-
-
-//=//// CELL_FLAG_PROTECTED ///////////////////////////////////////////////=//
-//
-// Values can carry a user-level protection bit.
-//
-// Because this bit is used to implement "purity", it needs to be copied so
-// that things like (x: (((pure 10)))) will correctly transmit immutability
-// of the 10 across any intermediary cells to reach X.  However, this purity
+// Because this bit is important for "pure" functions, it needs to be copied
+// so things like (x: (((final 10)))) will correctly transmit immutability
+// of the 10 across any intermediary cells to reach X.  However, this finality
 // is discarded when variables are fetched or picked (although the value
 // itself becomes immutable, it won't create more unmodifiable variables).
 //
 // This puts the responsibility of stripping the bit onto the PICK-ing
 // machinery.
 //
-// (A Flex has more than one kind of protection in "info" bits that can all
-// be checked at once...hence there's not "BASE_FLAG_PROTECTED" in common.)
+#define CELL_FLAG_FINAL \
+    FLAG_LEFT_BIT(26)
+
+#define CELL_FLAG_BINDING_MUST_BE_FINAL  CELL_FLAG_FINAL
+
+
+//=//// CELL_FLAG_AURA ////////////////////////////////////////////////////=//
 //
-#define CELL_FLAG_PROTECTED \
+// While running out of words, the "Aura" flag is a flag that's a mark on the
+// Cell itself, out of band of usage by specific cell types.  It is used
+// for example by object slots to indicate userlevel protection.
+//
+#define CELL_FLAG_AURA \
     FLAG_LEFT_BIT(27)
 
 

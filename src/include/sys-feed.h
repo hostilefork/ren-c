@@ -281,6 +281,8 @@ INLINE Option(const Element*) Try_Reify_Variadic_Feed_At(
 ){
     Flex* f = m_cast(Flex*, cast(Flex*, feed->p));
 
+    Unshield_Cell_If_Debug(&feed->fetched);
+
     switch (Stub_Flavor(f)) {
       case FLAVOR_INSTRUCTION_SPLICE: {
         Array* inst1 = u_cast(Array*, f);
@@ -352,6 +354,8 @@ INLINE Option(const Element*) Try_Reify_Variadic_Feed_At(
         crash (feed->p);
     }
 
+    Shield_Cell_If_Debug(&feed->fetched);
+
     return cast(const Element*, feed->p);
 }
 
@@ -382,7 +386,9 @@ INLINE void Force_Variadic_Feed_At_Cell_Or_End_May_Panic(Feed* feed)
 
       case DETECTED_AS_CELL: {  // antiforms handled specially in feeds
         const Value* v = cast(Value*, feed->p);
+        Unshield_Cell_If_Debug(&feed->fetched);
         Copy_Cell(&feed->fetched, v);
+        Shield_Cell_If_Debug(&feed->fetched);
         break; }
 
       case DETECTED_AS_STUB:  // e.g. rebQ, rebU, or a rebR() handle
@@ -461,11 +467,6 @@ INLINE void Sync_Feed_At_Cell_Or_End_May_Panic(Feed* feed) {
 INLINE void Fetch_Next_In_Feed(Feed* feed) {
     assert(Not_Feed_Flag(feed, NEEDS_SYNC));
 
-  #if DEBUG_PROTECT_FEED_CELLS
-    if (not Is_Cell_Erased(&feed->fetched))
-        Clear_Cell_Flag(&feed->fetched, PROTECTED);  // temp unprotect
-  #endif
-
     assert(Not_End(feed->p));  // should test for end before fetching again
     Corrupt_If_Needful(feed->p);
 
@@ -528,11 +529,6 @@ INLINE void Fetch_Next_In_Feed(Feed* feed) {
             }
         }
     }
-
-  #if DEBUG_PROTECT_FEED_CELLS
-    if (Not_Feed_At_End(feed) and not Is_Cell_Erased(&feed->fetched))
-        Set_Cell_Flag(&feed->fetched, PROTECTED);
-  #endif
 
     assert(Is_Feed_At_End(feed) or Ensure_Readable(cast(Cell*, feed->p)));
 }
@@ -644,6 +640,7 @@ INLINE Result(Feed*) Prep_Feed_Common(
   #endif
 
     Force_Erase_Cell(&feed->fetched);
+    Shield_Cell_If_Debug(&feed->fetched);
 
     assume (
       Stub* s = Prep_Stub(

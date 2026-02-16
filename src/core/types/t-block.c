@@ -1832,6 +1832,7 @@ void Assert_Array_Core(const Array* a)
         for (; n < rest; ++n, ++item) {
             const bool unwritable = (
                 (item->header.bits != CELL_MASK_ERASED_0)
+                and not Is_Cell_Poisoned(item)
                 and not (item->header.bits & BASE_FLAG_CELL)
             );
             if (Get_Flex_Flag(a, FIXED_SIZE)) {

@@ -128,13 +128,13 @@
 // [WRITABILITY]
 //
 // A writable cell is one that has BASE_FLAG_BASE and BASE_FLAG_CELL set, but
-// that also does not have CELL_FLAG_PROTECTED.
+// that also does not have TRACK_FLAG_SHIELD_FROM_WRITES if debug tracking on.
 //
-// Note that this code asserts about CELL_FLAG_PROTECTED just to be safe.
-// But the idea is that a cell which is protected should never be writable
-// at runtime, enforced by the `const Cell*` convention.  You can't get a
-// non-const Cell reference without going through a runtime check that
-// makes sure the cell is not protected.
+// (Note that this is a distinct concept of writability from that coming from
+// CELL_FLAG_CONST or CELL_FLAG_FINAL.  Much of that is enforced at compile
+// time by the `const Cell*` convention, where you can't get a non-const Cell
+// reference without going through a runtime check that makes sure the cell is
+// not protected.)
 //
 // [INITABILITY]
 //
@@ -177,9 +177,8 @@
     #define Assert_Cell_Writable_Evil_Macro(c) do { \
         DONT(STATIC_ASSERT_LVALUE(out));  /* evil on purpose [B] */ \
         if ( \
-            ((((c)->header.bits) & ( \
-                BASE_FLAG_BASE | BASE_FLAG_CELL | CELL_FLAG_PROTECTED \
-            )) != (BASE_FLAG_BASE | BASE_FLAG_CELL)) \
+            ((((c)->header.bits) & (BASE_FLAG_BASE | BASE_FLAG_CELL)) \
+                != (BASE_FLAG_BASE | BASE_FLAG_CELL)) \
             or (((c)->track_flags.bits) & TRACK_FLAG_SHIELD_FROM_WRITES) \
         ){ \
             Crash_On_Unwritable_Cell(c);  /* despite write, pass const [1] */ \
@@ -189,9 +188,8 @@
     #define Assert_Cell_Writable_Evil_Macro(c) do { \
         DONT(STATIC_ASSERT_LVALUE(out));  /* evil on purpose [B] */ \
         if ( \
-            (((c)->header.bits) & ( \
-                BASE_FLAG_BASE | BASE_FLAG_CELL | CELL_FLAG_PROTECTED \
-            )) != (BASE_FLAG_BASE | BASE_FLAG_CELL) \
+            (((c)->header.bits) & (BASE_FLAG_BASE | BASE_FLAG_CELL)) \
+                != (BASE_FLAG_BASE | BASE_FLAG_CELL) \
         ){ \
             Crash_On_Unwritable_Cell(c);  /* despite write, pass const [1] */ \
         } \
@@ -274,22 +272,37 @@
 //    a lot of states are valid when checking the length.  It's not clear
 //    what assert (if any) should be here.
 
-#define CELL_MASK_POISON \
-    (BASE_FLAG_BASE | BASE_FLAG_CELL | \
-        BASE_FLAG_UNREADABLE | CELL_FLAG_PROTECTED)  // no read or write [1]
+#define CELL_MASK_POISON /* no read or write [1] */ \
+    ((not BASE_FLAG_BASE) | BASE_FLAG_UNREADABLE | (not BASE_FLAG_CELL))
 
-#define Assert_Cell_Header_Overwritable(c) do {  /* conservative check [2] */ \
-    STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
-    assert( \
-        (c)->header.bits == CELL_MASK_POISON \
-        or (c)->header.bits == CELL_MASK_ERASED_0 \
-        or (BASE_FLAG_BASE | BASE_FLAG_CELL) == ((c)->header.bits & \
-            (BASE_FLAG_BASE | BASE_FLAG_CELL \
-                | BASE_FLAG_ROOT | BASE_FLAG_MARKED \
-                | BASE_FLAG_MANAGED | CELL_FLAG_PROTECTED) \
-        ) \
-    ); \
-  } while (0)
+#if DEBUG_TRACK_EXTEND_CELLS
+    #define Assert_Cell_Header_Overwritable(c) do {  /* conservative [2] */ \
+        STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
+        assert( \
+            ((c)->header.bits == CELL_MASK_POISON \
+                or (c)->header.bits == CELL_MASK_ERASED_0 \
+                or (BASE_FLAG_BASE | BASE_FLAG_CELL) == ((c)->header.bits & \
+                (BASE_FLAG_BASE | BASE_FLAG_CELL \
+                    | BASE_FLAG_ROOT | BASE_FLAG_MARKED \
+                    | BASE_FLAG_MANAGED) \
+                )) \
+            and not ((c)->track_flags.bits & TRACK_FLAG_SHIELD_FROM_WRITES) \
+        ); \
+    } while (0)
+#else
+    #define Assert_Cell_Header_Overwritable(c) do {  /* conservative [2] */ \
+        STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
+        assert( \
+            (c)->header.bits == CELL_MASK_POISON \
+            or (c)->header.bits == CELL_MASK_ERASED_0 \
+            or (BASE_FLAG_BASE | BASE_FLAG_CELL) == ((c)->header.bits & \
+                (BASE_FLAG_BASE | BASE_FLAG_CELL \
+                    | BASE_FLAG_ROOT | BASE_FLAG_MARKED \
+                    | BASE_FLAG_MANAGED) \
+            ) \
+        ); \
+    } while (0)
+#endif
 
 INLINE Cell* Poison_Cell_Untracked(Cell* c) {
   #if DEBUG_POISON_UNINITIALIZED_CELLS
@@ -526,7 +539,7 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
 // made manually with Erase_Cell(), or an already initialized cell can have
 // its non-CELL_MASK_PERSIST portions wiped out with Freshen_Cell().
 //
-// Note if CELL_FLAG_PROTECTED is set on a cell, it will not be considered
+// Note if TRACK_FLAG_SHIELD_FROM_WRITES is set on a cell, it's not considered
 // fresh for initialization.  So the flag must be cleared or the cell "hard"
 // erased (with Force_Erase_Cell()) in order to overwrite it.
 //
@@ -1147,7 +1160,7 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
 //
 
 #define CELL_MASK_COPY \
-    ~(CELL_MASK_PERSIST | CELL_FLAG_PROTECTED | CELL_FLAG_NOTE)
+    ~(CELL_MASK_PERSIST | CELL_FLAG_AURA | CELL_FLAG_NOTE)
 
 #define CELL_MASK_ALL  ~cast(Flags, 0)  // use with caution!
 

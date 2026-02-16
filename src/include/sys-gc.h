@@ -122,34 +122,27 @@ INLINE void Drop_Lifeguard(const void* p) {  // p may be erased cell (not Base)
 //=//// NOTE WHEN CELL KEEPS A GC LIVE REFERENCE //////////////////////////=//
 //
 // If a cell is under the natural control of the GC (e.g. a Level's OUT or
-// SPARE, or a frame variable) then that cell can often give GC protection
+// SPARE, or a frame variable) then that cell can often give GC lifeguarding
 // for "free", instead of using Push_Lifeguard() to keep something alive.
 //
-// It's helpful for the checked build to give some enforcement that you don't
-// accidentally overwrite these lifetime-holding references, so the PROTECT
-// bit can come in handy (if you're using a DEBUG_CELL_READ_WRITE build,
-// because it checks for all writes to cells carrying the bit.)
+// It's helpful for the DEBUG_TRACK_EXTEND_CELLS build to give enforcement
+// that you don't accidentally overwrite these lifetime-holding references.
 //
 // 1. You don't always have to call Forget_Cell_Was_Lifeguard(), e.g. if
 //    it's a frame cell for a native then there's no harm to letting the
-//    cell stay protected as long as the frame is alive.  Anywhere that you
-//    can't leave a protection bit on--such as a frame's OUT cell--will need
-//    to have the protection removed.
+//    cell stay shielded as long as the frame is alive.  Anywhere that you
+//    can't leave a shield bit on--such as a frame's OUT cell--will need
+//    to have the shield removed.
 //
-#if DEBUG_CELL_READ_WRITE
-    INLINE void Remember_Cell_Is_Lifeguard(Cell* c) {
-        assert(Not_Cell_Flag((c), PROTECTED));
-        Set_Cell_Flag((c), PROTECTED);
-    }
 
-    INLINE void Forget_Cell_Was_Lifeguard(Cell* c) {  // unpaired calls ok [1]
-        assert(Get_Cell_Flag((c), PROTECTED));
-        Clear_Cell_Flag((c), PROTECTED);
-    }
-#else
-    #define Remember_Cell_Is_Lifeguard(c)  USED(c)
-    #define Forget_Cell_Was_Lifeguard(c)   USED(c)
-#endif
+#define Remember_Cell_Is_Lifeguard(c) \
+    Shield_Cell_If_Debug(c)
+
+#define Forget_Cell_Was_Lifeguard(c) /* not always necessary [1] */ \
+    Unshield_Cell_If_Debug(c)
+
+#define Clear_Lingering_Out_Cell_Shield_If_Debug(L) \
+    Clear_Cell_Shield_If_Debug(Level_Out(L))
 
 
 //=//// FLEX DECAY ////////////////////////////////////////////////////////=//

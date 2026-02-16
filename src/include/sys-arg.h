@@ -178,7 +178,7 @@ INLINE Cell* Arg_Of_Level_Inline(
       case ARGMODE_INTRINSIC:
         assert(n == 1);
         if (Get_Level_Flag(L, DISPATCHING_INTRINSIC)) {
-            assert(Not_Cell_Flag(Level_Spare(L), PROTECTED));  // see [1]
+            assert(Not_Cell_Flag(Level_Spare(L), SLOT_AURA_PROTECTED));  // see [1]
             return Level_Spare(L);
         }
         break;

@@ -178,7 +178,7 @@ STATIC_ASSERT(FLEX_INFO_0_IS_FALSE == BASE_FLAG_BASE);
 // size or values from modification.  It is the usermode analogue of
 // FLEX_INFO_FROZEN_DEEP, but can be reversed.
 //
-// Note: There is a feature in PROTECT (CELL_FLAG_PROTECTED) which protects
+// Note: There is a feature in PROTECT (CELL_FLAG_SLOT_AURA_PROTECTED) protecting
 // a certain variable in a context from being changed.  It is similar, but
 // distinct.  FLEX_INFO_PROTECTED is a protection on a Flex itself--which
 // ends up affecting all values with that Flex in the payload.

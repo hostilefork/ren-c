@@ -1345,8 +1345,8 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
     if (Is_Dual_Word_Named_Signal(dual))
         goto handle_named_signal;
 
-    if (slot->header.bits & (CELL_FLAG_PROTECTED | CELL_FLAG_FINAL)) {
-        if (Get_Cell_Flag(slot, PROTECTED))  // POKE, must check PROTECT status
+    if (slot->header.bits & (CELL_FLAG_SLOT_AURA_PROTECTED | CELL_FLAG_FINAL)) {
+        if (Get_Cell_Flag(slot, SLOT_AURA_PROTECTED))  // POKE can't allow
             panic (Error_Protected_Variable_Raw(symbol));
 
         panic (Error_Final_Variable_Raw(symbol));
@@ -1378,11 +1378,11 @@ IMPLEMENT_GENERIC(TWEAK_P, Any_Context)
 
     switch (opt Word_Id(dual)) {
       case SYM_PROTECT:
-        Set_Cell_Flag(slot, PROTECTED);
+        Set_Cell_Flag(slot, SLOT_AURA_PROTECTED);
         break;
 
       case SYM_UNPROTECT:
-        Clear_Cell_Flag(slot, PROTECTED);
+        Clear_Cell_Flag(slot, SLOT_AURA_PROTECTED);
         Clear_Cell_Flag(slot, FINAL);  // !!! use same command for now
         break;
 

@@ -361,7 +361,7 @@ DECLARE_NATIVE(HIJACK)
     CELL_FRAME_PAYLOAD_1_PHASE(victim_archetype) = proxy;  // adjust for swap
 
     if (victim_unimplemented) {
-        assert(Get_Cell_Flag(LIB(UNIMPLEMENTED), PROTECTED));
+        assert(Get_Cell_Flag(LIB(UNIMPLEMENTED), SLOT_AURA_PROTECTED));
         Copy_Plain_Cell(OUT, LIB(UNIMPLEMENTED));
     }
     else {

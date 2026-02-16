@@ -37,44 +37,42 @@
 //
 
 
+// Variables in varlists can carry a user-level protection bit, which lives
+// on their Slot.
+//
+// (A Flex has more than one kind of protection in "info" bits that can all
+// be checked at once...hence there's not "BASE_FLAG_PROTECTED" in common.)
+//
+#define CELL_FLAG_SLOT_AURA_PROTECTED \
+    CELL_FLAG_AURA
+
+
 #if CHECK_CELL_SUBCLASSES
     template<class T>
     INLINE T Protect_Cell(T&& c) {
-        assert(Not_Cell_Flag(c, PROTECTED));
-        Set_Cell_Flag(c, PROTECTED);
+        assert(Not_Cell_Flag(c, SLOT_AURA_PROTECTED));
+        Set_Cell_Flag(c, SLOT_AURA_PROTECTED);
         return c;
     }
 
     template<class T>
     INLINE T Unprotect_Cell(T&& c) {
-        assert(Get_Cell_Flag(c, PROTECTED));
-        Clear_Cell_Flag(c, PROTECTED);
+        assert(Get_Cell_Flag(c, SLOT_AURA_PROTECTED));
+        Clear_Cell_Flag(c, SLOT_AURA_PROTECTED);
         return c;
     }
 #else
     INLINE Cell* Protect_Cell(Cell* c) {
-        assert(Not_Cell_Flag(c, PROTECTED));
-        Set_Cell_Flag(c, PROTECTED);
+        assert(Not_Cell_Flag(c, SLOT_AURA_PROTECTED));
+        Set_Cell_Flag(c, SLOT_AURA_PROTECTED);
         return c;
     }
 
     INLINE Cell* Unprotect_Cell(Cell* c) {
-        assert(Get_Cell_Flag(c, PROTECTED));
-        Clear_Cell_Flag(c, PROTECTED);
+        assert(Get_Cell_Flag(c, SLOT_AURA_PROTECTED));
+        Clear_Cell_Flag(c, SLOT_AURA_PROTECTED);
         return c;
     }
-#endif
-
-
-// There are some functions that set the output cell to protected to make
-// sure it's not changed.  But if throwing gets in the mix, that means the
-// code path that would clean it up may not be run.  Clear it.
-//
-#if NO_RUNTIME_CHECKS
-    #define Clear_Lingering_Out_Cell_Protect_If_Debug(L)  NOOP
-#else
-    #define Clear_Lingering_Out_Cell_Protect_If_Debug(L) \
-        ((L)->out->header.bits &= ~(CELL_FLAG_PROTECTED))
 #endif
 
 

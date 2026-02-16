@@ -221,6 +221,9 @@ INLINE Option(LineNumber) Line_Number_Of_Level(Level* L) {
 #define Level_Num_Slots(L) \
     ((L)->varlist->content.dynamic.used - 1)  // minus rootvar
 
+#define Level_Out(L) \
+    known(Level*, (L))->out
+
 #define Level_Spare(L) \
     u_cast(Value*, &(L)->spare)
 
@@ -705,7 +708,7 @@ INLINE Result(Level*) Prep_Level_Core(
 //    might cover up other bugs.
 //
 INLINE Bounce Native_Thrown_Result(Level* L) {
-    Clear_Lingering_Out_Cell_Protect_If_Debug(L);  // for abrupt panics [1]
+    Clear_Lingering_Out_Cell_Shield_If_Debug(L);  // for abrupt panics [1]
 
     Erase_Cell(L->out);
     assert(Is_Throwing(L));
