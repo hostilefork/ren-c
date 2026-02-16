@@ -179,8 +179,6 @@ namespace needful {  //=//// BEGIN `needful::` NAMESPACE //////////////////=//
 
     #include "needful-asserts.hpp"
 
-    #include "needful-known.hpp"
-
     #include "needful-wrapping.hpp"
 
     #include "needful-const.hpp"
@@ -190,6 +188,12 @@ namespace needful {  //=//// BEGIN `needful::` NAMESPACE //////////////////=//
   #if NEEDFUL_DOES_CORRUPTIONS
     #include "needful-corruption.hpp"
   #endif
+
+  #if NEEDFUL_CONTRAS_USE_WRAPPER
+    #include "needful-contra.hpp"
+  #endif
+
+    #include "needful-known.hpp"
 
   #if NEEDFUL_NEED_USES_WRAPPER
     #include "needful-need.hpp"
@@ -203,8 +207,5 @@ namespace needful {  //=//// BEGIN `needful::` NAMESPACE //////////////////=//
     #include "needful-result.hpp"
   #endif
 
-  #if NEEDFUL_SINK_USES_WRAPPER
-    #include "needful-sinks.hpp"
-  #endif
 
 } //=//// END `needful::` NAMESPACE ///////////////////////////////////////=//

@@ -456,7 +456,7 @@ Special internal defines used by RT, not Host-Kit developers:
 
 #if !defined(APPEASE_WEAK_STATIC_ANALYSIS)  // static analysis can be bad [3]
     #define APPEASE_WEAK_STATIC_ANALYSIS \
-        ((! DEBUG_STATIC_ANALYZING) && (! NEEDFUL_SINK_USES_WRAPPER))
+        ((! DEBUG_STATIC_ANALYZING) && (! NEEDFUL_CONTRAS_USE_WRAPPER))
 #else
     STATIC_ASSERT(DEBUG_STATIC_ANALYZING == 0)
 #endif
@@ -716,11 +716,11 @@ Special internal defines used by RT, not Host-Kit developers:
 // interface--which is good to know.  But the Sink()/Exact() functions are
 // actually crucial to CHECK_CELL_SUBCLASSES working.
 //
-#if !defined(NEEDFUL_SINK_USES_WRAPPER)
-    #define NEEDFUL_SINK_USES_WRAPPER  CHECK_CELL_SUBCLASSES
+#if !defined(NEEDFUL_CONTRAS_USE_WRAPPER)
+    #define NEEDFUL_CONTRAS_USE_WRAPPER  CHECK_CELL_SUBCLASSES
 #else
-    #if (! NEEDFUL_SINK_USES_WRAPPER) && CHECK_CELL_SUBCLASSES
-        #error "NEEDFUL_SINK_USES_WRAPPER needed for CHECK_CELL_SUBCLASSES"
+    #if (! NEEDFUL_CONTRAS_USE_WRAPPER) && CHECK_CELL_SUBCLASSES
+        #error "NEEDFUL_CONTRAS_USE_WRAPPER needed for CHECK_CELL_SUBCLASSES"
     #endif
 #endif
 

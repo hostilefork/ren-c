@@ -195,7 +195,7 @@ typedef Param Arg;  // !!! Args should be just Slot; review.
 //
 
 #if CHECK_CELL_SUBCLASSES
-  #if NEEDFUL_SINK_USES_WRAPPER
+  #if NEEDFUL_CONTRAS_USE_WRAPPER
   namespace needful {
     template<>
     struct IsUnsafeSinkBase<Slot> : std::true_type {};

@@ -287,7 +287,7 @@ INLINE Cell* Arg_Of_Level_Inline(
     cast(Value*, Required_Arg_Of_Level(level_, PARAM_INDEX(name)))
 
 #define Sink_LOCAL(name) \
-    cast(Sink(Value), Required_Arg_Of_Level(level_, PARAM_INDEX(name)))
+    u_cast(Sink(Value), Required_Arg_Of_Level(level_, PARAM_INDEX(name)))
 
 #define Element_LOCAL(name) \
     cast(Element*, Required_Arg_Of_Level(level_, PARAM_INDEX(name)))

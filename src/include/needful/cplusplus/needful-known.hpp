@@ -258,3 +258,173 @@ struct CTypeList<T1, Ts...> {  // Specialization for non-empty lists
 
 #define In_C_Type_List(list,T)  /* friendly for C [2] */ \
     list::contains<T>()
+
+
+//=//// EXACT() FOR FORBIDDING COVARIANT INPUT PARAMETERS /////////////////=//
+//
+// Exact() prohibits covariance, but but unlike Sink() or Init() it doesn't
+// imply corruption, so contravariance doesn't make sense.  It just enforces
+// that only the exact type is used.
+//
+// NOTE: The code below might seem overcomplicated for that stated purpose,
+// and simplifications are welcome!  But it has some interoperability with
+// Sink() and Init() as well as fitting into Needful's casting framework.
+// So it's more complex than a minimal C++11 Exact() implementation would be.
+//
+// 1. While Sink(T) and Init(T) implicitly add pointers to the type, you have
+//    to say Exact(T*) if it's a pointer.  This allows you to use Exact
+//    with non-pointer types.
+//
+//    However, the template -must- be parameterized with the type it is a
+//    stand-in for, so it is `SinkWrapper<T*>`, `InitWrapper<T*>`, and
+//    `ExactWrapper<T*>`.
+//
+//    (See needful_rewrap_type() for the reasoning behind this constraint.)
+//
+// 2. Uses in the codebase the Needful library were written for required that
+//    Exact(T*) be able to accept cells with pending corruptions.  I guess
+//    the thing I would say that if you want to argue with this design point,
+//    you should consider that there's nothing guaranteeing a plain `T*` is
+//    not corrupt...so you're not bulletproofing much and breaking some uses
+//    that turned out to be important.  It's better to have cross-cutting
+//    ways at runtime to notice a given T* is corrupt regardless of Exact().
+//
+// 3. Non-dependent enable_if conditions work in MSVC, but GCC has trouble
+//    with them.  Introducing a dependent type seems to help it along.
+//
+
+#undef NeedfulExact
+#define NeedfulExact(TP) \
+    needful::ExactWrapper<TP>  // * not implicit [1]
+
+template<typename TP>  // TP may or may not be a pointer type
+struct ExactWrapper {
+    NEEDFUL_DECLARE_WRAPPED_FIELD (TP, p);
+
+    using T = remove_const_t<remove_pointer_t<TP>>;  // base type
+
+    template<typename U>
+    using IfExactType = enable_if_t<
+        std::is_same<remove_const_t<U>, T>::value  // same base type
+        and (std::is_const<remove_pointer_t<TP>>::value  // const-widening ok
+            or not std::is_const<U>::value)  // but no const-stripping
+    >;
+
+    ExactWrapper() = default;  // compiler MIGHT need, don't corrupt [E]
+
+    ExactWrapper(std::nullptr_t) : p {nullptr}
+        {}
+
+    template<
+        typename U,
+        typename D = TP,  // [3]
+        typename = enable_if_t<
+            std::is_pointer<D>::value
+        >,
+        IfExactType<U>* = nullptr
+    >
+    ExactWrapper(U* u) : p {x_cast(TP, u)}
+        {}
+
+    template<
+        typename UP,
+        typename D = TP,  // [3]
+        typename = enable_if_t<
+            not std::is_pointer<D>::value
+        >,
+        IfExactType<UP>* = nullptr
+    >
+    ExactWrapper(UP u) : p {u}
+        {}
+
+    template<
+        typename U,
+        typename D = TP,  // [3]
+        typename = enable_if_t<
+            std::is_pointer<D>::value
+        >,
+        IfExactType<U>* = nullptr
+    >
+    ExactWrapper(const ExactWrapper<U*>& other)
+        : p {other.p}
+        {}
+
+    template<
+        typename UP,
+        typename D = TP,  // [3]
+        typename = enable_if_t<
+            not std::is_pointer<D>::value
+        >,
+        IfExactType<UP>* = nullptr
+    >
+    ExactWrapper(const ExactWrapper<UP>& other)
+        : p {other.p}
+        {}
+
+    ExactWrapper(const ExactWrapper& other) : p {other.p}
+        {}
+
+    template<typename U, IfExactType<U>* = nullptr>
+    ExactWrapper(const SinkWrapper<U*>& sink)
+        : p {static_cast<TP>(sink)}
+    {
+        dont(assert(not sink.corruption_pending));  // must allow corrupt [2]
+    }
+
+    template<typename U, IfExactType<U>* = nullptr>
+    ExactWrapper(const InitWrapper<U*>& init)
+        : p {static_cast<TP>(init.p)}
+        {}
+
+    template<typename U, IfExactType<U>* = nullptr>
+    ExactWrapper(const ContraWrapper<U*>& contra)
+        : p {static_cast<TP>(contra.p)}
+        {}
+
+    ExactWrapper& operator=(std::nullptr_t) {
+        this->p = nullptr;
+        return *this;
+    }
+
+    ExactWrapper& operator=(const ExactWrapper& other) {
+        if (this != &other) {
+            this->p = other.p;
+        }
+        return *this;
+    }
+
+    template<typename U, IfExactType<U>* = nullptr>
+    ExactWrapper& operator=(U* ptr) {
+        this->p = static_cast<TP>(ptr);
+        return *this;
+    }
+
+    template<typename U, IfExactType<U>* = nullptr>
+    ExactWrapper& operator=(const SinkWrapper<U*>& sink) {
+        dont(assert(not sink.corruption_pending));  // must allow corrupt [2]
+        this->p = static_cast<TP>(sink);  // not sink.p (flush corruption)
+        return *this;
+    }
+
+    template<typename U, IfExactType<U>* = nullptr>
+    ExactWrapper& operator=(const InitWrapper<U*>& init) {
+        this->p = static_cast<TP>(init.p);
+        return *this;
+    }
+
+    template<typename U, IfExactType<U>* = nullptr>
+    ExactWrapper& operator=(const ContraWrapper<U*>& contra) {
+        this->p = static_cast<TP>(contra.p);
+        return *this;
+    }
+
+    explicit operator bool() const { return p != nullptr; }
+
+    operator TP() const { return p; }
+
+    template<typename U>
+    explicit operator U*() const
+        { return const_cast<U*>(reinterpret_cast<const U*>(p)); }
+
+    TP operator->() const { return p; }
+};
