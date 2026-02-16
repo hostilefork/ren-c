@@ -91,7 +91,13 @@ Result(None) Get_Var_To_Out_Use_Toplevel(
     );
 
     if (Get_Cell_Flag(var, SCRATCH_VAR_NOTE_ONLY_ACTION)) {
-        if (not Is_Action(OUT))
+        if (Is_Action(OUT)) {
+            // okay
+        }
+        else if (Is_Possibly_Unstable_Value_Frame(OUT)) {
+            Activate_Frame(OUT);  // !!! dodgy... should f/ get an action?
+        }
+        else
             panic ("GET of word/ or obj.field/ did not yield ACTION!");
     }
 
