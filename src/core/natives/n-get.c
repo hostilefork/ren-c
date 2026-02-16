@@ -60,41 +60,6 @@
 
 
 //
-//  Save_Level_Scratch_Spare: C
-//
-StateByte Save_Level_Scratch_Spare(Level* level_) {
-    StateByte saved_state = STATE;
-
-    assert(not Is_Cell_Poisoned(SCRATCH));
-    assert(not Is_Cell_Poisoned(SPARE));
-
-    Blit_Cell(PUSH(), SCRATCH);
-    Blit_Cell(PUSH(), SPARE);
-
-    return saved_state;
-}
-
-
-//
-//  Restore_Level_Scratch_Spare: C
-//
-void Restore_Level_Scratch_Spare(
-    Level* level_,
-    StateByte saved_state
-){
-    Force_Blit_Cell(SPARE, TOP);
-    Force_Erase_Cell(TOP);  // allows DROP() of protected cell
-    DROP();
-
-    Force_Blit_Cell(SCRATCH, TOP);
-    Force_Erase_Cell(TOP);  // allows DROP() of protected cell
-    DROP();
-
-    STATE = saved_state;
-}
-
-
-//
 //  Get_Var_To_Out_Use_Toplevel: C
 //
 // Uses TOP_LEVEL.  OUT may be FAILURE! antiform, see [A]

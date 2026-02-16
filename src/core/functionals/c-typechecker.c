@@ -1139,12 +1139,9 @@ Result(bool) Typecheck_Coerce_Use_Toplevel(
 // Give back an action antiform which can act as a checker for a datatype.
 //
 Result(Value*) Init_Typechecker(
-    Level* const L,
     Init(Value) out,
     const Stable* datatype_or_block
 ){
-    USE_LEVEL_SHORTHANDS (L);
-
     possibly(u_cast(Value*, out) == datatype_or_block);
 
     if (Is_Datatype(datatype_or_block)) {
@@ -1162,7 +1159,12 @@ Result(Value*) Init_Typechecker(
         return out;
     }
 
-    StackIndex base = TOP_INDEX;
+    require (
+      Level* const L = Make_End_Level(&Just_Use_Out_Executor, LEVEL_MASK_NONE)
+    );
+    Push_Level(Erase_Cell(out), L);
+
+    USE_LEVEL_SHORTHANDS (L);
 
     Init_Set_Word(PUSH(), CANON(TEST));
 
@@ -1176,7 +1178,7 @@ Result(Value*) Init_Typechecker(
       Set_Spec_Of_Parameter_In_Top(L, block, Cell_Binding(block), is_returner)
     );
 
-    Element* def = Init_Block(SCRATCH, Pop_Source_From_Stack(base));
+    Element* def = Init_Block(SCRATCH, Pop_Source_From_Stack(STACK_BASE));
 
     bool threw = Specialize_Action_Throws(
         out, LIB(TYPECHECK), def, TOP_INDEX  // !!! should be TYPECHECK
@@ -1184,6 +1186,8 @@ Result(Value*) Init_Typechecker(
 
     if (threw)
         panic (Error_No_Catch_For_Throw(TOP_LEVEL));
+
+    Drop_Level(L);
 
     return out;
 }
@@ -1216,7 +1220,7 @@ DECLARE_NATIVE(TYPECHECKER)
     INCLUDE_PARAMS_OF_TYPECHECKER;
 
     require (
-      Init_Typechecker(LEVEL, OUT, ARG(TYPES))
+      Init_Typechecker(OUT, ARG(TYPES))
     );
     return OUT;
 }

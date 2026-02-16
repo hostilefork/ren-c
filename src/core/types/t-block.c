@@ -592,8 +592,9 @@ IMPLEMENT_GENERIC(OLDGENERIC, Any_List)
 
             if (Is_Possibly_Unstable_Value_Datatype(pattern)) {
                 require (  // out = in is okay
-                    Init_Typechecker(LEVEL, pattern, As_Stable(pattern))
+                  Init_Typechecker(SPARE, As_Stable(pattern))
                 );
+                Copy_Cell(pattern, SPARE);
             }
             else if (Is_Action(pattern)) {
                 // treat as FIND function

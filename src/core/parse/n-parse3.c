@@ -423,14 +423,12 @@ static Result(Option(SymId)) Get_Parse_Value(
         if (Is_Logic(out_value) or Is_Splice(out_value))
             Quasify_Antiform(out_value);
         else if (Is_Datatype(out)) {  // convert to functions for now
-            StateByte saved_state = Save_Level_Scratch_Spare(TOP_LEVEL);
             DECLARE_VALUE (checker);
             require (
-              Init_Typechecker(TOP_LEVEL, checker, out)
+              Init_Typechecker(checker, out)
             );
             Copy_Plain_Cell(out_value, checker);
             assert(Is_Frame(out_value));
-            Restore_Level_Scratch_Spare(TOP_LEVEL, saved_state);
         }
         else {
             return fail (Error_Bad_Antiform(out));
@@ -1087,11 +1085,9 @@ static Result(REBIXO) To_Thru_Non_Block_Rule(
             Copy_Cell(rule_value, rule);
             Quasify_Isotopic_Fundamental(rule_value);
 
-            StateByte saved_state = Save_Level_Scratch_Spare(TOP_LEVEL);
             require (
-              Init_Typechecker(TOP_LEVEL, temp, rule_value)
+              Init_Typechecker(temp, rule_value)
             );
-            Restore_Level_Scratch_Spare(TOP_LEVEL, saved_state);
         }
         else {
             Copy_Cell(temp, rule);
@@ -1824,11 +1820,9 @@ DECLARE_NATIVE(SUBPARSE)
           Get_Var(lookup, NO_STEPS, rule, P_RULE_BINDING)
         );
         if (Is_Datatype(lookup)) {
-            StateByte saved_state = Save_Level_Scratch_Spare(TOP_LEVEL);
             require (
-              Init_Typechecker(TOP_LEVEL, SPARE, lookup)
+              Init_Typechecker(SPARE, lookup)
             );
-            Restore_Level_Scratch_Spare(TOP_LEVEL, saved_state);
 
             LIFT_BYTE(SPARE) = NOQUOTE_3;
             rule = As_Element(SPARE);
