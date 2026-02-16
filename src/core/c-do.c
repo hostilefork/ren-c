@@ -95,7 +95,7 @@ Result(None) Prep_Action_Level(
 //  Push_Frame_Continuation: C
 //
 void Push_Frame_Continuation(
-    Init(Value) out,
+    Contra(Value) out,  // !!! Should this be Init(Value)?  Review.
     Flags flags,
     const Stable* frame,  // may be antiform
     Option(const Value*) with
@@ -126,7 +126,7 @@ void Push_Frame_Continuation(
 //    kinds of types branching permits.
 //
 bool Pushed_Continuation(
-    Exact(Value*) out,  // not Sink (would corrupt, but with can be same as out)
+    Contra(Value) out,  // not Sink (would corrupt, but `with` can = `out`)
     Flags flags,  // FORCE_HEAVY_BRANCH, etc. for pushed levels
     Context* binding,  // before branch forces non-empty variadic call
     const Element* branch,  // *cannot* be the same as out

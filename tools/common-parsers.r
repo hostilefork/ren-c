@@ -229,6 +229,8 @@ export proto-parser: context [
             | "Option(Exact(" opt [identifier "(" thru ")"] thru "))"
             | "Init(" opt [identifier "(" thru ")"] thru ")"
             | "Option(Init(" opt [identifier "(" thru ")"] thru "))"
+            | "Contra(" opt [identifier "(" thru ")"] thru ")"
+            | "Option(Contra(" opt [identifier "(" thru ")"] thru "))"
             | "(*)" | "(const*)"
             | "(const *)" (panic "use (const*) not (const *)")
             | "(const Cell*)"

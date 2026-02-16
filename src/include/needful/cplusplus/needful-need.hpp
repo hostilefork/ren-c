@@ -128,14 +128,19 @@ struct NeedWrapper {
 
     template<typename U, IfCovariant<U>* = nullptr>
     NeedWrapper(const SinkWrapper<U*>& sink)
-        : p {static_cast<TP>(sink)}
+        : p {static_cast<TP>(sink.p)}  // not corrupt, `sink.p` vs `sink` ok
     {
-        dont(assert(not sink.corruption_pending));  // must allow corrupt [2]
+        assert(not sink.corruption_pending);
     }
 
     template<typename U, IfCovariant<U>* = nullptr>
     NeedWrapper(const InitWrapper<U*>& init)
         : p {static_cast<TP>(init.p)}
+        {}
+
+    template<typename U, IfCovariant<U>* = nullptr>
+    NeedWrapper(const ContraWrapper<U*>& contra)
+        : p {static_cast<TP>(contra.p)}
         {}
 
     NeedWrapper& operator=(std::nullptr_t) = delete;
@@ -156,14 +161,20 @@ struct NeedWrapper {
 
     template<typename U, IfCovariant<U>* = nullptr>
     NeedWrapper& operator=(const SinkWrapper<U*>& sink) {
-        dont(assert(not sink.corruption_pending));  // must allow corrupt [2]
-        this->p = static_cast<TP>(sink);  // not sink.p (flush corruption)
+        assert(not sink.corruption_pending);
+        this->p = static_cast<TP>(sink.p);
         return *this;
     }
 
     template<typename U, IfCovariant<U>* = nullptr>
     NeedWrapper& operator=(const InitWrapper<U*>& init) {
         this->p = static_cast<TP>(init.p);
+        return *this;
+    }
+
+    template<typename U, IfCovariant<U>* = nullptr>
+    NeedWrapper& operator=(const ContraWrapper<U*>& contra) {
+        this->p = static_cast<TP>(contra.p);
         return *this;
     }
 

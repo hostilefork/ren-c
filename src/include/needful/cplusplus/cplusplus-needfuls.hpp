@@ -160,6 +160,7 @@ namespace needful {
 
     template<typename T> struct SinkWrapper;
     template<typename T> struct InitWrapper;
+    template<typename T> struct ContraWrapper;
     template<typename T> struct ExactWrapper;
 }
 

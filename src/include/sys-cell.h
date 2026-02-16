@@ -1267,7 +1267,9 @@ INLINE Cell* Force_Blit_Cell_Untracked(Cell* out, const Cell* c) {
 
 INLINE Cell* Blit_Cell_Untracked(Cell* out, const Cell* c) {
   #if DEBUG_POISON_UNINITIALIZED_CELLS
-   assert(Is_Cell_Poisoned(out) or Is_Cell_Erased(out));
+    assert(
+      Is_Cell_Poisoned(out) or Is_Cell_Erased(out) or Not_Cell_Readable(out)
+    );
   #endif
    return Force_Blit_Cell_Untracked(out, c);
 }

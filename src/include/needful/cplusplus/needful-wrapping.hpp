@@ -260,7 +260,7 @@ template<
     typename T,
     bool IsWrapper = HasWrappedType<UP>::value  // default: not a wrapper [1]
 >
-struct IfContravariant {
+struct IsContravariant {
     using U = remove_pointer_t<UP>;  // Note: UP may or may not be a pointer
 
     static constexpr bool value =
@@ -269,11 +269,10 @@ struct IfContravariant {
                 ? IsPhysicalBase<U, T>::value
                 : false
         );
-    using enable = typename std::enable_if<value>;  // not ::type [G]
 };
 
 template<typename U, typename T>
-struct IfContravariant<U, T, /* bool IsWrapper = */ true> {  // wrapper [2]
+struct IsContravariant<U, T, /* bool IsWrapper = */ true> {  // wrapper [2]
     using WP = typename U::wrapped_type;
     using W = remove_pointer_t<WP>;
 
@@ -282,9 +281,8 @@ struct IfContravariant<U, T, /* bool IsWrapper = */ true> {  // wrapper [2]
     static constexpr bool value =
         IsContravariantWrapper<U>::value
         and (HasWrappedType<W>::value
-            ? IfContravariant<WP, T>::value  // recurse if still wrapped
+            ? IsContravariant<WP, T>::value  // recurse if still wrapped
             : (std::is_class<W>::value
                and std::is_class<T>::value
                and IsPhysicalBase<W, T>::value));
-    using enable = typename std::enable_if<value>;  // not ::type [G]
 };

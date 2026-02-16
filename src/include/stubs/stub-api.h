@@ -152,7 +152,7 @@ INLINE Api(Stable*) Known_Stable_Api(Api(Value*) v) {
 #define CELL_MASK_API_INITABLE \
     (CELL_MASK_UNREADABLE | BASE_FLAG_ROOT)
 
-INLINE Init(Value) Alloc_Value_Core(Flags flags)
+INLINE Value* Alloc_Value_Core(Flags flags)  // Value*, not Init(Value) [1]
 {
     require (
       Stub* stub = Make_Untracked_Stub(
