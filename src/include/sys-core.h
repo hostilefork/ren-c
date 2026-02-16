@@ -574,6 +574,7 @@ INLINE Error* Cell_Error(const Cell* c);
 
 #include "sys-cell.h"
 #include "cells/cell-quoted.h"  // defines Is_Cell_Stable(), used by API stubs
+#include "cells/cell-sigil.h"
 
 #include "sys-stub.h"
 
@@ -643,8 +644,6 @@ INLINE Error* Cell_Error(const Cell* c);
 #include "cells/cell-handle.h"
 
 #include "cells/cell-pair.h"
-
-#include "cells/cell-sigil.h"
 
 #include "cells/cell-blank.h"  // includes VOID!
 

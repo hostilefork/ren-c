@@ -6,7 +6,7 @@
 //
 //=////////////////////////////////////////////////////////////////////////=//
 //
-// Copyright 2012-2025 Ren-C Open Source Contributors
+// Copyright 2012-2026 Ren-C Open Source Contributors
 // Copyright 2012 REBOL Technologies
 // REBOL is a trademark of REBOL Technologies
 //
@@ -39,6 +39,25 @@
 //
 // Function invocations keep their arguments in FRAME!s, which can be accessed
 // via ARG() and have stable addresses as long as the function is running.
+//
+//=//// NOTES /////////////////////////////////////////////////////////////=//
+//
+// A. Many macros in this file are "evil" and repeat their arguments, because
+//    in the checked build, functions aren't inlined--and the overhead adds up
+//    very quickly.  Dodging a function speeds up these critical parts, and
+//    they are wrapped up in inline functions for callers that don't mind
+//    the cost.  The STATIC_ASSERT_LVALUE() macro catches potential violators.
+//
+// B. Some callers have things that aren't LValues, but nevertheless are ok
+//    to pass to "evil macros", such as using addresses of local variables.
+//    To allow these calls without an inline function, we offer explicitly
+//    named "Xxx_Evil_Macro()" versions, that just don't have the check of
+//    STATIC_ASSERT_LVALUE().
+//
+//    (Note that in C++ there's no way to tell the difference between &ref
+//    and an expression with side effects that synthesized a reference.  A
+//    macro like NO_SIDE_EFFECTS(&ref) could be designed to "approve" a
+//    reference, but would have runtime cost in debug builds).
 //
 
 
@@ -123,16 +142,7 @@
 // allows cells with headers initialized to zero.  See Freshen_Cell() for why
 // this is done and how it is taken advantage of.
 //
-//=//// NOTES /////////////////////////////////////////////////////////////=//
-//
-// 1. These macros are "evil", because in the checked build, functions aren't
-//    inlined, and the overhead actually adds up very quickly.  We repeat
-//    arguments to speed up these critical tests, then wrap them in
-//    Ensure_Readable() and Ensure_Writable() functions for callers that
-//    don't mind the cost.  The STATIC_ASSERT_LVALUE() macro catches any
-//    potential violators...though narrow need for the evil macros exist.
-//
-// 2. One might think that because you're asking if a cell is writable that
+// 1. One might think that because you're asking if a cell is writable that
 //    the function should only take non-const Cells, but the question is
 //    abstract and doesn't mean you're going to write it in the moment.
 //    You might just be asking if it could be written if someone had non
@@ -153,7 +163,7 @@
     #define Ensure_Writable(c) (c)
 #else
     #define Assert_Cell_Readable(c) do { \
-        STATIC_ASSERT_LVALUE(c);  /* ensure "evil macro" used safely [1] */ \
+        STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
         if ( \
             (((c)->header.bits) & ( \
                 BASE_FLAG_BASE | BASE_FLAG_CELL | BASE_FLAG_UNREADABLE \
@@ -165,42 +175,42 @@
 
   #if DEBUG_TRACK_EXTEND_CELLS  // add TRACK_FLAG_SHIELD_FROM_WRITES check
     #define Assert_Cell_Writable_Evil_Macro(c) do { \
-        /* don't STATIC_ASSERT_LVALUE(out), it's evil on purpose */ \
+        DONT(STATIC_ASSERT_LVALUE(out));  /* evil on purpose [B] */ \
         if ( \
             ((((c)->header.bits) & ( \
                 BASE_FLAG_BASE | BASE_FLAG_CELL | CELL_FLAG_PROTECTED \
             )) != (BASE_FLAG_BASE | BASE_FLAG_CELL)) \
             or (((c)->track_flags.bits) & TRACK_FLAG_SHIELD_FROM_WRITES) \
         ){ \
-            Crash_On_Unwritable_Cell(c);  /* despite write, pass const [2] */ \
+            Crash_On_Unwritable_Cell(c);  /* despite write, pass const [1] */ \
         } \
     } while (0)
   #else
     #define Assert_Cell_Writable_Evil_Macro(c) do { \
-        /* don't STATIC_ASSERT_LVALUE(out), it's evil on purpose */ \
+        DONT(STATIC_ASSERT_LVALUE(out));  /* evil on purpose [B] */ \
         if ( \
             (((c)->header.bits) & ( \
                 BASE_FLAG_BASE | BASE_FLAG_CELL | CELL_FLAG_PROTECTED \
             )) != (BASE_FLAG_BASE | BASE_FLAG_CELL) \
         ){ \
-            Crash_On_Unwritable_Cell(c);  /* despite write, pass const [2] */ \
+            Crash_On_Unwritable_Cell(c);  /* despite write, pass const [1] */ \
         } \
     } while (0)
   #endif
 
     #define Assert_Cell_Writable(c) do { \
-        STATIC_ASSERT_LVALUE(c);  /* ensure "evil macro" used safely [1] */ \
+        STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
         Assert_Cell_Writable_Evil_Macro(c); \
     } while (0)
 
     #define Assert_Cell_Initable_Evil_Macro(c) do { \
-        /* don't STATIC_ASSERT_LVALUE(out), it's evil on purpose */ \
+        DONT(STATIC_ASSERT_LVALUE(out));  /* evil on purpose [B] */ \
         if ((c)->header.bits != CELL_MASK_ERASED_0)  /* 0 is initable */ \
             Assert_Cell_Writable_Evil_Macro(c);  /* else need NODE and CELL */ \
     } while (0)
 
     #define Assert_Cell_Initable(c) do { \
-        STATIC_ASSERT_LVALUE(c);  /* evil macro [1] */ \
+        STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
         Assert_Cell_Initable_Evil_Macro(c); \
     } while (0)
 
@@ -232,7 +242,7 @@
     #define Assert_Cell_Aligned(c)  NOOP
 #else
     #define Assert_Cell_Aligned(c) do { \
-        STATIC_ASSERT_LVALUE(c);  /* ensure "evil macro" used safely [1] */ \
+        STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
         if (i_cast(uintptr_t, (c)) % ALIGN_SIZE != 0) \
             Panic_Cell_Unaligned(c); \
     } while (0)
@@ -269,7 +279,7 @@
         BASE_FLAG_UNREADABLE | CELL_FLAG_PROTECTED)  // no read or write [1]
 
 #define Assert_Cell_Header_Overwritable(c) do {  /* conservative check [2] */ \
-    STATIC_ASSERT_LVALUE(c); \
+    STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
     assert( \
         (c)->header.bits == CELL_MASK_POISON \
         or (c)->header.bits == CELL_MASK_ERASED_0 \
@@ -396,22 +406,22 @@ INLINE Cell* Force_Erase_Cell_Untracked(Cell* c) {
 
 #if CORRUPT_CELL_HEADERS_ONLY
     #define Init_Unreadable_Untracked_Evil_Macro(out) do { \
-        /* don't STATIC_ASSERT_LVALUE(out), it's evil on purpose */ \
+        DONT(STATIC_ASSERT_LVALUE(out));  /* evil on purpose [B] */ \
         Assert_Cell_Initable_Evil_Macro(out); \
         (out)->header.bits |= CELL_MASK_UNREADABLE;  /* bitwise OR [1] */ \
     } while (0)
 #else
     #define Init_Unreadable_Untracked_Evil_Macro(out) do { \
-        /* don't STATIC_ASSERT_LVALUE(out), it's evil on purpose */ \
+        DONT(STATIC_ASSERT_LVALUE(out));  /* evil on purpose [B]*/ \
         Assert_Cell_Initable_Evil_Macro(out); \
         (out)->header.bits |= CELL_MASK_UNREADABLE;  /* bitwise OR [1] */ \
         Corrupt_If_Needful((out)->extra.corrupt); \
-        Corrupt_If_Needful((out)->payload); /* split.one/two slower [2] */ \
+        Corrupt_If_Needful((out)->payload);  /* split.one/two slower [2] */ \
     } while (0)
 #endif
 
 #define Init_Unreadable_Untracked(out) do { \
-    STATIC_ASSERT_LVALUE(out);  /* evil macro: make it safe */ \
+    STATIC_ASSERT_LVALUE(out);  /* see [A] */ \
     Init_Unreadable_Untracked_Evil_Macro(out); \
 } while (0)
 
@@ -459,23 +469,6 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
   // because that would lose header bits like whether the cell is an API
   // value.  We use the Init_Unreadable_Untracked().
   //
-  // 1. This only runs in checked builds, but it is performance sensitive.
-  //    So we want to avoid making a temporary, which would be needed to
-  //    subvert the usual STATIC_ASSERT_LVALUE() check:
-  //
-  //        Cell* cell = &ref;
-  //        Init_Unreadable_Untracked(cell);
-  //
-  //    In the C++ model there's no way to tell the difference between &ref
-  //    and an expression with side effects that synthsized a reference.
-  //    There would be ways to make a macro that "approved" a reference:
-  //
-  //       Init_Unreadable_Untracked(NO_SIDE_EFFECTS(&ref));
-  //
-  //    However, even a constexpr which did this would add cost in the
-  //    checked build (functions aren't inlined).  So for this case, we
-  //    just use a macro variant with no STATIC_ASSERT_LVALUE() check.
-  //
   // 1. For const Cell subclasses (e.g. const Stable), use no-op corruption.
   //    This avoids instantiating the generic CorruptHelper<T> in
   //    needful-corruption.hpp, which would try to memset() a const object
@@ -494,7 +487,7 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
         >::type
     >{
         static void corrupt(T& ref) {
-            Init_Unreadable_Untracked_Evil_Macro(&ref);  // &ref needs evil [1]
+            Init_Unreadable_Untracked_Evil_Macro(&ref);  // &ref needs evil [B]
         }
     };
 
@@ -507,7 +500,7 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
         >::type
     >{
         static void corrupt(T&) {
-            // no-op for const Cell-derived types
+            // no-op for const Cell-derived types [1]
         }
     };
   }
@@ -544,7 +537,7 @@ INLINE bool Is_Cell_Readable(const Cell* c) {
     (BASE_FLAG_MANAGED | BASE_FLAG_ROOT | BASE_FLAG_MARKED | CELL_FLAG_FORMAT)
 
 #define Freshen_Cell_Header(c) do { \
-    STATIC_ASSERT_LVALUE(c);  /* evil macro [1] */ \
+    STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
     Assert_Cell_Initable(c);  /* if CELL_MASK_ERASED_0, no node+cell flags */ \
     (c)->header.bits &= CELL_MASK_PERSIST;  /* won't add node+cell flags */ \
 } while (0)

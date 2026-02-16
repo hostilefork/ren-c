@@ -75,6 +75,38 @@ struct CastHook<const F*, const Slot*> {  // both must be const [B]
 };
 
 
+//=//// cast(Param*, ...) /////////////////////////////////////////////////=//
+
+// Param has only one legal state that's not legal for Value... and that is
+// the "hole" state of a bedrock parameter used to indicate no specialization.
+//
+// Before a function starts running, this is also the only legal values that
+// can be in a FRAME!...but once the frame is running, it's possible to put
+// any slot value into the context (e.g. locals can become aliases, etc.)
+//
+// !!! This puts some limitations on redo of FRAME!s, or typechecking between
+// levels of adaptation.  Also aliased variables.  Rethink as this evolves
+
+template<typename F>  // [A]
+struct CastHook<const F*, const Param*> {  // both must be const [B]
+    static void Validate_Bits(const F* p) {
+        STATIC_ASSERT(In_C_Type_List(g_convertible_to_cell, F));
+
+        if (not p)
+            return;
+
+        const Cell* c = u_cast(const Cell*, p);
+        Assert_Cell_Readable(c);
+        assert(
+            LIFT_BYTE_RAW(c) != BEDROCK_0
+            or KIND_BYTE_RAW(c) == Kind_From_Sigil_And_Heart(
+                SIGIL_0, TYPE_PARAMETER
+            )
+        );
+    }
+};
+
+
 //=//// cast(Value*, ...) //////////////////////////////////////////////////=//
 
 template<typename F>  // [A]
@@ -142,31 +174,5 @@ struct CastHook<const F*, const Dual*> {  // both must be const [B]
         const Cell* c = u_cast(const Cell*, p);
         Assert_Cell_Readable(c);
         assert(LIFT_BYTE_RAW(c) > STABLE_ANTIFORM_2);
-    }
-};
-
-
-//=//// cast(Param*, ...) /////////////////////////////////////////////////=//
-
-// Param has only one legal state that's not legal for Value... and that is
-// the "hole" state of a bedrock parameter used to indicate no specialization.
-//
-// Before a function starts running, this is also the only legal values that
-// can be in a FRAME!...but once the frame is running, it's possible to put
-// any slot value into the context (e.g. locals can become aliases, etc.)
-//
-// !!! This puts some limitations on redo of FRAME!s, or typechecking between
-// levels of adaptation.  Also aliased variables.  Rethink as this evolves
-
-template<typename F>  // [A]
-struct CastHook<const F*, const Param*> {  // both must be const [B]
-    static void Validate_Bits(const F* p) {
-        STATIC_ASSERT(In_C_Type_List(g_convertible_to_cell, F));
-
-        if (not p)
-            return;
-
-        const Cell* c = u_cast(const Cell*, p);
-        Assert_Cell_Readable(c);
     }
 };
