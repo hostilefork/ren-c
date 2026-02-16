@@ -202,31 +202,45 @@ struct RewrapHelper<const Wrapper, NewWrapped> {  // const needs forwarding
 template<typename T>  // assume wrappers are contravariant by default [1]
 struct IsContravariantWrapper : std::true_type {};
 
+template<typename T>
+struct IsUnsafeSinkBase : std::false_type {};
 
-// AllowSinkConversion() is used by Sink()/Init() to permit certain otherwise
-// disallowed output conversions (e.g. writing an Element into a fresh Slot).
+
+// LeafPointee: Extract the innermost pointee type through wrapper layers.
 //
-// But sinks may be wrapped (OnStackPointer<...>, etc.).  To avoid having to
-// specialize every wrapper combination, lift AllowSinkConversion through
-// contravariant wrappers by recursively delegating to their wrapped_type.
+//     LeafPointee<Slot*>::type             => Slot
+//     LeafPointee<ExactWrapper<Slot*>>     => Slot
+//     LeafPointee<OnStack(Init(Slot))>     => Slot
 //
-// This intentionally does *not* apply to wrappers that opt-out via
-// IsContravariantWrapper (e.g. OptionWrapper), since "maybe-null" wrappers
-// shouldn't inherit sink-conversion permissions.
+template<typename T, bool = HasWrappedType<T>::value>
+struct LeafPointee { using type = remove_pointer_t<T>; };
+
+template<typename T>
+struct LeafPointee<T, true> : LeafPointee<typename T::wrapped_type> {};
+
+
+// IsFreshSource: True when the source represents freshly-initialized material
+// that has no "trap" bit patterns to worry about.  Only Init() and Sink()
+// wrappers qualify.  Propagates through outer wrappers (e.g. OnStack).
 //
-template<typename U, typename T>
-struct AllowSinkConversion<U, T,
-    typename std::enable_if<
-        HasWrappedType<U>::value && IsContravariantWrapper<U>::value
-    >::type
-> : AllowSinkConversion<typename U::wrapped_type, T> {};
+template<typename T, bool = HasWrappedType<T>::value>
+struct IsFreshSource : std::false_type {};
+
+template<typename T>
+struct IsFreshSource<SinkWrapper<T>, true> : std::true_type {};
+
+template<typename T>
+struct IsFreshSource<InitWrapper<T>, true> : std::true_type {};
+
+template<typename T>  // other wrappers: propagate to inner type
+struct IsFreshSource<T, true> : IsFreshSource<typename T::wrapped_type> {};
 
 
 template<typename B, typename D, typename = void>
-struct IsCompatibleBase : std::false_type {};
+struct IsPhysicalBase : std::false_type {};
 
 template<typename B, typename D>  // stricter version of is_base_of<> [2]
-struct IsCompatibleBase<B, D,
+struct IsPhysicalBase<B, D,
     typename std::enable_if<
         std::is_base_of<B, D>::value
     >::type>
@@ -235,7 +249,7 @@ struct IsCompatibleBase<B, D,
         std::is_standard_layout<B>::value
             and std::is_standard_layout<D>::value
             and sizeof(B) == sizeof(D),
-        "IsCompatibleBase: types must be same-sized standard layout classes"
+        "IsPhysicalBase: types must be same-sized standard layout classes"
     );
     static constexpr bool value = std::is_base_of<B, D>::value;
 };
@@ -252,7 +266,7 @@ struct IfContravariant {
     static constexpr bool value =
         std::is_same<UP, T*>::value or (
             std::is_pointer<UP>::value and std::is_class<T>::value
-                ? IsCompatibleBase<U, T>::value
+                ? IsPhysicalBase<U, T>::value
                 : false
         );
     using enable = typename std::enable_if<value>;  // not ::type [G]
@@ -271,6 +285,6 @@ struct IfContravariant<U, T, /* bool IsWrapper = */ true> {  // wrapper [2]
             ? IfContravariant<WP, T>::value  // recurse if still wrapped
             : (std::is_class<W>::value
                and std::is_class<T>::value
-               and IsCompatibleBase<W, T>::value));
+               and IsPhysicalBase<W, T>::value));
     using enable = typename std::enable_if<value>;  // not ::type [G]
 };

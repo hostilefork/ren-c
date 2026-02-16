@@ -93,7 +93,7 @@
 #if DONT_CHECK_CELL_SUBCLASSES
     typedef struct RebolValueStruct Param;
 #else
-    struct Param : public Cell {};  // like a Slot, but with no init checks
+    struct Param : public Slot {};  // inherits Slot (Base)
 #endif
 
 typedef Param Arg;  // !!! Args should be just Slot; review.
@@ -182,7 +182,7 @@ typedef Param Arg;  // !!! Args should be just Slot; review.
 #endif
 
 
-//=//// BLOCK INIT/SINK CONVERSIONS FOR SLOTS /////////////////////////////=//
+//=//// STOP INIT/SINK CONVERSIONS FOR PLAIN SLOT* ////////////////////////=//
 //
 // Because a Slot can contain BEDROCK_0 states with bit patterns that are
 // things like SETTERs or GETTERs, or ALIASes...you can't necessarily assume
@@ -198,19 +198,7 @@ typedef Param Arg;  // !!! Args should be just Slot; review.
   #if NEEDFUL_SINK_USES_WRAPPER
   namespace needful {
     template<>
-    struct AllowSinkConversion<Slot*, Param> : std::true_type {};
-
-    template<>
-    struct AllowSinkConversion<Slot*, Value> : std::true_type {};
-
-    template<>
-    struct AllowSinkConversion<Slot*, Stable> : std::true_type {};
-
-    template<>
-    struct AllowSinkConversion<Slot*, Element> : std::true_type {};
-
-    template<>
-    struct AllowSinkConversion<Slot*, Dual> : std::true_type {};
+    struct IsUnsafeSinkBase<Slot> : std::true_type {};
   }
   #endif
 #endif

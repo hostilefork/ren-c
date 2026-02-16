@@ -322,7 +322,7 @@ static Result(None) Push_Keys_And_Params_Core(
         return fail (Error_Bad_Func_Def_Raw(v));
 
     const Strand* notes = opt Parameter_Strand(TOP_SLOT);
-    Copy_Cell(TOP_SLOT, g_auto_trash_param);
+    Copy_Cell(u_cast(Init(Slot), TOP_SLOT), g_auto_trash_param);
     Set_Parameter_Strand(TOP_SLOT, notes);
     Unspecialize_Parameter(TOP_SLOT);
 

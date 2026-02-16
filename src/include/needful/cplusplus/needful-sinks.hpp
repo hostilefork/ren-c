@@ -82,58 +82,20 @@
 //
 
 
-//=//// IfOutputConvertible TEST //////////////////////////////////////////=//
+//=//// CONTRAVARIANT CONSTRUCTOR SFINAE //////////////////////////////////=//
 //
-// The premise of Needful's contravariance is that more derived classes
-// represent constraints on the bits, and the base class represents a less
-// constrained rule on that bits.  Hence this is illegal:
+// SinkWrapper and InitWrapper accept pointers to BASE classes (writing less-
+// constrained bits into a more constrained location is the error to catch).
 //
-//     void Initialize_Derived(Sink(Base) base) { ... }
+// Some base classes are IsUnsafeSinkBase (e.g. Slot), meaning they might hold
+// special bit patterns (like getters/setters) that require explicit handling
+// before being overwritten.  We block these UNLESS the source is "fresh"
+// material--meaning it comes from an Init() or Sink() wrapper, which
+// guarantees no trap patterns are present.
 //
-//     Derived* derived = ...;
-//     Initialize_Derived(derived);  // ** error to avoid breaking constraint
+// This is captured by a single unified SFINAE alias `IfSafeContra<U>` that
+// checks: contravariant AND (fresh source OR identity OR not-unsafe leaf).
 //
-// We avoid writing bits that are legal in base but not the more-constrained
-// derived class.  And no writing of bits on different branches of derivation.
-// This is the usual rule.
-//
-// But you might have cases that are exceptions
-//
-//     void Initialize_Derived(Sink(Base) base) { ... }
-//
-//     Other* has_data = ...;
-//     Initialize_Derived(has_data);  // ** error to avoid breaking constraint
-//
-//     Init(Other*) fresh = ...;
-//     Initialize_Derived(fresh);  // maybe you want exceptions for Init/Sink
-//
-// If your particular problem has this character, the `AllowSinkConversion`
-// trait can be specialized to allow this exception.
-//
-// (FYI: This came up in a case of having a low-level "Slot" which could
-// represent either a value or be flagged as actually describing *where* to
-// write the value.  Hence you don't want to blindly overwrite the bits of
-// the Slot itself--as it might be the description of where to write.  You
-// have to check and consciously establish it being an indirection or not.
-// BUT if the Slot is "fresh" then you know it's not the kind that holds
-// an indirection...so you don't have to check and transform it to a non-Slot
-// before writing it.)
-//
-
-template<typename U, typename T>
-struct IfOutputConvertible2 {  // used by Init() and Sink()
-    static constexpr bool value = IfContravariant<U, T>::value
-        or AllowSinkConversion<U, T>::value;
-
-    using enable = typename std::enable_if<value>;  // not ::type [G]
-};
-
-// Raw pointer construction should only use contravariance, not AllowSinkConversion
-template<typename U, typename T>
-struct IfRawPtrContravariant {
-    static constexpr bool value = IfContravariant<U, T>::value;
-    using enable = typename std::enable_if<value>;  // not ::type [G]
-};
 
 
 //=//// SINK() WRAPPER FOR OUTPUT PARAMETERS //////////////////////////////=//
@@ -164,12 +126,13 @@ struct SinkWrapper {
     mutable bool corruption_pending;  // can't corrupt on construct [1]
 
     template<typename U>
-    using IfSinkConvertible
-        = typename IfOutputConvertible2<U, T>::enable::type;
-
-    template<typename U>
-    using IfRawPtrSinkable
-        = typename IfRawPtrContravariant<U, T>::enable::type;
+    using IfSafeContra = typename std::enable_if<
+        IfContravariant<U, T>::value
+        and (IsFreshSource<U>::value
+            or std::is_same<typename LeafPointee<U>::type, T>::value
+            or not IsUnsafeSinkBase<
+                typename LeafPointee<U>::type>::value
+        )>::type;
 
     SinkWrapper()  // compiler MIGHT need, see [E]
         : corruption_pending {false}
@@ -189,19 +152,10 @@ struct SinkWrapper {
     {
     }
 
-    // Raw pointer constructor: contravariance only
-    template<typename U,
-        typename = enable_if_t<not HasWrappedType<U>::value>,
-        IfRawPtrSinkable<U>* = nullptr>
-    SinkWrapper(const U& u) {
-        this->p = x_cast(T*, x_cast(void*, u));  // cast workaround [F]
-        this->corruption_pending = (this->p != nullptr);
-    }
-
-    // Wrapped type constructor: allows AllowSinkConversion
-    template<typename U,
-        typename = enable_if_t<HasWrappedType<U>::value>,
-        IfSinkConvertible<U>* = nullptr>
+    // Generic: raw pointers and wrappers (except cross-type SinkWrapper,
+    // which needs special corruption-ownership transfer below).
+    //
+    template<typename U, IfSafeContra<U>* = nullptr>
     SinkWrapper(const U& u) {
         this->p = x_cast(T*, x_cast(void*, u));  // cast workaround [F]
         this->corruption_pending = (this->p != nullptr);
@@ -213,29 +167,13 @@ struct SinkWrapper {
         other.corruption_pending = false;  // we take over corrupting
     }
 
-    template<typename U, IfSinkConvertible<U>* = nullptr>
-    SinkWrapper(const ExactWrapper<U>& exact) {
-        this->p = static_cast<T*>(exact.p);
-        this->corruption_pending = (exact.p != nullptr);  // corrupt
-    }
-
-    template<typename U, IfSinkConvertible<U>* = nullptr>
-    SinkWrapper(const NeedWrapper<U>& need) {
-        this->p = static_cast<T*>(need.p);
-        this->corruption_pending = (need.p != nullptr);  // corrupt
-    }
-
-    template<typename U, IfSinkConvertible<U>* = nullptr>
+    // Cross-type SinkWrapper: must transfer corruption ownership
+    //
+    template<typename U, IfSafeContra<SinkWrapper<U>>* = nullptr>
     SinkWrapper(const SinkWrapper<U>& other) {
         this->p = reinterpret_cast<T*>(other.p);
         this->corruption_pending = (other.p != nullptr);  // corrupt
         other.corruption_pending = false;  // we take over corrupting
-    }
-
-    template<typename U, IfSinkConvertible<U>* = nullptr>
-    SinkWrapper(const InitWrapper<U>& init) {
-        this->p = reinterpret_cast<T*>(init.p);
-        this->corruption_pending = (init.p != nullptr);  // corrupt
     }
 
     SinkWrapper& operator=(std::nullptr_t) {
@@ -253,31 +191,10 @@ struct SinkWrapper {
         return *this;
     }
 
-    template<typename U, IfRawPtrSinkable<U>* = nullptr>
-    SinkWrapper& operator=(U ptr) {
-        this->p = u_cast(T*, ptr);
-        this->corruption_pending = (ptr != nullptr);  // corrupt
-        return *this;
-    }
-
-    template<typename U, IfSinkConvertible<U>* = nullptr>
-    SinkWrapper& operator=(const ExactWrapper<U>& exact) {
-        this->p = u_cast(T*, exact.p);
-        this->corruption_pending = (exact.p != nullptr);  // corrupt
-        return *this;
-    }
-
-    template<typename U, IfSinkConvertible<U>* = nullptr>
-    SinkWrapper& operator=(const NeedWrapper<U>& need) {
-        this->p = u_cast(T*, need.p);
-        this->corruption_pending = (need.p != nullptr);  // corrupt
-        return *this;
-    }
-
-    template<typename U, IfSinkConvertible<U>* = nullptr>
-    SinkWrapper& operator=(const InitWrapper<U>& init) {
-        this->p = u_cast(T*, init.p);
-        this->corruption_pending = (init.p != nullptr);  // corrupt
+    template<typename U, IfSafeContra<U>* = nullptr>
+    SinkWrapper& operator=(const U& u) {
+        this->p = x_cast(T*, x_cast(void*, u));
+        this->corruption_pending = (this->p != nullptr);  // corrupt
         return *this;
     }
 
@@ -395,12 +312,13 @@ struct InitWrapper {
     NEEDFUL_DECLARE_WRAPPED_FIELD (T*, p);
 
     template<typename U>
-    using IfInitConvertible
-        = typename IfOutputConvertible2<U, T>::enable::type;
-
-    template<typename U>
-    using IfRawPtrInitable
-        = typename IfRawPtrContravariant<U, T>::enable::type;
+    using IfSafeContra = typename std::enable_if<
+        IfContravariant<U, T>::value
+        and (IsFreshSource<U>::value
+            or std::is_same<typename LeafPointee<U>::type, T>::value
+            or not IsUnsafeSinkBase<
+                typename LeafPointee<U>::type>::value
+        )>::type;
 
     InitWrapper() {  // compiler might need, see [E]
         dont(Corrupt_If_Needful(p));  // lightweight behavior vs. Sink()
@@ -409,18 +327,10 @@ struct InitWrapper {
     InitWrapper(std::nullptr_t) : p {nullptr}
         {}
 
-    // Raw pointer constructor: contravariance only
-    template<typename U,
-        typename = enable_if_t<not HasWrappedType<U>::value>,
-        IfRawPtrInitable<U>* = nullptr>
-    InitWrapper(const U& u) {
-        this->p = x_cast(T*, x_cast(void*, u));  // cast workaround [F]
-    }
-
-    // Wrapped type constructor: allows AllowSinkConversion
-    template<typename U,
-        typename = enable_if_t<HasWrappedType<U>::value>,
-        IfInitConvertible<U>* = nullptr>
+    // Generic: raw pointers and wrappers (except SinkWrapper, which
+    // needs special corruption-squashing below).
+    //
+    template<typename U, IfSafeContra<U>* = nullptr>
     InitWrapper(const U& u) {
         this->p = x_cast(T*, x_cast(void*, u));  // cast workaround [F]
     }
@@ -428,22 +338,9 @@ struct InitWrapper {
     InitWrapper(const InitWrapper& other) : p {other.p}
         {}
 
-    template<typename U, IfInitConvertible<U>* = nullptr>
-    InitWrapper(const InitWrapper<U>& init)
-        : p {reinterpret_cast<T*>(init.p)}
-        {}
-
-    template<typename U, IfInitConvertible<U>* = nullptr>
-    InitWrapper(const ExactWrapper<U>& exact)
-        : p {static_cast<T*>(exact.p)}
-        {}
-
-    template<typename U, IfInitConvertible<U>* = nullptr>
-    InitWrapper(const NeedWrapper<U>& need)
-        : p {static_cast<T*>(need.p)}
-        {}
-
-    template<typename U, IfInitConvertible<U>* = nullptr>
+    // SinkWrapper: squash pending corruption instead of triggering it
+    //
+    template<typename U, IfSafeContra<SinkWrapper<U>>* = nullptr>
     InitWrapper(const SinkWrapper<U>& sink) {
         this->p = static_cast<T*>(sink.p);
         sink.corruption_pending = false;  // squash corruption
@@ -461,25 +358,13 @@ struct InitWrapper {
         return *this;
     }
 
-    template<typename U, IfRawPtrInitable<U>* = nullptr>
-    InitWrapper& operator=(U ptr) {
-        this->p = u_cast(T*, ptr);
+    template<typename U, IfSafeContra<U>* = nullptr>
+    InitWrapper& operator=(const U& u) {
+        this->p = x_cast(T*, x_cast(void*, u));
         return *this;
     }
 
-    template<typename U, IfInitConvertible<U>* = nullptr>
-    InitWrapper& operator=(const ExactWrapper<U>& exact) {
-        this->p = static_cast<T*>(exact.p);
-        return *this;
-    }
-
-    template<typename U, IfInitConvertible<U>* = nullptr>
-    InitWrapper& operator=(const NeedWrapper<U>& need) {
-        this->p = static_cast<T*>(need.p);
-        return *this;
-    }
-
-    template<typename U, IfInitConvertible<U>* = nullptr>
+    template<typename U, IfSafeContra<SinkWrapper<U>>* = nullptr>
     InitWrapper& operator=(const SinkWrapper<U>& sink) {
         this->p = static_cast<T*>(sink.p);
         sink.corruption_pending = false;  // squash corruption
