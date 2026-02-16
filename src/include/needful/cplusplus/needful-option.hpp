@@ -261,4 +261,4 @@ T operator+(  // lower precedence than % [2]
 //
 
 template<typename T>
-struct IsContravariantWrapper<OptionWrapper<T>> : std::false_type {};
+struct IsTransparentWrapper<OptionWrapper<T>> : std::false_type {};

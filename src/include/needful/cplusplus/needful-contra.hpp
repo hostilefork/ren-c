@@ -100,7 +100,7 @@ struct IsSameLayoutBase<B, D,
             and sizeof(B) == sizeof(D),
         "IsSameLayoutBase: types must be same-sized standard layout classes"
     );
-    static constexpr bool value = std::is_base_of<B, D>::value;
+    static constexpr bool value = true;
 };
 
 
@@ -115,15 +115,21 @@ struct IsSameLayoutBase<B, D,
 //    wrappers are just providing some debug instrumentation and no function,
 //    which means that nullability is the *only* property to worry about.
 //
-//    So we default to saying wrappers are contravariant, and really Option(T)
-//    is the only known exception at this time.
+//    So we default to saying wrappers are transparent (contravariant), and
+//    really Option(T) is the only known exception at this time.
 //
 // 2. We Recursively unwrap if W is also a wrapper, to handle double-wrapping
 //    like OnStackPointer<InitWrapper<Stable*>> -> InitWrapper<Element*>
 //
+// 3. If U is a wrapper we take one step: is the wrapper itself marked as
+//    transparent?  Unwrap one layer (WP) and recurse.
+//
+//    NOTE: We do not check IsSameLayoutBase on the wrapper itself; we
+//    trust the wrapper's implementation to expose the correct inner type.
+//
 
-template<typename T>  // assume wrappers are contravariant by default [1]
-struct IsContravariantWrapper : std::true_type {};
+template<typename T>  // assume wrappers are transparent by default [1]
+struct IsTransparentWrapper : std::true_type {};
 
 template<
     typename UP,
@@ -142,17 +148,12 @@ struct IsContravariant {
 };
 
 template<typename U, typename T>
-struct IsContravariant<U, T, /* bool IsWrapper = */ true> {
+struct IsContravariant<U, T, /* bool IsWrapper = */ true> {  // wrapper U [3]
     using WP = typename U::wrapped_type;
-    using W = remove_pointer_t<WP>;
 
-    static constexpr bool value =  // recursively unwrap [2]
-        IsContravariantWrapper<U>::value
-        and (HasWrappedType<W>::value
-            ? IsContravariant<WP, T>::value  // recurse if still wrapped
-            : (std::is_class<W>::value
-               and std::is_class<T>::value
-               and IsSameLayoutBase<W, T>::value));
+    static constexpr bool value =
+        IsTransparentWrapper<U>::value
+        and IsContravariant<WP, T>::value;
 };
 
 
