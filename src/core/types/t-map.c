@@ -865,7 +865,8 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
     Element* map = Element_ARG(LOCATION);
 
     const Stable* picker = ARG(PICKER);
-    assert(not Is_Logic(picker));
+    if (Is_Logic(picker))
+        panic (Error_Bad_Pick_Raw(picker));
 
     bool strict = false;  // case-preserving [1]
 
@@ -903,18 +904,25 @@ IMPLEMENT_GENERIC(TWEAK_P, Is_Map)
         strict
     );
 
-    if (not n)
-        return NULL_OUT_SLOT_UNAVAILABLE;
+    attempt {
+        if (not n)
+            break;
 
-    const Value* val = Flex_At(
-        Value,
-        MAP_PAIRLIST(VAL_MAP(map)),
-        (((unwrap n) - 1) * 2) + 1
-    );
-    if (Is_Zombie(val))
-        return NULL_OUT_SLOT_UNAVAILABLE;
+        const Value* val = Flex_At(
+            Value,
+            MAP_PAIRLIST(VAL_MAP(map)),
+            (((unwrap n) - 1) * 2) + 1
+        );
+        if (Is_Zombie(val))
+            break;
 
-    Copy_Cell(OUT, val);
+        Copy_Cell(OUT, val);
+    }
+    then {
+        return LIFT_OUT_FOR_DUAL_PICK;
+    }
+
+    Init_Void(OUT);  // treat all missing picks as VOID!
     return LIFT_OUT_FOR_DUAL_PICK;
 
 } handle_poke: { /////////////////////////////////////////////////////////////

@@ -359,7 +359,7 @@ Option(Error*) Trap_Tweak_Spare_Is_Dual_Writeback_Dual_In_Scratch_To_Spare(
     bool threw = Trampoline_With_Top_As_Root_Throws();
 
     if (threw)  // don't want to return casual error you can TRY from
-        return Error_No_Catch_For_Throw(TOP_LEVEL);
+        panic (Error_No_Catch_For_Throw(TOP_LEVEL));
 
     Stable* stable_spare = As_Stable(Level_Spare(parent));
     if (Is_Logic(stable_spare)) {  // "success" even if unavailable [1]

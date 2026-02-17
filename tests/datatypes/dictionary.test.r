@@ -15,9 +15,13 @@
 (2 = length of to map! [a 1 b 2])  ; 4 in R2, R2/Forward
 (m: to map! [a 1 b 2] 1 = m.a)
 (m: to map! [a 1 b 2] 2 = m.b)
-(
+~bad-pick~ !! (
     m: to map! [a 1 b 2]
     null? m.c
+)
+(
+    m: to map! [a 1 b 2]
+    null? :m.c
 )
 (m: to map! [a 1 b 2] m.c: 3 3 = m.c)
 
@@ -139,7 +143,7 @@
     1020 = m.(#"A")
 )]
 
-; Antiforms are not allowed in maps as either keys or values
+; Logic not allowed in maps as either keys or values
 [
     ~bad-antiform~ !! (
         m: to map! []
@@ -150,10 +154,14 @@
         m: to map! []
         m.(null): 1020
     )
+]
 
-    ~bad-antiform~ !! (
+; Other antiforms are legal
+[
+    (
         m: to map! []
         m.(spread [a b c]): 1020
+        1020 = m.(spread [a b c])
     )
 ]
 
@@ -162,7 +170,7 @@
     m: to map! [key <initial>]
     all [
         m.key = <initial>
-        elide m.key: ~()~
+        elide m.key: ~
         null? try m.key
     ]
 )
