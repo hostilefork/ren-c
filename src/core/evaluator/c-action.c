@@ -858,7 +858,10 @@ Bounce Action_Executor(Level* L)
                 continue;  // !!! standardize hole to the parameter?
             }
             if (Get_Parameter_Flag(PARAM, REFINEMENT)) {
-                Init_Null(ARG);
+             #if DEBUG_POISON_UNINITIALIZED_CELLS
+                Poison_Cell(ARG);
+              #endif
+                Blit_Null_Typechecked(ARG);
                 continue;
             }
             panic (Error_No_Arg(Level_Label(L), Key_Symbol(KEY)));

@@ -33,8 +33,8 @@
         f.value = <d>
         [a b c <d> <d> <d>] = eval-free f
         'series-data-freed = pick sys.util/recover [eval f] 'id
-        'series-data-freed = pick sys.util/recover [f.series] 'id
-        'series-data-freed = pick sys.util/recover [f.value] 'id
+        'expired-frame = pick sys.util/recover [f.series] 'id
+        'expired-frame = pick sys.util/recover [f.value] 'id
     ]
 )
 
