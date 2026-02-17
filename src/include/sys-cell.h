@@ -241,7 +241,7 @@
 #else
     #define Assert_Cell_Aligned(c) do { \
         STATIC_ASSERT_LVALUE(c);  /* see [A] */ \
-        if (i_cast(uintptr_t, (c)) % ALIGN_SIZE != 0) \
+        if (p_cast(uintptr_t, (c)) % ALIGN_SIZE != 0) \
             Panic_Cell_Unaligned(c); \
     } while (0)
 #endif
@@ -684,32 +684,32 @@ INLINE void Set_Cell_Crumb(Cell* c, Crumb crumb) {
 
         ENABLE_IF_EXACT_ARG_TYPE(HeartEnum, KindHolder, Heart)
         void operator=(T right)
-          { *this = u_cast(KindByte, right); }  // inherit operator= checks
+          { *this = i_cast(KindByte, right); }  // inherit operator= checks
 
         ENABLE_IF_EXACT_ARG_TYPE(HeartEnum, Heart)
         explicit operator T() const   // inherit Byte() cast extraction checks
-          { return u_cast(T, u_cast(Byte, *this)); }
+          { return i_cast(T, i_cast(Byte, *this)); }
     };
 
     INLINE bool operator==(const KindHolder& holder, HeartEnum h)
-      { return KIND_BYTE_RAW(holder.cell) == cast(Byte, h); }
+      { return KIND_BYTE_RAW(holder.cell) == i_cast(Byte, h); }
 
     INLINE bool operator==(HeartEnum h, const KindHolder& holder)
-      { return cast(Byte, h) == KIND_BYTE_RAW(holder.cell); }
+      { return i_cast(Byte, h) == KIND_BYTE_RAW(holder.cell); }
 
     INLINE bool operator!=(const KindHolder& holder, HeartEnum h)
-      { return KIND_BYTE_RAW(holder.cell) != cast(Byte, h); }
+      { return KIND_BYTE_RAW(holder.cell) != i_cast(Byte, h); }
 
     INLINE bool operator!=(HeartEnum h, const KindHolder& holder)
-      { return cast(Byte, h) != KIND_BYTE_RAW(holder.cell); }
+      { return i_cast(Byte, h) != KIND_BYTE_RAW(holder.cell); }
 
     #define KIND_BYTE(cell) \
         KindHolder{cell}
 #endif
 
 #define Unchecked_Heart_Of(c) \
-    u_cast(Option(Heart), \
-        u_cast(HeartEnum, KIND_BYTE_RAW(c) & KIND_BYTEMASK_HEART_0x3F))
+    i_cast(Option(Heart), \
+        i_cast(HeartEnum, KIND_BYTE_RAW(c) & KIND_BYTEMASK_HEART_0x3F))
 
 #define Heart_Of(c) \
     Unchecked_Heart_Of(Ensure_Readable(c))
@@ -717,7 +717,7 @@ INLINE void Set_Cell_Crumb(Cell* c, Crumb crumb) {
 INLINE Heart Heart_Of_Unsigiled_Isotopic(const Cell* c) {
     KindByte kind_byte = KIND_BYTE(c);
     assert(0 == kind_byte >> KIND_SIGIL_SHIFT);
-    return u_cast(Heart, kind_byte);
+    return i_cast(Heart, kind_byte);
 }
 
 INLINE Option(Heart) Heart_Of_Fundamental(const Cell* c) {
@@ -836,10 +836,10 @@ INLINE Option(Type) Underlying_Type_Of_Unchecked(  // inlined in Type_Of() [1]
     assert(LIFT_BYTE_RAW(v) != BEDROCK_0);
 
     if (KIND_BYTE_RAW(v) <= MAX_HEARTBYTE)  // raw [2]
-        return cast(HeartEnum, KIND_BYTE_RAW(v));
+        return i_cast(HeartEnum, KIND_BYTE_RAW(v));
 
     return Type_Enum_For_Sigil_Unchecked(
-        u_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
+        i_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
     );
 }
 
@@ -849,22 +849,22 @@ INLINE Option(Type) Type_Of_Unchecked(const Value* v) {
     ){
       case NOQUOTE_3: {  // inlining of Underlying_Type_Of_Unchecked() [1]
         if (KIND_BYTE_RAW(v) <= MAX_HEARTBYTE)  // raw [2]
-            return cast(HeartEnum, KIND_BYTE_RAW(v));
+            return i_cast(HeartEnum, KIND_BYTE_RAW(v));
 
         return Type_Enum_For_Sigil_Unchecked(
-            u_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
+            i_cast(Sigil, KIND_BYTE_RAW(v) >> KIND_SIGIL_SHIFT)
         ); }
 
       case STABLE_ANTIFORM_2:
         assert(KIND_BYTE_RAW(v) <= MAX_HEARTBYTE);  // raw [2]
-        return cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
+        return i_cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
 
       case QUASIFORM_4:
         return TYPE_QUASIFORM;
 
       case UNSTABLE_ANTIFORM_1:
         assert(KIND_BYTE_RAW(v) <= MAX_HEARTBYTE);  // raw [2]
-        return cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
+        return i_cast(TypeEnum, KIND_BYTE_RAW(v) + MAX_TYPEBYTE_ELEMENT);
 
     #if RUNTIME_CHECKS
       case BEDROCK_0:
@@ -1162,7 +1162,7 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
 #define CELL_MASK_COPY \
     ~(CELL_MASK_PERSIST | CELL_FLAG_AURA | CELL_FLAG_NOTE)
 
-#define CELL_MASK_ALL  ~cast(Flags, 0)  // use with caution!
+#define CELL_MASK_ALL  (~ i_cast(Flags, 0))  // use with caution!
 
 INLINE Cell* Copy_Cell_Core_Untracked(
     Cell* out,

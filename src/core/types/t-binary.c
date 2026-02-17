@@ -524,7 +524,7 @@ IMPLEMENT_GENERIC(CHANGE, Is_Blob)
     if (ARG(LINE))
         flags |= AM_LINE;
 
-    ModifyState op = u_cast(ModifyState, STATE);
+    ModifyState op = i_cast(ModifyState, STATE);
 
     require (
       Length tail = Modify_String_Or_Blob(
@@ -1190,14 +1190,14 @@ DECLARE_NATIVE(DECODE_INTEGER)
     //
     REBINT fill;
     for (fill = n; fill < 8; fill++)
-        i = cast(REBI64,
-            (cast(REBU64, i) << 8) | (negative ? 0xFF : 0x00)
+        i = i_cast(REBI64,
+            (i_cast(REBU64, i) << 8) | (negative ? 0xFF : 0x00)
         );
 
     // Use binary data bytes to fill in the up-to-8 lower bytes
     //
     while (n != 0) {
-        i = cast(REBI64, (cast(REBU64, i) << 8) | *bp);
+        i = i_cast(REBI64, (i_cast(REBU64, i) << 8) | *bp);
         bp += delta;
         n--;
     }

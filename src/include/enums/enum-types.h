@@ -111,65 +111,65 @@ typedef Byte TypeByte;  // Byte whose value is <= MAX_TYPEBYTE
     typedef HeartEnum Heart;  // avoid enum compare warnings [1]
     typedef TypeEnum Type;
 #else
-    struct Heart {
-        HeartEnum h;  // an "enum class" in MSVC (members are HeartEnum::XXX)
+    struct Heart {  // v-- "enum class" in MSVC (members are HeartEnum::XXX)
+        NEEDFUL_DECLARE_WRAPPED_FIELD(HeartEnum, h);
 
         Heart () = default;
         Heart (HeartEnum heart) : h (heart) {}
-        explicit Heart (HeartByte byte) : h (cast(HeartEnum, byte)) {}
+        explicit Heart (HeartByte byte) : h (i_cast(HeartEnum, byte)) {}
         explicit Heart (SymId id) {
             assert(id <= MAX_HEARTBYTE);
-            h = cast(HeartEnum, id);
+            h = i_cast(HeartEnum, id);
         }
 
         Heart (needful::Nocast0Struct)  // for return fail with Result(Heart)
-            : h (cast(HeartEnum, 0))  // (also used by Option(Heart) = none)
+            : h (i_cast(HeartEnum, 0))  // (also used by Option(Heart) = none)
           {}
 
         explicit operator bool() const  // for Option(Heart) in if() statements
-          { return cast(HeartByte, h) != 0; }
+          { return i_cast(HeartByte, h) != 0; }
 
         explicit operator HeartByte() const
-          { return cast(HeartByte, h); }
+          { return i_cast(HeartByte, h); }
 
         explicit operator SymId() const
-          { return cast(SymId, h); }
+          { return i_cast(SymId, h); }
 
         explicit operator uintptr_t() const
-          { return cast(uintptr_t, h); }
+          { return i_cast(uintptr_t, h); }
 
         operator HeartEnum() const
           { return h; }
     };
 
-    struct Type {
-        TypeEnum t;  // an "enum class" in MSVC (members are TypeEnum::XXX)
+    struct Type {  // v-- an "enum class" in MSVC (members are TypeEnum::XXX)
+        NEEDFUL_DECLARE_WRAPPED_FIELD(TypeEnum, t);
 
         Type () = default;
-        Type (HeartEnum heart) : t (cast(TypeEnum, heart)) {}
-        Type (const Heart& heart) : t (cast(TypeEnum, heart.h)) {}
+        Type (HeartEnum heart) : t (i_cast(TypeEnum, heart)) {}
+        Type (const Heart& heart) : t (i_cast(TypeEnum, heart.h)) {}
         Type (TypeEnum type) : t (type) {}
-        explicit Type (TypeByte byte) : t (cast(TypeEnum, byte)) {}
+        explicit Type (TypeByte byte) : t (i_cast(TypeEnum, byte)) {}
         explicit Type (SymId id) {
             assert(id <= MAX_TYPEBYTE);
-            t = cast(TypeEnum, id);
+            t = i_cast(TypeEnum, id);
         }
 
         Type (needful::Nocast0Struct)  // for return fail with Result(Type)
-          : t (cast(TypeEnum, 0))  // (also used by Option(Type) = none)
+          : t (i_cast(TypeEnum, 0))  // (also used by Option(Type) = none)
         {}
 
         explicit operator bool() const  // for Option(Type) in if() statements
-          { return cast(TypeByte, t) != 0; }
+          { return i_cast(TypeByte, t) != 0; }
 
         explicit operator TypeByte() const
-          { return cast(TypeByte, t); }
+          { return i_cast(TypeByte, t); }
 
         explicit operator SymId() const
-          { return cast(SymId, t); }
+          { return i_cast(SymId, t); }
 
         explicit operator uintptr_t() const
-          { return cast(uintptr_t, t); }
+          { return i_cast(uintptr_t, t); }
 
         operator TypeEnum() const
           { return t; }
@@ -363,17 +363,17 @@ typedef Byte TypeByte;  // Byte whose value is <= MAX_TYPEBYTE
 // (See notes on SingleHeart definition for more...)
 
 #define Leading_Blank_And(heart) \
-    cast(SingleHeart, (u_cast(Byte, heart) << 8) + 1)
+    i_cast(SingleHeart, (i_cast(Byte, heart) << 8) + 1)
 
 #define Trailing_Blank_And(heart) \
-    cast(SingleHeart, u_cast(Byte, heart) << 8)
+    i_cast(SingleHeart, i_cast(Byte, heart) << 8)
 
 #define LEADING_BLANK_AND(name)     Leading_Blank_And(TYPE_##name)
 #define TRAILING_BLANK_AND(name)    Trailing_Blank_And(TYPE_##name)
 
 INLINE bool Singleheart_Has_Leading_Blank(SingleHeart single) {
     assert(single != NOT_SINGLEHEART_0);
-    return did (cast(uint_fast16_t, single) & 1);
+    return did (i_cast(uint_fast16_t, single) & 1);
 }
 
 #define Singleheart_Has_Trailing_Blank(single) \
@@ -381,7 +381,7 @@ INLINE bool Singleheart_Has_Leading_Blank(SingleHeart single) {
 
 INLINE Heart Heart_Of_Singleheart(SingleHeart single) {
     assert(single != NOT_SINGLEHEART_0);
-    HeartEnum heart = cast(HeartEnum, cast(uint_fast16_t, single) >> 8);
+    HeartEnum heart = i_cast(HeartEnum, i_cast(uint_fast16_t, single) >> 8);
     assert(heart != TYPE_0 and heart != TYPE_BLANK);
     return heart;
 }

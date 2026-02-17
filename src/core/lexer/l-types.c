@@ -324,8 +324,8 @@ DECLARE_NATIVE(OF)
     const Symbol* sym = Word_Symbol(prop);
     const Symbol* sym_of;
 
-    Option(SymId) opt_id = Symbol_Id(sym);
-    if (opt_id and cast(SymId16, opt_id) <= MAX_SYM_BUILTIN - 1)
+    Option(SymId) id = Symbol_Id(sym);
+    if (id and i_cast(SymId16, id) <= MAX_SYM_BUILTIN - 1)
         goto check_if_next_is_sym_of;
 
     goto no_optimization;
@@ -347,10 +347,8 @@ DECLARE_NATIVE(OF)
   // the next symbol was an -OF, but rather than take a symbol flag for now we
   // just do the relatively cheap check.)
 
-    SymId id = unwrap opt_id;
-
-    const Utf8Byte* utf8 = Strand_Head(Canon_Symbol(id));
-    SymId next_id = cast(SymId, cast(int, id) + 1);
+    const Utf8Byte* utf8 = Strand_Head(Canon_Symbol(unwrap id));
+    SymId next_id = i_cast(SymId, i_cast(SymId16, id) + 1);
     const Utf8Byte* maybe_utf8_of = Strand_Head(Canon_Symbol(next_id));
     while (true) {
         if (*maybe_utf8_of == '\0')  // hit end of what would be "longer"

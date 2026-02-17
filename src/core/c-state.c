@@ -452,7 +452,7 @@ void Assert_State_Balanced_Debug(
     if (s->stack_base != TOP_INDEX) {
         printf(
             "PUSH()x%d without DROP()\n",
-            cast(int, TOP_INDEX - s->stack_base)
+            i_cast(int, TOP_INDEX - s->stack_base)
         );
         crash_at (nullptr, file, line);
     }
@@ -460,7 +460,7 @@ void Assert_State_Balanced_Debug(
     if (s->guarded_len != Flex_Used(g_gc.guarded)) {
         printf(
             "Push_Lifeguard()x%d without Drop_Lifeguard()\n",
-            cast(int, Flex_Used(g_gc.guarded) - s->guarded_len)
+            i_cast(int, Flex_Used(g_gc.guarded) - s->guarded_len)
         );
         Base* guarded = *Flex_At(
             Base*,
@@ -489,7 +489,7 @@ void Assert_State_Balanced_Debug(
     else if (s->manuals_len < Flex_Used(g_gc.manuals)) {
         printf(
             "Make_Flex()x%d w/o Free_Unmanaged_Flex() or Manage_Stub()\n",
-            cast(int, Flex_Used(g_gc.manuals) - s->manuals_len)
+            i_cast(int, Flex_Used(g_gc.manuals) - s->manuals_len)
         );
         Flex* manual = *(Flex_At(
             Flex*,

@@ -373,7 +373,7 @@ void Quit_Terminal(STD_TERM *t)
         CONSOLE_SCREEN_BUFFER_INFO info;
         if (not GetConsoleScreenBufferInfo(Stdout_Handle, &info))
             assert(!"GetConsoleScreenBufferInfo() failed");
-        if (cast(unsigned, info.dwCursorPosition.X) == t->pos)
+        if (i_cast(unsigned int, info.dwCursorPosition.X) == t->pos)
             return;  // coherent
         if (t->pos >= t->columns)
             return;  // let it slide when you've gone to next line

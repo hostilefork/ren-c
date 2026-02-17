@@ -125,7 +125,7 @@ Result(void*) Raw_Heap_Alloc(Size size)
   #endif
 
   #if CHECK_MEMORY_ALIGNMENT
-    assert(i_cast(uintptr_t, p) % ALIGN_SIZE == 0);
+    assert(p_cast(uintptr_t, p) % ALIGN_SIZE == 0);
   #endif
 
     if (not p) {
@@ -160,7 +160,7 @@ void Raw_Heap_Free(void *mem, Size size)
   #else
     assert(mem);
     char *ptr = cast(char *, mem) - sizeof(REBI64);
-    assert(*cast(REBI64*, ptr) == cast(REBI64, size));
+    assert(*cast(REBI64*, ptr) == i_cast(REBI64, size));
     free(ptr);
   #endif
 
@@ -371,7 +371,7 @@ void Shutdown_Pools(void)
         }
     }
     if (leaked) {
-        printf("%d leaked Flexes...crash()ing one\n", cast(int, num_leaks));
+        printf("%d leaked Flexes...crash()ing one\n", i_cast(int, num_leaks));
         crash (leaked);
     }
   #endif
@@ -420,7 +420,7 @@ void Shutdown_Pools(void)
         //
         printf(
             "*** g_mem.usage = %lu ***\n",
-            cast(unsigned long, g_mem.usage)
+            i_cast(unsigned long, g_mem.usage)
         );
 
         printf(
@@ -822,9 +822,9 @@ Result(None) Expand_Flex_At_Index_And_Update_Used(
         printf(
             "Expand %p wide: %d tail: %d delta: %d\n",
             cast(void*, f),
-            cast(int, wide),
-            cast(int, used_old),
-            cast(int, delta)
+            i_cast(int, wide),
+            i_cast(int, used_old),
+            i_cast(int, delta)
         );
         fflush(stdout);
     }
@@ -846,7 +846,7 @@ Result(None) Expand_Flex_At_Index_And_Update_Used(
 
   #if RUNTIME_CHECKS
     if (g_mem.watch_expand)
-        printf("Expand: %d\n", cast(int, Flex_Used(f) + delta + 1));
+        printf("Expand: %d\n", i_cast(int, Flex_Used(f) + delta + 1));
   #endif
 
     // !!! The protocol for doing new allocations currently mandates that the
@@ -1399,7 +1399,7 @@ void Check_Level_Pool_For_Leaks(void)
           #if TRAMPOLINE_COUNTS_TICKS
             printf(
                 "** LEVEL LEAKED at tick %lu\n",
-                cast(unsigned long, L->tick)
+                i_cast(unsigned long, L->tick)
             );
           #else
             assert(!"** LEVEL LEAKED but TRAMPOLINE_COUNTS_TICKS not enabled");
@@ -1428,7 +1428,7 @@ void Check_Feed_Pool_For_Leaks(void)
           #if TRAMPOLINE_COUNTS_TICKS
             printf(
                 "** FEED LEAKED at tick %lu\n",
-                cast(unsigned long, feed->tick)
+                i_cast(unsigned long, feed->tick)
             );
           #else
             assert(!"** FEED LEAKED but no TRAMPOLINE_COUNTS_TICKS enabled\n");
@@ -1462,9 +1462,9 @@ void Dump_All_Series_Of_Width(Size wide)
                 ++count;
                 printf(
                     "%3d %4d %4d\n",
-                    cast(int, count),
-                    cast(int, Flex_Used(f)),
-                    cast(int, Flex_Rest(f))
+                    i_cast(int, count),
+                    i_cast(int, Flex_Used(f)),
+                    i_cast(int, Flex_Rest(f))
                 );
             }
             fflush(stdout);
@@ -1529,16 +1529,20 @@ void Dump_Pools(void)
         REBLEN used = g_mem.pools[id].has - g_mem.pools[id].free;
         printf(
             "Pool[%-2d] %5dB %-5d/%-5d:%-4d (%3d%%) ",
-            cast(int, id),
-            cast(int, g_mem.pools[id].wide),
-            cast(int, used),
-            cast(int, g_mem.pools[id].has),
-            cast(int, g_mem.pools[id].num_units_per_segment),
-            cast(int,
+            i_cast(int, id),
+            i_cast(int, g_mem.pools[id].wide),
+            i_cast(int, used),
+            i_cast(int, g_mem.pools[id].has),
+            i_cast(int, g_mem.pools[id].num_units_per_segment),
+            i_cast(int,
                 g_mem.pools[id].has != 0 ? ((used * 100) / g_mem.pools[id].has) : 0
             )
         );
-        printf("%-2d segs, %-7d total\n", cast(int, num_segs), cast(int, size));
+        printf(
+            "%-2d segs, %-7d total\n",
+            i_cast(int, num_segs),
+            i_cast(int, size)
+        );
 
         tused += used * g_mem.pools[id].wide;
         total += size;
@@ -1546,12 +1550,12 @@ void Dump_Pools(void)
 
     printf(
         "Pools used %d of %d (%2d%%)\n",
-        cast(int, tused),
-        cast(int, total),
-        cast(int, (tused * 100) / total)
+        i_cast(int, tused),
+        i_cast(int, total),
+        i_cast(int, (tused * 100) / total)
     );
-    printf("System pool used %d\n", cast(int, g_mem.pools[SYSTEM_POOL].has));
-    printf("Raw allocator reports %lu\n", cast(unsigned long, g_mem.usage));
+    printf("System pool used %d\n", i_cast(int, g_mem.pools[SYSTEM_POOL].has));
+    printf("Raw allocator reports %lu\n", i_cast(unsigned long, g_mem.usage));
 
     fflush(stdout);
 }
@@ -1630,35 +1634,35 @@ REBU64 Inspect_Flex(bool show)
 
     if (show) {
         printf("Flex Memory Info:\n");
-        printf("  Cell size = %lu\n", cast(unsigned long, sizeof(Cell)));
-        printf("  Stub size = %lu\n", cast(unsigned long, sizeof(Stub)));
+        printf("  Cell size = %lu\n", i_cast(unsigned long, sizeof(Cell)));
+        printf("  Stub size = %lu\n", i_cast(unsigned long, sizeof(Stub)));
         printf(
             "  %-6d segs = %-7d bytes - headers\n",
-            cast(int, segs),
-            cast(int, seg_size)
+            i_cast(int, segs),
+            i_cast(int, seg_size)
         );
         printf(
             "  %-6d blks = %-7d bytes - blocks\n",
-            cast(int, blks),
-            cast(int, blk_size)
+            i_cast(int, blks),
+            i_cast(int, blk_size)
         );
         printf(
             "  %-6d strs = %-7d bytes - byte strings\n",
-            cast(int, strs),
-            cast(int, str_size)
+            i_cast(int, strs),
+            i_cast(int, str_size)
         );
         printf(
             "  %-6d odds = %-7d bytes - odd Flexes\n",
-            cast(int, odds),
-            cast(int, odd_size)
+            i_cast(int, odds),
+            i_cast(int, odd_size)
         );
         printf(
             "  %-6d used = %lu bytes - total used\n",
-            cast(int, tot),
-            cast(unsigned long, tot_size)
+            i_cast(int, tot),
+            i_cast(unsigned long, tot_size)
         );
-        printf("  %lu free headers\n", cast(unsigned long, fre));
-        printf("  %lu bytes base-space\n", cast(unsigned long, fre_size));
+        printf("  %lu free headers\n", i_cast(unsigned long, fre));
+        printf("  %lu bytes base-space\n", i_cast(unsigned long, fre_size));
         printf("\n");
     }
 

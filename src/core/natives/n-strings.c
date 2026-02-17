@@ -31,7 +31,7 @@ static bool Check_Char_Range(const Stable* val, Codepoint limit)
         return Rune_Known_Single_Codepoint(val) <= limit;
 
     if (Is_Integer(val))
-        return VAL_INT64(val) <= cast(REBI64, limit);
+        return VAL_INT64(val) <= i_cast(REBI64, limit);
 
     assert(Any_String(val));
 
@@ -703,7 +703,7 @@ DECLARE_NATIVE(JOIN)
             require (
               Expand_Flex_Tail_And_Update_Used(buf, 1)
             );
-            *Binary_At(buf, used) = cast(Byte, VAL_UINT8(at));  // can panic()
+            *Binary_At(buf, used) = i_cast(Byte, VAL_UINT8(at));  // can panic
             break; }
 
           case TYPE_BLOB: {
@@ -999,9 +999,9 @@ DECLARE_NATIVE(DEHEX)
             Byte nibble2;
             if (
                 hex1 > UINT8_MAX
-                or not Try_Get_Lex_Hexdigit(&nibble1, cast(Byte, hex1))
+                or not Try_Get_Lex_Hexdigit(&nibble1, i_cast(Byte, hex1))
                 or hex2 > UINT8_MAX
-                or not Try_Get_Lex_Hexdigit(&nibble2, cast(Byte, hex2))
+                or not Try_Get_Lex_Hexdigit(&nibble2, i_cast(Byte, hex2))
             ){
                 return fail ("2 hex digits must follow percent, e.g. %XX");
             }

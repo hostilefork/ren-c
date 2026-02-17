@@ -95,12 +95,12 @@ typedef intptr_t Count;
 //
 typedef intptr_t Offset;  // physical units offset (e.g. bytes)
 typedef intptr_t Size;  // Size (in bytes)
-#define Size_Of(x) u_cast(Size, sizeof(x))
+#define Size_Of(x) i_cast(Size, sizeof(x))
 
 // For comparisons of mixed signage, prefer casting to signed just because
 // signed is our status quo.
 //
-// !!! Should this be folded in as the behavior of `cast(intptr_t, u)`?
+// !!! Should this be folded in as the behavior of `i_cast(intptr_t, u)`?
 // For now, having it be "weird" calls out that you really should be working
 // in signed integers where possible.
 //
@@ -110,7 +110,7 @@ typedef intptr_t Size;  // Size (in bytes)
         return u;
     }
 #else
-    #define Cast_Signed(u) cast(intptr_t, (u))
+    #define Cast_Signed(u)  i_cast(intptr_t, (u))
 #endif
 
 typedef int64_t REBI64; // 64 bit integer

@@ -64,19 +64,19 @@ void Startup_Datatypes(void)
     SymId16 id16 = MIN_SYM_BUILTIN_TYPES;
 
     for (; id16 <= MAX_SYM_BUILTIN_TYPES; ++id16) {
-        SymId id = cast(SymId, id16);
+        SymId id = i_cast(SymId, id16);
         Type type = Type_From_Symbol_Id(id);
 
-        if (u_cast(TypeByte, type) > MAX_TYPEBYTE_ELEMENT) {  // antiform
-            Heart heart = u_cast(
+        if (i_cast(TypeByte, type) > MAX_TYPEBYTE_ELEMENT) {  // antiform
+            Heart heart = i_cast(
                 Heart,
-                u_cast(TypeByte, type) - MAX_TYPEBYTE_ELEMENT
+                i_cast(TypeByte, type) - MAX_TYPEBYTE_ELEMENT
             );
             if (not Any_Isotopic_Type(heart))
                 continue;  // don't define the dummy antiform for this [2]
         }
 
-        Patch* patch = &g_datatype_patches[cast(Byte, type)];
+        Patch* patch = &g_datatype_patches[i_cast(Byte, type)];
         assert(Is_Stub_Erased(patch));  // pre-boot state
         FORCE_TRACK_0(Stub_Cell(patch));
 
@@ -94,7 +94,7 @@ void Startup_Datatypes(void)
         Sink(Stable) datatype = Stub_Cell(patch);
         Source* a = Alloc_Singular(STUB_MASK_MANAGED_SOURCE);
         Init_Word(Stub_Cell(a), Canon_Symbol(Symbol_Id_From_Type(type)));
-        DATATYPE_BYTE(a) = u_cast(Byte, type);
+        DATATYPE_BYTE(a) = i_cast(Byte, type);
 
         Freeze_Source_Deep(a);
         Init_Fence(datatype, a);
@@ -124,12 +124,12 @@ void Shutdown_Datatypes(void)
 {
     SymId16 id16 = MIN_SYM_BUILTIN_TYPES;
 
-    assert(Is_Stub_Erased(&g_datatype_patches[cast(Byte, TYPE_0)]));  // skip
+    assert(Is_Stub_Erased(&g_datatype_patches[i_cast(Byte, TYPE_0)]));  // skip
 
     for (; id16 <= MAX_SYM_BUILTIN_TYPES; ++id16) {
-        SymId id = cast(SymId, id16);
+        SymId id = i_cast(SymId, id16);
         Type type = Type_From_Symbol_Id(id);
-        Patch* patch = &g_datatype_patches[cast(Byte, type)];
+        Patch* patch = &g_datatype_patches[i_cast(Byte, type)];
 
         if (Is_Stub_Erased(patch))
             continue;  // isotope slot for non-isotopic type

@@ -109,10 +109,10 @@ INLINE void Erase_Stub(Stub* s) {
 
 
 INLINE Flavor Flavor_From_Flags(Flags flags)
-  { return cast(Flavor, SECOND_BYTE(&flags)); }
+  { return i_cast(Flavor, SECOND_BYTE(&flags)); }
 
 #define Stub_Flavor_Unchecked(s) \
-    cast(Flavor, TASTE_BYTE(s))
+    i_cast(Flavor, TASTE_BYTE(s))
 
 #if NO_RUNTIME_CHECKS
     #define Stub_Flavor  Stub_Flavor_Unchecked

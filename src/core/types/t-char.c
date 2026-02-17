@@ -136,7 +136,7 @@ Result(Codepoint) Back_Scan_Utf8_Char(  // no NUL or substitution chars [1]
     uint_fast8_t trail = g_trailing_bytes_for_utf8[*source];
 
     if (size) {  // Check that we have enough valid source bytes
-        if (cast(Size, trail + 1) > *(unwrap size))
+        if (i_cast(Size, trail + 1) > *(unwrap size))
             return fail (Cell_Error(g_error_utf8_too_short));  // cached [3]
     }
     else if (trail != 0) {
@@ -1129,7 +1129,7 @@ DECLARE_NATIVE(TRAILING_BYTES_FOR_UTF8)
     if (byte < 0 or byte > 255)
         panic (Error_Out_Of_Range(ARG(FIRST_BYTE)));
 
-    uint_fast8_t trail = g_trailing_bytes_for_utf8[cast(Byte, byte)];
+    uint_fast8_t trail = g_trailing_bytes_for_utf8[i_cast(Byte, byte)];
     if (trail > 3 and not ARG(EXTENDED)) {
         assert(trail == 4 or trail == 5);
         panic (

@@ -103,11 +103,11 @@ extern const uint_fast32_t g_offsets_from_utf8[6];  // defined in %t-char.c
 //    would that decision be made?
 //
 INLINE uint_fast8_t Encoded_Size_For_Codepoint(Codepoint c) {
-    if (c < cast(uint32_t, 0x80))
+    if (c < i_cast(uint32_t, 0x80))
         return 1;
-    if (c < cast(uint32_t, 0x800))
+    if (c < i_cast(uint32_t, 0x800))
         return 2;
-    if (c < cast(uint32_t, 0x10000))
+    if (c < i_cast(uint32_t, 0x10000))
         return 3;
    if (c <= UNI_MAX_LEGAL_UTF32)
         return UNI_ENCODED_MAX;
@@ -133,16 +133,16 @@ INLINE void Encode_UTF8_Char(
 
     switch (encoded_size) {
       case 4:
-        *--dst = cast(Byte, (c | mark) & mask);
+        *--dst = i_cast(Byte, (c | mark) & mask);
         c >>= 6;  // falls through
       case 3:
-        *--dst = cast(Byte, (c | mark) & mask);
+        *--dst = i_cast(Byte, (c | mark) & mask);
         c >>= 6;  // falls through
       case 2:
-        *--dst = cast(Byte, (c | mark) & mask);
+        *--dst = i_cast(Byte, (c | mark) & mask);
         c >>= 6;  // falls through
       case 1:
-        *--dst = cast(Byte, c | g_first_byte_mark_utf8[encoded_size]);
+        *--dst = i_cast(Byte, c | g_first_byte_mark_utf8[encoded_size]);
     }
 }
 

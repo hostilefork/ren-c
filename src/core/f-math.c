@@ -97,7 +97,7 @@ const Byte* Grab_Int_Scale_Zero_Default(
     // Make sure its full scale:
     for (;scale > 0; scale--) value *= 10;
 
-    *out = cast(REBINT, value);
+    *out = i_cast(REBINT, value);
     return cp;
 }
 

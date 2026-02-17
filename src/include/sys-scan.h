@@ -113,7 +113,7 @@ typedef enum {  // encoded in LEX_CLASS field, order is important [1]
 STATIC_ASSERT(LEX_CLASS_NUMBER < 4);
 
 #define Get_Lex_Class(b) \
-    cast(LexClass, Lex_Of(b) >> LEX_SHIFT)
+    i_cast(LexClass, Lex_Of(b) >> LEX_SHIFT)
 
 enum LexClassMasksEnum {  // using an enum helps catch incorrect uses [2]
     LEX_DELIMIT =   (LEX_CLASS_DELIMIT << LEX_SHIFT),
@@ -189,7 +189,7 @@ typedef enum {
 STATIC_ASSERT(MAX_LEX_DELIMIT < 16);
 
 #define Get_Lex_Delimit(b) \
-    cast(LexDelimit, Get_Lex_Value(LEX_CLASS_DELIMIT, (b)))
+    i_cast(LexDelimit, Get_Lex_Value(LEX_CLASS_DELIMIT, (b)))
 
 
 typedef uint16_t LexFlags;  // 16 flags per lex class
@@ -255,7 +255,7 @@ typedef enum {               // The order is important!
 STATIC_ASSERT(MAX_LEX_SPECIAL < 16);
 
 #define Get_Lex_Special(b) \
-    cast(LexSpecial, Get_Lex_Value(LEX_CLASS_SPECIAL, (b)))
+    i_cast(LexSpecial, Get_Lex_Value(LEX_CLASS_SPECIAL, (b)))
 
 
 #define Get_Lex_Number(b) \

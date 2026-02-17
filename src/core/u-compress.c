@@ -49,10 +49,10 @@
 //
 static uint32_t Bytes_To_U32_BE(const Byte* bp)
 {
-    return cast(uint32_t, bp[0])
-        | cast(uint32_t, bp[1] << 8)
-        | cast(uint32_t, bp[2] << 16)
-        | cast(uint32_t, bp[3] << 24);
+    return i_cast(uint32_t, bp[0])
+        | i_cast(uint32_t, bp[1] << 8)
+        | i_cast(uint32_t, bp[2] << 16)
+        | i_cast(uint32_t, bp[3] << 24);
 }
 
 

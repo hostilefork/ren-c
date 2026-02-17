@@ -137,20 +137,20 @@ INLINE void Unregister_Datatype(RebolValue* datatype_holder)
 INLINE bool Is_Symbol_Id_Of_Builtin_Type(SymId id) {
     assert(id != SYM_0_constexpr);
     return (
-        cast(SymId16, id) >= MIN_SYM_BUILTIN_TYPES
-        and cast(SymId16, id) <= MAX_SYM_BUILTIN_TYPES
+        i_cast(SymId16, id) >= MIN_SYM_BUILTIN_TYPES
+        and i_cast(SymId16, id) <= MAX_SYM_BUILTIN_TYPES
     );
 }
 
 INLINE Type Type_From_Symbol_Id(SymId id) {
     assert(Is_Symbol_Id_Of_Builtin_Type(id));
-    return cast(TypeEnum, id - MIN_SYM_BUILTIN_TYPES + 1);
+    return i_cast(TypeEnum, id - MIN_SYM_BUILTIN_TYPES + 1);
 }
 
 INLINE SymId Symbol_Id_From_Type(Type type) {
     assert(type != TYPE_0_constexpr);
-    return cast(SymId,
-        cast(SymId16, u_cast(Byte, type) + MIN_SYM_BUILTIN_TYPES - 1)
+    return i_cast(SymId,
+        i_cast(SymId16, i_cast(Byte, type) + MIN_SYM_BUILTIN_TYPES - 1)
     );
 }
 

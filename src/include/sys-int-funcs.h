@@ -72,7 +72,7 @@
 #if __has_builtin(__builtin_uaddl_overflow) && __has_builtin(__builtin_uaddll_overflow) || GCC_VERSION_AT_LEAST(5, 1)
     #ifdef __LP64__
         #define Add_U64_Overflows(sum,x,y) \
-            __builtin_uaddl_overflow((x), (y), cast(unsigned long*, sum))
+            __builtin_uaddl_overflow((x), (y), i_cast(unsigned long*, sum))
     #else // presumably __LLP64__ or __LP32__
         #define Add_U64_Overflows(sum,x,y) \
             __builtin_uaddll_overflow((x), (y), (sum))
@@ -153,7 +153,7 @@
 #if __has_builtin(__builtin_umull_overflow) && __has_builtin(__builtin_umulll_overflow) || GCC_VERSION_AT_LEAST(5, 1)
     #ifdef __LP64__
         #define Multiply_U64_Overflows(prod,x,y) \
-            __builtin_umull_overflow(cast(unsigned long*, (prod)), (x), (y))
+            __builtin_umull_overflow(i_cast(unsigned long*, (prod)), (x), (y))
     #else
         // presumably __LLP64__ or __LP32__
         //

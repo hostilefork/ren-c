@@ -149,7 +149,7 @@ typedef Byte TasteByte;
 #define FLAG_TASTE_BYTE(byte)  FLAG_SECOND_BYTE(byte)
 
 #define FLAG_FLAVOR(flavor) \
-    FLAG_TASTE_BYTE(u_cast(Byte, known(Flavor, (flavor))))
+    FLAG_TASTE_BYTE(i_cast(Byte, known(Flavor, (flavor))))
 
 #define STUB_MASK_TASTE  FLAG_TASTE_BYTE(255)
 

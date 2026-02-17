@@ -217,8 +217,8 @@ STATIC_ASSERT((int)AM_FIND_MATCH == (int)PF_FIND_MATCH);
 INLINE Option(SymId) Word_Id_If_Parse3_Keyword(const Cell* v) {
     Option(SymId) id = Word_Id(v);
     if (
-        cast(SymId16, id) >= MIN_SYM_PARSE3
-        and cast(SymId16, id) <= MAX_SYM_PARSE3
+        i_cast(SymId16, id) >= MIN_SYM_PARSE3
+        and i_cast(SymId16, id) <= MAX_SYM_PARSE3
     ){
         return id;
     }
@@ -1449,10 +1449,10 @@ DECLARE_NATIVE(SUBPARSE)
             }
 
             assert(
-                cast(int, cmd) >= MIN_SYM_PARSE3
-                and cast(int, cmd) <= MAX_SYM_PARSE3
+                i_cast(int, cmd) >= MIN_SYM_PARSE3
+                and i_cast(int, cmd) <= MAX_SYM_PARSE3
             );
-            if (cast(int, cmd) >= MIN_SYM_PARSE3_MATCH)
+            if (i_cast(int, cmd) >= MIN_SYM_PARSE3_MATCH)
                 goto skip_pre_rule;
 
             switch (opt cmd) {

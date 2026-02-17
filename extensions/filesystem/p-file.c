@@ -285,7 +285,7 @@ DECLARE_NATIVE(FILE_ACTOR)
                 );
                 goto cleanup_read;
             }
-            if (limit < cast(int64_t, len))
+            if (limit < i_cast(int64_t, len))
                 len = limit;
         }
 

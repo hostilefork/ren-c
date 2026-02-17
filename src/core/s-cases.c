@@ -912,8 +912,8 @@ void Init_Char_Cases(void)
       known_nullptr(g_white_chars) = Alloc_N_On_Heap(Byte, 34)
     );
     memset(g_white_chars, 1, 33); // All white chars: NL, CR, BS, etc...
-    g_white_chars[cast(Byte, ' ')] = 3; // space
-    g_white_chars[cast(Byte, '\t')] = 3; // tab
+    g_white_chars[i_cast(Byte, ' ')] = 3; // space
+    g_white_chars[i_cast(Byte, '\t')] = 3; // tab
     g_white_chars[0] = 0; // special
 
 } init_casing_tables: {

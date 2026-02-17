@@ -77,7 +77,7 @@ static ATTRIBUTE_NO_RETURN void Crash_Of_Last_Resort(void)
     abort();  // shows trace in checked build [1]
   #elif defined(__SANITIZE_ADDRESS__)
     Printf_Stderr("Dereferencing bad pointer for a backtrace from ASAN...\n");
-    volatile int *bad_ptr = p_cast(int*, 0x1);
+    volatile int *bad_ptr = p_cast(int*, i_cast(intptr_t, 0x1));
     *bad_ptr = 42;  // crash, but get a good stack trace [2]
     Printf_Stderr("...dereference didn't crash, likely no trace showed.\n\n");
   #else
@@ -131,7 +131,7 @@ ATTRIBUTE_NO_RETURN void Crash_With_Stub_Debug(const Stub* s)
         else
             Printf_Stderr("created");
         Printf_Stderr(
-            " during evaluator tick: %lu\n", cast(unsigned long, s->tick)
+            " during evaluator tick: %lu\n", i_cast(unsigned long, s->tick)
         );
     #else
       Printf_Stderr(" has no tick tracking (see TRAMPOLINE_COUNTS_TICKS)\n");
@@ -179,9 +179,9 @@ ATTRIBUTE_NO_RETURN void Crash_With_Cell_Debug(const Cell* c) {
     Option(Heart) heart = Heart_Of(c);
     Option(SymId) id = heart ? Symbol_Id_From_Type(unwrap heart) : SYM_0;
     const char *name = id ? Strand_Utf8(Canon_Symbol(unwrap id)) : "custom-0";
-    Printf_Stderr("Cell.kind_byte=%d\n", u_cast(int, KIND_BYTE(c)));
+    Printf_Stderr("Cell.kind_byte=%d\n", i_cast(int, KIND_BYTE_RAW(c)));
     Printf_Stderr("cell heart name=%s\n", name);
-    Printf_Stderr("Cell.lift_byte=%d\n", u_cast(int, LIFT_BYTE(c)));
+    Printf_Stderr("Cell.lift_byte=%d\n", i_cast(int, LIFT_BYTE_RAW(c)));
 
     if (Cell_Payload_1_Needs_Mark(c))
         Printf_Stderr("has payload1: %p\n", cast(void*, CELL_PAYLOAD_1(c)));
@@ -560,7 +560,7 @@ void Panic_Cell_Unaligned(Cell* c) {
     printf(
         "Cell address %p not aligned to %d bytes\n",
         cast(void*, (c)),
-        cast(int, ALIGN_SIZE)
+        i_cast(int, ALIGN_SIZE)
     );
     crash (c);
 }

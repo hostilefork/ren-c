@@ -602,8 +602,8 @@ void Needful_Panic_Abruptly(const char* error) {
 **                               & u_cast()      // const TA* => const TB*
 **
 ** TYPE CONVERSIONS
-**    - Non-pointer to pointer:    p_cast()    // intptr_t => T*
-**    - Non-integral to integral:  i_cast()    // T* => intptr_t
+**    - Non-pointer to pointer:    i_cast()    // intptr_t => T*
+**    - Non-integral to integral:  p_cast()    // T* => intptr_t
 **    - Function to function:      f_cast()    // ret1(*)(...) => ret2(*)(...)
 **    - va_list to void*:          v_cast()    // va_list* <=> void*
 **
@@ -691,7 +691,7 @@ void Needful_Panic_Abruptly(const char* error) {
 #endif
 
 
-/****[[ p_cast(), i_cast(), f_cast(): NARROWED CASTS ]]***********************
+/****[[ i_cast(), p_cast(), f_cast(): NARROWED CASTS ]]***********************
 **
 ** Casts like those that turn pointers into integers are weird.  It would
 ** create complexity to make the plain cast() macro handle them... but also,
@@ -705,7 +705,7 @@ void Needful_Panic_Abruptly(const char* error) {
 
 #define needful_pointer_cast(T,expr)    ((T)(expr))
 
-#define needful_integral_cast(T,expr)   ((T)(expr))
+#define needful_integer_cast(T,expr)   ((T)(expr))
 
 #define needful_function_cast(T,expr)   ((T)(expr))
 
@@ -1100,8 +1100,8 @@ void Needful_Panic_Abruptly(const char* error) {
 
     #define m_cast /* (T,...) */    needful_mutable_cast
 
+    #define i_cast /* (T,...) */    needful_integer_cast
     #define p_cast /* (T,...) */    needful_pointer_cast
-    #define i_cast /* (T,...) */    needful_integral_cast
     #define f_cast /* (T,...) */    needful_function_cast
     #define v_cast /* (T,...) */    needful_valist_cast
 

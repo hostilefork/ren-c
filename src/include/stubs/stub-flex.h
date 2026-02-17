@@ -315,7 +315,7 @@ MUTABLE_IF_C(Byte*, INLINE) Flex_Data_At(
             printf(
                 "Flex_Data_At() asked %d on width=%d\n",
                 w,
-                cast(int, Flex_Wide(f))
+                i_cast(int, Flex_Wide(f))
             );
         crash (f);
     }
@@ -557,8 +557,8 @@ INLINE Result(Flex*) Make_Flex_Into(
     assert(flavor != FLAVOR_0 and flavor <= MAX_FLAVOR);
 
     size_t wide = Wide_For_Flavor(flavor);
-    if (cast(REBU64, capacity) * wide > INT32_MAX) {
-        Size requested_size = cast(REBU64, capacity) * wide;
+    if (i_cast(REBU64, capacity) * wide > INT32_MAX) {
+        Size requested_size = i_cast(REBU64, capacity) * wide;
         UNUSED(requested_size);  // can't alloc memory, how to report?
         return fail (Cell_Error(g_error_no_memory));
     }

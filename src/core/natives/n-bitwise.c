@@ -217,7 +217,7 @@ DECLARE_NATIVE(SHIFT)
     Stable* a = ARG(VALUE);
 
     if (b < 0) {
-        REBU64 c = - cast(REBU64, b); // defined, see note on #pragma above
+        REBU64 c = (- i_cast(REBU64, b)); // defined, see note on #pragma above
         if (c >= 64) {
             if (ARG(LOGICAL))
                 mutable_VAL_INT64(a) = 0;
@@ -226,9 +226,9 @@ DECLARE_NATIVE(SHIFT)
         }
         else {
             if (ARG(LOGICAL))
-                mutable_VAL_INT64(a) = cast(REBU64, VAL_INT64(a)) >> c;
+                mutable_VAL_INT64(a) = i_cast(REBU64, VAL_INT64(a)) >> c;
             else
-                mutable_VAL_INT64(a) >>= cast(REBI64, c);
+                mutable_VAL_INT64(a) >>= i_cast(REBI64, c);
         }
     }
     else {
@@ -240,12 +240,12 @@ DECLARE_NATIVE(SHIFT)
         }
         else {
             if (ARG(LOGICAL))
-                mutable_VAL_INT64(a) = cast(REBU64, VAL_INT64(a)) << b;
+                mutable_VAL_INT64(a) = i_cast(REBU64, VAL_INT64(a)) << b;
             else {
-                REBU64 c = cast(REBU64, INT64_MIN) >> b;
+                REBU64 c = i_cast(REBU64, INT64_MIN) >> b;
                 REBU64 d = VAL_INT64(a) < 0
-                    ? - cast(REBU64, VAL_INT64(a)) // again, see #pragma
-                    : cast(REBU64, VAL_INT64(a));
+                    ? - i_cast(REBU64, VAL_INT64(a)) // again, see #pragma
+                    : i_cast(REBU64, VAL_INT64(a));
                 if (c <= d) {
                     if ((c < d) || (VAL_INT64(a) >= 0))
                         panic (Error_Overflow_Raw());

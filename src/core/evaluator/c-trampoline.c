@@ -464,7 +464,7 @@ void Startup_Signals(void)
   #endif
 
     g_ts.signal_flags = 0;
-    g_ts.signal_mask = (~ cast(Flags, 0));  // heed all flags by default
+    g_ts.signal_mask = (~ i_cast(Flags, 0));  // heed all flags by default
     g_ts.eval_dose = EVAL_DOSE;
     g_ts.eval_countdown = g_ts.eval_dose;
     g_ts.total_eval_cycles = 1;  // to match TICK when TRAMPOLINE_COUNTS_TICKS

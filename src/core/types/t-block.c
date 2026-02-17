@@ -762,7 +762,7 @@ IMPLEMENT_GENERIC(CHANGE, Any_List)
     if (ARG(LINE))
         flags |= AM_LINE;
 
-    ModifyState op = u_cast(ModifyState, STATE);
+    ModifyState op = i_cast(ModifyState, STATE);
 
     require (
       Length tail = Modify_List(
@@ -1812,8 +1812,8 @@ void Assert_Array_Core(const Array* a)
         }
 
         Assert_Cell_Readable(item);
-        if (cast(Byte, Heart_Of(item)) > MAX_HEARTBYTE) {
-            printf("Invalid Heart_Of() at index %d\n", cast(int, n));
+        if (i_cast(Byte, Heart_Of(item)) > MAX_HEARTBYTE) {
+            printf("Invalid Heart_Of() at index %d\n", i_cast(int, n));
             crash (a);
         }
     }

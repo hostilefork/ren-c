@@ -281,7 +281,8 @@ static void Join_Binary_In_Byte_Buf(
             require (
               Expand_Flex_Tail_And_Update_Used(buf, 1)
             );
-            *Binary_At(buf, tail) = cast(Byte, VAL_UINT8(val));  // can panic()
+            Byte b = i_cast(Byte, VAL_UINT8(val));  // can panic()
+            *Binary_At(buf, tail) = b;
             break; }
 
           case TYPE_BLOB: {

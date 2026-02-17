@@ -188,7 +188,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Time)
 
     UNUSED(form);  // no difference between MOLD and FORM at this time
 
-    if (VAL_NANO(v) < cast(REBI64, 0))  // account for the sign if present
+    if (VAL_NANO(v) < i_cast(REBI64, 0))  // account for the sign if present
         Append_Codepoint(mo->strand, '-');
 
     REB_TIMEF tf;
@@ -479,7 +479,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Time)
                 secs = Add_Max(
                     TYPE_TIME,
                     secs,
-                    cast(int64_t, dec * SEC_SEC),
+                    u_cast(int64_t, dec * SEC_SEC),
                     MAX_TIME
                 );
                 return Init_Time_Nanoseconds(OUT, secs);
@@ -488,7 +488,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Time)
                 secs = Add_Max(
                     TYPE_TIME,
                     secs,
-                    cast(int64_t, dec * -SEC_SEC),
+                    u_cast(int64_t, dec * -SEC_SEC),
                     MAX_TIME
                 );
                 return Init_Time_Nanoseconds(OUT, secs);
@@ -496,7 +496,7 @@ IMPLEMENT_GENERIC(OLDGENERIC, Is_Time)
               case SYM_DIVIDE:
                 if (dec == 0.0)
                     panic (Error_Zero_Divide_Raw());
-                secs = cast(int64_t, secs / dec);
+                secs = u_cast(int64_t, secs / dec);
                 return Init_Time_Nanoseconds(OUT, secs);
 
               /*  // !!! Was commented out, why?
@@ -709,7 +709,7 @@ IMPLEMENT_GENERIC(MULTIPLY, Is_Time)
             );
     }
     else if (Is_Decimal(v2))
-        secs = cast(int64_t, secs * VAL_DECIMAL(v2));
+        secs = u_cast(int64_t, secs * VAL_DECIMAL(v2));
     else
         panic (PARAM(VALUE2));
 

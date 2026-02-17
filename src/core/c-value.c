@@ -43,7 +43,7 @@ INLINE void Probe_Print_Helper(
         type,
         TICK,  // 0 if not TRAMPOLINE_COUNTS_TICKS
         file ? unwrap file : "(no file)",
-        line ? cast(int, unwrap line) : 0
+        line ? i_cast(int, unwrap line) : 0
     );
 
     fflush(stdout);

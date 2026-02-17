@@ -138,7 +138,7 @@
             // but no blinking console window during start.
             //
             if (not this_exe_path) {  // argc was > 1
-                g_app_instance = p_cast(HINSTANCE,
+                g_app_instance = i_cast(HINSTANCE,
                     GetWindowLongPtr(GetConsoleWindow(), GWLP_HINSTANCE)
                 );
             }

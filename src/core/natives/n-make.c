@@ -167,7 +167,7 @@ DECLARE_NATIVE(COPY)
 //
 Bounce To_Or_As_Checker_Executor(Level* const L)
 {
-    Heart to_or_as = u_cast(HeartEnum, LEVEL_STATE_BYTE(L));
+    Heart to_or_as = i_cast(HeartEnum, LEVEL_STATE_BYTE(L));
     assert(to_or_as != TYPE_0);
 
     Element* spare_input = cast(Element*, Level_Spare(L));
@@ -286,7 +286,7 @@ static Bounce Downshift_For_To_Or_As_Checker(Level *level_) {
     Option(const Symbol*) label = Level_Label(level_);
 
     Stable* datatype = ARG(TYPE);
-    STATE = cast(Byte, Datatype_Builtin_Heart(datatype));  // might alter
+    STATE = i_cast(StateByte, Datatype_Builtin_Heart(datatype));  // may alter
     Copy_Cell(SPARE, ARG(VALUE));  // may alter ELEMENT too, save in SPARE
 
     Level* sub = Push_Downshifted_Level(OUT, level_);
@@ -338,7 +338,7 @@ DECLARE_NATIVE(TO)
     if (not to)
         panic ("TO doesn't work with extension types");
 
-    if (u_cast(Byte, unwrap to) > MAX_TYPEBYTE_FUNDAMENTAL)
+    if (i_cast(Byte, unwrap to) > MAX_TYPEBYTE_FUNDAMENTAL)
         panic ("TO can't produce antiforms or quoteds");  // !!! handle quoted?
 
   handle_sigil_cases: {
@@ -435,7 +435,7 @@ DECLARE_NATIVE(AS)
     Option(Type) as = Datatype_Type(ARG(TYPE));
     if (not as)
         panic ("TO doesn't work with extension types");
-    if (u_cast(TypeByte, (unwrap as)) > MAX_HEARTBYTE)
+    if (i_cast(TypeByte, (unwrap as)) > MAX_HEARTBYTE)
         panic ("AS can't alias to quoted/quasiform/antiform");
 
   #if NO_RUNTIME_CHECKS

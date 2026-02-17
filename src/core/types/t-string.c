@@ -971,7 +971,7 @@ IMPLEMENT_GENERIC(CHANGE, Any_String)
     if (ARG(LINE))
         flags |= AM_LINE;
 
-    ModifyState op = u_cast(ModifyState, STATE);
+    ModifyState op = i_cast(ModifyState, STATE);
 
     require (
       Length tail = Modify_String_Or_Blob(
@@ -1406,10 +1406,10 @@ void Startup_String(void)
     for (c = '@'; c <= '_'; c++)
         *cp++ = c;
 
-    g_char_escapes[cast(Byte, '\t')] = '-'; // tab
-    g_char_escapes[cast(Byte, '\n')] = '/'; // line feed
-    g_char_escapes[cast(Byte, '"')] = '"';
-    g_char_escapes[cast(Byte, '^')] = '^';
+    g_char_escapes[i_cast(Byte, '\t')] = '-'; // tab
+    g_char_escapes[i_cast(Byte, '\n')] = '/'; // line feed
+    g_char_escapes[i_cast(Byte, '"')] = '"';
+    g_char_escapes[i_cast(Byte, '^')] = '^';
 
     require (
       g_url_escapes = Alloc_N_On_Heap(Byte, MAX_URL_CHAR + 1)

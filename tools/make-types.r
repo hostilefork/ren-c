@@ -264,7 +264,7 @@ e-types/emit [--[
     extern uint_fast32_t const g_sparse_memberships[MAX_TYPEBYTE + 1];
 
     #define Sparse_Memberships(t) \
-        g_sparse_memberships[u_cast(Byte, opt x_cast_known(Option(Type), (t)))]
+        g_sparse_memberships[i_cast(Byte, known(Option(Type), (t)))]
 ]--]
 
 e-types/emit [--[
@@ -316,7 +316,7 @@ for-each-typerange 'tr [  ; typeranges first (e.g. ANY-STRING? < ANY-UTF8?)
 
     e-types/emit [tr --[
         INLINE bool Any_${Proper-Name}_Type(Option(Type) t)
-          { return u_cast(Byte, opt (t)) >= $<TR.START> and u_cast(Byte, opt (t)) <= $<TR.END>; }
+          { return i_cast(TypeByte, (t)) >= $<TR.START> and i_cast(TypeByte, (t)) <= $<TR.END>; }
 
         #define Any_${Proper-Name}(cell) \
             Any_${Proper-Name}_Type(Type_Of(cell))
@@ -839,22 +839,22 @@ e-hearts/emit [rebs --[
         $[Typedefines]
     #endif
 
-    STATIC_ASSERT(cast(int, $<MAX-TYPE>) <= 256);  /* Stored in bytes */
+    STATIC_ASSERT(i_cast(int, $<MAX-TYPE>) <= 256);  /* Stored in bytes */
 
-    #define MAX_HEARTBYTE  u_cast(Byte, $<MAX-HEART>)
-    STATIC_ASSERT(cast(Byte, MAX_HEARTBYTE) < 64);
+    #define MAX_HEARTBYTE  i_cast(Byte, $<MAX-HEART>)
+    STATIC_ASSERT(i_cast(Byte, MAX_HEARTBYTE) < 64);
 
-    STATIC_ASSERT(cast(Byte, TYPE_METAFORM) == MAX_HEARTBYTE + 1);
-    STATIC_ASSERT(cast(Byte, TYPE_PINNED) == MAX_HEARTBYTE + 2);
-    STATIC_ASSERT(cast(Byte, TYPE_TIED) == MAX_HEARTBYTE + 3);
-    STATIC_ASSERT(cast(Byte, TYPE_QUASIFORM) == MAX_HEARTBYTE + 4);
-    STATIC_ASSERT(cast(Byte, TYPE_QUOTED) == MAX_HEARTBYTE + 5);
+    STATIC_ASSERT(i_cast(Byte, TYPE_METAFORM) == MAX_HEARTBYTE + 1);
+    STATIC_ASSERT(i_cast(Byte, TYPE_PINNED) == MAX_HEARTBYTE + 2);
+    STATIC_ASSERT(i_cast(Byte, TYPE_TIED) == MAX_HEARTBYTE + 3);
+    STATIC_ASSERT(i_cast(Byte, TYPE_QUASIFORM) == MAX_HEARTBYTE + 4);
+    STATIC_ASSERT(i_cast(Byte, TYPE_QUOTED) == MAX_HEARTBYTE + 5);
 
-    #define MAX_TYPEBYTE_FUNDAMENTAL  cast(TypeByte, TYPE_TIED)
+    #define MAX_TYPEBYTE_FUNDAMENTAL  i_cast(TypeByte, TYPE_TIED)
 
-    #define MAX_TYPEBYTE_ELEMENT  cast(TypeByte, TYPE_QUOTED)
+    #define MAX_TYPEBYTE_ELEMENT  i_cast(TypeByte, TYPE_QUOTED)
 
-    #define MAX_TYPEBYTE  cast(TypeByte, $<MAX-TYPE>)
+    #define MAX_TYPEBYTE  i_cast(TypeByte, $<MAX-TYPE>)
 
     /*
      * ANTIFORM HEART ALIASES

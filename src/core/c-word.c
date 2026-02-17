@@ -536,7 +536,7 @@ void Startup_Builtin_Symbols(
     );
 
     assert(  // invalid [1]
-        Is_Stub_Erased(&g_symbols.builtin_canons[cast(int, SYM_0)])
+        Is_Stub_Erased(&g_symbols.builtin_canons[SYM_0_constexpr])
     );
 
     Byte* tail = bytes + uncompressed_size;
@@ -556,7 +556,7 @@ void Startup_Builtin_Symbols(
 
         assert(SECOND_UINT16(&canon->info) == 0);
         SET_SECOND_UINT16(&canon->info, id);  // store ID in canon [2]
-        assert(cast(SymId, id) == unwrap Symbol_Id(canon));
+        assert(i_cast(SymId, id) == unwrap Symbol_Id(canon));
     }
 
     assert(at == tail);
@@ -605,7 +605,7 @@ RebolValue* Register_Symbol(const char* utf8, SymId16 id16)
 
     Option(SymId) id = Symbol_Id(symbol);
     if (id) {
-        if (not (id16 == cast(SymId16, id)))
+        if (not (id16 == i_cast(SymId16, id)))
             panic ("Extensions using conflicting Register_Symbol() IDs");
     }
     else {
@@ -613,7 +613,7 @@ RebolValue* Register_Symbol(const char* utf8, SymId16 id16)
         do {
             assert(SECOND_UINT16(&synonym->info) == 0);
             SET_SECOND_UINT16(&m_cast(Symbol*, synonym)->info, id16);
-            assert(cast(SymId, id16) == unwrap Symbol_Id(synonym));
+            assert(i_cast(SymId, id16) == unwrap Symbol_Id(synonym));
 
             synonym = Link_Next_Synonym(synonym);
         } while (synonym != symbol);
@@ -638,7 +638,7 @@ void Unregister_Symbol(RebolValue* word, SymId16 id16)
     assert(id16 != 0);
 
     assert(Is_Word(As_Stable(word)));
-    assert(Word_Id(word) == cast(SymId, id16));  // unnecessary?
+    assert(Word_Id(word) == i_cast(SymId, id16));  // unnecessary?
     UNUSED(id16);
 
     rebRelease(word);
@@ -654,7 +654,7 @@ void Unregister_Symbol(RebolValue* word, SymId16 id16)
 //
 void Shutdown_Builtin_Symbols(void)
 {
-    assert(Is_Stub_Erased(&g_symbols.builtin_canons[cast(int, SYM_0)]));
+    assert(Is_Stub_Erased(&g_symbols.builtin_canons[SYM_0_constexpr]));
 
     for (SymId16 id = 1; id <= MAX_SYM_BUILTIN; ++id) {
         Symbol* canon = &g_symbols.builtin_canons[id];
@@ -680,7 +680,7 @@ void Shutdown_Interning(void)
         //
         printf(
             "!!! %d leaked canons found in shutdown\n",
-            cast(int, g_symbols.num_slots_in_use - g_symbols.num_deleteds)
+            i_cast(int, g_symbols.num_slots_in_use - g_symbols.num_deleteds)
         );
         printf("!!! LIKELY rebUnmanage() without a rebRelease() in API\n");
 

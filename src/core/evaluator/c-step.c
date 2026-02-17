@@ -775,7 +775,7 @@ Bounce Stepper_Executor(Level* L)
     Copy_Cell(OUT, CURRENT);
 
     LIFT_BYTE(OUT) -= Quote_Shift(1);
-    STATE = cast(StepperState, TYPE_QUOTED);  // can't leave STATE_0
+    STATE = i_cast(StepperState, TYPE_QUOTED);  // can't leave STATE_0
 
     goto lookahead;
 
@@ -807,7 +807,7 @@ Bounce Stepper_Executor(Level* L)
     if (Get_Level_Flag(L, VANISHABLE_VOIDS_ONLY) and Is_Void(OUT))
         Note_Level_Out_As_Void_To_Make_Heavy(L);  // avoid accidents [2]
 
-    STATE = cast(StepperState, TYPE_QUASIFORM);  // can't leave STATE_0
+    STATE = i_cast(StepperState, TYPE_QUASIFORM);  // can't leave STATE_0
     goto lookahead;
 
 
@@ -816,7 +816,7 @@ Bounce Stepper_Executor(Level* L)
   // PINNED! types originally focused on inert "do nothing", but are seeming
   // more valuable to use for iterators.
 
-  switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
+  switch (STATE = i_cast(StateByte, Heart_Of(CURRENT))) {
 
   case TYPE_BLANK: { //// LITERALLY OPERATOR (@) /////////////////////////////
 
@@ -905,7 +905,7 @@ Bounce Stepper_Executor(Level* L)
     //     >> get 'var
     //     ** Error: var is unbound
 
-  switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
+  switch (STATE = i_cast(StateByte, Heart_Of(CURRENT))) {
 
   case TYPE_BLANK: { //// BIND OPERATOR ($) //////////////////////////////////
 
@@ -945,7 +945,7 @@ Bounce Stepper_Executor(Level* L)
   // METAFORM! types retrieve things with less intervention (decaying, or
   // perhaps suppressing VOID! => HEAVY VOID conversions).
 
-  switch (STATE = cast(Byte, Heart_Of(CURRENT))) {
+  switch (STATE = i_cast(StateByte, Heart_Of(CURRENT))) {
 
   case TYPE_BLANK: { //// IDENTITY OPERATOR (^) ///////////////////////////////
 
@@ -1117,7 +1117,7 @@ Bounce Stepper_Executor(Level* L)
     // 1. The Stepper_Executor()'s state bytes are a superset of the
     //    Heart_Of() of processed values.  See the ST_STEPPER_XXX enumeration.
 
-  switch ((STATE = cast(Byte, Heart_Of(CURRENT)))) {  // superset [1]
+  switch ((STATE = i_cast(StateByte, Heart_Of(CURRENT)))) {  // superset [1]
 
   case TYPE_BLANK: { //// BLANK! (often manifests as "," character) //////////
 
@@ -1197,7 +1197,7 @@ Bounce Stepper_Executor(Level* L)
     // Gather args and execute function (the arg gathering makes nested
     // eval calls that lookahead, but no lookahead after the action runs)
 
-    STATE = cast(StepperState, TYPE_FRAME);
+    STATE = i_cast(StepperState, TYPE_FRAME);
     return CONTINUE_SUBLEVEL;
 
 } action_result_in_out: {

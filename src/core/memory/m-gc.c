@@ -1231,7 +1231,7 @@ Count Recycle_Core(Flex* sweeplist)
   // references that would mark them to see they're spoken for (so they don't
   // have to detect it's an array, queue the cell...)
 
-    assert(Is_Stub_Erased(&g_lib_patches[cast(int, SYM_0)]));  // skip SYM_0
+    assert(Is_Stub_Erased(&g_lib_patches[SYM_0_constexpr]));  // skip SYM_0
 
     for (SymId16 id = 1; id <= MAX_SYM_LIB_PREMADE; ++id) {
         Patch* patch = &g_lib_patches[id];
@@ -1347,21 +1347,21 @@ Count Recycle_Core(Flex* sweeplist)
 
     // Unmark the LIB() fixed patches (not in stub pool, never get swept)
 
-    assert(Is_Stub_Erased(&g_datatype_patches[cast(Byte, SYM_0)]));  // skip
+    assert(Is_Stub_Erased(&g_datatype_patches[SYM_0_constexpr]));  // skip
 
     for (
         SymId16 id = MIN_SYM_BUILTIN_TYPES;
         id <= MAX_SYM_BUILTIN_TYPES;
         ++id
     ){
-        Type type = Type_From_Symbol_Id(cast(SymId, id));
-        Patch* patch = &g_datatype_patches[cast(Byte, type)];
+        Type type = Type_From_Symbol_Id(i_cast(SymId, id));
+        Patch* patch = &g_datatype_patches[i_cast(Byte, type)];
         if (Is_Stub_Erased(patch))
             continue;  // isotope slot for non-isotopic type
         Remove_GC_Mark(patch);
     }
 
-    assert(Is_Stub_Erased(&g_lib_patches[cast(int, SYM_0)]));  // skip SYM_0
+    assert(Is_Stub_Erased(&g_lib_patches[SYM_0_constexpr]));  // skip SYM_0
 
     for (SymId16 id = 1; id <= MAX_SYM_LIB_PREMADE; ++id) {
         Patch* patch = &g_lib_patches[id];
@@ -1371,7 +1371,7 @@ Count Recycle_Core(Flex* sweeplist)
     // Unmark the CANON() fixed symbols (not in stub pool, never get swept)
 
     assert(  // skip SYM_0
-        Is_Stub_Erased(&g_symbols.builtin_canons[cast(int, SYM_0)])
+        Is_Stub_Erased(&g_symbols.builtin_canons[SYM_0_constexpr])
     );
 
     for (SymId16 id = 1; id <= MAX_SYM_BUILTIN; ++id) {
@@ -1423,7 +1423,7 @@ Count Recycle_Core(Flex* sweeplist)
 
   #if RUNTIME_CHECKS
     if (g_gc.watch_recycle) {
-        printf("RECYCLE: %u nodes\n", cast(unsigned int, sweep_count));
+        printf("RECYCLE: %u nodes\n", i_cast(unsigned int, sweep_count));
         fflush(stdout);
     }
   #endif

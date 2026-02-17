@@ -132,7 +132,7 @@ uint32_t Hash_Cell(const Cell* cell)
         // bits collapses -1 with 0 etc.  (If your key k is |k| < 2^32 high
         // bits are 0-informative." -Giulio
         //
-        hash = cast(uint32_t, INTEGER_PAYLOAD_I64(cell));
+        hash = i_cast(uint32_t, INTEGER_PAYLOAD_I64(cell));
         break;
 
       case TYPE_DECIMAL:
@@ -270,7 +270,7 @@ uint32_t Hash_Cell(const Cell* cell)
         //
         if (Is_Frame_Exemplar(cell))
             goto hash_object;
-        hash = i_cast(uintptr_t, Frame_Phase(cell)) >> 4;
+        hash = p_cast(uintptr_t, Frame_Phase(cell)) >> 4;
         break;
 
       hash_object:
@@ -289,11 +289,11 @@ uint32_t Hash_Cell(const Cell* cell)
         // However, since it was historically allowed it is allowed for
         // all ANY-CONTEXT? types at the moment.
         //
-        hash = cast(uint32_t, i_cast(uintptr_t, Cell_Varlist(cell)) >> 4);
+        hash = i_cast(uint32_t, p_cast(uintptr_t, Cell_Varlist(cell)) >> 4);
         break;
 
       case TYPE_MODULE:
-        hash = cast(uint32_t, i_cast(uintptr_t, Cell_Module_Sea(cell)) >> 4);
+        hash = i_cast(uint32_t, p_cast(uintptr_t, Cell_Module_Sea(cell)) >> 4);
         break;
 
       case TYPE_MAP:
@@ -303,7 +303,7 @@ uint32_t Hash_Cell(const Cell* cell)
         // (Again this will just find the map by identity, not by comparing
         // the values of one against the values of the other...)
         //
-        hash = cast(uint32_t, i_cast(uintptr_t, VAL_MAP(cell)) >> 4);
+        hash = i_cast(uint32_t, p_cast(uintptr_t, VAL_MAP(cell)) >> 4);
         break;
 
       case TYPE_HANDLE:

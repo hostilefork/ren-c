@@ -193,7 +193,7 @@ static Binary* Decode_Base2(const Byte* *src, REBLEN len, Byte delim)
                 goto err;
 
             if (count++ >= 7) {
-                *bp++ = cast(Byte, accum);
+                *bp++ = i_cast(Byte, accum);
                 count = 0;
                 accum = 0;
             }
@@ -234,7 +234,7 @@ static Binary* Decode_Base16(const Byte* *src, REBLEN len, Byte delim)
         if (Try_Get_Lex_Hexdigit(&nibble, *cp)) {
             accum = (accum << 4) + nibble;
             if (count++ & 1)
-                *bp++ = cast(Byte, accum);
+                *bp++ = i_cast(Byte, accum);
         }
         else if (*cp == '\0' or not Is_Lex_Whitespace(*cp))
             goto err;
@@ -284,9 +284,9 @@ static Binary* Decode_Base64(const Byte* *src, REBLEN len, Byte delim)
             if (*cp != '=') {
                 accum = (accum << 6) + lex;
                 if (flip++ == 3) {
-                    *bp++ = cast(Byte, accum >> 16);
-                    *bp++ = cast(Byte, accum >> 8);
-                    *bp++ = cast(Byte, accum);
+                    *bp++ = i_cast(Byte, accum >> 16);
+                    *bp++ = i_cast(Byte, accum >> 8);
+                    *bp++ = i_cast(Byte, accum);
                     accum = 0;
                     flip = 0;
                 }
@@ -295,15 +295,15 @@ static Binary* Decode_Base64(const Byte* *src, REBLEN len, Byte delim)
                 cp++;
                 len--;
                 if (flip == 3) {
-                    *bp++ = cast(Byte, accum >> 10);
-                    *bp++ = cast(Byte, accum >> 2);
+                    *bp++ = i_cast(Byte, accum >> 10);
+                    *bp++ = i_cast(Byte, accum >> 2);
                     flip = 0;
                 }
                 else if (flip == 2) {
                     if (not Skip_To_Byte(cp, cp + len, '='))
                         goto err;
                     cp++;
-                    *bp++ = cast(Byte, accum >> 4);
+                    *bp++ = i_cast(Byte, accum >> 4);
                     flip = 0;
                 }
                 else
@@ -439,7 +439,7 @@ void Form_Base64(Molder* mo, const Byte* src, REBLEN len, bool brk)
 
     Strand* s = mo->strand;
 
-    REBINT loop = cast(int, len / 3) - 1;
+    REBINT loop = i_cast(int, len / 3) - 1;
     if (brk and 4 * loop > 64)
         Append_Codepoint(s, LF);
 

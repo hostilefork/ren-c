@@ -250,7 +250,7 @@
 #endif
 
 #define TOP_INDEX \
-    cast(StackIndex, g_ds.index)  // cast helps stop ++TOP_INDEX, etc.
+    i_cast(StackIndex, g_ds.index)  // cast helps stop ++TOP_INDEX, etc.
 
 // TOP is the most recently pushed item.
 //

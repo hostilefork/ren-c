@@ -138,6 +138,30 @@ struct UnwrappedType<T, true>
 #define needful_unwrapped_type(T) \
     typename needful::UnwrappedType<T>::type
 
+
+// DeeplyUnwrappedType: Recursively unwrap through all wrapper layers to
+// reach the innermost non-wrapper type.  For example:
+//
+//     DeeplyUnwrappedType<OptionWrapper<Heart>>::type => HeartEnum
+//     DeeplyUnwrappedType<Heart>::type                => HeartEnum
+//     DeeplyUnwrappedType<int>::type                  => int
+//
+// This is useful for i_cast(), which needs to verify that the ultimate
+// leaf type is integral or enum even when there are multiple wrapper layers
+// (e.g. Option around a debug-mode Heart struct that wraps HeartEnum).
+//
+template<typename T, bool = HasWrappedType<T>::value>
+struct DeeplyUnwrappedType
+  { using type = T; };
+
+template<typename T>
+struct DeeplyUnwrappedType<T, true>
+  : DeeplyUnwrappedType<typename T::wrapped_type> {};
+
+#define needful_deeply_unwrapped_type(T) \
+    typename needful::DeeplyUnwrappedType<T>::type
+
+
 template<typename T>
 struct UnwrappedIfWrappedType {
     using type = conditional_t<
@@ -181,6 +205,36 @@ struct RewrapHelper<const Wrapper, NewWrapped> {  // const needs forwarding
 
 #define needful_rewrap_type(WrapperType, NewInnerType) \
     typename needful::RewrapHelper<WrapperType, NewInnerType>::type
+
+
+//=//// REWRAPPABLE DETECTION /////////////////////////////////////////////=//
+//
+// Not all types that expose `wrapped_type` are template instantiations that
+// RewrapHelper can decompose.  For example, a plain struct like:
+//
+//     struct Heart {
+//         NEEDFUL_DECLARE_WRAPPED_FIELD(HeartEnum, h);
+//         ...
+//     };
+//
+// ...has `wrapped_type` (so HasWrappedType is true), but it is not
+// `SomeTemplate<HeartEnum>`, so RewrapHelper cannot pattern-match it.
+// IsRewrappable detects this so that other metaprogramming (like
+// ConstifyHelper) can fall back gracefully for non-template wrappers.
+//
+
+template<typename T, typename = void>
+struct IsRewrappable : std::false_type {};
+
+template<typename T>
+struct IsRewrappable<T,
+    enable_if_t<HasWrappedType<T>::value,
+        void_t<typename RewrapHelper<T, typename T::wrapped_type>::type>
+    >
+> : std::true_type {};
+
+#define needful_is_rewrappable_v(T) \
+    needful::IsRewrappable<T>::value
 
 
 //=//// LEAF TYPE IN WRAPPER LAYERS ///////////////////////////////////////=//

@@ -438,8 +438,8 @@ void Adjust_Date_Zone_Core(Cell* d, int zone)
         return;
 
     REBI64 nano =
-        cast(int64_t, - zone)  // !!! this negation of the zone seems necessary
-        * (cast(int64_t, ZONE_SECS) * SEC_SEC);
+        i_cast(int64_t, - zone)  // !!! negation of the zone seems necessary
+        * (i_cast(int64_t, ZONE_SECS) * SEC_SEC);
 
     nano += VAL_NANO(d);
 
@@ -547,13 +547,16 @@ Stable* Time_Between_Dates(
 
     // Note: abs() takes `int`, but there is a labs(), and C99 has llabs()
     //
-    if (cast(unsigned, abs(cast(int, diff))) > (((1U << 31) - 1) / SECS_IN_DAY))
+    if (
+        i_cast(unsigned int, abs(i_cast(int, diff)))
+            > (((1U << 31) - 1) / SECS_IN_DAY)
+    ){
         panic (Error_Overflow_Raw());
-
+    }
 
     return Init_Time_Nanoseconds(
         out,
-        (t1 - t2) + (cast(REBI64, diff) * TIME_IN_DAY)
+        (t1 - t2) + (i_cast(REBI64, diff) * TIME_IN_DAY)
     );
 }
 
@@ -1130,8 +1133,8 @@ IMPLEMENT_GENERIC(RANDOMIZE, Is_Date)
     REBI64 nano = Does_Date_Have_Time(date) ? VAL_NANO(date) : 0;
 
     Set_Random(  // Note that nano not set often for dates (requires :PRECISE)
-        (cast(REBI64, year) << 48)
-        + (cast(REBI64, Julian_Date(date)) << 32)
+        (i_cast(REBI64, year) << 48)
+        + (i_cast(REBI64, Julian_Date(date)) << 32)
         + nano
     );
     return TRASH_OUT;

@@ -2044,7 +2044,7 @@ int32_t API_rebUnboxInteger(
     if (i < INT32_MIN or i > INT32_MAX)
         panic ("rebUnboxInteger() called on INTEGER! out of range!");
 
-    return cast(int32_t, i);
+    return i_cast(int32_t, i);
 }
 
 
@@ -3183,7 +3183,7 @@ Error* Error_OS(int errnum) {
     else if (r == ERANGE) {  // documented result from POSIX strerror_r
         error = Error_User("ERANGE: insufficient buffer size for error");
     }
-    else if (r == i_cast(intptr_t, buf)) {  // sanity check POSIX return [5]
+    else if (r == p_cast(intptr_t, buf)) {  // sanity check POSIX return [5]
         if (buf[0] == cast(char, 255)) {
             assert(false);
             error = Error_User("Buffer not correctly updated by strerror_r");
@@ -3259,7 +3259,7 @@ DECLARE_NATIVE(API_TRANSIENT)
     Stub* stub = Compact_Stub_From_Cell(v);
     Set_Flavor_Flag(API, stub, RELEASE);
 
-    return Init_Integer(level_->out, i_cast(intptr_t, stub));  // intptr_t [1]
+    return Init_Integer(level_->out, p_cast(intptr_t, stub));  // intptr_t [1]
 }
 
 

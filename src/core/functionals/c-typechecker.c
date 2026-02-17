@@ -167,14 +167,14 @@ DECLARE_NATIVE(UNSTABLE_TYPECHECKER_ARCHETYPE)
         Details_At(details, IDX_TYPECHECKER_TYPESET_BYTE)
     );
 
-    if (typeset_byte == u_cast(TypesetByte, TYPE_FAILURE))
+    if (typeset_byte == i_cast(TypesetByte, TYPE_FAILURE))
         return LOGIC_OUT(Is_Failure(v));
 
     require (
       Ensure_No_Failures_Including_In_Packs(v)
     );
 
-    if (typeset_byte == u_cast(TypesetByte, TYPE_VOID)) {
+    if (typeset_byte == i_cast(TypesetByte, TYPE_VOID)) {
         if (Is_Heavy_Void(v))
             panic ("HEAVY VOID passed to VOID?; use ANY-VOID? to test both");
         return LOGIC_OUT(Is_Void(v));
@@ -224,7 +224,7 @@ Details* Make_Typechecker(TypesetByte typeset_byte)  // parameter cache [1]
         if (start <= MAX_TYPEBYTE_ELEMENT)  // not an antiform
             break;
 
-        Heart heart = u_cast(Heart, start - MAX_TYPEBYTE_ELEMENT);
+        Heart heart = i_cast(Heart, start - MAX_TYPEBYTE_ELEMENT);
         if (Is_Stable_Antiform_Heart(heart))
             break;  // stable antiform, no unstable checks needed
 
@@ -1149,11 +1149,11 @@ Result(Value*) Init_Typechecker(
         if (not t)
             panic ("TYPECHECKER does not support extension types yet");
 
-        Byte type_byte = u_cast(Byte, unwrap t);
-        SymId16 id16 = cast(SymId16, type_byte) + MIN_SYM_TYPESETS - 1;
+        Byte type_byte = i_cast(Byte, unwrap t);
+        SymId16 id16 = i_cast(SymId16, type_byte) + MIN_SYM_TYPESETS - 1;
         assert(id16 == type_byte);  // MIN_SYM_TYPESETS should be 1
 
-        Copy_Cell(out, Lib_Value(cast(SymId, id16)));
+        Copy_Cell(out, Lib_Value(i_cast(SymId, id16)));
         assert(Ensure_Frame_Details(out));  // need TypesetByte
 
         return out;

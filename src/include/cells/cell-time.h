@@ -136,21 +136,21 @@ INLINE void Tweak_Cell_Nanoseconds(Cell* c, REBI64 nano) {
 }
 
 #define SECS_TO_NANO(seconds) \
-    (cast(REBI64, seconds) * 1000000000L)
+    (i_cast(REBI64, (seconds)) * 1000000000L)
 
 #define MAX_SECONDS \
-    ((cast(REBI64, 1) << 31) - 1)
+    ((i_cast(REBI64, 1) << 31) - 1)
 
 #define MAX_HOUR \
     (MAX_SECONDS / 3600)
 
 #define MAX_TIME \
-    (cast(REBI64, MAX_HOUR) * HR_SEC)
+    (i_cast(REBI64, MAX_HOUR) * HR_SEC)
 
 #define NANO 1.0e-9
 
 #define SEC_SEC \
-    cast(REBI64, 1000000000L)
+    i_cast(REBI64, 1000000000L)
 
 #define MIN_SEC \
     (60 * SEC_SEC)
@@ -179,7 +179,7 @@ INLINE void Tweak_Cell_Nanoseconds(Cell* c, REBI64 nano) {
 #define SECS_IN_DAY 86400
 
 #define TIME_IN_DAY \
-    SEC_TIME(cast(REBI64, SECS_IN_DAY))
+    SEC_TIME(i_cast(REBI64, SECS_IN_DAY))
 
 INLINE Element* Init_Time_Nanoseconds(
     Init(Element) v,

@@ -194,7 +194,7 @@ typedef enum {
             or term == ST_SCANNER_GROUP_MODE
             or term == ST_SCANNER_FENCE_MODE
         );
-        return cast(ScannerStateByte, term);
+        return i_cast(ScannerStateByte, term);
     }
 #endif
 

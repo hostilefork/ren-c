@@ -63,8 +63,8 @@ Result(None) Flex_Data_Alloc(Flex* s, REBLEN capacity) {
     Byte wide = Flex_Wide(s);
     assert(wide != 0);
 
-    if (cast(REBU64, capacity) * wide > INT32_MAX)  // R3-Alpha said "too big"
-        return none;
+    if (i_cast(REBU64, capacity) * wide > INT32_MAX)
+        return none;  // R3-Alpha said "too big"
 
     Size size;  // size of allocation, possibly bigger than we need [2]
 

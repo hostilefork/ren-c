@@ -141,7 +141,7 @@ void Expand_Data_Stack_May_Panic(REBLEN amount)
     assert(g_ds.movable_top == Flex_Tail(Slot, g_ds.array));
     assert(
         g_ds.movable_top - Flex_Head(Slot, g_ds.array)
-        == cast(int, len_old)
+        == i_cast(int, len_old)
     );
 
     if (Flex_Rest(g_ds.array) + amount >= STACK_LIMIT) {  // catch overflow

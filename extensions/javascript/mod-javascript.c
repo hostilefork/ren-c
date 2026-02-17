@@ -107,7 +107,7 @@
     static char PG_Silent_Trace_Buf[64000] = "";
 
     EXTERN_C intptr_t API_rebGetSilentTrace_internal(void) {
-      { return i_cast(intptr_t, PG_Silent_Trace_Buf); }
+      { return p_cast(intptr_t, PG_Silent_Trace_Buf); }
 #endif
 
 #if DEBUG_JAVASCRIPT_EXTENSION
@@ -197,13 +197,13 @@
 typedef unsigned int heapaddr_t;
 
 INLINE heapaddr_t Heapaddr_From_Pointer(const void *p) {
-    uintptr_t u = i_cast(uintptr_t, p);
+    uintptr_t u = p_cast(uintptr_t, p);
     assert(u < UINT_MAX);
     return u;
 }
 
 INLINE void* Pointer_From_Heapaddr(heapaddr_t addr)
-  { return p_cast(void*, cast(uintptr_t, addr)); }
+  { return p_cast(void*, i_cast(uintptr_t, addr)); }
 
 static void Js_Object_Handle_Cleaner(void *p, size_t length) {
     heapaddr_t id = Heapaddr_From_Pointer(p);

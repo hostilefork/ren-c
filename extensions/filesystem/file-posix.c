@@ -453,7 +453,7 @@ Stable* Write_File(const Stable* port, const Stable* value, REBLEN limit)
         return rebError_UV(num_bytes_written);
     }
 
-    assert(num_bytes_written == cast(ssize_t, size));
+    assert(num_bytes_written == i_cast(ssize_t, size));
 
     file->offset += num_bytes_written;
 
@@ -610,12 +610,12 @@ Stable* Rename_File_Or_Directory(const Stable* port, const Stable* to)
         FILETIME filetime;
 
         result =
-            (cast(int64_t, uvtime.tv_sec) + SECS_BETWEEN_1601_AND_1970_EPOCHS)
+            (i_cast(int64_t, uvtime.tv_sec) + SECS_BETWEEN_1601_AND_1970_EPOCHS)
             * SECS_TO_100NS
             + (uvtime.tv_nsec / 100);
 
-        filetime.dwLowDateTime = cast(DWORD, result);
-        filetime.dwHighDateTime = cast(DWORD, result >> 32);
+        filetime.dwLowDateTime = i_cast(DWORD, result);
+        filetime.dwHighDateTime = i_cast(DWORD, result >> 32);
 
         return filetime;
     }
@@ -699,7 +699,7 @@ Stable* Rename_File_Or_Directory(const Stable* port, const Stable* to)
         time_t now_secs_gm = mktime(gmtime(&now_secs));
 
         double diff = difftime(mktime(&local_tm), now_secs_gm);
-        return cast(int, diff / 60);
+        return u_cast(int, diff / 60);
     }
 
     //
@@ -714,7 +714,7 @@ Stable* Rename_File_Or_Directory(const Stable* port, const Stable* to)
 
         if (sizeof(time_t) > sizeof(uvtime.tv_sec)) {
             int64_t t = uvtime.tv_sec;
-            t |= cast(int64_t, uvtime.tv_nsec) << 32;
+            t |= i_cast(int64_t, uvtime.tv_nsec) << 32;
             stime = t;
         }
         else

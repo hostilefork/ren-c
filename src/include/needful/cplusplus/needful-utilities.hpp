@@ -53,6 +53,25 @@
 #endif
 
 
+//=//// MATERIALIZE PRVALUE ///////////////////////////////////////////////=//
+//
+// A prvalue is a pure temporary with no memory location--you can't take
+// its address or reinterpret_cast<> it.  GCC enforces this strictly, so
+// tricks that MSVC and Clang tolerate (like binding a cross-type rvalue
+// reference && to a prvalue for reinterpretation) are rejected.  :-(
+//
+// This macro is a workaround, that forces a prvalue to get a memory location
+// via same-type const& binding.  C++ standard mandates "temporary
+// materialization" for this, giving the prvalue a stack slot whose address we
+// can take.  It can be used e.g. to bypass conversion operators by
+// pointer-reinterpreting to the standard-layout first member.
+//
+#define NEEDFUL_MATERIALIZE_PRVALUE(expr) \
+    (&needful_xtreme_cast( \
+        const needful::remove_reference_t<decltype(expr)>&, \
+        (expr)))
+
+
 //=//// VARIADIC MACRO PARENTHESES REMOVAL ////////////////////////////////=//
 //
 // NEEDFUL_UNPARENTHESIZE is used to remove a single layer of parentheses
@@ -123,6 +142,9 @@ using add_pointer_t = typename std::add_pointer<T>::type;
 
 template<bool B, typename T = void>  // C++14
 using enable_if_t = typename std::enable_if<B, T>::type;
+
+template<typename... Ts>  // C++17 (polyfill for C++11/14 builds)
+using void_t = void;
 
 template<bool B, typename T, typename F>  // C++14
 using conditional_t = typename std::conditional<B, T, F>::type;

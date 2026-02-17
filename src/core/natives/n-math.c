@@ -138,7 +138,7 @@ DECLARE_NATIVE(SUBTRACT)
             return Init_Integer(OUT, 0);
         if (Is_Rune_And_Is_Char(e2)) {
             Codepoint c2 = Rune_Known_Single_Codepoint(e2);
-            return Init_Integer(OUT, cast(REBINT, 0) - c2);
+            return Init_Integer(OUT, i_cast(REBINT, 0) - c2);
         }
         return fail (Error_Codepoint_Negative_Raw());
     }
@@ -185,8 +185,8 @@ DECLARE_NATIVE(MULTIPLY)
     Element* e2 = Element_ARG(VALUE2);
 
     if (
-        not Heart_Of_Is_0(e1)  // left is not an extension type
-        and cast(Byte, Heart_Of(e1)) < cast(Byte, Heart_Of(e2))  // [1]
+        not Heart_Of_Is_0(e1)  // left is not an extension type v-- see [1]
+        and i_cast(HeartByte, Heart_Of(e1)) < i_cast(HeartByte, Heart_Of(e2))
     ){
         Element* spare = Move_Cell(SPARE, e2);
         Move_Cell(e2, e1);  // ...so move simpler type to be on the right

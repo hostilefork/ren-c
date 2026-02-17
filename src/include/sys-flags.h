@@ -54,30 +54,30 @@
 
     // 63,62,61...or...31,30,20
     #define FLAG_LEFT_BIT(n) \
-        (cast(uintptr_t, 1) << (PLATFORM_BITS - (n) - 1))
+        (i_cast(uintptr_t, 1) << (PLATFORM_BITS - (n) - 1))
 
     #define FLAG_FIRST_BYTE(b) \
-        (cast(uintptr_t, (b)) << (24 + (PLATFORM_BITS - 8)))
+        (i_cast(uintptr_t, (b)) << (24 + (PLATFORM_BITS - 8)))
 
     #define FLAG_SECOND_BYTE(b) \
-        (cast(uintptr_t, (b)) << (16 + (PLATFORM_BITS - 8)))
+        (i_cast(uintptr_t, (b)) << (16 + (PLATFORM_BITS - 8)))
 
     #define FLAG_THIRD_BYTE(b) \
-        (cast(uintptr_t, (b)) << (8 + (PLATFORM_BITS - 32)))
+        (i_cast(uintptr_t, (b)) << (8 + (PLATFORM_BITS - 32)))
 
     #define FLAG_FOURTH_BYTE(b) \
-        (cast(uintptr_t, (b)) << (0 + (PLATFORM_BITS - 32)))
+        (i_cast(uintptr_t, (b)) << (0 + (PLATFORM_BITS - 32)))
 
 #elif defined(ENDIAN_LITTLE)  // Byte w/least significant bit first (e.g. x86)
 
     // 7,6,..0|15,14..8|..
     #define FLAG_LEFT_BIT(n) \
-        (u_cast(uintptr_t, 1) << (7 + ((n) / 8) * 8 - (n) % 8))
+        (i_cast(uintptr_t, 1) << (7 + ((n) / 8) * 8 - (n) % 8))
 
-    #define FLAG_FIRST_BYTE(b)      u_cast(uintptr_t, (b))
-    #define FLAG_SECOND_BYTE(b)     (u_cast(uintptr_t, (b)) << 8)
-    #define FLAG_THIRD_BYTE(b)      (u_cast(uintptr_t, (b)) << 16)
-    #define FLAG_FOURTH_BYTE(b)     (u_cast(uintptr_t, (b)) << 24)
+    #define FLAG_FIRST_BYTE(b)      i_cast(uintptr_t, (b))
+    #define FLAG_SECOND_BYTE(b)     (i_cast(uintptr_t, (b)) << 8)
+    #define FLAG_THIRD_BYTE(b)      (i_cast(uintptr_t, (b)) << 16)
+    #define FLAG_FOURTH_BYTE(b)     (i_cast(uintptr_t, (b)) << 24)
 #else
     // !!! There are macro hacks which can actually make reasonable guesses
     // at endianness, and should possibly be used in the config if nothing is
@@ -129,12 +129,12 @@
 
 INLINE uint16_t FIRST_UINT16(const void* p) {
     const Byte* bp = u_cast(Byte*, p);
-    return cast(uint16_t, bp[0] << 8) | bp[1];
+    return i_cast(uint16_t, bp[0] << 8) | bp[1];
 }
 
 INLINE uint16_t SECOND_UINT16(const void* p) {
     const Byte* bp = u_cast(Byte*, p);
-    return cast(uint16_t, bp[2] << 8) | bp[3];
+    return i_cast(uint16_t, bp[2] << 8) | bp[3];
 }
 
 INLINE void SET_FIRST_UINT16(void *p, uint16_t u) {

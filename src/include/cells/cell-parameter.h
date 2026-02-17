@@ -358,7 +358,7 @@ INLINE Option(const Source*) Parameter_Spec(const Cell* v) {
 
 INLINE ParamClass Parameter_Class(const Cell* v) {
     assert(Heart_Of(v) == TYPE_PARAMETER);
-    return cast(ParamClass, PARAMCLASS_BYTE(v));
+    return i_cast(ParamClass, PARAMCLASS_BYTE(v));
 }
 
 INLINE Option(const Strand*) Parameter_Strand(const Cell* v) {

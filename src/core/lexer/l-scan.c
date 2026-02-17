@@ -136,9 +136,9 @@ INLINE bool Scanner_Mode_Matches(Level* L, Byte mode) {
 }
 
 INLINE Sigil Sigil_From_Token(Token t) {
-    assert(cast(int, t) != cast(int, SIGIL_0));
-    assert(cast(int, t) <= cast(int, MAX_SIGIL));
-    return cast(Sigil, t);
+    assert(i_cast(int, t) != i_cast(int, SIGIL_0));
+    assert(i_cast(int, t) <= i_cast(int, MAX_SIGIL));
+    return i_cast(Sigil, t);
 }
 
 // Make a merged Byte from class and value parts.  Using this macro and casting
@@ -146,7 +146,7 @@ INLINE Sigil Sigil_From_Token(Token t) {
 // such as MSVC C5287: "operands are different enum types".
 //
 #define Lexmap_Byte(lexclass,lexvalue) \
-    (cast(Byte, (lexclass)) | cast(Byte, (lexvalue)))
+    (i_cast(Byte, (lexclass)) | i_cast(Byte, (lexvalue)))
 
 // control chars = spaces
 //
@@ -844,7 +844,7 @@ Result(const Byte*) Scan_Utf8_Item_Into_Mold(
       call_scanner_if_list: { ////////////////////////////////////////////////
 
         if (c == '(' or c == '[' or c == '{') {
-            Byte terminal = End_Delimit_For_Char(cast(Byte, c));
+            Byte terminal = End_Delimit_For_Char(i_cast(Byte, c));
 
             TranscodeState transcode;
             Init_Transcode(  // don't make scanner re-scan the '(', use cp + 1
@@ -3324,7 +3324,7 @@ void Startup_Scanner(void)
     REBLEN n = 0;
     while (g_token_names[n])
         ++n;
-    assert(cast(Token, n) == MAX_TOKEN + 1);
+    assert(i_cast(Token, n) == MAX_TOKEN + 1);
 
     // The details of what ASCII characters must be percent encoded
     // are contained in RFC 3896, but a summary is here:

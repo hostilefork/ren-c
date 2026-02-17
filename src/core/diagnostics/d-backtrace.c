@@ -111,7 +111,7 @@ void Print_C_Stack_Trace_If_Available(void)
         symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
         for (WORD i = 0; i < frames; i++) {
-            DWORD64 addr = i_cast(DWORD64, stack[i]);
+            DWORD64 addr = p_cast(DWORD64, stack[i]);
 
             if (SymFromAddr(process, addr, 0, symbol)) {
                 IMAGEHLP_LINE64 line;
@@ -125,7 +125,7 @@ void Print_C_Stack_Trace_If_Available(void)
                         symbol->Name,
                         line.FileName,
                         line.LineNumber,
-                        cast(unsigned long long, symbol->Address)
+                        i_cast(unsigned long long, symbol->Address)
                     );
                 }
                 else {
@@ -133,7 +133,7 @@ void Print_C_Stack_Trace_If_Available(void)
                         "  %2d: %s() [0x%llx]\n",
                         i,
                         symbol->Name,
-                        cast(unsigned long long, symbol->Address)
+                        i_cast(unsigned long long, symbol->Address)
                     );
                 }
             }

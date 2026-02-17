@@ -39,10 +39,12 @@ IMPLEMENT_GENERIC(SKIP, Any_Series)
 
     // `skip series 1` means second element, add offset as-is
     REBINT offset = Get_Num_From_Arg(ARG(OFFSET));
-    REBI64 i = cast(REBI64, SERIES_INDEX_UNBOUNDED(v)) + cast(REBI64, offset);
+    REBI64 i = (
+        i_cast(REBI64, SERIES_INDEX_UNBOUNDED(v)) + i_cast(REBI64, offset)
+    );
 
     if (not ARG(UNBOUNDED)) {
-        if (i < 0 or i > cast(REBI64, Series_Len_Head(v)))
+        if (i < 0 or i > i_cast(REBI64, Series_Len_Head(v)))
             return fail (Error_Index_Out_Of_Range_Raw());
     }
 
@@ -78,15 +80,16 @@ IMPLEMENT_GENERIC(AT, Any_Series)
     assert(Any_Series(v));
 
     REBINT offset = Get_Num_From_Arg(ARG(INDEX));
-    REBI64 i;
+
+    REBI64 i = i_cast(REBI64, SERIES_INDEX_UNBOUNDED(v));
 
     if (offset > 0)
-        i = cast(REBI64, SERIES_INDEX_UNBOUNDED(v)) + cast(REBI64, offset) - 1;
+        i += i_cast(REBI64, offset) - 1;
     else
-        i = cast(REBI64, SERIES_INDEX_UNBOUNDED(v)) + cast(REBI64, offset);
+        i += i_cast(REBI64, offset);
 
     if (ARG(BOUNDED)) {
-        if (i < 0 or i > cast(REBI64, Series_Len_Head(v)))
+        if (i < 0 or i > i_cast(REBI64, Series_Len_Head(v)))
             return NULL_OUT;
     }
 

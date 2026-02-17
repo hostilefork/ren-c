@@ -374,7 +374,7 @@ INLINE Option(Element*) Try_Init_Any_Sequence_All_Integers(
         REBI64 i64 = VAL_INT64(item);
         if (i64 < 0 or i64 > 255)
             return nullptr;  // only packing byte form for now
-        *bp = cast(Byte, i64);
+        *bp = i_cast(Byte, i64);
     }
 
     return out;
@@ -444,8 +444,8 @@ INLINE Result(Element*) Init_Any_Sequence_Or_Conflation_Pairlike(
 
         Byte buf[2];
         if (i1 >= 0 and i2 >= 0 and i1 <= 255 and i2 <= 255) {
-            buf[0] = cast(Byte, i1);
-            buf[1] = cast(Byte, i2);
+            buf[0] = i_cast(Byte, i1);
+            buf[1] = i_cast(Byte, i2);
             require (
               Init_Any_Sequence_Bytes(out, heart, buf, 2)
             );

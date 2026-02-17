@@ -58,13 +58,13 @@ void Startup_Type_Predicates(void)
 {
     SymId16 id16;
     for (id16 = MIN_SYM_TYPESETS; id16 <= MAX_SYM_TYPESETS; id16 += 1) {
-        SymId id = cast(SymId, id16);
         SymId16 typeset_byte = id16 - MIN_SYM_TYPESETS + 1;
         assert(typeset_byte == id16);  // MIN_SYM_TYPESETS should be 1
         assert(typeset_byte > 0 and typeset_byte < 256);
 
         Details* details = Make_Typechecker(typeset_byte);
 
+        SymId id = i_cast(SymId, id16);
         Value* v = Sink_Lib_Value(id);
         Init_Action(v, details, Canon_Symbol(id), UNCOUPLED);
         Set_Cell_Flag(v, FINAL);  // so it can be used in PURE functions
@@ -400,20 +400,20 @@ Result(None) Set_Spec_Of_Parameter_In_Top(
 
         if (
             not is_returner
-            and u_cast(TypeByte, datatype_type) > MAX_TYPEBYTE_ELEMENT
+            and i_cast(TypeByte, datatype_type) > MAX_TYPEBYTE_ELEMENT
         ){
             HeartByte heart_byte =
-                u_cast(TypeByte, datatype_type) - MAX_TYPEBYTE_ELEMENT;
+                i_cast(TypeByte, datatype_type) - MAX_TYPEBYTE_ELEMENT;
 
             if (
-                Not_Stable_Antiform_Heart(u_cast(Heart, heart_byte)) and
+                Not_Stable_Antiform_Heart(i_cast(Heart, heart_byte)) and
                 (pclass != PARAMCLASS_META and pclass != PARAMCLASS_SOFT)
             ){
                 panic ("Unstable type unusable unless ^META or soft param");
             }
         }
 
-        *optimized = u_cast(TypesetByte, unwrap datatype_type);
+        *optimized = i_cast(TypesetByte, unwrap datatype_type);
         ++optimized;
         goto spoken_for;
     }

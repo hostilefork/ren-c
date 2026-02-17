@@ -67,12 +67,12 @@ INLINE bool Is_Strand_Symbol(const Strand* s) {
 #endif
 
 
-INLINE Option(SymId) Symbol_Id(const Symbol* s)
-  { return cast(SymId, SECOND_UINT16(&s->info.flags)); }
+#define Symbol_Id(s) \
+    u_cast(Option(SymId), SECOND_UINT16(&known(Symbol*, (s))->info.flags))
 
 INLINE const Symbol* Canon_Symbol(SymId symid) {
     assert(symid != SYM_0_constexpr);
-    assert(cast(SymId16, symid) <= MAX_SYM_BUILTIN);
+    assert(i_cast(SymId16, symid) <= MAX_SYM_BUILTIN);
     return &g_symbols.builtin_canons[symid];
 }
 

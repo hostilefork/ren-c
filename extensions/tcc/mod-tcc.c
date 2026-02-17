@@ -390,7 +390,7 @@ DECLARE_NATIVE(MAKE_NATIVE)
         // Auto-generate a linker name based on the numeric value of the
         // paramlist pointer.  Just "N_" followed by the hexadecimal value.
 
-        intptr_t heapaddr = i_cast(intptr_t, details);
+        intptr_t heapaddr = p_cast(intptr_t, details);
         Api(Stable*) linkname = rebStable(
             "unspaced [-[N_]- as text! to-hex", rebI(heapaddr), "]"
         );

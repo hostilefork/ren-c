@@ -102,11 +102,11 @@
 
         ENABLE_IF_EXACT_ARG_TYPE(HeartEnum, Heart)
         void operator=(T right)
-          { *this = u_cast(Byte, right); }  // inherit operator= Byte checks
+          { *this = i_cast(Byte, right); }  // inherit op `=` Byte checks
 
         ENABLE_IF_EXACT_ARG_TYPE(HeartEnum, Heart)
         explicit operator T() const  // inherit Byte() cast extraction checks
-          { return u_cast(T, u_cast(Byte, *this)); }
+          { return u_cast(T, i_cast(Byte, *this)); }
     };
 
     INLINE bool operator==(const MirrorHolder& holder, HeartEnum h)

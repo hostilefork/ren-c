@@ -232,11 +232,11 @@ INLINE Result(void*) Raw_Pooled_Alloc(PoolId pool_id)
     pool->free--;
 
   #if CHECK_MEMORY_ALIGNMENT  // always 64-bit aligned returns [1]
-    if (i_cast(uintptr_t, unit) % sizeof(REBI64) != 0) {
+    if (p_cast(uintptr_t, unit) % sizeof(REBI64) != 0) {
         printf(
             "Pool Unit address %p not aligned to %d bytes\n",
             cast(void*, unit),
-            cast(int, sizeof(REBI64))
+            i_cast(int, sizeof(REBI64))
         );
         printf("Pool Unit address is %p and pool-first is %p\n",
             cast(void*, pool),

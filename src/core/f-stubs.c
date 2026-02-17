@@ -60,13 +60,13 @@ REBINT Get_Num_From_Arg(const Stable* val)
 //
 REBINT Float_Int16(REBD32 f)
 {
-    if (fabs(f) > cast(REBD32, 0x7FFF)) {
+    if (fabs(f) > u_cast(REBD32, 0x7FFF)) {
         DECLARE_ELEMENT (temp);
         Init_Decimal(temp, f);
 
         panic (Error_Out_Of_Range(temp));
     }
-    return cast(REBINT, f);
+    return u_cast(REBINT, f);
 }
 
 
@@ -206,8 +206,8 @@ REBI64 Int64s(const Stable* val, REBINT sign)
 //
 const Stable* Datatype_From_Type(Type type)
 {
-    assert(u_cast(Byte, type) <= MAX_TYPEBYTE);
-    Patch* patch = &g_datatype_patches[cast(Byte, type)];
+    assert(i_cast(Byte, type) <= MAX_TYPEBYTE);
+    Patch* patch = &g_datatype_patches[i_cast(Byte, type)];
     const Stable* datatype = cast(Stable*, Stub_Cell(patch));
     assert(Is_Datatype(datatype));
     return datatype;
@@ -437,8 +437,8 @@ REBLEN Part_Len_May_Modify_Index(
         if (Is_Rune(part))
             panic (Error_Invalid_Part_Raw(part));
 
-        len = -len;
-        if (len > cast(REBI64, iseries))
+        len = (- len);
+        if (len > i_cast(REBI64, iseries))
             len = iseries;
         SERIES_INDEX_UNBOUNDED(series) -= len;
     }
@@ -495,7 +495,7 @@ int64_t Mul_Max(Heart heart, int64_t n, int64_t m, int64_t maxi)
     int64_t r = n * m;
     if (r < -maxi or r > maxi)
         panic (Error_Type_Limit_Raw(Datatype_From_Type(heart)));
-    return cast(int, r); // !!! (?) review this cast
+    return i_cast(int, r); // !!! (?) review this cast
 }
 
 

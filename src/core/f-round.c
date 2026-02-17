@@ -105,35 +105,35 @@ REBDEC Round_Dec(REBDEC dec, Level* level_, REBDEC scale)
 #define Int_Abs(x) ((x) < 0) ? -(x) : (x)
 
 #define Int_Trunc { \
-    num = (num > 0) ? cast(REBI64, n - r) : -cast(REBI64, n - r); \
+    num = (num > 0) ? i_cast(REBI64, n - r) : (- i_cast(REBI64, n - r)); \
 }
 
 #define Int_Floor { \
     if (num > 0) \
         num = n - r; \
-    else if ((m = n + s) <= cast(REBU64, 1) << 63) \
-        num = -cast(REBI64, m); \
+    else if ((m = n + s) <= i_cast(REBU64, 1) << 63) \
+        num = (- i_cast(REBI64, m)); \
     else \
         panic (Error_Overflow_Raw()); \
 }
 
 #define Int_Ceil { \
     if (num < 0) \
-        num = -cast(REBI64, n - r); \
-    else if ((m = n + s) < cast(REBU64, 1) << 63) \
+        num = (- i_cast(REBI64, n - r)); \
+    else if ((m = n + s) < i_cast(REBU64, 1) << 63) \
         num = m; \
     else \
         panic (Error_Overflow_Raw()); \
 }
 
 #define Int_Away { \
-    if ((m = n + s) >= cast(REBU64, 1) << 63) \
-        if (num < 0 && m == cast(REBU64, 1) << 63) \
+    if ((m = n + s) >= i_cast(REBU64, 1) << 63) \
+        if (num < 0 && m == i_cast(REBU64, 1) << 63) \
             num = m; \
         else \
             panic (Error_Overflow_Raw()); \
     else \
-        num = (num > 0) ? cast(REBI64, m) : -cast(REBI64, m); \
+        num = (num > 0) ? i_cast(REBI64, m) : (- i_cast(REBI64, m)); \
 }
 
 

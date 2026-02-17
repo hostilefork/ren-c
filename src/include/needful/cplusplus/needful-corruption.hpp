@@ -128,11 +128,11 @@ struct CorruptHelper<T*> {  // Pointer (faster than memset() fallback)
           countdown = NEEDFUL_CORRUPTION_DOSE;
       }
       else {
-          ref = p_cast(T*, cast(intptr_t, 0xDECAFBAD));  // fixed value [1]
+          ref = p_cast(T*, i_cast(intptr_t, 0xDECAFBAD));  // fixed value [1]
           --countdown;
       }
     #else
-      ref = p_cast(T*, cast(intptr_t, 0xDECAFBAD));  // fixed value [1]
+      ref = p_cast(T*, i_cast(intptr_t, 0xDECAFBAD));  // fixed value [1]
     #endif
     }
 
@@ -141,7 +141,7 @@ struct CorruptHelper<T*> {  // Pointer (faster than memset() fallback)
         if (ptr == nullptr)
             return true;  // have to consider nullptr potentially corrupt
       #endif
-        return ptr == p_cast(T*, cast(intptr_t, 0xDECAFBAD));
+        return ptr == p_cast(T*, i_cast(intptr_t, 0xDECAFBAD));
     }
 };
 

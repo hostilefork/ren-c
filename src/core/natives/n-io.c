@@ -199,7 +199,7 @@ DECLARE_NATIVE(WRITE_STDOUT)
     }
     else if (Is_Rune_And_Is_Char(v)) {
         Codepoint c = Rune_Known_Single_Codepoint(v);
-        printf("WRITE-STDOUT: codepoint %d\n", cast(int, c));
+        printf("WRITE-STDOUT: codepoint %d\n", i_cast(int, c));
     }
     else {
         assert(Is_Blob(v));

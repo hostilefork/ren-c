@@ -165,7 +165,7 @@ REBI64 Random_Range(REBI64 r, bool secure)
     } while (u > m); // get a random value below the limit
 
     u = u % s + 1;
-    return (r > 0) ? cast(REBI64, u) : -cast(REBI64, u);
+    return (r > 0) ? i_cast(REBI64, u) : (- i_cast(REBI64, u));
 }
 
 //

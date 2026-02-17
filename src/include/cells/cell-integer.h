@@ -66,23 +66,23 @@ INLINE Element* Init_Integer_Untracked(Init(Element) out, REBI64 i64) {
 
 
 #define ROUND_TO_INT(d) \
-    cast(int32_t, floor((MAX(INT32_MIN, MIN(INT32_MAX, d))) + 0.5))
+    i_cast(int32_t, floor((MAX(INT32_MIN, MIN(INT32_MAX, d))) + 0.5))
 
 
 INLINE int32_t VAL_INT32(const Stable* v) {
     if (VAL_INT64(v) > INT32_MAX or VAL_INT64(v) < INT32_MIN)
         panic (Error_Out_Of_Range(v));
-    return cast(int32_t, VAL_INT64(v));
+    return i_cast(int32_t, VAL_INT64(v));
 }
 
 INLINE uint32_t VAL_UINT32(const Stable* v) {
     if (VAL_INT64(v) < 0 or VAL_INT64(v) > UINT32_MAX)
         panic (Error_Out_Of_Range(v));
-    return cast(uint32_t, VAL_INT64(v));
+    return i_cast(uint32_t, VAL_INT64(v));
 }
 
 INLINE Byte VAL_UINT8(const Stable* v) {
     if (VAL_INT64(v) > 255 or VAL_INT64(v) < 0)
         panic (Error_Out_Of_Range(v));
-    return cast(Byte, VAL_INT32(v));
+    return i_cast(Byte, VAL_INT32(v));
 }

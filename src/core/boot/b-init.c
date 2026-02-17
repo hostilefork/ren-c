@@ -187,7 +187,7 @@ static void Startup_Lib(void)
 //
 static void Shutdown_Lib(void)
 {
-    assert(Is_Stub_Erased(&g_lib_patches[cast(int, opt SYM_0)]));
+    assert(Is_Stub_Erased(&g_lib_patches[SYM_0_constexpr]));
 
     for (SymId16 id = 1; id <= MAX_SYM_LIB_PREMADE; ++id) {
         Patch* patch = &g_lib_patches[id];
@@ -716,11 +716,11 @@ void Startup_Core(void)
     );
 
     for (
-        SymId16 sym = MIN_SYM_BASE_CONSTANTS;
-        sym <= MAX_SYM_BASE_CONSTANTS;
-        ++sym
+        SymId16 id16 = MIN_SYM_BASE_CONSTANTS;
+        id16 <= MAX_SYM_BASE_CONSTANTS;
+        ++id16
     ){
-        Value* v = Possibly_Unstable(Mutable_Lib_Value(cast(SymId, sym)));
+        Value* v = Possibly_Unstable(Mutable_Lib_Value(i_cast(SymId, id16)));
         if (Not_Cell_Stable(v))
             continue;  // no locking needed for unstable antifomrs
         Flex* locker = nullptr;
