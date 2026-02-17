@@ -86,6 +86,13 @@
 //    Also: global variables need to be compatible with the 0-initialization
 //    property they'd have if they weren't marked as Option().
 //
+// 4. Hookable_Cast_Helper blocks cast() from stripping Option().  But
+//    x_cast() and other explicit conversions are allowed here, since they
+//    indicate the caller is deliberately extracting.
+//
+
+template<typename>
+struct IsOptionWrapper : std::false_type {};
 
 template<typename T>
 struct OptionWrapper {
@@ -126,18 +133,12 @@ struct OptionWrapper {
       {}
 
     template<typename U>
-    explicit operator U() const  // *explicit* cast if not using `unwrap`
-    {
-        /* static_assert(  // cast mechanics use casting to unwrap; review
-            false,
-            "Do `cast(T, opt option)` instead of `cast(T, option)`"
-        ); */
-        return u_cast(U, o);
+    explicit operator U() const {
+        return u_cast(U, o);  // cast() blocks removal, for x_cast() only [4]
     }
 
-    explicit operator bool() const {
-        // explicit exception in `if` https://stackoverflow.com/q/39995573/
-        return o ? true : false;
+    explicit operator bool() const {  // explicit exception in `if`
+        return o ? true : false;  // https://stackoverflow.com/q/39995573/
     }
 };
 
@@ -182,6 +183,12 @@ bool operator!=(L left, const OptionWrapper<R>& right)
       }
     };
 #endif
+
+template<typename X>
+struct IsOptionWrapper<OptionWrapper<X>> : std::true_type {};
+
+template<typename X>  // Option carries engaged/disengaged semantics [8]
+struct IsWrapperSemantic<OptionWrapper<X>> : std::true_type {};
 
 #undef NeedfulOption
 #define NeedfulOption(T)  needful::OptionWrapper<T>

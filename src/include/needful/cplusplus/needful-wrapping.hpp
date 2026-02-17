@@ -97,6 +97,12 @@
 // This pattern is robust and avoids hard errors for types that do not have
 // the member, making it ideal for metaprogramming and generic code.
 //
+// 1. Any type exposing `wrapped_type` must be standard-layout, because
+//    NEEDFUL_EXTRACT_INNER relies on reinterpret_cast to the first member
+//    (guaranteed only for standard-layout structs).  Enforcing this here
+//    catches violations at the earliest possible point--when the wrapper
+//    type is first examined--rather than at each individual cast site.
+//
 
 template<typename T>
 struct HasWrappedType {
@@ -111,6 +117,11 @@ struct HasWrappedType {
 
   public:
     static constexpr bool value = decltype(test<T>(0))::value;
+
+    static_assert(  // standard-layout needed for first-member aliasing [1]
+        not value or std::is_standard_layout<T>::value,
+        "Wrapper types (with wrapped_type) must be standard-layout"
+    );
 };
 
 
@@ -185,3 +196,75 @@ struct LeafPointee { using type = remove_pointer_t<T>; };
 
 template<typename T>
 struct LeafPointee<T, true> : LeafPointee<typename T::wrapped_type> {};
+
+
+//=//// SEMANTIC VS. NON-SEMANTIC WRAPPERS ////////////////////////////////=//
+//
+// Wrappers fall into two categories that matter for casting behavior:
+//
+// * "Semantic" wrappers carry meaning beyond the raw type--their wrapping
+//   is part of the data's contract.  Option(T) tracks engaged/disengaged
+//   state; Result(T) signals that an error may have occurred.  Casting
+//   should preserve these wrappers: `cast(U, Result(T))` --> `Result(U)`.
+//
+// * "Non-semantic" wrappers describe parameter-passing conventions rather
+//   than data state: Sink(T) marks a write-through parameter, Need(T) marks
+//   a non-null contract, Exact(T) blocks implicit conversions, etc.  Once
+//   you cast, you're done with the convention, so cast extracts the inner
+//   value: `cast(U, sink_value)` --> `U`.
+//
+// Specialize `IsWrapperSemantic` to `true_type` for your wrapper if
+// cast() should auto-preserve it.  The default is false (extract).
+//
+
+template<typename>
+struct IsWrapperSemantic : std::false_type {};
+
+
+//=//// BASIC TYPE DETECTION //////////////////////////////////////////////=//
+//
+// C++ splits its types into "scalar" (arithmetic + enum + pointer + member
+// pointer + nullptr_t) and "compound" (everything else).  But scalar lumps
+// pointers together with integers and enums, which is wrong for our cast
+// dispatch: pointer-to-pointer casts need reinterpret_cast and CastHook
+// validation, while int-to-enum or bool-to-int are fine with static_cast.
+//
+// IsBasicType captures the subset of types where static_cast is always
+// valid and no hook dispatch is needed: fundamentals (int, bool, float...)
+// and enums.  For wrapped types, it looks through the wrapper to classify
+// based on the inner type (e.g. Need(int) is basic, Need(Foo*) is not).
+//
+// This drives SFINAE in the h_cast() overloads:
+//   - basic -> basic:  overload 1 (constexpr static_cast, no hooks)
+//   - non-basic -> basic:  overload 2 (hooks, but basic target)
+//   - everything else:  overloads 3/4/5 (reinterpret_cast territory)
+//
+
+template<typename T>
+struct IsBasicType {
+    static constexpr bool value = std::is_fundamental<T>::value
+        or std::is_enum<T>::value
+        or (HasWrappedType<T>::value and (
+            std::is_fundamental<needful_unwrapped_type(T)>::value
+            or std::is_enum<needful_unwrapped_type(T)>::value
+        ));
+};
+
+
+//=//// INNER EXTRACTION FROM WRAPPERS ////////////////////////////////////=//
+//
+// Needful wrappers are standard-layout structs whose first (and only) data
+// member is the wrapped value.  C++ guarantees that a pointer to a
+// standard-layout struct can be reinterpret_cast to a pointer to its first
+// member (and vice versa):
+//
+//   https://en.cppreference.com/w/cpp/language/data_members#Standard-layout
+//
+// This is how the casting wrapped conversion operators (which may have
+// side effects—e.g. Sink's corruption semantics) can directly access the
+// inner value for casting purposes.  The static_assert on is_standard_layout
+// in each overload ensures the guarantee actually holds.
+//
+
+#define NEEDFUL_EXTRACT_INNER(InnerType, wrapper) \
+    reinterpret_cast<const InnerType&>(wrapper)

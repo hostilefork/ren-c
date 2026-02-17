@@ -183,6 +183,13 @@ struct NEEDFUL_NODISCARD Result0Struct {  // [[nodiscard]] is good [1]
 //    which is what `return fail(...)` returns.
 //
 
+// IsResultWrapper is used in ResultWrapper's own SFINAE (to prevent
+// ResultWrapper-from-ResultWrapper ambiguity), so the base template must
+// precede the class definition.  Specialized to true_type after the class.
+//
+template<typename>
+struct IsResultWrapper : std::false_type {};
+
 template<typename T>
 struct NEEDFUL_NODISCARD ResultWrapper {
     NEEDFUL_DECLARE_WRAPPED_FIELD (T, r);
@@ -240,6 +247,9 @@ struct NEEDFUL_NODISCARD ResultWrapper {
 
 template<typename X>
 struct IsResultWrapper<ResultWrapper<X>> : std::true_type {};
+
+template<typename X>  // Result carries error-signaling semantics [8]
+struct IsWrapperSemantic<ResultWrapper<X>> : std::true_type {};
 
 
 //=//// RESULT EXTRACTOR //////////////////////////////////////////////////=//
