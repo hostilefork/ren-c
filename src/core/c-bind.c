@@ -307,7 +307,7 @@ bool Try_Get_Binding_Of(
 } loop_body: { ///////////////////////////////////////////////////////////////
 
     Flavor flavor = Stub_Flavor(c);
-    Option(const Stub*) lens_or_label = nullptr;
+    Erase_Cell(out);  // out holds a "full cell" worth of lookup, if present
 
   //=//// ALTER `c` IF USE STUB ///////////////////////////////////////////=//
 
@@ -338,12 +338,7 @@ bool Try_Get_Binding_Of(
             goto loop_body;  // skips assignment via next
         }
 
-        if (Is_Frame(overbind)) {
-            lens_or_label = Frame_Lens_Or_Label(overbind);
-            if (not lens_or_label)  // avoid full visibility default [1]
-                lens_or_label = CANON(ANONYMOUS);
-        }
-
+        Copy_Cell(out, overbind);  // save for later use for lens or label [1]
         c = Cell_Context(overbind);  // do search on other contexts
         flavor = Stub_Flavor(c);
     }
@@ -404,17 +399,8 @@ bool Try_Get_Binding_Of(
 
     VarList* vlist = cast(VarList*, c);
 
-    if (CTX_TYPE(vlist) == TYPE_FRAME) {
-        if (not lens_or_label) {  // FLAVOR_USE didn't set, want all visibile
-            lens_or_label = Lens_Self(u_cast(ParamList*, vlist));
-        }
-        Init_Frame_Core(
-            out, u_cast(ParamList*, vlist), lens_or_label, UNCOUPLED
-        );
-    }
-    else {
-        Copy_Cell(out, Varlist_Archetype(vlist));
-    }
+    if (Is_Cell_Erased(out))  // wasn't a USE, context is all we have
+        Init_Context_Cell(out, vlist);
 
     Option(Ordinal) n = Find_Symbol_In_Context(  // must search
         out,

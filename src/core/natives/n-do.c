@@ -710,8 +710,6 @@ Bounce Native_Frame_Filler_Core(Level* level_)
   //
   // 2. Binders cannot be held across evaluations at this time.  Do slow
   //    lookups for refinements, but this is something that needs rethinking.
-  //
-  // 3. Varlist_Archetype(exemplar) is phased, sees locals
 
     ParamList* exemplar = Make_Varlist_For_Action_Push_Partials(  // [1]
         op,
@@ -722,7 +720,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     frame = Init_Frame(
         LOCAL(FRAME),
         exemplar,
-        Frame_Label(op),
+        Frame_Label(op),  // label means no lens (we don't need to see locals)
         Frame_Coupling(op)
     );
     Remember_Cell_Is_Lifeguard(frame);
@@ -741,7 +739,7 @@ Bounce Native_Frame_Filler_Core(Level* level_)
     require (
       EVARS *e = Alloc_On_Heap(EVARS)
     );
-    Init_Evars(e, frame);  // sees locals [3]
+    Init_Evars(e, frame);
 
     iterator = Init_Handle_Cdata(LOCAL(ITERATOR), e, sizeof(EVARS));
     STATE = ST_FRAME_FILLER_INITIALIZED_ITERATOR;
