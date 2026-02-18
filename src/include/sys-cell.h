@@ -1115,12 +1115,12 @@ INLINE void Reset_Extended_Cell_Header_Noquote(
     template<typename Dst, typename Src>
     struct CellTransferValidator {
         using RetPtrType = needful_unconstify_t(
-            needful_unwrapped_if_wrapped_type(std::remove_reference_t<Src>)
+            needful_unwrapped_if_wrapped_type(needful::remove_reference_t<Src>)
         );
 
         static_assert(
             needful_is_convertible_v(  // this is the actual rule [1]
-                std::remove_reference_t<Dst>,
+                needful::remove_reference_t<Dst>,
                 needful::InitWrapper<RetPtrType>
             ),
             "CellTransferValidator: Dst must be convertible to Init(Src)"
