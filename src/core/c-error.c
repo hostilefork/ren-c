@@ -216,8 +216,10 @@ Error* Panic_Abruptly_Helper(Error* error)
     // If a throw was being processed up the stack when the panic happened,
     // then it had the thrown argument set.
     //
-    Init_Unreadable(&g_ts.thrown_arg);
-    Init_Unreadable(&g_ts.thrown_label);
+    possibly(Is_Cell_Erased(&g_ts.thrown_arg));
+    possibly(Is_Cell_Erased(&g_ts.thrown_label));
+    Erase_Cell(&g_ts.thrown_arg);
+    Erase_Cell(&g_ts.thrown_label);
 
     return error;
 }

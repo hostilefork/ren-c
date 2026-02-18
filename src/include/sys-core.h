@@ -437,8 +437,8 @@ typedef struct {
 
     Jump* jump_list;  // Saved state for RECOVER_SCOPE
 
-    Value thrown_arg;
-    Element thrown_label;
+    Value thrown_arg;  // erased when not throwing, any Value* when thrown
+    Element thrown_label;  // erased when not throwing
     Level* unwind_level;
 
     Flags signal_flags;  // signal flags (Rebol signals, not unix ones!)

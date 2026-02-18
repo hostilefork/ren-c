@@ -45,21 +45,17 @@
 //
 
 
-// 1. An original constraint on asking if something was throwing was that only
+// 1. Since this is a macro, UNUSED would corrupt the variable.  Use USED().
+//
+// 2. An original constraint on asking if something was throwing was that only
 //    the top frame could be asked about.  But Action_Executor() is called to
 //    re-dispatch when there may be a frame above (kept there by request from
 //    something like REDUCE).  We relax the constraint to only be able to
 //    return true *if* there are no frames above on the stack.
-//
-INLINE bool Is_Throwing(Level* level_) {
-    if (Is_Cell_Readable(&g_ts.thrown_arg)) {
-        possibly(level_ == TOP_LEVEL);  // don't enforce this for now [1]
-        possibly(Is_Cell_Erased(level_->out));  // not enforced at present
-        UNUSED(level_);
-        return true;
-    }
-    return false;
-}
+
+#define Is_Throwing(L) \
+    (USED(known(Level*, (L))),  /* don't UNUSED() [1] not used for now [2] */ \
+        Not_Cell_Erased(&g_ts.thrown_arg))
 
 #define THROWING Is_Throwing(level_)
 
@@ -83,10 +79,10 @@ INLINE void Init_Thrown_With_Label(  // assumes `arg` in g_ts.thrown_arg
 
     assert(not Is_Throwing(L));
 
-    assert(Not_Cell_Readable(&g_ts.thrown_arg));
+    assert(Is_Cell_Erased(&g_ts.thrown_arg));
     Copy_Cell(&g_ts.thrown_arg, arg);
 
-    assert(Not_Cell_Readable(&g_ts.thrown_label));
+    assert(Is_Cell_Erased(&g_ts.thrown_label));
     Copy_Cell(&g_ts.thrown_label, label);
 
     Erase_Cell(L->out);
@@ -110,9 +106,9 @@ INLINE void CATCH_THROWN(
     assert(Is_Throwing(L));
 
     Move_Cell(arg_out, &g_ts.thrown_arg);
-    assert(Not_Cell_Readable(&g_ts.thrown_arg));
+    Erase_Cell(&g_ts.thrown_arg);
 
-    Init_Unreadable(&g_ts.thrown_label);
+    Erase_Cell(&g_ts.thrown_label);
 
     assert(not Is_Throwing(L));
 
