@@ -472,6 +472,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
         panic ("LOGIC! can't be used as a key in MAP!");
 
     Copy_Cell(PUSH(), key);
+    Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
 
     goto reduce_value;
 
@@ -504,6 +505,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Map)
     }
 
     Copy_Cell(PUSH(), val);
+    Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
 
     goto reduce_key;
 

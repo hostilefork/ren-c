@@ -96,7 +96,7 @@ static Result(None) Push_Keys_And_Params_For_Fence(
             continue;
         }
 
-        Reset_Stepper_Erase_Out(sub);  // state accrued, reset stack top
+        Sync_Toplevel_Baseline_After_Pushes(sub);
 
         if (Trampoline_With_Top_As_Root_Throws()) {  // run the group
             Drop_Level_Unbalanced(sub);
@@ -126,6 +126,7 @@ static Result(None) Push_Keys_And_Params_For_Fence(
             }
         }
 
+        Sync_Toplevel_Baseline_After_Pushes(sub);
         Reset_Stepper_Erase_Out(sub);
     }
 

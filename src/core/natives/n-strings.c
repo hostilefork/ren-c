@@ -299,6 +299,8 @@ DECLARE_NATIVE(JOIN)
     if (ARG(HEAD) and delimiter)  // speculatively start with
         Copy_Cell(PUSH(), unwrap delimiter);  // may be tossed
 
+    Sync_Toplevel_Baseline_After_Pushes(sub);
+
     original_index = Init_Integer(LOCAL(ORIGINAL_INDEX), TOP_INDEX);
 
     if (Is_Level_At_End(sub))
@@ -333,9 +335,9 @@ DECLARE_NATIVE(JOIN)
     if (ARG(HEAD) and delimiter)  // speculatively start with
         Copy_Cell(PUSH(), unwrap delimiter);  // may be tossed
 
-    original_index = Init_Integer(LOCAL(ORIGINAL_INDEX), TOP_INDEX);
+    Sync_Toplevel_Baseline_After_Pushes(sub);
 
-    SUBLEVEL->baseline.stack_base = TOP_INDEX;
+    original_index = Init_Integer(LOCAL(ORIGINAL_INDEX), TOP_INDEX);
 
     if (Is_Level_At_End(sub))
         goto finish_stack_join;
@@ -376,6 +378,7 @@ DECLARE_NATIVE(JOIN)
 
         Push_Join_Delimiter_If_Pending();
         Copy_Cell(PUSH(), unspaced);
+        Sync_Toplevel_Baseline_After_Pushes(sub);
         rebRelease(unspaced);
         Mark_Join_Delimiter_Pending();
         goto next_mold_step;
@@ -426,6 +429,7 @@ DECLARE_NATIVE(JOIN)
         Push_Join_Delimiter_If_Pending();
 
         Copy_Cell(PUSH(), item);
+        Sync_Toplevel_Baseline_After_Pushes(sub);
         Unquote_Cell(TOP_ELEMENT);
         Set_Cell_Flag(TOP, STACK_NOTE_MOLD);
 
@@ -478,6 +482,7 @@ DECLARE_NATIVE(JOIN)
             for (; at != tail; ++at) {
                 Push_Join_Delimiter_If_Pending();
                 Copy_Cell(PUSH(), at);
+                Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
                 Mark_Join_Delimiter_Pending();
             }
             goto next_mold_step;
@@ -490,6 +495,7 @@ DECLARE_NATIVE(JOIN)
         if (delimiter)
             Clear_Cell_Flag(unwrap delimiter, DELIMITER_NOTE_PENDING);
         Copy_Cell(PUSH(), spare);
+        Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
         goto next_mold_step;
     }
 
@@ -497,6 +503,7 @@ DECLARE_NATIVE(JOIN)
 
     Push_Join_Delimiter_If_Pending();
     Copy_Cell(PUSH(), spare);
+    Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
     if (Get_Level_Flag(LEVEL, DELIMIT_MOLD_RESULT))
         Set_Cell_Flag(TOP, STACK_NOTE_MOLD);
     Mark_Join_Delimiter_Pending();
@@ -547,6 +554,7 @@ DECLARE_NATIVE(JOIN)
 
     Push_Join_Delimiter_If_Pending();
     Copy_Cell(PUSH(), spare);
+    Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
     Mark_Join_Delimiter_Pending();
 
     goto next_stack_step;

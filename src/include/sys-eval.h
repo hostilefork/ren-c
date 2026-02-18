@@ -80,6 +80,19 @@ INLINE Cell* Stepper_Primed_Value_Untracked(Level* L) {
         Stepper_Primed_Value_Untracked(L)))
 
 
+// If you PUSH() values to the stack, you need to make sure this accrual is
+// accounted for if taking multiple eval steps and reusing a stepper.
+//
+// (This makes you pass in the level just so you can confirm that the level
+// you *think* is the top is actually the top, without needing to assert
+// that separately yourself.)
+//
+#define Sync_Toplevel_Baseline_After_Pushes(L) do { \
+    assert((L) == TOP_LEVEL); \
+    TOP_LEVEL->baseline.stack_base = TOP_INDEX; \
+} while (0)
+
+
 // Does not check for ST_STEPPER_LEVEL_FINISHED, because generalized loops
 // may skip items and never actually call the executor.
 //
@@ -100,11 +113,14 @@ INLINE void Reset_Stepper_Erase_Out(Level* L) {
         or L->executor == &Inert_Stepper_Executor
         or L->executor == &Evaluator_Executor
     );
+
+    if (L->baseline.stack_base != TOP_INDEX)
+        assert(!"PUSH() without Sync_Toplevel_Baseline_After_Pushes()");
+
     L->flags.bits &= (~ (
         FLAG_STATE_BYTE(255)  // set state byte to 0
             | EVAL_EXECUTOR_FLAG_OUT_IS_DISCARDABLE  // what else?
     ));
-    L->baseline.stack_base = TOP_INDEX;  // may have accrued state
     Erase_Cell(L->out);
     Erase_Cell(&L->spare);
     dont(Erase_Cell(&L->scratch));  // stepper tolerant of not erasing [1]

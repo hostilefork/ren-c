@@ -2076,11 +2076,13 @@ DECLARE_NATIVE(CONSTRUCT)
         Copy_Cell(Level_Scratch(SUBLEVEL), TOP_STABLE);
         DROP();
 
-        Reset_Stepper_Erase_Out(SUBLEVEL);  // state accrued, reset stack top
+        Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
+        Reset_Stepper_Erase_Out(SUBLEVEL);
         LEVEL_STATE_BYTE(SUBLEVEL) = ST_STEPPER_REEVALUATING;
     }
     else {
-        Reset_Stepper_Erase_Out(SUBLEVEL);  // state accrued, reset stack top
+        Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
+        Reset_Stepper_Erase_Out(SUBLEVEL);
     }
 
     STATE = ST_CONSTRUCT_EVAL_SET_STEP;

@@ -249,6 +249,7 @@ DECLARE_NATIVE(REDUCE)
 
     if (Get_Level_Flag(LEVEL, REDUCE_IS_ACTUALLY_PACK)) {
         Copy_Lifted_Cell(PUSH(), SPARE);
+        Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
         goto next_reduce_step;
     }
 
@@ -303,6 +304,7 @@ DECLARE_NATIVE(REDUCE)
         if (Get_Cell_Flag(v, NEWLINE_BEFORE))  // [2]
             Set_Cell_Flag(TOP, NEWLINE_BEFORE);
     }
+    Sync_Toplevel_Baseline_After_Pushes(SUBLEVEL);
 
     goto next_reduce_step;
 
