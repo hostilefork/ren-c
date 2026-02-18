@@ -213,8 +213,7 @@ Stable* Close_Socket(const Stable* port)
 //
 static void on_connect(uv_connect_t *req, int status) {
     Reb_Connect_Request *rebreq = cast(Reb_Connect_Request*, req);
-    const Stable* port = Varlist_Archetype(rebreq->port_ctx);
-    SOCKREQ *sock = Sock_Of_Port(port);
+    SOCKREQ *sock = Sock_Of_Port(rebreq->port);
 
     if (status < 0) {
         rebreq->result = rebError_UV(status);
@@ -259,7 +258,7 @@ static Stable* Trap_Connect_Socket_Else_Close(
     // nullptr to get a synchronous connection.
     //
     Reb_Connect_Request *rebreq = rebAlloc(Reb_Connect_Request);
-    rebreq->port_ctx = Cell_Varlist(port);
+    rebreq->port = Copy_Cell(Alloc_Value(), port);
     rebreq->result = nullptr;
 
     int r = uv_tcp_connect(
@@ -267,6 +266,7 @@ static Stable* Trap_Connect_Socket_Else_Close(
     );
 
     if (r < 0) {  // the *request* failed (didn't even try to connect)
+        rebRelease(rebreq->port);
         rebFree(rebreq);
         Close_Sock_If_Needed(sock);
         return rebError_UV(r);
@@ -329,6 +329,7 @@ static Stable* Trap_Connect_Socket_Else_Close(
         result = rebStable("make error! -[Connection timeout]-");
     }
 
+    rebRelease(rebreq->port);
     rebFree(rebreq);
     return result;
 }
@@ -467,8 +468,7 @@ Stable* Trap_Open_And_Connect_Socket_For_Hostname(  // synchronous [1]
 // Accept an inbound connection on a TCP listen socket.
 //
 void on_new_connection(uv_stream_t *server, int status) {
-    VarList* listener_port_ctx = cast(VarList*, server->data);
-    const Stable* listening_port = Varlist_Archetype(listener_port_ctx);
+    const Element* listening_port = cast(Element*, server->data);
     SOCKREQ *listening_sock = Sock_Of_Port(listening_port);
     UNUSED(listening_sock);
 
@@ -479,14 +479,21 @@ void on_new_connection(uv_stream_t *server, int status) {
     if (status < 0)
         panic (rebError_UV(status));
 
-    VarList* client = Copy_Varlist_Shallow_Managed(listener_port_ctx);
-    Push_Lifeguard(client);
+    VarList* client_varlist = Copy_Varlist_Shallow_Managed(
+        Cell_Varlist(listening_port)
+    );
+    Push_Lifeguard(client_varlist);
+
+    DECLARE_ELEMENT (client_port);
+    Init_Port(client_port, client_varlist);
 
     Init_Null(
-        Slot_Init_Hack(Varlist_Slot(client, STD_PORT_DATA))  // "be sure" (?)
+        Slot_Init_Hack(Varlist_Slot(client_varlist, STD_PORT_DATA))
     );
 
-    Stable* c_state = Stable_Slot_Hack(Varlist_Slot(client, STD_PORT_STATE));
+    Stable* c_state = Stable_Slot_Hack(
+        Varlist_Slot(client_varlist, STD_PORT_STATE)
+    );
     require (
       SOCKREQ* sock = Alloc_On_Heap(SOCKREQ)
     );
@@ -496,7 +503,7 @@ void on_new_connection(uv_stream_t *server, int status) {
         c_state, sock, sizeof(SOCKREQ), &Sockreq_Handle_Cleaner
     );
 
-    SOCKREQ *sock_new = Sock_Of_Port(Varlist_Archetype(client));
+    SOCKREQ *sock_new = Sock_Of_Port(client_port);
 
     // Create a new port using ACCEPT
 
@@ -518,9 +525,9 @@ void on_new_connection(uv_stream_t *server, int status) {
 
     Get_Local_IP(sock_new);
 
-    Drop_Lifeguard(client);
+    rebElide("(", listening_port, ").spec/accept", client_port);
 
-    rebElide("(", listening_port, ").spec/accept", Varlist_Archetype(client));
+    Drop_Lifeguard(client_varlist);
 }
 
 
@@ -559,7 +566,16 @@ Stable* Start_Listening_On_Socket(const Stable* port)
 
 } listen_on_socket: {
 
-    sock->tcp.data = Cell_Varlist(port);
+  // !!! Generally speaking, the network code has atrophied--the web build
+  // does not use it, and the desktop builds are using curl.  So more
+  // important issues than redesigning it have taken over.  If this code
+  // becomes important again, then a coherent strategy is needed for freeing
+  // the API handle held in `sock->tcp.data`
+
+    Api(Stable*) persistent_port = Copy_Cell(Alloc_Value(), port);
+    rebUnmanage(persistent_port);  // !!! leaks, review
+    sock->tcp.data = persistent_port;
+
     int r = uv_listen(
         cast(uv_stream_t*, &sock->tcp),
         DEFAULT_BACKLOG,
@@ -609,7 +625,7 @@ void on_read_alloc(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 
     Reb_Read_Request *rebreq = cast(Reb_Read_Request*, handle->data);
 
-    VarList* port_ctx = rebreq->port_ctx;
+    VarList* port_ctx = Cell_Varlist(rebreq->port);
     Stable* port_data = Stable_Slot_Hack(Varlist_Slot(port_ctx, STD_PORT_DATA));
 
     Size bufsize;
@@ -675,7 +691,7 @@ void on_read_alloc(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 void on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     Reb_Read_Request* rebreq = cast(Reb_Read_Request*, stream->data);
-    VarList* port_ctx = rebreq->port_ctx;
+    VarList* port_ctx = Cell_Varlist(rebreq->port);
 
     Stable* port_data = Stable_Slot_Hack(Varlist_Slot(port_ctx, STD_PORT_DATA));
 
@@ -958,7 +974,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
             panic (Error_On_Port(SYM_NOT_CONNECTED, port, -15));
 
         Reb_Read_Request *rebreq = rebAlloc(Reb_Read_Request);
-        rebreq->port_ctx = Cell_Varlist(port);
+        rebreq->port = Copy_Cell(Alloc_Value(), port);
         rebreq->actual = 0;
         rebreq->result = nullptr;
 
@@ -995,6 +1011,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
             return fail (rebreq->result);  // e.g. "broken pipe" ?
         rebRelease(rebreq->result);
 
+        rebRelease(rebreq->port);
         rebFree(rebreq);
 
         return COPY_TO_OUT(port); }
@@ -1021,7 +1038,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
         // the same pointer as the rebreq (first struct member).
         //
         Reb_Write_Request *rebreq = rebAlloc(Reb_Write_Request);
-        rebreq->port_ctx = Cell_Varlist(port);  // API handle for GC safety?
+        rebreq->port = Copy_Cell(Alloc_Value(), port);
         rebreq->result = nullptr;
 
         // Make a copy of the BLOB! to put in the request, so that you can
@@ -1048,7 +1065,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
         rebreq->binary = rebStable(
             "as blob! copy:part", data, rebQ(part)
         );
-        rebUnmanage(rebreq->binary);  // otherwise would be seen as a leak
+        rebUnmanage(rebreq->binary);  // freed by on_write_finished()
 
         uv_buf_t buf;
         buf.base = s_cast(Blob_At_Ensure_Mutable(rebreq->binary));
@@ -1065,6 +1082,7 @@ static Bounce Transport_Actor(Level* level_, enum Transport_Type transport) {
             return fail (rebreq->result);  // e.g. "broken pipe" ?
         rebRelease(rebreq->result);
 
+        rebRelease(rebreq->port);
         rebFree(rebreq);
 
         return COPY_TO_OUT(port); }

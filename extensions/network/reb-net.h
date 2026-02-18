@@ -81,7 +81,7 @@ INLINE SOCKREQ *Sock_Of_Port(const Stable* port)
 typedef struct {
     uv_write_t req;  // make first member of struct so we can cast the address
 
-    VarList* port_ctx;
+    Api(Stable*) port;
     Stable* binary;
     Stable* result;
 } Reb_Write_Request;
@@ -93,13 +93,13 @@ typedef struct {
 typedef struct {
     uv_connect_t req;  // make first member of struct so we can cast the address
 
-    VarList* port_ctx;
+    Api(Stable*) port;
     Stable* result;
 } Reb_Connect_Request;
 
 
 typedef struct {
-    VarList* port_ctx;
+    Api(Stable*) port;
 
     Length length_store;  // if length isn't nullptr, then points here
     Option(const Length*) length;  // length to transfer, nullptr is UNLIMITED
