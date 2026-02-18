@@ -233,9 +233,8 @@ DECLARE_NATIVE(TRANSCODE)
             else {  // scanned another item, we only wanted one!
                 assert(TOP_INDEX == STACK_BASE + 2);
                 Drop_Data_Stack_To(STACK_BASE);
-                Init_Context_Cell(
+                Init_Error_Cell(
                     OUT,
-                    TYPE_ERROR,
                     Error_User("TRANSCODE:ONE scanned more than one element")
                 );
                 Failify_Cell(OUT);

@@ -113,7 +113,7 @@ Option(Bounce) Irreducible_Bounce(Level* level_, Bounce b) {
         }
         Rollback_Level(L);  // not throwing, no trampoline rollback TOP_LEVEL
 
-        Init_Context_Cell(L->out, TYPE_ERROR, g_failure);
+        Init_Error_Cell(L->out, g_failure);
         g_failure = nullptr;  // have to do before Force_Location_Of_Error()
         Failify_Cell(L->out);  // forces location of error to level
 

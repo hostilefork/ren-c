@@ -415,7 +415,7 @@ static void Init_System_Object(
     require (
       Use* use = Alloc_Use_Inherits(List_Binding(boot_sysobj_spec))
     );
-    Copy_Cell(Stub_Cell(use), Varlist_Archetype(system));
+    Init_Object(Stub_Cell(use), system);
 
     DECLARE_ELEMENT (sysobj_spec_virtual);
     Copy_Cell(sysobj_spec_virtual, boot_sysobj_spec);

@@ -524,7 +524,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Object)
             require (
               Use* use = Alloc_Use_Inherits(List_Binding(arg))
             );
-            Copy_Cell(Stub_Cell(use), Varlist_Archetype(derived));
+            Init_Context_Cell(Stub_Cell(use), derived);
 
             Tweak_Cell_Binding(arg, use);  // def is GC-safe, use will be too
             Remember_Cell_Is_Lifeguard(Stub_Cell(use));  // keeps derived alive
@@ -533,7 +533,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Object)
             if (Eval_Any_List_At_Throws(dummy, arg, SPECIFIED))
                 return BOUNCE_THROWN;
 
-            return Init_Context_Cell(OUT, TYPE_OBJECT, derived);
+            return Init_Object(OUT, derived);
         }
 
         return fail (Error_Bad_Make(TYPE_OBJECT, arg));
@@ -556,7 +556,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Object)
         require (
           Use* use = Alloc_Use_Inherits(List_Binding(arg))
         );
-        Copy_Cell(Stub_Cell(use), Varlist_Archetype(ctx));
+        Init_Context_Cell(Stub_Cell(use), ctx);
 
         Tweak_Cell_Binding(arg, use);  // arg is GC-safe, so use will be too
         Remember_Cell_Is_Lifeguard(Stub_Cell(use));  // keeps context alive
@@ -625,7 +625,7 @@ DECLARE_NATIVE(ADJUNCT_OF)
     if (not adjunct)
         return NULL_OUT;
 
-    return COPY_TO_OUT(Varlist_Archetype(unwrap adjunct));
+    return Init_Context_Cell(OUT, unwrap adjunct);
 }
 
 
@@ -1068,7 +1068,6 @@ static Element* Copy_Any_Context(
 
     return Init_Context_Cell(
         out,
-        Heart_Of_Builtin_Fundamental(context),
         Copy_Varlist_Extra_Managed(Cell_Varlist(context), 0, deep)
     );
 }
@@ -1662,7 +1661,7 @@ DECLARE_NATIVE(COUPLING_OF)
     if (not coupling)  // UNCOUPLED
         return NULL_OUT;
 
-    return COPY_TO_OUT(Varlist_Archetype(unwrap coupling));
+    return Init_Context_Cell(OUT, unwrap coupling);
 }
 
 
@@ -1844,8 +1843,8 @@ DECLARE_NATIVE(PARENT_OF)
         if (not Is_Action_Level(parent))  // Only want action levels
             continue;
 
-        VarList* v_parent = Varlist_Of_Level_Force_Managed(parent);
-        return COPY_TO_OUT(Varlist_Archetype(v_parent));
+        VarList* varlist = Varlist_Of_Level_Force_Managed(parent);
+        return Init_Context_Cell(OUT, varlist);
     }
     return NULL_OUT;
 }
@@ -2048,18 +2047,18 @@ DECLARE_NATIVE(CONSTRUCT)
         return CONTINUE_SUBLEVEL;
     }
 
-    VarList* varlist = Cell_Varlist(OUT);
+    Element* constructing = As_Element(OUT);
 
     do {  // keep pushing SET-WORD!s so `construct [a: b: 1]` works
         Option(Ordinal) n = Find_Symbol_In_Context(
-            Varlist_Archetype(varlist),
+            constructing,
             unwrap symbol,
             true
         );
         assert(n);  // created a key for every SET-WORD! above!
 
         Copy_Cell(PUSH(), at);
-        Tweak_Cell_Binding(TOP_ELEMENT, varlist);
+        Tweak_Cell_Binding(TOP_ELEMENT, Cell_Varlist(constructing));
         Tweak_Word_Index(TOP_ELEMENT, unwrap n);
 
         Fetch_Next_In_Feed(SUBLEVEL->feed);

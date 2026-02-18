@@ -140,7 +140,7 @@ DECLARE_NATIVE(PICK)
     Drop_Data_Stack_To(STACK_BASE);
 
     if (e) {  // should be willing to bounce to trampoline...
-        Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);
+        Init_Error_Cell(OUT, unwrap e);
         Failify_Cell(OUT);
         return OUT;
     }
@@ -285,7 +285,7 @@ DECLARE_NATIVE(POKE)
     Drop_Data_Stack_To(STACK_BASE);
 
     if (e) {
-        Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);
+        Init_Error_Cell(OUT, unwrap e);
         Failify_Cell(OUT);
         return OUT;
     }

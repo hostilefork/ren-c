@@ -343,7 +343,7 @@ DECLARE_NATIVE(WITHOUT)
     require (
       Use* use = Alloc_Use_Inherits(List_Binding(v))
     );
-    Copy_Cell(Stub_Cell(use), Varlist_Archetype(ctx));
+    Init_Context_Cell(Stub_Cell(use), ctx);
 
     Tweak_Cell_Binding(v, use);
 

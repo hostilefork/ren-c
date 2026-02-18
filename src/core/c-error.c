@@ -446,7 +446,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
         require (
           Use* use = Alloc_Use_Inherits(List_Binding(arg))
         );
-        Init_Context_Cell(Stub_Cell(use), TYPE_ERROR, varlist);
+        Init_Error_Cell(Stub_Cell(use), varlist);
 
         Tweak_Cell_Binding(arg, use);  // arg is GC protected, so Use is too
         Remember_Cell_Is_Lifeguard(Stub_Cell(use));  // protects Error in eval
@@ -506,11 +506,11 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
         // this may overlap a combination used by Rebol where we wish to
         // fill in the code.  (No fast lookup for this, must search.)
 
-        VarList* categories = Cell_Varlist(Get_System(SYS_CATALOG, CAT_ERRORS));
+        Element* categories = As_Element(Get_System(SYS_CATALOG, CAT_ERRORS));
 
         // Find correct category for TYPE: (if any)
         Slot* category = opt Select_Symbol_In_Context(
-            Varlist_Archetype(categories),
+            categories,
             Word_Symbol(type)
         );
         if (category) {
@@ -548,7 +548,7 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
                 //     make error! [type: 'script id: 'set-self]
 
                 return fail (
-                    Error_Invalid_Error_Raw(Varlist_Archetype(varlist))
+                    Error_Invalid_Error_Raw(Init_Error_Cell(SPARE, varlist))
                 );
             }
         }
@@ -575,11 +575,11 @@ IMPLEMENT_GENERIC(MAKE, Is_Error)
                 or Is_Null(message)
             )
         )){
-            panic (Error_Invalid_Error_Raw(Varlist_Archetype(varlist)));
+            panic (Error_Invalid_Error_Raw(Init_Error_Cell(SPARE, varlist)));
         }
     }
 
-    return Init_Context_Cell(OUT, TYPE_ERROR, varlist);
+    return Init_Error_Cell(OUT, varlist);
 }
 
 
@@ -1314,18 +1314,16 @@ VarList* Startup_Errors(const Element* boot_errors)
 //
 void Startup_Stackoverflow(void)
 {
-    known_nullptr(g_error_stack_overflow) = Init_Context_Cell(
+    known_nullptr(g_error_stack_overflow) = Init_Error_Cell(
         Alloc_Value(),
-        TYPE_ERROR,
         Error_Stack_Overflow_Raw()
     );
 
     DECLARE_ELEMENT (temp);
     Init_Integer(temp, 1020);  // !!! arbitrary [1]
 
-    known_nullptr(g_error_no_memory) = Init_Context_Cell(
+    known_nullptr(g_error_no_memory) = Init_Error_Cell(
         Alloc_Value(),
-        TYPE_ERROR,
         Error_No_Memory_Raw(temp)
     );
 }
@@ -1354,34 +1352,28 @@ void Shutdown_Stackoverflow(void)
 //
 void Startup_Utf8_Errors(void)
 {
-    known_nullptr(g_error_utf8_too_short) = Init_Context_Cell(
+    known_nullptr(g_error_utf8_too_short) = Init_Error_Cell(
         Alloc_Value(),
-        TYPE_ERROR,
         Error_Utf8_Too_Short_Raw()
     );
-    known_nullptr(g_error_utf8_trail_bad_bit) = Init_Context_Cell(
+    known_nullptr(g_error_utf8_trail_bad_bit) = Init_Error_Cell(
         Alloc_Value(),
-        TYPE_ERROR,
         Error_Utf8_Trail_Bad_Bit_Raw()
     );
-    known_nullptr(g_error_overlong_utf8) = Init_Context_Cell(
+    known_nullptr(g_error_overlong_utf8) = Init_Error_Cell(
         Alloc_Value(),
-        TYPE_ERROR,
         Error_Overlong_Utf8_Raw()
     );
-    known_nullptr(g_error_codepoint_too_high) = Init_Context_Cell(
+    known_nullptr(g_error_codepoint_too_high) = Init_Error_Cell(
         Alloc_Value(),
-        TYPE_ERROR,
         Error_Codepoint_Too_High_Raw()
     );
-    known_nullptr(g_error_no_utf8_surrogates) = Init_Context_Cell(
+    known_nullptr(g_error_no_utf8_surrogates) = Init_Error_Cell(
         Alloc_Value(),
-        TYPE_ERROR,
         Error_No_Utf8_Surrogates_Raw()
     );
-    known_nullptr(g_error_illegal_zero_byte) = Init_Context_Cell(
+    known_nullptr(g_error_illegal_zero_byte) = Init_Error_Cell(
         Alloc_Value(),
-        TYPE_ERROR,
         Error_Illegal_Zero_Byte_Raw()
     );
 }
@@ -1453,7 +1445,7 @@ IMPLEMENT_GENERIC(MOLDIFY, Is_Error)
         Option(const Symbol*) symbol = Symbol_For_Error_Element(item);
         if (symbol) {
             Slot *wslot = opt Select_Symbol_In_Context(
-                Varlist_Archetype(error),
+                v,  // the error value
                 unwrap symbol
             );
             if (wslot) {

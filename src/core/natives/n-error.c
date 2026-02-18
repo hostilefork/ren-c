@@ -119,9 +119,8 @@ DECLARE_NATIVE(ENRECOVER)
     if (not Is_Throwing_Panic(LEVEL)) {  // non-ERROR! throws
         if (ARG(RELAX))
             return BOUNCE_THROWN;  // e.g. RETURN, THROW
-        return Init_Context_Cell(
-            OUT, TYPE_ERROR, Error_No_Catch_For_Throw(LEVEL)
-        );
+
+        return Init_Error_Cell(OUT, Error_No_Catch_For_Throw(LEVEL));
     }
 
     Copy_Cell(OUT, VAL_THROWN_LABEL(LEVEL));

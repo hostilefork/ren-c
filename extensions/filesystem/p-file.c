@@ -257,9 +257,8 @@ DECLARE_NATIVE(FILE_ACTOR)
         //
         uint64_t file_size = File_Size_Cacheable_May_Panic(port);
         if (file->offset > file_size) {
-            result = Init_Context_Cell(
+            result = Init_Error_Cell(
                 Alloc_Value(),
-                TYPE_ERROR,
                 Error_Out_Of_Range(rebStable(rebI(file->offset)))
             );
             goto cleanup_read;
@@ -415,9 +414,8 @@ DECLARE_NATIVE(FILE_ACTOR)
             // and might give people a wrong impression.  Let it error.
             //
             if (file->offset > file_size) {
-                result = Init_Context_Cell(
+                result = Init_Error_Cell(
                     Alloc_Value(),
-                    TYPE_ERROR,
                     Error_Out_Of_Range(rebStable(rebI(file->offset)))
                 );
                 goto cleanup_write;

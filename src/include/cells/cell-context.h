@@ -43,31 +43,58 @@ INLINE Error* Cell_Error(const Cell* c) {
 }
 
 
-// Common routine for initializing OBJECT, MODULE!, PORT!, and ERROR!
+// Historically, VarLists stored an "archetype" cell in their 0 slot, which
+// was a match for the context itself.  This degraded into where the 0 slot
+// was only trustworthy as a value for the context's type, but not necessarily
+// the same cell...when the "archetype" of a frame was completely different.
 //
-// A fully constructed context can reconstitute the ANY-CONTEXT? cell
-// that is its canon form from a single pointer...the cell sitting in
-// the 0 slot of the context's varlist ("archetype")
+// Maintaining the archetype became too slippery.  This means a better idea
+// is needed, and generally we want to have other ways of reconstituting a
+// full cell from a context.  This is a step in that direction.
 //
-INLINE Dual* Init_Context_Cell(
-    Init(Dual) out,
-    Heart heart,
-    VarList* c
-){
-  #if RUNTIME_CHECKS
-    Extra_Init_Context_Cell_Checks_Debug(heart, c);
-  #endif
-    UNUSED(heart);
-    assert(Is_Base_Managed(c));
-    assert(CTX_TYPE(c) != TYPE_MODULE);  // catch straggling bad casts
-    return Copy_Cell(out, Varlist_Archetype(c));
+INLINE Dual* Init_Context_Cell_Untracked(Init(Dual) out, VarList* vlist) {
+    Heart heart = CTX_TYPE(vlist);
+    Reset_Cell_Header_Noquote(
+        out,
+        BASE_FLAG_BASE | BASE_FLAG_CELL
+            | FLAG_HEART(heart)
+            | (not CELL_FLAG_DONT_MARK_PAYLOAD_1)  // first is phase/varlist
+            | (CELL_FLAG_DONT_MARK_PAYLOAD_2)  // no coupling
+    );
+    CELL_FRAME_PAYLOAD_1_PHASE(out) = vlist;
+    if (heart == TYPE_FRAME)  // "self-lensing" Lens_Self()
+        CELL_FRAME_EXTRA_LENS_OR_LABEL(out) = u_cast(ParamList*, vlist);
+    else
+        CELL_FRAME_EXTRA_LENS_OR_LABEL(out) = nullptr;
+    CELL_FRAME_PAYLOAD_2_COUPLING(out) = nullptr;  // UNCOUPLED
+    return out;
 }
 
-#define Init_Object(out,c) \
-    Init_Context_Cell((out), TYPE_OBJECT, (c))
+#define Init_Context_Cell(out, c) \
+    TRACK(Init_Context_Cell_Untracked((out), (c)))
+
+#if RUNTIME_CHECKS
+    INLINE Dual* Init_Varlist_Cell_Untracked(
+        Init(Dual) out,
+        Heart heart,
+        VarList* c
+    ){
+        Extra_Init_Context_Cell_Checks_Debug(heart, c);
+        return Init_Context_Cell_Untracked(out, c);
+    }
+#else
+    #define Init_Varlist_Cell_Untracked(out, heart, c) \
+        Init_Context_Cell_Untracked((out), (c))
+#endif
 
 #define Init_Port(out,c) \
-    Init_Context_Cell((out), TYPE_PORT, (c))
+    TRACK(Init_Varlist_Cell_Untracked((out), TYPE_PORT, (c)))
+
+#define Init_Object(out,c) \
+    TRACK(Init_Varlist_Cell_Untracked((out), TYPE_OBJECT, (c)))
+
+#define Init_Error_Cell(out,c) \
+    TRACK(Init_Varlist_Cell_Untracked((out), TYPE_ERROR, (c)))
 
 
 INLINE Element* Init_Let(Init(Element) out, Let* let) {

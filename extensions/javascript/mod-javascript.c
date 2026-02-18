@@ -493,7 +493,7 @@ void RunPromise(void)
     if (r == BOUNCE_THROWN) {
         assert(Is_Throwing(TOP_LEVEL));
         Error* error = Error_No_Catch_For_Throw(TOP_LEVEL);
-        metaresult = Init_Context_Cell(TOP_LEVEL->out, TYPE_ERROR, error);
+        metaresult = Init_Context_Cell(TOP_LEVEL->out, error);
     }
     else
         metaresult = Lift_Cell(TOP_LEVEL->out);

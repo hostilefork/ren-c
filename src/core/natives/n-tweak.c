@@ -221,9 +221,7 @@ Option(Error*) Trap_Call_Pick_Refresh_Dual_In_Spare(  // [1]
 
     if (Is_Bedrock_Dual_A_Drain(dual_spare)) {  // SPACE
         Quasify_Isotopic_Fundamental(  // signify lifted FAILURE! [1]
-            Init_Context_Cell(
-                dual_spare, TYPE_ERROR, Error_Cant_Get_Drain_Raw()
-            )
+            Init_Error_Cell(dual_spare, Error_Cant_Get_Drain_Raw())
         );
         goto return_without_unbinding;
     }
@@ -938,7 +936,7 @@ DECLARE_NATIVE(TWEAK)
         steps
     );
     if (e) {
-        Init_Context_Cell(OUT, TYPE_ERROR, unwrap e);
+        Init_Error_Cell(OUT, unwrap e);
         Failify_Cell(OUT);
         return OUT;
     }

@@ -487,7 +487,7 @@ DECLARE_NATIVE(REFRAMER)
 
     Slot* slot = Varlist_Slot(exemplar, param_index);  // "specialize" slot [1]
     assert(Is_Cell_A_Bedrock_Hole(slot));
-    Copy_Cell(Slot_Init_Hack(slot), Varlist_Archetype(exemplar));
+    Init_Context_Cell(Slot_Init_Hack(slot), exemplar);
 
     Manage_Stub(exemplar);
 

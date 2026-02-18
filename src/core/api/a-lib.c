@@ -1592,7 +1592,7 @@ RebolValue* API_rebRecover(
     Run_Valist_And_Call_Va_End(
         v, flags, binding, p, vaptr
     ) except (Error* e) {;
-        Init_Context_Cell(v, TYPE_ERROR, e);
+        Init_Error_Cell(v, e);
         Set_Base_Root_Bit(v);
         Corrupt_If_Needful(*value);  // !!! should introduce POISON API values
         return v;
@@ -1630,7 +1630,7 @@ RebolValue* API_rebRecoverInterruptible(
     Run_Valist_And_Call_Va_End(
         v, flags, binding, p, vaptr
     ) except (Error* e) {
-        Init_Context_Cell(v, TYPE_ERROR, e);
+        Init_Error_Cell(v, e);
         Set_Base_Root_Bit(v);
         Corrupt_If_Needful(*value);  // !!! should introduce POISON API values
         return v;
@@ -3225,7 +3225,7 @@ Error* Error_OS(int errnum) {
 RebolValue* API_rebError_OS(int errnum)  // see also macro rebPanic_OS()
 {
     ENTER_API;
-    return Init_Context_Cell(Alloc_Value(), TYPE_ERROR, Error_OS(errnum));
+    return Init_Error_Cell(Alloc_Value(), Error_OS(errnum));
 }
 
 

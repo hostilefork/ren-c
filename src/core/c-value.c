@@ -250,19 +250,13 @@ void* Probe_Core_Debug(
         Probe_Print_Helper(p, expr, "Varlist (or Paramlist)", file, line);
         DECLARE_ELEMENT (elem);
         VarList* varlist = cast(VarList*, m_cast(void*, p));
-        if (CTX_TYPE(varlist) == TYPE_FRAME) {
-            if (
-                Not_Stub_Flag(varlist, MISC_NEEDS_MARK)
-                and Not_Base_Managed(varlist)
-            ){
-                Set_Base_Managed_Bit(varlist);
-            }
-            ParamList* paramlist = cast(ParamList*, varlist);
-            Lens* lens = Lens_Self(paramlist);  // !!! could we show *all*?
-            Init_Frame(elem, paramlist, lens, UNCOUPLED);
+        if (
+            Not_Stub_Flag(varlist, MISC_NEEDS_MARK)
+            and Not_Base_Managed(varlist)
+        ){
+            Set_Base_Managed_Bit(varlist);
         }
-        else
-            Init_Context_Cell(elem, CTX_TYPE(varlist), varlist);
+        Init_Context_Cell(elem, varlist);  // Lens_Self() if FRAME!
         Push_Lifeguard(elem);
         Probe_Molded_Value(mo, elem);
         Drop_Lifeguard(elem);

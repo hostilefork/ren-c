@@ -450,7 +450,7 @@ STATIC_ASSERT(31 < 32);  // otherwise LEVEL_FLAG_XXX too high
     // automate in debugging.  That's very speculative, but, possible.
     //
     ParamList* varlist;  // may be partial if under construction
-    Element* rootvar;  // cached Varlist_Archetype() if varlist is not null
+    Element* rootvar;  // cached varlist[0] element if varlist is not null
 
     // The "baseline" is a digest of the state of global variables at the
     // beginning of a level evaluation.  An example of one of the things the

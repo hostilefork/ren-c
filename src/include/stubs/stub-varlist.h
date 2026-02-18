@@ -335,7 +335,7 @@ INLINE void Tweak_Misc_Runlevel(Stub* varlist, Option(Level*) L) {
 }
 
 INLINE Level* Level_Of_Varlist_If_Running(VarList* varlist) {
-    assert(Is_Frame(Varlist_Archetype(varlist)));
+    assert(CTX_TYPE(varlist) == TYPE_FRAME);
     if (Get_Stub_Flag(varlist, MISC_NEEDS_MARK))
         return nullptr;  // Stub.misc is Misc_Varlist_Adjunct(), not Level*
 

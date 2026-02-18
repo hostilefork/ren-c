@@ -93,9 +93,10 @@ INLINE void Init_Thrown_With_Label(  // assumes `arg` in g_ts.thrown_arg
 // When failures are put in the throw state, they are the label--not the value.
 //
 INLINE void Init_Thrown_Panic(Level* L, Error* error) {
-    UNUSED(L);
     Init_Thrown_With_Label(
-        TOP_LEVEL, LIB(NULL), Varlist_Archetype(error)  // error is the "label"
+        TOP_LEVEL,
+        LIB(NULL),
+        Init_Error_Cell(L->out, error)  // error is the "label"
     );
 }
 

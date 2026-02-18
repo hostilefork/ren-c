@@ -1618,7 +1618,7 @@ Bounce Stepper_Executor(Level* L)
     Get_Var_To_Out_Use_Toplevel(
         CURRENT, GROUP_EVAL_YES
     ) except (Error* e) {
-        Init_Context_Cell(OUT, TYPE_ERROR, e);
+        Init_Error_Cell(OUT, e);
         Failify_Cell(OUT);
     } else {
         possibly(Not_Cell_Stable(OUT));  // unmeta'd item [1]
@@ -1822,7 +1822,7 @@ Bounce Stepper_Executor(Level* L)
     Set_Var_To_Out_Use_Toplevel(
         CURRENT, GROUP_EVAL_YES
     ) except (Error* e) {
-        Init_Context_Cell(OUT, TYPE_ERROR, e);
+        Init_Error_Cell(OUT, e);
         Failify_Cell(OUT);
     }
 
