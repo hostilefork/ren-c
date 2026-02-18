@@ -106,23 +106,20 @@ INLINE void Erase_Stub(Stub* s) {
 // when the system has to know the size but doesn't yet know the type.  Hence
 // this doesn't need to be particularly fast...so a lookup table is probably
 // not needed.  Still, the common cases (array and strings) are put first.
+//
+// 1. Stub_Flavor() is called *A LOT*, much more than Heart_Of() on Cells.
+//    At one point it did extremely basic checks, like Is_Base_Readable()
+//    and (TASTE_BYTE(s) != FLAVOR_0)... but these are fairly flimsy checks
+//    (e.g. random data would have the readable bit set half the time).  So
+//    they caught basically no bugs...whereas the CastHook for Stub is more
+//    exhaustive at the chokepoint of calling something a `Stub*`.
 
 
 INLINE Flavor Flavor_From_Flags(Flags flags)
   { return i_cast(Flavor, SECOND_BYTE(&flags)); }
 
-#define Stub_Flavor_Unchecked(s) \
-    i_cast(Flavor, TASTE_BYTE(s))
-
-#if NO_RUNTIME_CHECKS
-    #define Stub_Flavor  Stub_Flavor_Unchecked
-#else
-    INLINE Flavor Stub_Flavor(const Stub *s) {
-        assert(Is_Base_Readable(s));
-        assert(TASTE_BYTE(s) != FLAVOR_0);
-        return Stub_Flavor_Unchecked(s);
-    }
-#endif
+#define Stub_Flavor(s) \
+    i_cast(Flavor, TASTE_BYTE(s))  // called VERY often, avoid extra checks [1]
 
 INLINE Size Wide_For_Flavor(Flavor flavor) {
     assert(flavor != FLAVOR_0);
